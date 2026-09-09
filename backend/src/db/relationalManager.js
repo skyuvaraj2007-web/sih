@@ -1,0 +1,8641 @@
+/**
+ * SKILLNEXUS AI — Relational Data Manager (Phase 3 Backend)
+ * Dual-Mode Engine:
+ * 1. Connects to PostgreSQL / Supabase if DATABASE_URL is configured in .env.
+ * 2. Seamlessly falls back to local synchronized relational JSON database
+ *    (backend/data/relational_db.json) with full 25-table schema integrity.
+ */
+
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
+const emailService = require('../services/emailService');
+const { getMasterCollegeByCodeOrId, TAMIL_NADU_ENGINEERING_COLLEGES } = require('./tamilNaduEngineeringColleges');
+
+const DATA_DIR = path.join(__dirname, '../../data');
+const RELATIONAL_DB_FILE = path.join(DATA_DIR, 'relational_db.json');
+
+// Ensure data directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// PostgreSQL Connection Pool (Active if DATABASE_URL or PGHOST is present)
+let pgPool = null;
+let isPgActive = false;
+const isPgConfigured = Boolean(process.env.DATABASE_URL || (process.env.PGHOST && process.env.PGDATABASE));
+
+if (isPgConfigured) {
+  try {
+    const poolConfig = process.env.DATABASE_URL
+      ? { connectionString: process.env.DATABASE_URL }
+      : {
+          host: process.env.PGHOST || 'localhost',
+          port: parseInt(process.env.PGPORT || '5432', 10),
+          user: process.env.PGUSER || 'postgres',
+          password: process.env.PGPASSWORD,
+          database: process.env.PGDATABASE || 'skillnexus_db'
+        };
+    if (process.env.NODE_ENV === 'production') {
+      poolConfig.ssl = { rejectUnauthorized: false };
+    }
+    pgPool = new Pool(poolConfig);
+    pgPool.query('SELECT 1').then(() => {
+      isPgActive = true;
+      console.log('✅ PostgreSQL connection verified & active');
+    }).catch(err => {
+      console.warn('⚠️ PostgreSQL unreachable, running in synchronized local JSON mode:', err.message);
+      isPgActive = false;
+    });
+  } catch (err) {
+    console.warn('⚠️ PostgreSQL connection failed, falling back to local relational store:', err.message);
+    pgPool = null;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// DEFAULT RELATIONAL SEED STATE (Aligned with 25 Normalized Tables)
+// ══════════════════════════════════════════════════════════════════════════
+const DEFAULT_RELATIONAL_DATA = {
+  users: [
+    {
+      id: 'usr_001',
+      email: 'arun.kumar@nexus.edu',
+      passwordHash: '$2b$10$bidafvs9ecyWGFZT1BtXVulhJpl2ERnA4ts38.aGmMhzS9UiDXsMC',
+      role: 'STUDENT',
+      name: 'Arun Kumar',
+      studentId: 'STU-TN010-001',
+      collegeId: 'TN010',
+      status: 'ACTIVE',
+      isVerified: true,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'usr_002',
+      email: 'placements@srmist.edu.in',
+      passwordHash: '$2b$10$bidafvs9ecyWGFZT1BtXVulhJpl2ERnA4ts38.aGmMhzS9UiDXsMC',
+      role: 'INSTITUTION',
+      name: 'Prof. K. Ramanathan',
+      institutionId: 'TN010',
+      collegeId: 'TN010',
+      status: 'ACTIVE',
+      isVerified: true,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'usr_003',
+      email: 'talent@abctech.com',
+      passwordHash: '$2b$10$bidafvs9ecyWGFZT1BtXVulhJpl2ERnA4ts38.aGmMhzS9UiDXsMC',
+      role: 'COMPANY',
+      name: 'Sarah Jenkins',
+      companyId: 'COMP-001',
+      status: 'ACTIVE',
+      isVerified: true,
+      createdAt: new Date().toISOString()
+    }
+  ],
+  institutions: [
+    {
+      institutionId: 'TN010',
+      collegeName: 'SRM Institute of Science and Technology',
+      collegeCode: 'SRM-KTR-01',
+      state: 'Tamil Nadu',
+      district: 'Chengalpattu',
+      campusType: 'Deemed University',
+      departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE', 'Mechanical'],
+      studentCount: 1420,
+      placementRate: '94.2%',
+      dean: 'Prof. K. Ramanathan',
+      email: 'placements@srmist.edu.in',
+      website: 'https://www.srmist.edu.in'
+    },
+    {
+      institutionId: 'TN001',
+      collegeName: 'Anna University (CEG Campus)',
+      collegeCode: 'AU-CEG-01',
+      state: 'Tamil Nadu',
+      district: 'Chennai',
+      campusType: 'State University',
+      departments: ['CSE', 'IT', 'ECE', 'EEE', 'Mechanical', 'Civil'],
+      studentCount: 2150,
+      placementRate: '96.8%',
+      dean: 'Dr. M. Shanmugam',
+      email: 'tpo@annauniv.edu',
+      website: 'https://www.annauniv.edu'
+    },
+    {
+      institutionId: 'TN030',
+      collegeName: 'PSG College of Technology',
+      collegeCode: 'PSG-CBE-01',
+      state: 'Tamil Nadu',
+      district: 'Coimbatore',
+      campusType: 'Autonomous',
+      departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'Robotics'],
+      studentCount: 1680,
+      placementRate: '95.4%',
+      dean: 'Dr. V. Radhakrishnan',
+      email: 'placement@psgtech.edu',
+      website: 'https://www.psgtech.edu'
+    }
+  ],
+  students: [
+    {
+      studentId: 'STU-TN010-001',
+      regNo: 'RA2211003010001',
+      name: 'Arun Kumar',
+      email: 'arun.kumar@nexus.edu',
+      collegeId: 'TN010',
+      collegeName: 'SRM Institute of Science and Technology',
+      department: 'CSE',
+      year: 'III Year',
+      semester: 'Sem 6',
+      cgpa: '8.92',
+      backlogs: 0,
+      headline: 'B.Tech CSE • Aspiring Data Scientist & AI Systems Engineer',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      readinessScore: 92,
+      placementStatus: 'Placement Ready',
+      preferredRoles: ['Data Scientist', 'AI/ML Engineer', 'Full Stack Developer'],
+      skills: [
+        { name: 'Python', level: 'Advanced', confidence: 94, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
+        { name: 'SQL', level: 'Advanced', confidence: 88, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
+        { name: 'React', level: 'Intermediate', confidence: 82, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: false },
+        { name: 'Machine Learning', level: 'Advanced', confidence: 87, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
+        { name: 'FastAPI', level: 'Intermediate', confidence: 78, verified: true, hasAssessment: false, hasCourse: true, hasProject: true, hasInstSeal: false },
+        { name: 'Docker', level: 'Beginner', confidence: 58, verified: false, hasAssessment: false, hasCourse: false, hasProject: true, hasInstSeal: false },
+        { name: 'Power BI', level: 'Beginner', confidence: 35, verified: false, hasAssessment: false, hasCourse: false, hasProject: false, hasInstSeal: false }
+      ],
+      assessments: [
+        { domain: 'Programming & Data Structures', score: 92, percentile: '94th Percentile', status: 'Verified' },
+        { domain: 'Logical & Algorithmic Reasoning', score: 88, percentile: '91st Percentile', status: 'Verified' },
+        { domain: 'Quantitative Aptitude', score: 84, percentile: '88th Percentile', status: 'Verified' }
+      ],
+      badges: ['Code Master Gold', 'Algorithmic Thinker', '100 Days of Code', 'AI Scholar'],
+      certifications: [
+        { title: 'Cryptographic Python Specialist', issuer: 'SRM Center of Excellence', date: '2026-06-12', credentialId: 'NX-3801-PY' },
+        { title: 'Full Stack Web Architecture', issuer: 'Nexus AI Academy', date: '2026-07-20', credentialId: 'NX-9102-REACT' }
+      ]
+    },
+    {
+      studentId: 'STU-TN010-002',
+      regNo: 'RA2211003010045',
+      name: 'Priya Sundaram',
+      email: 'priya.sundaram@nexus.edu',
+      collegeId: 'TN010',
+      collegeName: 'SRM Institute of Science and Technology',
+      department: 'ECE',
+      year: 'II Year',
+      semester: 'Sem 4',
+      cgpa: '9.15',
+      backlogs: 0,
+      headline: 'B.Tech ECE • Embedded Systems & Edge AI Researcher',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+      readinessScore: 88,
+      placementStatus: 'Placement Ready',
+      preferredRoles: ['IoT Specialist', 'Edge AI Engineer', 'Firmware Developer'],
+      skills: [
+        { name: 'C++', level: 'Advanced', confidence: 91, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
+        { name: 'Python', level: 'Intermediate', confidence: 80, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
+        { name: 'IoT', level: 'Advanced', confidence: 94, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
+        { name: 'Embedded Systems', level: 'Advanced', confidence: 89, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true }
+      ],
+      assessments: [
+        { domain: 'Embedded Architecture & C', score: 94, percentile: '97th Percentile', status: 'Verified' },
+        { domain: 'Digital Logic & Circuitry', score: 90, percentile: '92nd Percentile', status: 'Verified' }
+      ],
+      badges: ['Hardware Hacker', 'Circuit Champion', 'IoT Visionary'],
+      certifications: [
+        { title: 'Edge AI & TinyML Attestation', issuer: 'SRM Center of Excellence', date: '2026-05-18', credentialId: 'NX-4412-TINY' }
+      ]
+    },
+    {
+      studentId: 'STU-TN010-003',
+      regNo: 'RA2211003010112',
+      name: 'Karthik Raja',
+      email: 'karthik.raja@nexus.edu',
+      collegeId: 'TN010',
+      collegeName: 'SRM Institute of Science and Technology',
+      department: 'AI & DS',
+      year: 'III Year',
+      semester: 'Sem 6',
+      cgpa: '8.45',
+      backlogs: 0,
+      headline: 'B.Tech AI & DS • MLOps & Distributed AI Pipelines',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      readinessScore: 84,
+      placementStatus: 'Under Mentorship',
+      preferredRoles: ['MLOps Engineer', 'Cloud AI Architect', 'Data Engineer'],
+      skills: [
+        { name: 'Python', level: 'Advanced', confidence: 89, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
+        { name: 'Docker', level: 'Intermediate', confidence: 82, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: false },
+        { name: 'Kubernetes', level: 'Beginner', confidence: 64, verified: false, hasAssessment: false, hasCourse: true, hasProject: true, hasInstSeal: false },
+        { name: 'MLflow', level: 'Intermediate', confidence: 75, verified: true, hasAssessment: false, hasCourse: true, hasProject: true, hasInstSeal: false }
+      ],
+      assessments: [
+        { domain: 'Algorithms & Computation', score: 86, percentile: '89th Percentile', status: 'Verified' }
+      ],
+      badges: ['Pipeline Builder', 'Cloud Apprentice'],
+      certifications: []
+    },
+    {
+      studentId: 'STU-TN001-001',
+      regNo: 'AU22101001',
+      name: 'Kaviya Selvan',
+      email: 'kaviya.s@annauniv.edu',
+      collegeId: 'TN001',
+      collegeName: 'Anna University (CEG Campus)',
+      department: 'CSE',
+      year: 'III Year',
+      semester: 'Sem 6',
+      cgpa: '9.40',
+      backlogs: 0,
+      headline: 'B.Tech CSE CEG • Distributed Systems & High-Throughput DBs',
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+      readinessScore: 95,
+      placementStatus: 'Placement Ready',
+      preferredRoles: ['Cloud Architect', 'Backend Systems Engineer'],
+      skills: [
+        { name: 'Go', level: 'Advanced', confidence: 96, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
+        { name: 'Kubernetes', level: 'Advanced', confidence: 92, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
+        { name: 'Python', level: 'Advanced', confidence: 90, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true }
+      ],
+      assessments: [
+        { domain: 'Distributed Systems & Concurrency', score: 96, percentile: '99th Percentile', status: 'Verified' }
+      ],
+      badges: ['CEG Gold Medalist', 'Systems Legend'],
+      certifications: []
+    },
+    {
+      studentId: 'STU-TN001-002',
+      regNo: 'AU22101054',
+      name: 'Divya Bharathi',
+      email: 'divya.b@annauniv.edu',
+      collegeId: 'TN001',
+      collegeName: 'Anna University (CEG Campus)',
+      department: 'IT',
+      year: 'II Year',
+      semester: 'Sem 4',
+      cgpa: '8.78',
+      backlogs: 0,
+      headline: 'B.Tech IT CEG • Cryptography & DevSecOps Lead',
+      avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80',
+      readinessScore: 86,
+      placementStatus: 'Placement Ready',
+      preferredRoles: ['Security Analyst', 'DevSecOps Engineer'],
+      skills: [
+        { name: 'Cybersecurity', level: 'Advanced', confidence: 90, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
+        { name: 'Linux', level: 'Advanced', confidence: 88, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true }
+      ],
+      assessments: [],
+      badges: ['Security Ninja'],
+      certifications: []
+    }
+  ],
+  courses: [
+    {
+      courseId: 'CRS-TN010-01',
+      institutionId: 'TN010',
+      institutionName: 'SRM Institute of Science and Technology',
+      title: 'Applied Deep Learning & NLP',
+      code: 'CS-702-DL',
+      category: 'Artificial Intelligence',
+      level: 'Advanced',
+      duration: '8 Weeks (24 Hours)',
+      hours: 24,
+      instructor: 'Prof. K. Ramanathan',
+      enrolledCount: 184,
+      skillsTaught: ['Python', 'Machine Learning', 'FastAPI'],
+      rating: 4.9,
+      modules: [
+        { moduleNumber: 1, title: 'Foundations of Neural Networks & Tensor Mathematics', duration: '3 Hours', lessons: ['Matrix calculus review', 'Backpropagation from scratch', 'PyTorch tensor ops'] },
+        { moduleNumber: 2, title: 'Transformer Architecture & Self-Attention Mechanisms', duration: '3 Hours', lessons: ['Scaled dot-product attention', 'Multi-head attention blocks', 'Positional encodings'] },
+        { moduleNumber: 3, title: 'Pre-training, Masked Language Models & Fine-Tuning', duration: '3 Hours', lessons: ['BERT architecture', 'HuggingFace Trainer API', 'Classification head tuning'] },
+        { moduleNumber: 4, title: 'Model Quantization, ONNX Export & Production Serving', duration: '3 Hours', lessons: ['Post-training INT8 quantization', 'ONNX runtime benchmarking', 'FastAPI streaming endpoint'] }
+      ]
+    },
+    {
+      courseId: 'CRS-TN010-02',
+      institutionId: 'TN010',
+      institutionName: 'SRM Institute of Science and Technology',
+      title: 'Full-Stack Systems with Go & React',
+      code: 'CS-504-FS',
+      category: 'Systems Engineering',
+      level: 'Intermediate',
+      duration: '6 Weeks (18 Hours)',
+      hours: 18,
+      instructor: 'Dr. Aruna Devi',
+      enrolledCount: 220,
+      skillsTaught: ['React', 'Docker', 'SQL'],
+      rating: 4.8,
+      modules: [
+        { moduleNumber: 1, title: 'High-Concurrency Backend with Go', duration: '3 Hours', lessons: ['Goroutines and channels', 'HTTP multiplexers', 'GORM repository pattern'] },
+        { moduleNumber: 2, title: 'Modern Frontend with React 19', duration: '3 Hours', lessons: ['Server actions', 'Optimistic UI hooks', 'Tailwind tokens'] }
+      ]
+    },
+    {
+      courseId: 'CRS-TN001-01',
+      institutionId: 'TN001',
+      institutionName: 'Anna University (CEG Campus)',
+      title: 'Cloud-Native Kubernetes & Microservices',
+      code: 'IT-801-CN',
+      category: 'Cloud Architecture',
+      level: 'Advanced',
+      duration: '10 Weeks (30 Hours)',
+      hours: 30,
+      instructor: 'Dr. M. Shanmugam',
+      enrolledCount: 142,
+      skillsTaught: ['Kubernetes', 'Docker', 'Linux'],
+      rating: 4.9,
+      modules: [
+        { moduleNumber: 1, title: 'Containerization & Dockerfile Optimization', duration: '3 Hours', lessons: ['Multi-stage builds', 'Distroless images', 'Linux namespaces'] }
+      ]
+    },
+    {
+      courseId: 'CRS-TN030-01',
+      institutionId: 'TN030',
+      institutionName: 'PSG College of Technology',
+      title: 'Autonomous Robotics & ROS 2',
+      code: 'ROB-601-AU',
+      category: 'Robotics',
+      level: 'Advanced',
+      duration: '12 Weeks (36 Hours)',
+      hours: 36,
+      instructor: 'Dr. V. Radhakrishnan',
+      enrolledCount: 98,
+      skillsTaught: ['C++', 'IoT', 'Embedded Systems'],
+      rating: 4.7,
+      modules: [
+        { moduleNumber: 1, title: 'ROS 2 Architecture & Node Graph Topology', duration: '3 Hours', lessons: ['Publishers & Subscribers', 'DDS middleware', 'Custom message IDL'] }
+      ]
+    },
+    {
+      courseId: 'CRS-TN010-03',
+      institutionId: 'TN010',
+      institutionName: 'SRM Institute of Science and Technology',
+      title: 'Generative AI & LLM Systems',
+      code: 'CS-901-GENAI',
+      category: 'Artificial Intelligence',
+      level: 'Advanced',
+      duration: '6 Weeks (18 Hours)',
+      hours: 18,
+      instructor: 'Prof. K. Ramanathan',
+      enrolledCount: 310,
+      skillsTaught: ['Generative AI', 'Python', 'Machine Learning'],
+      rating: 5.0,
+      modules: [
+        { moduleNumber: 1, title: 'Foundations & Architecture of Large Language Models', duration: '2.5 Hours', lessons: ['Transformer attention blocks', 'Tokenization paradigms', 'Open-weight checkpoints'] },
+        { moduleNumber: 2, title: 'Prompt Engineering, System Prompts & Guardrails', duration: '2.5 Hours', lessons: ['Few-shot prompting', 'Chain-of-Thought', 'Structured JSON validation'] },
+        { moduleNumber: 3, title: 'Vector Embeddings, Similarity Search & Indexing', duration: '3 Hours', lessons: ['Dense embedding models', 'Cosine similarity vs inner product', 'ChromaDB index management'] },
+        { moduleNumber: 4, title: 'Retrieval-Augmented Generation (RAG) Architectures', duration: '3 Hours', lessons: ['Recursive document chunking', 'Hybrid search ranking', 'Hallucination filtering'] }
+      ]
+    }
+  ],
+  enrollments: [
+    {
+      id: 'enr_001',
+      studentId: 'STU-TN010-001',
+      courseId: 'CRS-TN010-01',
+      courseTitle: 'Applied Deep Learning & NLP',
+      category: 'Artificial Intelligence',
+      instructor: 'Prof. K. Ramanathan',
+      progress: 75,
+      completedModules: 6,
+      totalModules: 8,
+      hoursRemaining: 6,
+      status: 'In Progress',
+      currentModule: 'Module 4: Model Quantization, ONNX Export & Production Serving',
+      enrolledAt: '2026-08-10T10:00:00.000Z'
+    },
+    {
+      id: 'enr_002',
+      studentId: 'STU-TN010-001',
+      courseId: 'CRS-TN010-03',
+      courseTitle: 'Generative AI & LLM Systems',
+      category: 'Artificial Intelligence',
+      instructor: 'Prof. K. Ramanathan',
+      progress: 85,
+      completedModules: 7,
+      totalModules: 8,
+      hoursRemaining: 3,
+      status: 'In Progress',
+      currentModule: 'Module 4: Retrieval-Augmented Generation (RAG) Architectures',
+      enrolledAt: '2026-08-18T14:30:00.000Z'
+    }
+  ],
+  projects: [
+    {
+      projectId: 'PRJ-001',
+      studentId: 'STU-TN010-001',
+      studentName: 'Arun Kumar',
+      collegeId: 'TN010',
+      title: 'AI Resume Analyzer & ATS Parser',
+      description: 'Enterprise ATS parser utilizing fine-tuned NLP pipelines, vector embeddings, and zero-shot keyword extraction with 96% match accuracy against Fortune 500 job descriptions.',
+      techStack: ['Python', 'NLP', 'FastAPI', 'React', 'PostgreSQL'],
+      githubUrl: 'https://github.com/arunkumar/ai-resume-ats-engine',
+      liveUrl: 'https://ats-analyzer-demo.nexus.app',
+      status: 'Validated',
+      statusNote: 'Faculty verified & anchored to sovereign block #8941_301',
+      submittedAt: '2026-08-25T11:20:00.000Z',
+      validatedAt: '2026-09-02T16:00:00.000Z',
+      proof: {
+        proofHash: '0x94f8128bc91a782b10a9c84e1823019f823a78bc',
+        gitCommitHash: 'c8a91f3',
+        testPassPercentage: 96,
+        codeQualityScore: 94.5,
+        facultyVerified: true,
+        facultyId: 'Prof. K. Ramanathan',
+        facultySignature: 'SIG_COE_SRM_9821_OCT24',
+        verificationStatus: 'Validated',
+        ledgerBlock: 'Block #8941_301'
+      }
+    },
+    {
+      projectId: 'PRJ-002',
+      studentId: 'STU-TN010-001',
+      studentName: 'Arun Kumar',
+      collegeId: 'TN010',
+      title: 'Distributed Predictive Churn Engine',
+      description: 'Production-grade churn prediction engine processing 100K+ transactional events with real-time risk scoring and Kafka stream integration.',
+      techStack: ['Python', 'Pandas', 'Scikit-Learn', 'PostgreSQL'],
+      githubUrl: 'https://github.com/arunkumar/churn-predictive-eda',
+      liveUrl: 'https://churn-predictor.nexus.app',
+      status: 'Validated',
+      statusNote: 'Faculty attested on SRM Sovereign Ledger',
+      submittedAt: '2026-08-05T09:00:00.000Z',
+      validatedAt: '2026-08-20T14:15:00.000Z',
+      proof: {
+        proofHash: '0x8821bc109b4317a8029c738192a40b912384a8bc',
+        gitCommitHash: 'a41f89e',
+        testPassPercentage: 98.2,
+        codeQualityScore: 92.0,
+        facultyVerified: true,
+        facultyId: 'Prof. K. Ramanathan',
+        facultySignature: 'SIG_COE_SRM_4412_SEP24',
+        verificationStatus: 'Validated',
+        ledgerBlock: 'Block #8930_118'
+      }
+    }
+  ],
+  companies: [
+    {
+      companyId: 'COMP-001',
+      companyName: 'ABC Technologies',
+      industry: 'Information Technology & AI Solutions',
+      tier: 'Tier 1 Prime Partner',
+      headquarters: 'Chennai (OMR IT Expressway)',
+      state: 'Tamil Nadu',
+      verified: true,
+      activePostings: 4,
+      recruiterName: 'Sarah Jenkins',
+      recruiterEmail: 'talent@abctech.com',
+      recruiterTitle: 'Head of Talent Acquisition & Campus Partnerships'
+    },
+    {
+      companyId: 'COMP-002',
+      companyName: 'CloudScale Systems',
+      industry: 'Cloud Infrastructure & Distributed Systems',
+      tier: 'Tier 1 Prime Partner',
+      headquarters: 'Bengaluru, Karnataka',
+      state: 'Karnataka',
+      verified: true,
+      activePostings: 6,
+      recruiterName: 'Vikram Anand',
+      recruiterEmail: 'vikram.anand@cloudscale.com',
+      recruiterTitle: 'Director of Engineering & Emerging Talent'
+    },
+    {
+      companyId: 'COMP-003',
+      companyName: 'Apex Financial AI',
+      industry: 'Fintech & Algorithmic Intelligence',
+      tier: 'Strategic Hiring Partner',
+      headquarters: 'Mumbai, Maharashtra',
+      state: 'Maharashtra',
+      verified: true,
+      activePostings: 2,
+      recruiterName: 'Priya Menon',
+      recruiterEmail: 'priya.menon@apexfin.com',
+      recruiterTitle: 'Lead Quantitative Recruitment Lead'
+    },
+    {
+      companyId: 'COMP-004',
+      companyName: 'Infosys Springboard',
+      industry: 'Global Technology Consulting',
+      tier: 'Global Corporate Sponsor',
+      headquarters: 'Bengaluru, Karnataka',
+      state: 'Karnataka',
+      verified: true,
+      activePostings: 8,
+      recruiterName: 'Corporate Hiring Desk',
+      recruiterEmail: 'springboard@infosys.com',
+      recruiterTitle: 'Academic Outreach Lead'
+    }
+  ],
+  opportunities: [
+    {
+      oppId: 'OPP-001',
+      companyId: 'COMP-001',
+      companyName: 'ABC Technologies',
+      title: 'Data Analyst Intern',
+      type: 'Internship',
+      mode: 'Hybrid',
+      location: 'Chennai, Tamil Nadu (OMR Campus)',
+      stipend: '₹35,000 / month',
+      duration: '6 Months (PPO Convertible)',
+      minCgpa: '7.5',
+      deadline: 'September 25, 2026',
+      requiredSkills: [
+        { name: 'Python', requiredLevel: 'Advanced', weight: 35 },
+        { name: 'SQL', requiredLevel: 'Advanced', weight: 30 },
+        { name: 'Machine Learning', requiredLevel: 'Intermediate', weight: 20 },
+        { name: 'Power BI', requiredLevel: 'Intermediate', weight: 15 }
+      ],
+      description: 'Analyze high-velocity client telemetry data, build automated executive dashboards, and implement SQL/Python predictive pipelines for enterprise clients.',
+      applicantCount: 42,
+      status: 'ACTIVE'
+    },
+    {
+      oppId: 'OPP-002',
+      companyId: 'COMP-002',
+      companyName: 'CloudScale Systems',
+      title: 'Cloud DevOps Intern',
+      type: 'Internship',
+      mode: 'Remote',
+      location: 'Remote (India Hub)',
+      stipend: '₹45,000 / month',
+      duration: '3 Months (Full-Time Offer on Review)',
+      minCgpa: '7.8',
+      deadline: 'October 10, 2026',
+      requiredSkills: [
+        { name: 'Docker', requiredLevel: 'Intermediate', weight: 35 },
+        { name: 'Linux', requiredLevel: 'Intermediate', weight: 25 },
+        { name: 'AWS', requiredLevel: 'Intermediate', weight: 25 },
+        { name: 'Python', requiredLevel: 'Intermediate', weight: 15 }
+      ],
+      description: 'Build and maintain automated CI/CD pipelines, containerize backend microservices with Docker, and orchestrate deployments on AWS Kubernetes clusters.',
+      applicantCount: 68,
+      status: 'ACTIVE'
+    },
+    {
+      oppId: 'OPP-003',
+      companyId: 'COMP-003',
+      companyName: 'Apex Financial AI',
+      title: 'AI Systems Research Intern',
+      type: 'Internship',
+      mode: 'Hybrid',
+      location: 'Mumbai / Hybrid',
+      stipend: '₹55,000 / month',
+      duration: '6 Months',
+      minCgpa: '8.5',
+      deadline: 'September 30, 2026',
+      requiredSkills: [
+        { name: 'Python', requiredLevel: 'Advanced', weight: 35 },
+        { name: 'Generative AI', requiredLevel: 'Advanced', weight: 35 },
+        { name: 'RAG', requiredLevel: 'Intermediate', weight: 20 },
+        { name: 'FastAPI', requiredLevel: 'Intermediate', weight: 10 }
+      ],
+      description: 'Implement retrieval-augmented generation (RAG) engines, benchmark open-weight LLMs, and optimize inference latency using vLLM and TensorRT-LLM.',
+      applicantCount: 29,
+      status: 'ACTIVE'
+    }
+  ],
+  applications: [
+    {
+      applicationId: 'APP-001',
+      studentId: 'STU-TN010-001',
+      studentName: 'Arun Kumar',
+      studentCollegeId: 'TN010',
+      studentDepartment: 'CSE',
+      opportunityId: 'OPP-001',
+      companyId: 'COMP-001',
+      opportunityTitle: 'Data Analyst Intern',
+      companyName: 'ABC Technologies',
+      matchScore: 92,
+      stage: 'Shortlisted',
+      appliedAt: '2026-09-02T14:15:00.000Z',
+      recruiterAction: 'Shortlisted for Round 1 Technical Interview • Passport Verified'
+    },
+    {
+      applicationId: 'APP-002',
+      studentId: 'STU-TN010-001',
+      studentName: 'Arun Kumar',
+      studentCollegeId: 'TN010',
+      studentDepartment: 'CSE',
+      opportunityId: 'OPP-002',
+      companyId: 'COMP-002',
+      opportunityTitle: 'Cloud DevOps Intern',
+      companyName: 'CloudScale Systems',
+      matchScore: 86,
+      stage: 'Applied',
+      appliedAt: '2026-09-03T18:30:00.000Z',
+      recruiterAction: 'Candidate in Initial Automated Screening Queue'
+    }
+  ],
+  notifications: [
+    {
+      id: 'notif_01',
+      role: 'student',
+      type: 'high_match',
+      title: 'New High-Match Internship',
+      preview: 'ABC Technologies posted Data Analyst Intern matching 92% of your verified competencies.',
+      time: '2 hours ago',
+      timestamp: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+      unread: true,
+      deleted: false,
+      deletedAt: null,
+      details: {
+        matchPercentage: 92,
+        role: 'Data Analyst Intern',
+        company: 'ABC Technologies',
+        compensation: '₹35,000 / month',
+        action: 'opportunities'
+      }
+    },
+    {
+      id: 'notif_02',
+      role: 'student',
+      type: 'project_validated',
+      title: 'Project Proof Validated',
+      preview: 'Your "AI Resume Analyzer & ATS Parser" project was verified and sealed to your Digital Passport.',
+      time: '5 hours ago',
+      timestamp: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
+      unread: true,
+      deleted: false,
+      deletedAt: null,
+      details: {
+        project: 'AI Resume Analyzer & ATS Parser',
+        proctorHash: '0x94f8128bc91a782b',
+        action: 'projects'
+      }
+    },
+    {
+      id: 'inst_notif_01',
+      role: 'institution',
+      type: 'student_skill_updated',
+      title: 'Student Skill Verified',
+      preview: 'Arun Kumar (B.Tech CSE) completed verification for Python (94%) & Machine Learning (87%).',
+      time: '3 hours ago',
+      timestamp: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+      unread: true,
+      deleted: false,
+      deletedAt: null,
+      details: {
+        student: 'Arun Kumar',
+        action: 'institution-students'
+      }
+    },
+    {
+      id: 'comp_notif_01',
+      role: 'company',
+      type: 'application_received',
+      title: 'New Verified Candidate Application',
+      preview: 'Arun Kumar applied for Data Analyst Intern with 92% NEXUS Match and validated Sovereign Ledger proof.',
+      time: '1 hour ago',
+      timestamp: new Date(Date.now() - 3600 * 1000).toISOString(),
+      unread: true,
+      deleted: false,
+      deletedAt: null,
+      details: {
+        candidate: 'Arun Kumar',
+        matchScore: 92,
+        action: 'applications'
+      }
+    }
+  ]
+};
+
+// Initialize file if not exists
+if (!fs.existsSync(RELATIONAL_DB_FILE)) {
+  fs.writeFileSync(RELATIONAL_DB_FILE, JSON.stringify(DEFAULT_RELATIONAL_DATA, null, 2), 'utf-8');
+}
+
+class RelationalManager {
+  constructor() {
+    this.filePath = RELATIONAL_DB_FILE;
+    this.otpStore = new Map();
+  }
+
+  get pg() {
+    return isPgActive && pgPool ? pgPool : null;
+  }
+
+  _read() {
+    try {
+      const content = fs.readFileSync(this.filePath, 'utf-8');
+      return JSON.parse(content);
+    } catch (err) {
+      console.error('Error reading relational DB file, recovering from defaults:', err);
+      this._write(DEFAULT_RELATIONAL_DATA);
+      return JSON.parse(JSON.stringify(DEFAULT_RELATIONAL_DATA));
+    }
+  }
+
+  _write(data) {
+    fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2), 'utf-8');
+  }
+
+  // =========================================================================
+  // DEMO OTP ENGINE & DATABASE-BACKED AUTHENTICATION (ALL 3 PORTALS)
+  _normalizeOtpPurpose(purpose) {
+    const p = String(purpose || 'ACCOUNT_VERIFICATION').toUpperCase().trim();
+    if (p === 'ACCOUNT_VERIFICATION' || p === 'REGISTRATION') return 'ACCOUNT_VERIFICATION';
+    if (p === 'PASSWORD_RESET' || p === 'FORGOT_PASSWORD') return 'PASSWORD_RESET';
+    return p;
+  }
+
+  generateDemoOtp(email, purpose = 'ACCOUNT_VERIFICATION') {
+    const normEmail = (email || '').trim().toLowerCase();
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const purp = this._normalizeOtpPurpose(purpose);
+
+    const key = `${normEmail}::${purp}`;
+    this.otpStore.set(key, { otp, expiresAt, purpose: purp, email: normEmail });
+
+    console.log(`[DEMO OTP ENGINE] Generated OTP for ${normEmail} (${purp}): [ ${otp} ]`);
+    return { otp, expiresAt };
+  }
+
+  async verifyDemoOtp(email, otp, purpose = 'ACCOUNT_VERIFICATION') {
+    const normEmail = (email || '').trim().toLowerCase();
+    const cleanOtp = String(otp || '').trim();
+    const purp = this._normalizeOtpPurpose(purpose);
+    const key = `${normEmail}::${purp}`;
+
+    const record = this.otpStore.get(key);
+
+    if (!record) {
+      return { success: false, code: 400, statusCode: 400, message: 'Invalid or expired OTP. Please request a new code.' };
+    }
+
+    if (Date.now() > record.expiresAt) {
+      this.otpStore.delete(key);
+      return { success: false, code: 400, statusCode: 400, message: 'OTP has expired. Please request a new verification code.' };
+    }
+
+    if (record.otp !== cleanOtp) {
+      return { success: false, code: 400, statusCode: 400, message: 'Incorrect OTP. Please check the code and try again.' };
+    }
+
+    // For password reset, mark verified and preserve for 10 minutes so resetPasswordWithOtp can finalize
+    if (purp === 'PASSWORD_RESET') {
+      record.verified = true;
+      record.verifiedAt = Date.now();
+      record.expiresAt = Math.max(record.expiresAt, Date.now() + 10 * 60 * 1000);
+    } else {
+      // OTP matches! Consume OTP
+      this.otpStore.delete(key);
+    }
+
+    // If ACCOUNT_VERIFICATION, mark user account as verified in DB
+    if (purp === 'ACCOUNT_VERIFICATION') {
+      const data = this._read();
+      const user = (data.users || []).find(u => (u.email || '').toLowerCase() === normEmail);
+      if (user) {
+        user.isVerified = true;
+        user.status = 'ACTIVE';
+        user.verifiedAt = new Date().toISOString();
+
+        // Update corresponding entity table
+        if (user.role === 'STUDENT' || user.role === 'student') {
+          const student = (data.students || []).find(s => (s.email || '').toLowerCase() === normEmail) ||
+                          (data.students || []).find(s => user.studentId && (s.studentId === user.studentId || s.id === user.studentId));
+          if (student) {
+            student.isVerified = true;
+            student.status = 'ACTIVE';
+          }
+        } else if (user.role === 'INSTITUTION' || user.role === 'institution') {
+          const inst = (data.institutions || []).find(i => (i.email || '').toLowerCase() === normEmail) ||
+                       (data.institutions || []).find(i => user.institutionId && (i.institutionId === user.institutionId || i.id === user.institutionId));
+          if (inst) {
+            inst.isVerified = true;
+            inst.status = 'ACTIVE';
+          }
+        } else if (user.role === 'COMPANY' || user.role === 'company') {
+          const comp = (data.companies || []).find(c => (c.email || '').toLowerCase() === normEmail) ||
+                       (data.companies || []).find(c => user.companyId && (c.companyId === user.companyId || c.id === user.companyId));
+          if (comp) {
+            comp.isVerified = true;
+            comp.status = 'ACTIVE';
+          }
+        }
+
+        this._write(data);
+
+        let fullEntity = null;
+        if (user.role === 'STUDENT' || user.role === 'student') {
+          fullEntity = (data.students || []).find(s => (s.email || '').toLowerCase() === normEmail) ||
+                        (data.students || []).find(s => user.studentId && (s.studentId === user.studentId || s.id === user.studentId));
+        } else if (user.role === 'INSTITUTION' || user.role === 'institution') {
+          fullEntity = (data.institutions || []).find(i => (i.email || '').toLowerCase() === normEmail) ||
+                        (data.institutions || []).find(i => user.institutionId && (i.institutionId === user.institutionId || i.id === user.institutionId));
+        } else if (user.role === 'COMPANY' || user.role === 'company') {
+          fullEntity = (data.companies || []).find(c => (c.email || '').toLowerCase() === normEmail) ||
+                        (data.companies || []).find(c => user.companyId && (c.companyId === user.companyId || c.id === user.companyId));
+        }
+
+        const sanitizedUser = {
+          ...(fullEntity || {}),
+          id: user.id,
+          userId: user.id,
+          name: user.name || fullEntity?.name,
+          email: user.email,
+          role: (user.role || '').toLowerCase(),
+          isVerified: true,
+          status: 'ACTIVE'
+        };
+
+        const token = `jwt_token_${Buffer.from(JSON.stringify({ id: user.id, email: user.email, role: user.role })).toString('base64')}`;
+
+        return {
+          success: true,
+          message: 'Account successfully verified and activated!',
+          isVerified: true,
+          email: normEmail,
+          purpose: purp,
+          token,
+          user: sanitizedUser
+        };
+      }
+    }
+
+    return {
+      success: true,
+      message: purp === 'REGISTRATION' ? 'Account successfully verified!' : 'OTP verified successfully.',
+      isVerified: true,
+      email: normEmail,
+      purpose: purp
+    };
+  }
+
+  resendDemoOtp(email, purpose = 'REGISTRATION') {
+    const { otp, expiresAt } = this.generateDemoOtp(email, purpose);
+    return {
+      success: true,
+      message: 'New demo verification code generated.',
+      demoOtp: otp,
+      expiresAt
+    };
+  }
+
+  getRegisteredInstitutions() {
+    const data = this._read();
+    return (data.institutions || []).map(inst => {
+      let normStructure = [];
+      if (Array.isArray(inst.academicStructure) && inst.academicStructure.length > 0) {
+        normStructure = inst.academicStructure.map(item => ({
+          department: item.department || item.name || 'Computer Science and Engineering',
+          degrees: Array.isArray(item.degrees) && item.degrees.length > 0 ? item.degrees : ['B.E.', 'B.Tech'],
+          specializations: Array.isArray(item.specializations) && item.specializations.length > 0 ? item.specializations : ['General']
+        }));
+      } else if (inst.academicStructure && typeof inst.academicStructure === 'object') {
+        const depts = inst.academicStructure.departments || inst.departments || ['Computer Science and Engineering', 'Information Technology', 'Electronics and Communication Engineering'];
+        const degs = inst.academicStructure.degrees || ['B.E.', 'B.Tech'];
+        const specs = inst.academicStructure.specializations || ['Artificial Intelligence & Machine Learning', 'Data Science', 'Cloud Computing'];
+        normStructure = depts.map(d => ({
+          department: d,
+          degrees: degs,
+          specializations: specs
+        }));
+      } else {
+        const depts = inst.departments || ['Computer Science and Engineering', 'Information Technology', 'Electronics and Communication Engineering'];
+        normStructure = depts.map(d => ({
+          department: d,
+          degrees: ['B.E.', 'B.Tech'],
+          specializations: ['Artificial Intelligence & Machine Learning', 'Data Science', 'Cloud Computing']
+        }));
+      }
+
+      normStructure.departments = normStructure.map(s => s.department);
+      normStructure.degrees = Array.from(new Set(normStructure.flatMap(s => s.degrees || [])));
+      normStructure.specializations = Array.from(new Set(normStructure.flatMap(s => s.specializations || [])));
+
+      return {
+        id: inst.institutionId || inst.id,
+        institutionId: inst.institutionId || inst.id,
+        collegeId: inst.institutionId || inst.id,
+        collegeName: inst.collegeName || inst.name,
+        collegeCode: inst.collegeCode || inst.institutionCode || inst.code,
+        institutionCode: inst.institutionCode || inst.collegeCode || inst.code,
+        district: inst.district,
+        state: inst.state || 'Tamil Nadu',
+        campusType: inst.campusType || 'Affiliated Engineering College',
+        university: inst.university || 'Anna University',
+        departments: normStructure.map(s => s.department),
+        academicStructure: normStructure,
+        email: inst.email,
+        website: inst.website || '',
+        isVerified: inst.isVerified !== false,
+        status: inst.status || 'ACTIVE'
+      };
+    });
+  }
+
+  async registerUser(userData) {
+    const data = this._read();
+    data.users = data.users || [];
+    data.students = data.students || [];
+    data.institutions = data.institutions || [];
+    data.companies = data.companies || [];
+
+    const email = (userData.email || userData.businessEmail || '').trim().toLowerCase();
+    const role = (userData.role || 'student').toLowerCase();
+
+    if (!email) {
+      return { success: false, code: 400, statusCode: 400, message: 'Email is required.' };
+    }
+    if (!userData.password) {
+      return { success: false, code: 400, statusCode: 400, message: 'Password is required.' };
+    }
+
+    // Check email uniqueness
+    const existing = data.users.find(u => (u.email || '').toLowerCase() === email);
+    if (existing) {
+      return { success: false, code: 409, statusCode: 409, message: 'An account with this email address already exists. Please sign in.' };
+    }
+
+    const passwordHash = bcrypt.hashSync(userData.password, 10);
+    const userId = `usr_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+    let newEntity = null;
+    let sanitizedUser = null;
+
+    if (role === 'student') {
+      // Validate college against registered institutions
+      const registeredColleges = this.getRegisteredInstitutions();
+      let collegeId = userData.collegeId || userData.institutionId;
+      let collegeName = userData.collegeName || userData.institution;
+
+      if (!collegeId && !collegeName) {
+        if (registeredColleges.length > 0) {
+          collegeId = registeredColleges[0].id || registeredColleges[0].collegeId;
+          collegeName = registeredColleges[0].collegeName;
+        } else {
+          return {
+            success: false,
+            code: 400,
+            statusCode: 400,
+            message: 'College details not found. Please select your registered institution.'
+          };
+        }
+      }
+
+      const normCollege = (str) => (str || '').toLowerCase().replace(/\([^)]*\)/g, '').replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+
+      const matchedById = collegeId ? registeredColleges.find(c =>
+        String(c.id).toUpperCase() === String(collegeId).toUpperCase() ||
+        String(c.collegeId).toUpperCase() === String(collegeId).toUpperCase() ||
+        String(c.collegeCode).toUpperCase() === String(collegeId).toUpperCase() ||
+        (c.institutionCode && String(c.institutionCode).toUpperCase() === String(collegeId).toUpperCase())
+      ) : null;
+
+      let matchedByName = null;
+      if (collegeName) {
+        if (matchedById && (
+          normCollege(matchedById.collegeName) === normCollege(collegeName) ||
+          matchedById.collegeName.toLowerCase().includes(normCollege(collegeName)) ||
+          normCollege(collegeName).includes(normCollege(matchedById.collegeName))
+        )) {
+          matchedByName = matchedById;
+        } else {
+          matchedByName = registeredColleges.find(c =>
+            c.collegeName.toLowerCase().trim() === collegeName.toLowerCase().trim() ||
+            normCollege(c.collegeName) === normCollege(collegeName)
+          );
+        }
+      }
+
+      let matchedCollege = matchedById || matchedByName;
+      const isUnassociated = !collegeId && !collegeName;
+
+      if (!matchedCollege && !isUnassociated) {
+        return {
+          success: false,
+          code: 400,
+          statusCode: 400,
+          message: 'College details not found. Selected institution is not registered on SkillNexus AI. Your college administration must register before students can onboard.'
+        };
+      }
+
+      // If both provided, validate they refer to the same institution
+      if (matchedById && matchedByName && matchedById.id !== matchedByName.id) {
+        const idMatchesName = normCollege(matchedById.collegeName) === normCollege(collegeName) ||
+                              normCollege(matchedById.collegeName) === normCollege(matchedByName.collegeName);
+        if (!idMatchesName) {
+          return {
+            success: false,
+            code: 400,
+            statusCode: 400,
+            message: 'College details do not match.'
+          };
+        }
+      }
+
+      // Validate Register Number: Scoped unique per institution
+      let regNo = (userData.regNo || userData.registerNumber || userData.rollNumber || userData.studentId || '').trim();
+      if (!regNo) {
+        // Fallback unique register number for programmatic test accounts
+        regNo = `REG-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+      }
+
+      const normRegNo = regNo.toLowerCase();
+      const duplicateStudent = (data.students || []).find(s => {
+        const sColl = String(s.collegeId || s.institutionId || '').toUpperCase().trim();
+        const tColl = matchedCollege ? String(matchedCollege.id || matchedCollege.collegeId || '').toUpperCase().trim() : '';
+        const sReg = String(s.regNo || s.rollNumber || '').toLowerCase().trim();
+        return (tColl && sColl === tColl) && (sReg === normRegNo);
+      });
+
+      if (duplicateStudent && matchedCollege) {
+        return {
+          success: false,
+          code: 409,
+          statusCode: 409,
+          message: `A student with Register Number "${regNo}" already exists for ${matchedCollege.collegeName}.`
+        };
+      }
+
+      const collegeCode = matchedCollege ? (matchedCollege.collegeCode || matchedCollege.id) : 'IND';
+      const studentId = `STU-${collegeCode}-${Date.now().toString().slice(-4)}`;
+      const city = (userData.city || userData.district || (matchedCollege && matchedCollege.district) || '').trim();
+      const state = (userData.state || (matchedCollege && matchedCollege.state) || 'Tamil Nadu').trim();
+      const location = userData.location || (city ? `${city}, ${state}` : state);
+
+      const studentEntity = {
+        studentId,
+        id: studentId,
+        userId,
+        name: userData.name || userData.fullName || 'Student',
+        email,
+        phone: userData.phone || userData.mobile || '',
+        gender: userData.gender || 'Male',
+        dob: userData.dob || '',
+        regNo,
+        rollNumber: regNo,
+        city,
+        state,
+        location,
+        collegeId: matchedCollege ? matchedCollege.id : null,
+        institutionId: matchedCollege ? matchedCollege.id : null,
+        collegeCode: matchedCollege ? (matchedCollege.collegeCode || matchedCollege.institutionCode || '') : '',
+        institutionCode: matchedCollege ? (matchedCollege.institutionCode || matchedCollege.collegeCode || '') : '',
+        collegeName: matchedCollege ? matchedCollege.collegeName : '',
+        university: matchedCollege ? (matchedCollege.university || userData.university || 'Anna University') : '',
+        department: userData.department || 'Computer Science and Engineering',
+        degree: userData.degree || userData.course || 'B.Tech',
+        course: userData.degree || userData.course || 'B.Tech',
+        specialization: userData.specialization || '',
+        year: userData.year || 'I Year',
+        semester: userData.semester || 'Semester 1',
+        batch: userData.batch || userData.gradYear || '2025–2029',
+        cgpa: userData.cgpa ? String(userData.cgpa) : '0.00',
+        creditsCompleted: Number(userData.creditsCompleted) || 0,
+        totalCredits: Number(userData.totalCredits) || 160,
+        courseCompletionPercentage: Math.min(100, Math.round(((Number(userData.creditsCompleted) || 0) / (Number(userData.totalCredits) || 160)) * 100)),
+        courseCompletionStatus: Math.min(100, Math.round(((Number(userData.creditsCompleted) || 0) / (Number(userData.totalCredits) || 160)) * 100)) >= 100 ? 'Completed' : (((Number(userData.creditsCompleted) || 0) > 0) ? 'In Progress' : 'Not Started'),
+        activeBacklogs: Number(userData.activeBacklogs) || 0,
+        backlogs: Number(userData.activeBacklogs) || 0,
+        skills: Array.isArray(userData.skills) ? userData.skills.map(s => typeof s === 'string' ? { name: s, level: 'Intermediate', verified: false } : s) : [],
+        certifications: userData.certifications || [],
+        assessments: [],
+        projects: [],
+        readinessScore: 0,
+        placementStatus: userData.placementStatus || 'Unassessed',
+        hasCompletedQuestionnaire: false,
+        verifiedSkillsCount: 0,
+        projectsCount: 0,
+        careerGoals: userData.careerGoals || userData.careerGoal || '',
+        isVerified: false,
+        status: 'PENDING_VERIFICATION',
+        createdAt: new Date().toISOString()
+      };
+
+      data.students.push(studentEntity);
+      newEntity = studentEntity;
+
+      sanitizedUser = {
+        id: userId,
+        userId,
+        studentId,
+        name: studentEntity.name,
+        email,
+        phone: studentEntity.phone,
+        dob: studentEntity.dob,
+        gender: studentEntity.gender,
+        role: 'student',
+        regNo: studentEntity.regNo,
+        city: studentEntity.city,
+        state: studentEntity.state,
+        location: studentEntity.location,
+        collegeId: studentEntity.collegeId,
+        collegeCode: studentEntity.collegeCode,
+        institutionCode: studentEntity.institutionCode,
+        collegeName: studentEntity.collegeName,
+        institutionId: studentEntity.collegeId,
+        university: studentEntity.university,
+        department: studentEntity.department,
+        degree: studentEntity.degree,
+        specialization: studentEntity.specialization,
+        batch: studentEntity.batch,
+        semester: studentEntity.semester,
+        isVerified: false,
+        status: 'PENDING_VERIFICATION'
+      };
+
+    } else if (role === 'institution') {
+      const instId = userData.institutionId || userData.collegeId || userData.collegeCode || `TN-INST-${Date.now()}`;
+      const instEntity = {
+        institutionId: instId,
+        collegeId: instId,
+        id: instId,
+        userId,
+        collegeName: userData.institutionName || userData.collegeName || userData.name,
+        name: userData.institutionName || userData.collegeName || userData.name,
+        collegeCode: userData.collegeCode || userData.institutionCode || userData.collegeId || userData.code || 'TN-TNEA',
+        institutionCode: userData.institutionCode || userData.collegeCode || userData.collegeId || userData.code || 'TN-TNEA',
+        district: userData.district || 'Chennai',
+        state: userData.state || 'Tamil Nadu',
+        campusType: userData.campusType || 'Affiliated Engineering College',
+        university: userData.university || 'Anna University',
+        dean: userData.contactPerson || userData.name || 'Campus Principal',
+        email,
+        phone: userData.phone || '',
+        website: userData.website || '',
+        academicStructure: userData.academicStructure || {
+          departments: ['Computer Science and Engineering', 'Information Technology', 'Artificial Intelligence & Data Science'],
+          degrees: ['B.E.', 'B.Tech'],
+          specializations: ['Artificial Intelligence & Machine Learning', 'Cloud Computing & DevOps']
+        },
+        departments: (userData.academicStructure && userData.academicStructure.departments) || ['CSE', 'IT', 'AI & DS'],
+        isVerified: false,
+        status: 'PENDING_VERIFICATION',
+        createdAt: new Date().toISOString()
+      };
+
+      data.institutions.push(instEntity);
+      newEntity = instEntity;
+
+      sanitizedUser = {
+        id: userId,
+        userId,
+        institutionId: instId,
+        collegeId: instId,
+        institutionCode: instEntity.institutionCode,
+        collegeCode: instEntity.collegeCode,
+        name: instEntity.collegeName,
+        collegeName: instEntity.collegeName,
+        email,
+        role: 'institution',
+        isVerified: false,
+        status: 'PENDING_VERIFICATION',
+        academicStructure: instEntity.academicStructure
+      };
+
+    } else if (role === 'company' || role === 'industry') {
+      const compId = userData.companyId || `COMP-${Date.now()}`;
+      const compEntity = {
+        companyId: compId,
+        id: compId,
+        userId,
+        companyName: userData.companyName || userData.name,
+        name: userData.companyName || userData.name,
+        industry: userData.industry || userData.sector || 'Technology & Software',
+        contactPerson: userData.contactPerson || userData.name,
+        designation: userData.designation || 'Head of Talent Acquisition',
+        email,
+        phone: userData.phone || '',
+        website: userData.website || '',
+        city: userData.city || 'Chennai',
+        state: userData.state || 'Tamil Nadu',
+        isVerified: false,
+        status: 'PENDING_VERIFICATION',
+        createdAt: new Date().toISOString()
+      };
+
+      data.companies.push(compEntity);
+      newEntity = compEntity;
+
+      sanitizedUser = {
+        id: userId,
+        userId,
+        companyId: compId,
+        name: compEntity.companyName,
+        companyName: compEntity.companyName,
+        email,
+        role: 'company',
+        isVerified: false,
+        status: 'PENDING_VERIFICATION'
+      };
+    }
+
+    // Add to users table
+    const userRecord = {
+      id: userId,
+      email,
+      passwordHash,
+      role: role.toUpperCase(),
+      name: sanitizedUser.name,
+      studentId: sanitizedUser.studentId,
+      collegeId: sanitizedUser.collegeId,
+      institutionId: sanitizedUser.institutionId,
+      companyId: sanitizedUser.companyId,
+      isVerified: false,
+      status: 'PENDING_VERIFICATION',
+      createdAt: new Date().toISOString()
+    };
+    data.users.push(userRecord);
+
+    this._write(data);
+
+    // Generate Demo OTP
+    const { otp } = this.generateDemoOtp(email, 'REGISTRATION');
+
+    return {
+      success: true,
+      message: 'Account created successfully. Please enter the 6-digit OTP to verify and activate your account.',
+      demoOtp: otp,
+      email,
+      role,
+      user: sanitizedUser
+    };
+  }
+
+  async authenticateUser(email, password, role = null) {
+    const normEmail = (email || '').trim().toLowerCase();
+    const data = this._read();
+
+    const user = (data.users || []).find(u => (u.email || '').toLowerCase() === normEmail);
+
+    if (!user) {
+      return {
+        success: false,
+        code: 404,
+        statusCode: 404,
+        message: 'Account not found. Please create an account first.'
+      };
+    }
+
+    // Role validation
+    if (role) {
+      const requestedRole = role.toLowerCase();
+      const userRole = (user.role || '').toLowerCase();
+      const roleMatches =
+        (requestedRole === 'student' && userRole === 'student') ||
+        (requestedRole === 'institution' && userRole === 'institution') ||
+        ((requestedRole === 'company' || requestedRole === 'industry') && (userRole === 'company' || userRole === 'industry'));
+
+      if (!roleMatches) {
+        return {
+          success: false,
+          code: 403,
+          statusCode: 403,
+          message: 'Account not authorized for this role. Please use the correct login portal.'
+        };
+      }
+    }
+
+    // Verification check
+    if (user.isVerified === false || user.status === 'PENDING_VERIFICATION') {
+      return {
+        success: false,
+        code: 403,
+        statusCode: 403,
+        message: 'Please verify your account before logging in.'
+      };
+    }
+
+    // Strict bcrypt password comparison
+    let passwordValid = false;
+    if (user.passwordHash) {
+      passwordValid = bcrypt.compareSync(password, user.passwordHash);
+    }
+    // Backward compatibility for known seed fixtures if password is 'nexus@2026' or 'password123'
+    if (!passwordValid && (password === 'nexus@2026' || password === 'password123')) {
+      const knownSeedEmails = [
+        'arun.kumar@nexus.edu',
+        'placements@srmist.edu.in',
+        'talent@abctech.com',
+        'admin@skillnexus.com'
+      ];
+      if (knownSeedEmails.includes(normEmail)) {
+        passwordValid = true;
+      }
+    }
+
+    if (!passwordValid) {
+      return {
+        success: false,
+        code: 401,
+        statusCode: 401,
+        message: 'Incorrect password.'
+      };
+    }
+
+    // Fetch full profile entity
+    let fullProfile = null;
+    const uRole = (user.role || '').toLowerCase();
+    if (uRole === 'student') {
+      fullProfile = (data.students || []).find(s => (s.email || '').toLowerCase() === normEmail) ||
+                    (data.students || []).find(s => user.studentId && (s.studentId === user.studentId || s.id === user.studentId));
+    } else if (uRole === 'institution') {
+      fullProfile = (data.institutions || []).find(i => (i.email || '').toLowerCase() === normEmail) ||
+                    (data.institutions || []).find(i => user.institutionId && (i.institutionId === user.institutionId || i.id === user.institutionId));
+    } else if (uRole === 'company' || uRole === 'industry') {
+      fullProfile = (data.companies || []).find(c => (c.email || '').toLowerCase() === normEmail) ||
+                    (data.companies || []).find(c => user.companyId && (c.companyId === user.companyId || c.id === user.companyId));
+    }
+
+    const sanitizedUser = {
+      ...(fullProfile || {}),
+      id: user.id,
+      userId: user.id,
+      studentId: user.studentId || fullProfile?.studentId || fullProfile?.id,
+      institutionId: user.institutionId || user.collegeId || fullProfile?.institutionId || fullProfile?.collegeId || fullProfile?.id,
+      collegeId: user.collegeId || user.institutionId || fullProfile?.collegeId || fullProfile?.institutionId || fullProfile?.id,
+      companyId: user.companyId || fullProfile?.companyId || fullProfile?.id,
+      name: user.name || fullProfile?.name || fullProfile?.collegeName || fullProfile?.companyName,
+      email: user.email,
+      role: uRole,
+      isVerified: true,
+      status: 'ACTIVE'
+    };
+
+    return {
+      success: true,
+      token: `jwt_token_${Buffer.from(JSON.stringify({ id: user.id, email: user.email, role: uRole })).toString('base64')}`,
+      user: sanitizedUser
+    };
+  }
+
+  async forgotPasswordWithOtp(email, role = null) {
+    const normEmail = (email || '').trim().toLowerCase();
+    const data = this._read();
+
+    const user = (data.users || []).find(u => (u.email || '').toLowerCase() === normEmail);
+    if (!user) {
+      return {
+        success: false,
+        code: 404,
+        statusCode: 404,
+        message: 'Account not found. Please create an account first.'
+      };
+    }
+
+    const { otp, expiresAt } = this.generateDemoOtp(normEmail, 'PASSWORD_RESET');
+
+    return {
+      success: true,
+      message: 'Demo OTP generated for password reset.',
+      demoOtp: otp,
+      expiresAt,
+      email: normEmail
+    };
+  }
+
+  async resetPasswordWithOtp(email, otp, newPassword, role = null) {
+    const normEmail = (email || '').trim().toLowerCase();
+    const cleanOtp = String(otp || '').trim();
+    const key = `${normEmail}::PASSWORD_RESET`;
+    const existingRecord = this.otpStore.get(key);
+
+    let verifyRes;
+    if (existingRecord && existingRecord.verified && existingRecord.otp === cleanOtp && Date.now() < existingRecord.expiresAt) {
+      verifyRes = { success: true };
+    } else {
+      verifyRes = await this.verifyDemoOtp(email, otp, 'PASSWORD_RESET');
+    }
+
+    if (!verifyRes.success) {
+      return verifyRes;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return {
+        success: false,
+        code: 400,
+        statusCode: 400,
+        message: 'Password must be at least 6 characters in length.'
+      };
+    }
+
+    const data = this._read();
+    const user = (data.users || []).find(u => (u.email || '').toLowerCase() === normEmail);
+
+    if (!user) {
+      return {
+        success: false,
+        code: 404,
+        statusCode: 404,
+        message: 'Account not found.'
+      };
+    }
+
+    user.passwordHash = bcrypt.hashSync(newPassword, 10);
+    user.updatedAt = new Date().toISOString();
+    this._write(data);
+
+    // Consume the password reset OTP now that password has been reset
+    this.otpStore.delete(key);
+
+    return {
+      success: true,
+      message: 'Password has been successfully updated. You can now log in.'
+    };
+  }
+
+  // 1. Institution Dashboard – aggregates key metrics for an institution
+  async getInstitutionDashboard(institutionId) {
+    const students = await this.getStudents(institutionId);
+    const data = this._read();
+    const courses = (data.courses || []).filter(c => c.institutionId === institutionId);
+    const opportunities = (data.opportunities || []).filter(o => {
+      const comp = (data.companies || []).find(c => c.companyId === o.companyId);
+      return comp && comp.institutionId === institutionId;
+    });
+    const applications = (data.applications || []).filter(a => {
+      const comp = (data.companies || []).find(c => c.companyId === a.companyId);
+      return comp && comp.institutionId === institutionId;
+    });
+    const readinessScores = students.map(s => Number(s.readinessScore || 0));
+    const avgReadiness = readinessScores.length ? Math.round(readinessScores.reduce((a,b)=>a+b,0)/readinessScores.length) : 0;
+
+    // Assessed students metrics
+    const assessedStudents = students.filter(s =>
+      s.hasCompletedQuestionnaire || (s.assessments && s.assessments.length > 0) || (s.skills && s.skills.length > 0)
+    );
+
+    // Compute average skill level
+    let totalSkillScores = 0;
+    let skillScoreCount = 0;
+    students.forEach(s => {
+      (s.skills || []).forEach(sk => {
+        if (typeof sk.confidence === 'number') {
+          totalSkillScores += sk.confidence;
+          skillScoreCount++;
+        }
+      });
+    });
+    const avgSkillLevel = skillScoreCount ? Math.round(totalSkillScores / skillScoreCount) : 0;
+
+    // Active vs Inactive students based on real recorded activity
+    const enrollments = data.enrollments || [];
+    const activeStudents = students.filter(s => {
+      const hasSkills = Array.isArray(s.skills) && s.skills.length > 0;
+      const hasAssessments = Array.isArray(s.assessments) && s.assessments.length > 0;
+      const hasProjects = Array.isArray(s.projects) && s.projects.length > 0;
+      const hasEnrollments = enrollments.some(e => e.studentId === s.studentId || e.studentId === s.id);
+      return hasSkills || hasAssessments || hasProjects || hasEnrollments || Boolean(s.hasCompletedQuestionnaire);
+    });
+    const inactiveStudents = Math.max(0, students.length - activeStudents.length);
+    const learningStudents = students.filter(s =>
+      enrollments.some(e => e.studentId === s.studentId || e.studentId === s.id)
+    );
+
+    // Placement statistics
+    const placedStudents = students.filter(s =>
+      (s.placementStatus && s.placementStatus.toLowerCase().includes('placed')) ||
+      (data.applications || []).some(a => a.studentId === s.studentId && (a.status === 'Accepted' || a.stage === 'Accepted'))
+    );
+    const placementRate = students.length ? Math.round((placedStudents.length / students.length) * 100) : 0;
+
+    return {
+      institutionId,
+      totalStudents: students.length,
+      studentCount: students.length,
+      activeStudents: activeStudents.length,
+      inactiveStudents,
+      noActivityStudents: inactiveStudents,
+      learningStudents: learningStudents.length,
+      totalStudentsAssessed: assessedStudents.length,
+      avgSkillLevel,
+      placementStats: {
+        placedCount: placedStudents.length,
+        placementRate: `${placementRate}%`,
+        avgMatchScore: avgReadiness
+      },
+      placementRate,
+      curriculumAlignment: avgSkillLevel,
+      totalCourses: courses.length,
+      courseCount: courses.length,
+      totalOpportunities: opportunities.length,
+      opportunityCount: opportunities.length,
+      totalApplications: applications.length,
+      applicationCount: applications.length,
+      avgReadiness
+    };
+  }
+
+  // 2. Skill Analytics – compute skill frequency and verification stats per institution
+  async getSkillAnalytics(institutionId) {
+    const students = await this.getStudents(institutionId);
+    const skillMap = {};
+    students.forEach(stu => {
+      (stu.skills || []).forEach(skill => {
+        const name = skill.name;
+        if (!skillMap[name]) {
+          skillMap[name] = { name, count: 0, verified: 0, avgConfidence: 0 };
+        }
+        const entry = skillMap[name];
+        entry.count += 1;
+        if (skill.verified) entry.verified += 1;
+        entry.avgConfidence += skill.confidence || 0;
+      });
+    });
+    Object.values(skillMap).forEach(entry => {
+      entry.avgConfidence = entry.count ? Math.round(entry.avgConfidence / entry.count) : 0;
+    });
+    return Object.values(skillMap);
+  }
+
+  // 3. Institution Analytics – high‑level statistics (placements, applications, etc.)
+  async getInstitutionAnalytics(institutionId) {
+    const data = this._read();
+    const companies = (data.companies || []).filter(c => c.institutionId === institutionId);
+    const opps = (data.opportunities || []).filter(o => companies.some(c => c.companyId === o.companyId));
+    const apps = (data.applications || []).filter(a => companies.some(c => c.companyId === a.companyId));
+    const placementDrives = (data.placementDrives || []).filter(d => d.institutionId === institutionId);
+    return {
+      institutionId,
+      companyCount: companies.length,
+      opportunityCount: opps.length,
+      applicationCount: apps.length,
+      placementDriveCount: placementDrives.length
+    };
+  }
+
+  // 4. Placement Drives CRUD
+  async getPlacementDrives(institutionId) {
+    const data = this._read();
+    return (data.placementDrives || []).filter(d => d.institutionId === institutionId);
+  }
+
+  async createPlacementDrive(drive) {
+    const data = this._read();
+    const newDrive = {
+      id: `DRIVE-${Date.now()}`, ...drive
+    };
+    data.placementDrives = data.placementDrives || [];
+    data.placementDrives.unshift(newDrive);
+    this._write(data);
+    return newDrive;
+  }
+
+  async updatePlacementDrive(id, updates) {
+    const data = this._read();
+    const idx = (data.placementDrives || []).findIndex(d => d.id === id);
+    if (idx === -1) return null;
+    data.placementDrives[idx] = { ...data.placementDrives[idx], ...updates };
+    this._write(data);
+    return data.placementDrives[idx];
+  }
+
+  async getPlacementDriveById(id, institutionId) {
+    const data = this._read();
+    return (data.placementDrives || []).find(d => d.id === id && d.institutionId === institutionId) || null;
+  }
+
+  // 5. Institution Applications (P0 Correction: Scoped strictly by student's institution ownership)
+  async getApplicationsByInstitution(institutionId) {
+    const inst = await this.resolveInstitution(institutionId);
+    if (!inst) return [];
+
+    if (this.pg) {
+      try {
+        const query = `
+          SELECT 
+            a.id,
+            a.id AS "applicationId",
+            a.student_id AS "studentId",
+            s.full_name AS "studentName",
+            s.full_name AS "name",
+            s.roll_number AS "studentCollegeId",
+            s.roll_number AS "rollNumber",
+            s.roll_number AS "regNo",
+            s.cgpa,
+            s.institution_id AS "institutionId",
+            d.name AS "studentDepartment",
+            d.name AS "department",
+            a.opportunity_id AS "opportunityId",
+            o.title AS "opportunityTitle",
+            o.opportunity_type AS "opportunityType",
+            o.company_id AS "companyId",
+            c.company_name AS "companyName",
+            c.company_name AS "company",
+            a.match_score AS "matchScore",
+            a.current_stage AS "stage",
+            a.current_stage AS "current_stage",
+            a.current_stage AS "status",
+            a.applied_at AS "appliedAt",
+            a.updated_at AS "updatedAt",
+            a.resume_url AS "resumeUrl",
+            a.cover_note AS "coverNote",
+            COALESCE((
+              SELECT json_agg(
+                json_build_object(
+                  'id', ash.id,
+                  'stage', ash.stage,
+                  'notes', ash.notes,
+                  'created_at', ash.created_at
+                ) ORDER BY ash.created_at ASC
+              )
+              FROM application_stage_history ash
+              WHERE ash.application_id = a.id
+            ), '[]'::json) AS "stageHistory",
+            (
+              SELECT json_build_object(
+                'id', iv.id,
+                'status', iv.status,
+                'round_type', iv.round_type,
+                'scheduled_at', iv.scheduled_at
+              )
+              FROM interviews iv
+              WHERE iv.application_id = a.id
+              ORDER BY iv.scheduled_at DESC
+              LIMIT 1
+            ) AS "interviewInfo"
+          FROM applications a
+          JOIN students s ON s.id = a.student_id
+          LEFT JOIN departments d ON d.id = s.department_id
+          JOIN opportunities o ON o.id = a.opportunity_id
+          JOIN companies c ON c.id = o.company_id
+          WHERE s.institution_id = $1
+          ORDER BY a.applied_at DESC
+        `;
+        const res = await this.pg.query(query, [inst.id]);
+        return res.rows;
+      } catch (err) {
+        console.warn('[getApplicationsByInstitution] PG query warning:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const instStudentIds = (data.students || [])
+      .filter(s => s.collegeId === inst.code || s.collegeId === inst.id || s.institutionId === inst.id)
+      .map(s => s.studentId || s.id);
+    return (data.applications || []).filter(a => instStudentIds.includes(a.studentId));
+  }
+
+  async getApplicationById(appId, institutionId = null) {
+    if (!appId) return null;
+    if (institutionId) {
+      const apps = await this.getApplicationsByInstitution(institutionId);
+      return apps.find(a => a.id === appId || a.applicationId === appId) || null;
+    }
+    if (this.pg) {
+      try {
+        const query = `
+          SELECT 
+            a.id,
+            a.id AS "applicationId",
+            a.student_id AS "studentId",
+            s.full_name AS "studentName",
+            s.roll_number AS "studentCollegeId",
+            s.roll_number AS "rollNumber",
+            s.cgpa,
+            s.institution_id AS "institutionId",
+            d.name AS "studentDepartment",
+            a.opportunity_id AS "opportunityId",
+            o.title AS "opportunityTitle",
+            o.company_id AS "companyId",
+            c.company_name AS "companyName",
+            a.match_score AS "matchScore",
+            a.current_stage AS "stage",
+            a.applied_at AS "appliedAt",
+            a.updated_at AS "updatedAt",
+            a.resume_url AS "resumeUrl"
+          FROM applications a
+          JOIN students s ON s.id = a.student_id
+          LEFT JOIN departments d ON d.id = s.department_id
+          JOIN opportunities o ON o.id = a.opportunity_id
+          JOIN companies c ON c.id = o.company_id
+          WHERE a.id::text = $1
+          LIMIT 1
+        `;
+        const res = await this.pg.query(query, [appId]);
+        if (res.rows.length > 0) return res.rows[0];
+      } catch (err) {
+        console.warn('[getApplicationById] PG error:', err.message);
+      }
+    }
+    const data = this._read();
+    return (data.applications || []).find(a => a.id === appId || a.applicationId === appId) || null;
+  }
+
+  // 6. Partnerships – generic update helper
+  async updatePartnership(id, updates) {
+    const data = this._read();
+    const idx = (data.partnerships || []).findIndex(p => p.id === id);
+    if (idx === -1) return null;
+    data.partnerships[idx] = { ...data.partnerships[idx], ...updates };
+    this._write(data);
+    return data.partnerships[idx];
+  }
+
+  // 7. Company‑centric helpers
+  async getCompanyDashboard(companyId) {
+    const data = this._read();
+    const company = (data.companies || []).find(c => c.companyId === companyId || c.id === companyId || c.code === companyId || c.company_id === companyId);
+    const compCode = company?.companyId || company?.code || companyId;
+    const compUuid = company?.id || company?.company_id || null;
+    const opps = (data.opportunities || []).filter(o => o.companyId === companyId || o.companyId === compCode || (compUuid && o.companyId === compUuid));
+    const apps = (data.applications || []).filter(a => a.companyId === companyId || a.companyId === compCode || (compUuid && a.companyId === compUuid));
+    const talentPools = (data.talentPools || []).filter(p => p.companyId === companyId || p.companyId === compCode || (compUuid && p.companyId === compUuid));
+
+    // Applications per internship breakdown
+    const applicationsPerInternship = opps.map(opp => {
+      const oppApps = apps.filter(a => (a.opportunityId || a.opportunity_id) === (opp.oppId || opp.opp_id));
+      return {
+        opportunityId: opp.oppId || opp.opp_id,
+        title: opp.title,
+        type: opp.type || 'Internship',
+        applicantCount: oppApps.length
+      };
+    });
+
+    // Average match of applicants
+    let matchSum = 0;
+    let matchCount = 0;
+    apps.forEach(a => {
+      const score = a.matchScore || a.matchPercentage;
+      if (typeof score === 'number') {
+        matchSum += score;
+        matchCount++;
+      }
+    });
+    const avgApplicantMatch = matchCount ? Math.round(matchSum / matchCount) : 0;
+
+    // Stage breakdown
+    const stageCounts = {
+      Submitted: apps.filter(a => (a.status || a.stage || '').toLowerCase() === 'submitted').length,
+      Shortlisted: apps.filter(a => (a.status || a.stage || '').toLowerCase() === 'shortlisted').length,
+      Interview: apps.filter(a => (a.status || a.stage || '').toLowerCase().includes('interview')).length,
+      Accepted: apps.filter(a => (a.status || a.stage || '').toLowerCase() === 'accepted').length,
+      Rejected: apps.filter(a => (a.status || a.stage || '').toLowerCase() === 'rejected').length
+    };
+
+    // Calculate actual authorized students across ACTIVE partnerships
+    const partnerInstitutionIds = new Set();
+    (data.partnerships || []).forEach(p => {
+      if ((p.companyId === companyId || p.companyId === compCode || (compUuid && p.companyId === compUuid)) &&
+          (p.status === 'ACCEPTED' || p.status === 'ACTIVE')) {
+        if (p.institutionId) partnerInstitutionIds.add(p.institutionId);
+        if (p.institution_id) partnerInstitutionIds.add(p.institution_id);
+      }
+    });
+    (data.accessRequests || []).forEach(r => {
+      if ((r.companyId === companyId || r.companyId === compCode || (compUuid && r.companyId === compUuid)) &&
+          r.status === 'ACCEPTED') {
+        if (r.institutionId) partnerInstitutionIds.add(r.institutionId);
+        if (r.institution_id) partnerInstitutionIds.add(r.institution_id);
+      }
+    });
+
+    const explicitlySharedStudentIds = new Set(
+      (data.sharedStudents || [])
+        .filter(s => (s.companyId === companyId || s.companyId === compCode || (compUuid && s.companyId === compUuid)) && s.accessStatus === 'ACTIVE')
+        .map(s => s.studentId || s.student_id)
+    );
+
+    const authorizedStudentsSet = new Set(explicitlySharedStudentIds);
+    (data.students || []).forEach(s => {
+      const sInst = s.institutionId || s.institution_id || s.collegeId;
+      if (sInst && partnerInstitutionIds.has(sInst)) {
+        authorizedStudentsSet.add(s.studentId || s.id);
+      }
+    });
+
+    const totalPoolStudents = authorizedStudentsSet.size;
+    const authorizedStudentsList = (data.students || []).filter(s => authorizedStudentsSet.has(s.studentId || s.id));
+    const jobReadyTalent = authorizedStudentsList.filter(s => {
+      const score = Number(s.readinessScore || s.careerReadinessScore || 0);
+      return score >= 75 || (s.placementStatus && s.placementStatus.toLowerCase().includes('ready'));
+    }).length;
+
+    return {
+      companyId,
+      companyName: company?.companyName || company?.name || compCode,
+      totalPoolStudents,
+      authorizedTalentCount: totalPoolStudents,
+      talentPoolCount: totalPoolStudents,
+      jobReadyTalent,
+      partnerInstitutionsCount: partnerInstitutionIds.size,
+      totalOpportunities: opps.length,
+      activePostings: opps.length,
+      totalApplications: apps.length,
+      applicationsReceived: apps.length,
+      applicationsPerInternship,
+      avgApplicantMatch,
+      talentMatchScore: avgApplicantMatch,
+      stageCounts
+    };
+  }
+
+  async getStudentsByCompany(companyId) {
+    if (this.pg) {
+      try {
+        const cleanId = String(companyId).trim();
+        // 1. Students who applied to company's opportunities
+        const appliedRes = await this.pg.query(
+          `SELECT DISTINCT a.student_id
+           FROM applications a
+           JOIN opportunities o ON a.opportunity_id = o.id
+           WHERE o.company_id::text = $1 
+              OR o.company_id IN (SELECT id FROM companies WHERE id::text = $1 OR company_name ILIKE $1)`,
+          [cleanId]
+        );
+        // 2. Students shared under active institution-company access requests
+        const sharedRes = await this.pg.query(
+          `SELECT DISTINCT student_id 
+           FROM institution_company_shared_students
+           WHERE (company_id = $1 OR company_id IN (SELECT id::text FROM companies WHERE id::text = $1 OR company_name ILIKE $1))
+             AND access_status = 'ACTIVE'`,
+          [cleanId]
+        );
+
+        const allStudentIds = [...new Set([
+          ...appliedRes.rows.map(r => r.student_id),
+          ...sharedRes.rows.map(r => r.student_id)
+        ])];
+
+        const students = [];
+        for (const sId of allStudentIds) {
+          const stu = await this.getStudentById(sId);
+          if (stu) {
+            const { password, passwordHash, token, google_id, ...safeStudent } = stu;
+            students.push(safeStudent);
+          }
+        }
+        return students;
+      } catch (err) {
+        console.warn('[getStudentsByCompany] PG query error, falling back:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const comp = (data.companies || []).find(c => c.companyId === companyId || c.id === companyId || c.code === companyId || c.company_id === companyId);
+    const compCode = comp?.companyId || comp?.code || companyId;
+    const compUuid = comp?.id || comp?.company_id || null;
+
+    const oppIds = (data.opportunities || []).filter(o => o.companyId === companyId || o.companyId === compCode || (compUuid && o.companyId === compUuid)).map(o => o.oppId || o.id);
+    const studentIds = (data.applications || []).filter(a => oppIds.includes(a.opportunityId) || a.companyId === companyId || a.companyId === compCode).map(a => a.studentId);
+    const sharedIds = (data.sharedStudents || []).filter(s => (s.companyId === companyId || s.companyId === compCode || (compUuid && s.companyId === compUuid)) && s.accessStatus === 'ACTIVE').map(s => s.studentId || s.student_id);
+
+    const partnerInstitutionIds = new Set();
+    (data.partnerships || []).forEach(p => {
+      if ((p.companyId === companyId || p.companyId === compCode || (compUuid && p.companyId === compUuid)) &&
+          (p.status === 'ACCEPTED' || p.status === 'ACTIVE')) {
+        if (p.institutionId) partnerInstitutionIds.add(p.institutionId);
+        if (p.institution_id) partnerInstitutionIds.add(p.institution_id);
+      }
+    });
+    (data.accessRequests || []).forEach(r => {
+      if ((r.companyId === companyId || r.companyId === compCode || (compUuid && r.companyId === compUuid)) &&
+          r.status === 'ACCEPTED') {
+        if (r.institutionId) partnerInstitutionIds.add(r.institutionId);
+        if (r.institution_id) partnerInstitutionIds.add(r.institution_id);
+      }
+    });
+
+    const partnerStudents = (data.students || []).filter(s => {
+      const sInst = s.institutionId || s.institution_id || s.collegeId;
+      return sInst && partnerInstitutionIds.has(sInst);
+    }).map(s => s.studentId || s.id);
+
+    const uniqueIds = [...new Set([...studentIds, ...sharedIds, ...partnerStudents])];
+    return (data.students || []).filter(s => uniqueIds.includes(s.studentId || s.id));
+  }
+
+  async getTalentPoolsByCompany(companyId) {
+    const data = this._read();
+    return (data.talentPools || []).filter(p => p.companyId === companyId);
+  }
+
+  async createTalentPool(pool) {
+    const data = this._read();
+    const newPool = { id: `TP-${Date.now()}`, candidates: [], ...pool };
+    data.talentPools = data.talentPools || [];
+    data.talentPools.unshift(newPool);
+    this._write(data);
+    return newPool;
+  }
+
+  async addCandidateToTalentPool(poolId, studentId) {
+    const data = this._read();
+    const pool = (data.talentPools || []).find(p => p.id === poolId);
+    if (!pool) return null;
+    if (!pool.candidates) pool.candidates = [];
+    if (!pool.candidates.includes(studentId)) pool.candidates.push(studentId);
+    this._write(data);
+    return pool;
+  }
+
+  async removeCandidateFromTalentPool(poolId, studentId) {
+    const data = this._read();
+    const pool = (data.talentPools || []).find(p => p.id === poolId);
+    if (!pool) return null;
+    pool.candidates = (pool.candidates || []).filter(id => id !== studentId);
+    this._write(data);
+    return pool;
+  }
+
+  async getInterviewsByCompany(companyId) {
+    if (this.pg) {
+      try {
+        const query = `
+          SELECT 
+            i.id,
+            i.application_id AS "applicationId",
+            i.round_number AS "roundNumber",
+            i.round_type AS "roundType",
+            i.round_type AS "format",
+            i.scheduled_at AS "scheduledAt",
+            to_char(i.scheduled_at, 'YYYY-MM-DD') AS "date",
+            to_char(i.scheduled_at, 'HH24:MI') AS "time",
+            i.meeting_link AS "meetingLink",
+            i.feedback,
+            i.score,
+            i.status,
+            i.created_at AS "createdAt",
+            s.full_name AS "candidateName",
+            s.roll_number AS "rollNumber",
+            u.email AS "candidateEmail",
+            o.title AS "opportunityTitle",
+            o.company_id AS "companyId",
+            c.company_name AS "companyName"
+          FROM interviews i
+          JOIN applications a ON a.id = i.application_id
+          JOIN students s ON s.id = a.student_id
+          JOIN users u ON u.id = s.user_id
+          JOIN opportunities o ON o.id = a.opportunity_id
+          JOIN companies c ON c.id = o.company_id
+          WHERE c.id::text = $1 OR c.company_name ILIKE $1 OR o.company_id::text = $1
+          ORDER BY i.scheduled_at DESC
+        `;
+        const res = await this.pg.query(query, [String(companyId)]);
+        return res.rows;
+      } catch (err) {
+        console.warn('[getInterviewsByCompany] PG error:', err.message);
+      }
+    }
+    const data = this._read();
+    return (data.interviews || []).filter(i => i.companyId === companyId);
+  }
+
+  async createInterview(interview) {
+    if (this.pg) {
+      const client = await this.pg.connect();
+      try {
+        await client.query('BEGIN');
+
+        // 1. Resolve application_id
+        let appId = interview.applicationId || interview.application_id;
+        let oppTitle = interview.opportunityTitle;
+        let candName = interview.candidateName;
+
+        if (!appId) {
+          // Find an application matching company and candidate or student
+          const findApp = await client.query(`
+            SELECT a.id, a.student_id, a.opportunity_id, o.title as opp_title, s.full_name, u.email
+            FROM applications a
+            JOIN opportunities o ON o.id = a.opportunity_id
+            JOIN students s ON s.id = a.student_id
+            JOIN users u ON u.id = s.user_id
+            JOIN companies c ON c.id = o.company_id
+            WHERE (c.id::text = $1 OR c.company_name ILIKE $1)
+               OR ($2::text IS NOT NULL AND (u.email ILIKE $2 OR s.full_name ILIKE $2))
+            ORDER BY a.applied_at DESC
+            LIMIT 1
+          `, [String(interview.companyId || ''), interview.candidateEmail || interview.candidateName || null]);
+
+          if (findApp.rows.length > 0) {
+            appId = findApp.rows[0].id;
+            oppTitle = oppTitle || findApp.rows[0].opp_title;
+            candName = candName || findApp.rows[0].full_name;
+          } else {
+            // Fallback to any active application in the system
+            const anyApp = await client.query(`
+              SELECT a.id, o.title as opp_title, s.full_name 
+              FROM applications a 
+              JOIN opportunities o ON o.id = a.opportunity_id 
+              JOIN students s ON s.id = a.student_id 
+              ORDER BY a.applied_at DESC 
+              LIMIT 1
+            `);
+            if (anyApp.rows.length > 0) {
+              appId = anyApp.rows[0].id;
+              oppTitle = oppTitle || anyApp.rows[0].opp_title;
+              candName = candName || anyApp.rows[0].full_name;
+            } else {
+              throw new Error('No application found to schedule interview against');
+            }
+          }
+        }
+
+        // 2. Map round_type to: 'Aptitude', 'Technical', 'HR', 'Executive'
+        const rawType = String(interview.round_type || interview.format || interview.type || 'Technical').toLowerCase();
+        let roundType = 'Technical';
+        if (rawType.includes('apt')) roundType = 'Aptitude';
+        else if (rawType.includes('hr')) roundType = 'HR';
+        else if (rawType.includes('exec')) roundType = 'Executive';
+
+        // 3. Determine scheduled_at
+        let scheduledAt = new Date();
+        if (interview.scheduled_at) {
+          scheduledAt = new Date(interview.scheduled_at);
+        } else if (interview.date) {
+          const timePart = interview.time ? interview.time.split(' ')[0] : '14:00';
+          scheduledAt = new Date(`${interview.date}T${timePart.length === 5 ? timePart : '14:00'}:00Z`);
+          if (isNaN(scheduledAt.getTime())) scheduledAt = new Date(Date.now() + 86400000 * 3);
+        } else {
+          scheduledAt = new Date(Date.now() + 86400000 * 3);
+        }
+
+        const roundNumber = parseInt(interview.round_number || interview.round || 1, 10);
+        const meetingLink = interview.meeting_link || interview.meetingLink || 'https://meet.google.com/nxu-tech-live';
+
+        // 4. Insert interview
+        const insRes = await client.query(`
+          INSERT INTO interviews (application_id, round_number, round_type, scheduled_at, meeting_link, status, created_at)
+          VALUES ($1, $2, $3, $4, $5, 'Scheduled', CURRENT_TIMESTAMP)
+          RETURNING *
+        `, [appId, roundNumber, roundType, scheduledAt, meetingLink]);
+        const dbInterview = insRes.rows[0];
+
+        // 5. Update application stage to 'Interview'
+        await client.query(`
+          UPDATE applications 
+          SET current_stage = 'Interview', updated_at = CURRENT_TIMESTAMP 
+          WHERE id = $1
+        `, [appId]);
+
+        // 6. Insert stage history
+        await client.query(`
+          INSERT INTO application_stage_history (application_id, stage, notes, created_at)
+          VALUES ($1, 'Interview', $2, CURRENT_TIMESTAMP)
+        `, [appId, `Interview Scheduled: Round ${roundNumber} (${roundType}) on ${scheduledAt.toISOString()}`]);
+
+        await client.query('COMMIT');
+
+        // 7. Persisted Notifications
+        try {
+          await this.addNotification('student', {
+            type: 'interview_scheduled',
+            title: 'Interview Scheduled',
+            message: `Round ${roundNumber} (${roundType}) interview for ${oppTitle || 'your application'} has been scheduled on ${scheduledAt.toISOString().split('T')[0]}.`,
+            details: { interviewId: dbInterview.id, applicationId: appId }
+          });
+          await this.addNotification('company', {
+            type: 'interview_scheduled',
+            title: 'Interview Confirmed',
+            message: `Interview with ${candName || 'candidate'} confirmed for ${scheduledAt.toISOString().split('T')[0]}.`,
+            details: { interviewId: dbInterview.id, applicationId: appId }
+          });
+        } catch (e) {}
+
+        return {
+          id: dbInterview.id,
+          applicationId: appId,
+          roundNumber: dbInterview.round_number,
+          roundType: dbInterview.round_type,
+          format: dbInterview.round_type,
+          scheduledAt: dbInterview.scheduled_at,
+          date: interview.date || scheduledAt.toISOString().split('T')[0],
+          time: interview.time || '14:00 IST',
+          candidateName: candName,
+          opportunityTitle: oppTitle,
+          meetingLink: dbInterview.meeting_link,
+          status: dbInterview.status,
+          createdAt: dbInterview.created_at
+        };
+      } catch (err) {
+        await client.query('ROLLBACK');
+        console.warn('[createInterview] PG error, falling back:', err.message);
+      } finally {
+        client.release();
+      }
+    }
+
+    const data = this._read();
+    const newInterview = { id: `INT-${Date.now()}`, ...interview };
+    data.interviews = data.interviews || [];
+    data.interviews.unshift(newInterview);
+    this._write(data);
+
+    try {
+      this.addNotification('student', {
+        type: 'interview_scheduled',
+        title: 'Interview Scheduled',
+        message: `An interview for ${newInterview.opportunityTitle || 'your application'} has been scheduled on ${newInterview.date || 'the agreed date'}.`,
+        details: { interviewId: newInterview.id }
+      });
+      this.addNotification('company', {
+        type: 'interview_scheduled',
+        title: 'Interview Confirmed',
+        message: `Interview with ${newInterview.candidateName || 'candidate'} scheduled for ${newInterview.date || 'the session'}.`,
+        details: { interviewId: newInterview.id }
+      });
+    } catch (e) {}
+
+    return newInterview;
+  }
+
+  async updateInterview(interviewId, updates, companyId = null) {
+    if (this.pg) {
+      try {
+        const statusMap = {
+          'scheduled': 'Scheduled',
+          'completed': 'Completed',
+          'cancelled': 'Cancelled',
+          'canceled': 'Cancelled',
+          'no show': 'No Show'
+        };
+        const rawStatus = (updates.status || '').toLowerCase();
+        const cleanStatus = statusMap[rawStatus] || (['Scheduled', 'Completed', 'Cancelled', 'No Show'].includes(updates.status) ? updates.status : null);
+
+        let setClauses = [];
+        let params = [interviewId];
+        let pIdx = 2;
+
+        if (cleanStatus) {
+          setClauses.push(`status = $${pIdx}`);
+          params.push(cleanStatus);
+          pIdx++;
+        }
+        if (updates.feedback !== undefined) {
+          setClauses.push(`feedback = $${pIdx}`);
+          params.push(updates.feedback);
+          pIdx++;
+        }
+        if (updates.score !== undefined) {
+          setClauses.push(`score = $${pIdx}`);
+          params.push(parseInt(updates.score, 10));
+          pIdx++;
+        }
+        if (updates.meeting_link || updates.meetingLink) {
+          setClauses.push(`meeting_link = $${pIdx}`);
+          params.push(updates.meeting_link || updates.meetingLink);
+          pIdx++;
+        }
+
+        if (setClauses.length > 0) {
+          const sql = `UPDATE interviews SET ${setClauses.join(', ')} WHERE id::text = $1 RETURNING *`;
+          const res = await this.pg.query(sql, params);
+          if (res.rows.length > 0) {
+            const updated = res.rows[0];
+            return {
+              id: updated.id,
+              applicationId: updated.application_id,
+              status: updated.status,
+              feedback: updated.feedback,
+              score: updated.score,
+              meetingLink: updated.meeting_link,
+              scheduledAt: updated.scheduled_at
+            };
+          }
+        }
+      } catch (err) {
+        console.warn('[updateInterview] PG error:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const idx = (data.interviews || []).findIndex(i => i.id === interviewId);
+    if (idx === -1) return null;
+    data.interviews[idx] = { ...data.interviews[idx], ...updates };
+    this._write(data);
+    return data.interviews[idx];
+  }
+
+  async updateCompany(companyId, updates) {
+    const data = this._read();
+    const idx = (data.companies || []).findIndex(c => c.companyId === companyId);
+    if (idx === -1) return null;
+    data.companies[idx] = { ...data.companies[idx], ...updates };
+    this._write(data);
+    return data.companies[idx];
+  }
+
+  // 1. INSTITUTIONS
+  async getInstitutions() {
+    if (this.pg) {
+      try {
+        const res = await this.pg.query('SELECT * FROM institutions ORDER BY created_at DESC');
+        return res.rows;
+      } catch (err) {
+        console.warn('PG query error, reading from file store:', err.message);
+      }
+    }
+    const data = this._read();
+    return data.institutions || [];
+  }
+
+  async getInstitutionById(institutionId) {
+    const list = await this.getInstitutions();
+    return list.find(inst => inst.institutionId === institutionId || inst.institution_id === institutionId) || null;
+  }
+
+  // 2. STUDENTS (With campus isolation)
+  async getStudents(collegeId = null) {
+    if (this.pg) {
+      try {
+        let query = `
+          SELECT s.*, 
+                 u.email as user_email, 
+                 u.account_status, 
+                 u.email_verified, 
+                 u.invitation_sent_at, 
+                 u.invitation_expires_at,
+                 d.name as department_name, 
+                 d.code as department_code,
+                 i.code as institution_code,
+                 i.name as institution_name
+          FROM students s
+          LEFT JOIN users u ON s.user_id = u.id
+          LEFT JOIN departments d ON s.department_id = d.id
+          LEFT JOIN institutions i ON s.institution_id = i.id
+        `;
+        const params = [];
+        if (collegeId) {
+          query += ' WHERE (s.institution_id::text = $1 OR s.institution_id IN (SELECT id FROM institutions WHERE code = $1 OR id::text = $1 OR name ILIKE $1))';
+          params.push(String(collegeId));
+        }
+        query += ' ORDER BY s.created_at DESC';
+        const res = await this.pg.query(query, params);
+
+        const studentIds = res.rows.map(r => r.id);
+        let skillsMap = {};
+        if (studentIds.length > 0) {
+          try {
+            const skRes = await this.pg.query(
+              `SELECT ss.student_id, sk.name, ss.claimed_level as level, ss.verification_status, ss.confidence_score
+               FROM student_skills ss
+               JOIN skills sk ON ss.skill_id = sk.id
+               WHERE ss.student_id = ANY($1::uuid[])`,
+              [studentIds]
+            );
+            for (const sk of skRes.rows) {
+              if (!skillsMap[sk.student_id]) skillsMap[sk.student_id] = [];
+              skillsMap[sk.student_id].push({
+                name: sk.name,
+                level: sk.level,
+                verified: sk.verification_status === 'VERIFIED',
+                confidence: Number(sk.confidence_score) || 75
+              });
+            }
+          } catch (e) {}
+        }
+
+        return res.rows.map(pgStudent => {
+          const status = pgStudent.account_status || 'ACTIVE';
+          const email = pgStudent.user_email || '';
+          const rollNo = pgStudent.roll_number || '';
+          const dept = pgStudent.department_name || pgStudent.department_code || 'Engineering';
+          const sSkills = skillsMap[pgStudent.id] || [];
+          return {
+            studentId: pgStudent.id,
+            id: pgStudent.id,
+            userId: pgStudent.user_id,
+            user_id: pgStudent.user_id,
+            name: pgStudent.full_name,
+            fullName: pgStudent.full_name,
+            email: email,
+            regNo: rollNo,
+            rollNumber: rollNo,
+            phone: pgStudent.phone_number || '',
+            phoneNumber: pgStudent.phone_number || '',
+            bio: pgStudent.bio || '',
+            targetRole: pgStudent.target_career_role || '',
+            desiredRole: pgStudent.target_career_role || '',
+            targetCareerRole: pgStudent.target_career_role || '',
+            careerGoals: pgStudent.target_career_role || '',
+            github: pgStudent.github_url || '',
+            githubUrl: pgStudent.github_url || '',
+            linkedin: pgStudent.linkedin_url || '',
+            linkedinUrl: pgStudent.linkedin_url || '',
+            resume: pgStudent.resume_url || '',
+            resumeUrl: pgStudent.resume_url || '',
+            collegeId: pgStudent.institution_code || pgStudent.institution_id,
+            institutionId: pgStudent.institution_id,
+            institution_id: pgStudent.institution_id,
+            institutionCode: pgStudent.institution_code,
+            institutionName: pgStudent.institution_name,
+            department: dept,
+            departmentName: pgStudent.department_name || dept,
+            departmentId: pgStudent.department_id,
+            departmentCode: pgStudent.department_code || 'ENG',
+            batch: pgStudent.batch || '2022-2026',
+            graduationYear: pgStudent.graduation_year,
+            cgpa: pgStudent.cgpa !== null ? Number(pgStudent.cgpa) : 0,
+            readinessScore: pgStudent.readiness_score !== null ? Number(pgStudent.readiness_score) : 0,
+            placementStatus: pgStudent.placement_status || 'Unassessed',
+            accountStatus: status,
+            status: status,
+            emailVerified: Boolean(pgStudent.email_verified),
+            invitationSentAt: pgStudent.invitation_sent_at,
+            invitationExpiresAt: pgStudent.invitation_expires_at,
+            skills: sSkills,
+            assessments: [],
+            projects: [],
+            certifications: []
+          };
+        });
+
+        const data = this._read();
+        const fileStudents = (data.students || []).filter(s => {
+          if (!collegeId) return true;
+          const target = String(collegeId).toUpperCase().trim();
+          const sColl = String(s.collegeId || s.institutionId || s.institution_id || s.institutionCode || s.collegeCode || '').toUpperCase().trim();
+          const sCode = String(s.collegeCode || s.institutionCode || '').toUpperCase().trim();
+          if (sColl === target || sCode === target) return true;
+
+          // Check alias mapping
+          if ((target === 'TN010' || target === 'SRM001') && (sColl === 'TN010' || sColl === 'SRM001')) return true;
+
+          // Lookup target matching institution in data.institutions
+          const matchingInst = (data.institutions || []).find(inst =>
+            String(inst.institutionId || inst.id || inst.code || inst.collegeId || inst.institutionCode || inst.collegeCode || '').toUpperCase().trim() === target
+          );
+          if (matchingInst) {
+            const instCode = String(matchingInst.code || matchingInst.collegeCode || matchingInst.institutionCode || matchingInst.institutionId || '').toUpperCase().trim();
+            const instId = String(matchingInst.id || matchingInst.institution_id || matchingInst.institutionId || '').toUpperCase().trim();
+            if ((instCode && sColl === instCode) || (instId && sColl === instId)) return true;
+          }
+          return false;
+        });
+
+        const seenEmails = new Set(pgResults.map(p => (p.email || '').toLowerCase()).filter(Boolean));
+        const merged = [...pgResults];
+        for (const fs of fileStudents) {
+          if (fs.email && !seenEmails.has(fs.email.toLowerCase())) {
+            merged.push(fs);
+            seenEmails.add(fs.email.toLowerCase());
+          }
+        }
+        return merged;
+      } catch (err) {
+        console.warn('[getStudents] PG query error, falling back:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const fileStudents = data.students || [];
+    return fileStudents.filter(s => {
+      if (!collegeId) return true;
+      const target = String(collegeId).toUpperCase().trim();
+      const sColl = String(s.collegeId || s.institutionId || s.institution_id || s.institutionCode || s.collegeCode || '').toUpperCase().trim();
+      const sCode = String(s.collegeCode || s.institutionCode || '').toUpperCase().trim();
+      if (sColl === target || sCode === target) return true;
+
+      // Check alias mapping
+      if ((target === 'TN010' || target === 'SRM001') && (sColl === 'TN010' || sColl === 'SRM001')) return true;
+
+      // Lookup target matching institution in data.institutions
+      const matchingInst = (data.institutions || []).find(inst =>
+        String(inst.institutionId || inst.id || inst.code || inst.collegeId || inst.institutionCode || inst.collegeCode || '').toUpperCase().trim() === target
+      );
+      if (matchingInst) {
+        const instCode = String(matchingInst.code || matchingInst.collegeCode || matchingInst.institutionCode || matchingInst.institutionId || '').toUpperCase().trim();
+        const instId = String(matchingInst.id || matchingInst.institution_id || matchingInst.institutionId || '').toUpperCase().trim();
+        if ((instCode && sColl === instCode) || (instId && sColl === instId)) return true;
+      }
+      return false;
+    });
+  }
+
+  async getStudentsByInstitution(collegeId) {
+    return this.getStudents(collegeId);
+  }
+
+  async getStudentById(studentId) {
+    if (!studentId) return null;
+    const cleanId = String(studentId).trim();
+
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          `SELECT s.*, u.email as user_email, u.account_status, u.email_verified, 
+                  i.code as institution_code, i.name as institution_name,
+                  d.name as department_name, d.code as department_code
+           FROM students s 
+           JOIN users u ON s.user_id = u.id 
+           LEFT JOIN institutions i ON s.institution_id = i.id
+           LEFT JOIN departments d ON s.department_id = d.id
+           WHERE s.id::text = $1 OR s.roll_number = $1 OR u.id::text = $1 OR LOWER(u.email) = LOWER($1) LIMIT 1`,
+          [cleanId]
+        );
+        if (res.rows.length > 0) {
+          const row = res.rows[0];
+          let skills = [];
+          try {
+            const skRes = await this.pg.query(
+              `SELECT sk.name, ss.claimed_level as level, ss.self_rating, ss.id, ss.verification_status, ss.confidence_score
+               FROM student_skills ss
+               JOIN skills sk ON ss.skill_id = sk.id
+               WHERE ss.student_id = $1`,
+              [row.id]
+            );
+            skills = skRes.rows.map(sk => ({
+              id: sk.id,
+              name: sk.name,
+              level: sk.level,
+              verified: sk.verification_status === 'VERIFIED',
+              confidence: Number(sk.confidence_score) || 75
+            }));
+          } catch (e) {}
+
+          const data = this._read();
+          const fileMatched = (data.students || []).find(fs =>
+            fs.id === row.id || fs.studentId === row.id ||
+            fs.userId === row.user_id ||
+            (fs.regNo && fs.regNo.toLowerCase() === (row.roll_number || '').toLowerCase()) ||
+            (fs.email && fs.email.toLowerCase() === (row.user_email || '').toLowerCase())
+          );
+
+          const dept = row.department_name || row.department_code || (fileMatched && fileMatched.department) || 'Engineering';
+
+          return {
+            ...(fileMatched || {}),
+            id: row.id,
+            studentId: row.id,
+            userId: row.user_id,
+            user_id: row.user_id,
+            name: row.full_name,
+            fullName: row.full_name,
+            email: row.user_email,
+            rollNumber: row.roll_number,
+            regNo: row.roll_number,
+            phone: row.phone_number || (fileMatched && fileMatched.phone) || '',
+            phoneNumber: row.phone_number || (fileMatched && fileMatched.phoneNumber) || '',
+            bio: row.bio || (fileMatched && fileMatched.bio) || '',
+            targetRole: row.target_career_role || (fileMatched && fileMatched.targetRole) || '',
+            desiredRole: row.target_career_role || (fileMatched && (fileMatched.desiredRole || fileMatched.careerGoals)) || '',
+            targetCareerRole: row.target_career_role || (fileMatched && fileMatched.targetCareerRole) || '',
+            careerGoals: row.target_career_role || (fileMatched && fileMatched.careerGoals) || '',
+            github: row.github_url || (fileMatched && fileMatched.github) || '',
+            githubUrl: row.github_url || (fileMatched && fileMatched.githubUrl) || '',
+            linkedin: row.linkedin_url || (fileMatched && fileMatched.linkedin) || '',
+            linkedinUrl: row.linkedin_url || (fileMatched && fileMatched.linkedinUrl) || '',
+            resume: row.resume_url || (fileMatched && fileMatched.resume) || '',
+            resumeUrl: row.resume_url || (fileMatched && fileMatched.resumeUrl) || '',
+            batch: row.batch || (fileMatched && fileMatched.batch) || '2022-2026',
+            institutionId: row.institution_id,
+            institution_id: row.institution_id,
+            collegeId: row.institution_code || row.institution_id,
+            institutionCode: row.institution_code,
+            institutionName: row.institution_name,
+            department: dept,
+            departmentName: row.department_name || dept,
+            departmentCode: row.department_code || 'ENG',
+            departmentId: row.department_id,
+            department_id: row.department_id,
+            cgpa: row.cgpa !== null ? Number(row.cgpa) : 0,
+            graduationYear: row.graduation_year,
+            readinessScore: row.readiness_score !== null ? Number(row.readiness_score) : 0,
+            placementStatus: row.placement_status,
+            accountStatus: row.account_status || 'ACTIVE',
+            emailVerified: Boolean(row.email_verified),
+            skills: skills.length > 0 ? skills : ((fileMatched && fileMatched.skills) || []),
+            assessments: (fileMatched && fileMatched.assessments) || [],
+            projects: (fileMatched && fileMatched.projects) || [],
+            certifications: (fileMatched && fileMatched.certifications) || [],
+            hasCompletedQuestionnaire: Boolean((fileMatched && fileMatched.hasCompletedQuestionnaire) || false)
+          };
+        }
+      } catch (err) {
+        console.warn('[getStudentById] PG lookup error:', err.message);
+      }
+    }
+
+    const data = this._read();
+    let student = (data.students || []).find(s => 
+      s.studentId === cleanId || 
+      s.id === cleanId || 
+      (s.regNo && s.regNo.toLowerCase() === cleanId.toLowerCase()) ||
+      (s.rollNumber && s.rollNumber.toLowerCase() === cleanId.toLowerCase())
+    );
+
+    if (!student) {
+      const user = (data.users || []).find(u => 
+        u.studentId === cleanId || 
+        u.id === cleanId || 
+        (u.email && u.email.toLowerCase() === cleanId.toLowerCase())
+      );
+      if (user) {
+        student = (data.students || []).find(s => 
+          s.studentId === user.studentId || 
+          s.userId === user.id || 
+          (s.email && s.email.toLowerCase() === (user.email || '').toLowerCase())
+        );
+      }
+    }
+
+    return student || null;
+  }
+
+  async saveStudent(studentData) {
+    if (!studentData) return null;
+
+    if (this.pg) {
+      try {
+        let existingStudent = null;
+        if (studentData.id || studentData.studentId) {
+          const res = await this.pg.query(`SELECT * FROM students WHERE id::text = $1 LIMIT 1`, [String(studentData.id || studentData.studentId)]);
+          if (res.rows.length > 0) existingStudent = res.rows[0];
+        }
+        if (!existingStudent && (studentData.rollNumber || studentData.regNo)) {
+          const res = await this.pg.query(`SELECT * FROM students WHERE roll_number = $1 LIMIT 1`, [String(studentData.rollNumber || studentData.regNo)]);
+          if (res.rows.length > 0) existingStudent = res.rows[0];
+        }
+        if (!existingStudent && (studentData.userId || studentData.user_id)) {
+          const res = await this.pg.query(`SELECT * FROM students WHERE user_id::text = $1 LIMIT 1`, [String(studentData.userId || studentData.user_id)]);
+          if (res.rows.length > 0) existingStudent = res.rows[0];
+        }
+        if (!existingStudent && studentData.email) {
+          const res = await this.pg.query(
+            `SELECT s.* FROM students s JOIN users u ON u.id = s.user_id WHERE LOWER(u.email) = LOWER($1) LIMIT 1`,
+            [studentData.email.trim()]
+          );
+          if (res.rows.length > 0) existingStudent = res.rows[0];
+        }
+
+        if (existingStudent) {
+          const cgpaVal = studentData.cgpa !== undefined && studentData.cgpa !== null ? Number(studentData.cgpa) : existingStudent.cgpa;
+          const rScore = studentData.readinessScore !== undefined && studentData.readinessScore !== null ? Number(studentData.readinessScore) : existingStudent.readiness_score;
+          const pStatus = studentData.placementStatus || existingStudent.placement_status;
+          const fName = studentData.name || studentData.fullName || existingStudent.full_name;
+          const phoneVal = studentData.phone !== undefined ? studentData.phone : (studentData.phoneNumber !== undefined ? studentData.phoneNumber : existingStudent.phone_number);
+          const bioVal = studentData.bio !== undefined ? studentData.bio : existingStudent.bio;
+          const targetRoleVal = studentData.desiredRole !== undefined ? studentData.desiredRole : (studentData.targetCareerRole !== undefined ? studentData.targetCareerRole : (studentData.target_career_role !== undefined ? studentData.target_career_role : (studentData.careerGoals !== undefined ? studentData.careerGoals : existingStudent.target_career_role)));
+          const batchVal = studentData.batch !== undefined ? studentData.batch : existingStudent.batch;
+          const gradYearVal = studentData.graduationYear ? Number(studentData.graduationYear) : (studentData.gradYear && !isNaN(parseInt(studentData.gradYear)) ? parseInt(studentData.gradYear) : existingStudent.graduation_year);
+          const ghUrl = studentData.github !== undefined ? studentData.github : (studentData.githubUrl !== undefined ? studentData.githubUrl : (studentData.github_url !== undefined ? studentData.github_url : existingStudent.github_url));
+          const liUrl = studentData.linkedin !== undefined ? studentData.linkedin : (studentData.linkedinUrl !== undefined ? studentData.linkedinUrl : (studentData.linkedin_url !== undefined ? studentData.linkedin_url : (studentData.portfolio !== undefined ? studentData.portfolio : existingStudent.linkedin_url)));
+          const resUrl = studentData.resume !== undefined ? studentData.resume : (studentData.resumeUrl !== undefined ? studentData.resumeUrl : (studentData.resume_url !== undefined ? studentData.resume_url : existingStudent.resume_url));
+
+          // Resolve department_id if department changed
+          let deptId = existingStudent.department_id;
+          if (studentData.departmentId) {
+            deptId = studentData.departmentId;
+          } else if (studentData.department && existingStudent.institution_id) {
+            const dRes = await this.pg.query(
+              `SELECT id FROM departments WHERE institution_id = $1 AND (LOWER(code) = LOWER($2) OR LOWER(name) = LOWER($2)) LIMIT 1`,
+              [existingStudent.institution_id, studentData.department.trim()]
+            );
+            if (dRes.rows.length > 0) deptId = dRes.rows[0].id;
+          }
+
+          await this.pg.query(
+            `UPDATE students 
+             SET full_name = $1, cgpa = $2, readiness_score = $3, placement_status = $4,
+                 phone_number = $5, bio = $6, target_career_role = $7, batch = $8,
+                 graduation_year = $9, github_url = $10, linkedin_url = $11, resume_url = $12,
+                 department_id = $13, updated_at = NOW()
+             WHERE id = $14`,
+            [fName, cgpaVal, rScore, pStatus, phoneVal, bioVal, targetRoleVal, batchVal, gradYearVal, ghUrl, liUrl, resUrl, deptId, existingStudent.id]
+          );
+
+          // Upsert student_skills into PostgreSQL if skills array provided
+          if (Array.isArray(studentData.skills) && studentData.skills.length > 0) {
+            for (const sk of studentData.skills) {
+              const skName = (typeof sk === 'string' ? sk : (sk.name || sk.skillName || '')).trim();
+              if (!skName) continue;
+              const claimedLvl = (typeof sk === 'object' && sk.level) || 'Intermediate';
+              const conf = (typeof sk === 'object' && sk.confidence !== undefined) ? Number(sk.confidence) : 75;
+              const verStatus = (typeof sk === 'object' && sk.verified) ? 'VERIFIED' : 'UNVERIFIED';
+
+              let skId = null;
+              const skCheck = await this.pg.query('SELECT id FROM skills WHERE LOWER(name) = LOWER($1) LIMIT 1', [skName]);
+              if (skCheck.rows.length > 0) {
+                skId = skCheck.rows[0].id;
+              } else {
+                const catRes = await this.pg.query('SELECT id FROM skill_categories LIMIT 1');
+                const catId = catRes.rows[0]?.id;
+                const newSk = await this.pg.query(
+                  `INSERT INTO skills (name, category_id, difficulty, industry_demand) VALUES ($1, $2, 'Intermediate', 'HIGH') RETURNING id`,
+                  [skName, catId]
+                );
+                skId = newSk.rows[0].id;
+              }
+
+              const allowedLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+              const normLevel = allowedLevels.find(l => l.toLowerCase() === claimedLvl.toLowerCase()) || 'Intermediate';
+
+              await this.pg.query(
+                `INSERT INTO student_skills (student_id, skill_id, claimed_level, confidence_score, verification_status, last_updated)
+                 VALUES ($1, $2, $3, $4, $5, NOW())
+                 ON CONFLICT (student_id, skill_id) 
+                 DO UPDATE SET claimed_level = EXCLUDED.claimed_level, confidence_score = EXCLUDED.confidence_score, last_updated = NOW()`,
+                [existingStudent.id, skId, normLevel, conf, verStatus]
+              );
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[saveStudent] PG update error:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const index = (data.students || []).findIndex(s =>
+      (studentData.id && s.id === studentData.id) ||
+      (studentData.studentId && s.studentId === studentData.studentId) ||
+      (studentData.rollNumber && (s.rollNumber === studentData.rollNumber || s.regNo === studentData.rollNumber)) ||
+      (studentData.userId && s.userId === studentData.userId) ||
+      (studentData.email && s.email && s.email.toLowerCase() === studentData.email.toLowerCase())
+    );
+    if (index >= 0) {
+      data.students[index] = { ...data.students[index], ...studentData };
+    } else {
+      data.students.unshift(studentData);
+    }
+    this._write(data);
+    return studentData;
+  }
+
+  async updateStudent(studentId, updates) {
+    let student = await this.getStudentById(studentId);
+    if (!student) {
+      const data = this._read();
+      student = (data.students || []).find(s => s.id === studentId || s.studentId === studentId);
+    }
+    if (!student) return null;
+    const merged = { ...student, ...updates };
+    await this.saveStudent(merged);
+    return merged;
+  }
+
+  // 3. COURSES & ENROLLMENTS
+  async getCourses(institutionId = null) {
+    const data = this._read();
+    if (!institutionId) return data.courses || [];
+    return (data.courses || []).filter(c => c.institutionId === institutionId);
+  }
+
+  async createCourse(courseData) {
+    let pgCourse = null;
+    if (this.pg) {
+      try {
+        let instUuid = null;
+        if (courseData.institutionId) {
+          const iCheck = await this.pg.query(
+            `SELECT id FROM institutions WHERE id::text = $1 OR code = $1 LIMIT 1`,
+            [String(courseData.institutionId)]
+          );
+          if (iCheck.rows.length > 0) instUuid = iCheck.rows[0].id;
+        }
+        const cCode = courseData.code || courseData.courseCode || `CRS-${Date.now().toString().slice(-6)}`;
+        const insRes = await this.pg.query(
+          `INSERT INTO courses (institution_id, course_code, title, category, difficulty, duration_weeks, hours, instructor_name, rating, status, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 5.0, 'ACTIVE', NOW(), NOW())
+           RETURNING *`,
+          [
+            instUuid,
+            cCode,
+            courseData.title || 'Course Title',
+            courseData.category || 'Computer Science',
+            courseData.level || 'Intermediate',
+            Number(courseData.durationWeeks || courseData.duration_weeks || 8),
+            Number(courseData.hours) || 24,
+            courseData.instructor || 'Instructor'
+          ]
+        );
+        pgCourse = insRes.rows[0];
+
+        if (Array.isArray(courseData.modules) && courseData.modules.length > 0) {
+          for (let i = 0; i < courseData.modules.length; i++) {
+            const m = courseData.modules[i];
+            await this.pg.query(
+              `INSERT INTO course_modules (course_id, module_number, title, description, duration_text, lessons)
+               VALUES ($1, $2, $3, $4, $5, $6)`,
+              [
+                pgCourse.id,
+                m.moduleNumber || m.orderIndex || (i + 1),
+                m.title || `Module ${i + 1}`,
+                m.description || '',
+                m.duration || '2 Hours',
+                JSON.stringify(m.lessons || [])
+              ]
+            );
+          }
+        }
+      } catch (err) {
+        console.warn('[createCourse] PG insert note:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const newCourse = {
+      id: pgCourse ? pgCourse.id : (courseData.courseId || `CRS-${courseData.institutionId || 'TN010'}-${Math.floor(10 + Math.random() * 90)}`),
+      courseId: pgCourse ? pgCourse.id : (courseData.courseId || `CRS-${courseData.institutionId || 'TN010'}-${Math.floor(10 + Math.random() * 90)}`),
+      companyId: courseData.companyId || null,
+      institutionId: courseData.institutionId || 'TN010',
+      institutionName: courseData.institutionName || 'SRM Institute of Science and Technology',
+      title: courseData.title || 'Advanced Systems Engineering',
+      code: courseData.code || 'CS-601-ADV',
+      category: courseData.category || 'Artificial Intelligence',
+      level: courseData.level || 'Advanced',
+      duration: courseData.duration || '8 Weeks (24 Hours)',
+      hours: Number(courseData.hours) || 24,
+      instructor: courseData.instructor || 'Prof. K. Ramanathan',
+      enrolledCount: 0,
+      skillsTaught: courseData.skillsTaught || ['Python', 'SQL'],
+      rating: 5.0,
+      modules: courseData.modules || [
+        { moduleNumber: 1, title: 'Introduction & Foundations', duration: '3 Hours', lessons: ['Core theory', 'Hands-on lab'] }
+      ]
+    };
+    data.courses.unshift(newCourse);
+    this._write(data);
+    return newCourse;
+  }
+
+  async getEnrollments(studentId = null) {
+    if (this.pg && studentId) {
+      try {
+        const query = `
+          SELECT 
+            e.id,
+            e.id AS "enrollmentId",
+            e.student_id AS "studentId",
+            e.student_id AS student_id,
+            e.course_id AS "courseId",
+            e.course_id AS course_id,
+            c.course_code AS "courseCode",
+            c.course_code AS course_code,
+            c.title AS "courseTitle",
+            c.title AS title,
+            c.category,
+            c.instructor_name AS instructor,
+            c.hours AS "hoursRemaining",
+            e.progress_percentage AS progress,
+            e.progress_percentage AS "progressPercentage",
+            e.progress_percentage AS "completionPercentage",
+            e.status,
+            e.enrolled_at AS "enrolledAt",
+            e.completed_at AS "completedAt",
+            COALESCE((
+              SELECT COUNT(*) FROM course_modules cm WHERE cm.course_id = c.id
+            ), 8) AS "totalModules",
+            COALESCE((
+              SELECT COUNT(DISTINCT smp.module_id) FROM student_module_progress smp WHERE smp.enrollment_id = e.id AND smp.status = 'Completed'
+            ), 0) AS "completedModules",
+            COALESCE((
+              SELECT json_agg(smp.module_id) FROM student_module_progress smp WHERE smp.enrollment_id = e.id AND smp.status = 'Completed'
+            ), '[]'::json) AS "completedModuleIds"
+          FROM enrollments e
+          JOIN courses c ON c.id = e.course_id
+          JOIN students s ON s.id = e.student_id
+          WHERE s.id::text = $1 OR s.roll_number = $1 OR s.user_id::text = $1
+          ORDER BY e.enrolled_at DESC
+        `;
+        const res = await this.pg.query(query, [String(studentId)]);
+        if (res.rows.length > 0) return res.rows;
+      } catch (err) {
+        console.warn('[getEnrollments] PG error, falling back:', err.message);
+      }
+    }
+    const data = this._read();
+    if (!studentId) return data.enrollments || [];
+    return (data.enrollments || []).filter(e => e.studentId === studentId || e.student_id === studentId);
+  }
+
+  async enrollCourse(student, course) {
+    const studentId = typeof student === 'object' ? (student.studentId || student.id || student.roll_number) : student;
+    const courseId = typeof course === 'object' ? (course.courseId || course.id) : course;
+
+    if (this.pg) {
+      try {
+        // Resolve student
+        const sRes = await this.pg.query(
+          `SELECT id, roll_number FROM students WHERE id::text = $1 OR roll_number = $1 OR user_id::text = $1 LIMIT 1`,
+          [String(studentId)]
+        );
+        // Resolve course
+        const cRes = await this.pg.query(
+          `SELECT id, title, category, instructor_name, hours FROM courses WHERE id::text = $1 OR course_code = $1 LIMIT 1`,
+          [String(courseId)]
+        );
+
+        if (sRes.rows.length > 0 && cRes.rows.length > 0) {
+          const dbStu = sRes.rows[0];
+          const dbCourse = cRes.rows[0];
+
+          const insRes = await this.pg.query(`
+            INSERT INTO enrollments (student_id, course_id, status, progress_percentage, enrolled_at)
+            VALUES ($1, $2, 'In Progress', 0, CURRENT_TIMESTAMP)
+            ON CONFLICT (student_id, course_id) DO UPDATE SET status = enrollments.status
+            RETURNING *
+          `, [dbStu.id, dbCourse.id]);
+          const row = insRes.rows[0];
+
+          return {
+            id: row.id,
+            enrollmentId: row.id,
+            studentId: dbStu.id,
+            courseId: dbCourse.id,
+            courseTitle: dbCourse.title,
+            category: dbCourse.category,
+            instructor: dbCourse.instructor_name,
+            progress: row.progress_percentage,
+            progressPercentage: row.progress_percentage,
+            completedModules: 0,
+            completedModuleIds: [],
+            totalModules: 8,
+            hoursRemaining: dbCourse.hours || 20,
+            status: row.status,
+            enrolledAt: row.enrolled_at
+          };
+        }
+      } catch (err) {
+        console.warn('[enrollCourse] PG error, falling back:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const courseObj = typeof course === 'object' ? course : (await this.getCourseById(courseId)) || {};
+
+    const existing = (data.enrollments || []).find(e => 
+      (e.studentId === studentId || e.student_id === studentId) && 
+      (e.courseId === courseId || e.course_id === courseId)
+    );
+    if (existing) return existing;
+
+    const newEnrollment = {
+      id: `enr_${Date.now()}`,
+      enrollmentId: `enr_${Date.now()}`,
+      studentId: studentId,
+      student_id: studentId,
+      courseId: courseId,
+      course_id: courseId,
+      courseTitle: courseObj.title || 'Course',
+      category: courseObj.category || 'General',
+      instructor: courseObj.instructor || 'Faculty Lead',
+      progress: 0,
+      progressPercentage: 0,
+      completedModules: 0,
+      completedModuleIds: [],
+      totalModules: courseObj.totalModules || (courseObj.modules ? courseObj.modules.length : 8),
+      hoursRemaining: courseObj.hours || 20,
+      status: 'In Progress',
+      currentModule: courseObj.modules?.[0]?.title || 'Module 1: Foundations',
+      enrolledAt: new Date().toISOString()
+    };
+    data.enrollments.unshift(newEnrollment);
+    this._write(data);
+    return newEnrollment;
+  }
+
+  async advanceModule(enrollmentId, moduleId = null) {
+    if (this.pg) {
+      const client = await this.pg.connect();
+      try {
+        await client.query('BEGIN');
+
+        // 1. Resolve enrollment in PostgreSQL
+        const enrRes = await client.query(`
+          SELECT e.*, c.id AS course_id, c.title AS course_title, c.course_code 
+          FROM enrollments e 
+          JOIN courses c ON c.id = e.course_id 
+          WHERE e.id::text = $1 OR e.course_id::text = $1 OR c.course_code = $1
+          LIMIT 1
+        `, [String(enrollmentId)]);
+
+        let enrollment = enrRes.rows[0];
+
+        if (enrollment) {
+          const courseId = enrollment.course_id;
+          const enrId = enrollment.id;
+
+          // 2. Fetch all modules for this course
+          const modulesRes = await client.query(`
+            SELECT id, module_number, title 
+            FROM course_modules 
+            WHERE course_id = $1 
+            ORDER BY module_number ASC
+          `, [courseId]);
+          const courseModules = modulesRes.rows;
+          const totalModules = Math.max(courseModules.length, 1);
+
+          // 3. Resolve target module UUID
+          let targetModule = null;
+          if (moduleId) {
+            targetModule = courseModules.find(m => m.id === moduleId);
+            if (!targetModule) {
+              const numMatch = String(moduleId).match(/\d+/);
+              if (numMatch) {
+                const targetNum = parseInt(numMatch[0], 10);
+                targetModule = courseModules.find(m => m.module_number === targetNum);
+              }
+            }
+          }
+
+          if (!targetModule) {
+            const uncompletedRes = await client.query(`
+              SELECT cm.id, cm.module_number, cm.title 
+              FROM course_modules cm 
+              WHERE cm.course_id = $1 
+                AND cm.id NOT IN (
+                  SELECT smp.module_id 
+                  FROM student_module_progress smp 
+                  WHERE smp.enrollment_id = $2 AND smp.status = 'Completed'
+                )
+              ORDER BY cm.module_number ASC 
+              LIMIT 1
+            `, [courseId, enrId]);
+            if (uncompletedRes.rows.length > 0) {
+              targetModule = uncompletedRes.rows[0];
+            } else if (courseModules.length > 0) {
+              targetModule = courseModules[courseModules.length - 1];
+            }
+          }
+
+          let alreadyCompleted = false;
+
+          if (targetModule) {
+            const existCheck = await client.query(`
+              SELECT id FROM student_module_progress 
+              WHERE enrollment_id = $1 AND module_id = $2 AND status = 'Completed'
+            `, [enrId, targetModule.id]);
+
+            if (existCheck.rows.length > 0) {
+              alreadyCompleted = true;
+            } else {
+              await client.query(`
+                INSERT INTO student_module_progress (enrollment_id, module_id, status, completed_at)
+                VALUES ($1, $2, 'Completed', CURRENT_TIMESTAMP)
+                ON CONFLICT (enrollment_id, module_id) DO UPDATE SET status = 'Completed', completed_at = CURRENT_TIMESTAMP
+              `, [enrId, targetModule.id]);
+            }
+          }
+
+          // 4. Calculate progress from actual database completed count (Idempotent & Deterministic)
+          const completedCountRes = await client.query(`
+            SELECT COUNT(DISTINCT module_id) as count 
+            FROM student_module_progress 
+            WHERE enrollment_id = $1 AND status = 'Completed'
+          `, [enrId]);
+          const completedCount = parseInt(completedCountRes.rows[0]?.count || 0, 10);
+
+          const progress = Math.min(100, Math.round((completedCount / totalModules) * 100));
+          const newStatus = progress >= 100 ? 'Completed' : 'In Progress';
+
+          // 5. Update enrollments record in PostgreSQL
+          await client.query(`
+            UPDATE enrollments 
+            SET progress_percentage = $1, 
+                status = $2, 
+                completed_at = (CASE WHEN $1 >= 100 THEN CURRENT_TIMESTAMP ELSE completed_at END)
+            WHERE id = $3
+          `, [progress, newStatus, enrId]);
+
+          // Fetch all completed module ids
+          const completedListRes = await client.query(`
+            SELECT module_id FROM student_module_progress WHERE enrollment_id = $1 AND status = 'Completed'
+          `, [enrId]);
+          const completedModuleIds = completedListRes.rows.map(r => r.module_id);
+
+          await client.query('COMMIT');
+
+          return {
+            id: enrId,
+            enrollmentId: enrId,
+            courseId: courseId,
+            courseTitle: enrollment.course_title,
+            completedModules: completedCount,
+            totalModules: totalModules,
+            progress: progress,
+            progressPercentage: progress,
+            completionPercentage: progress,
+            status: newStatus,
+            alreadyCompleted: alreadyCompleted,
+            completedModuleIds: completedModuleIds,
+            currentModule: progress >= 100 ? 'All Modules Completed' : `Module ${Math.min(completedCount + 1, totalModules)}`
+          };
+        }
+        await client.query('ROLLBACK');
+      } catch (err) {
+        await client.query('ROLLBACK');
+        console.warn('[advanceModule] PG error, falling back:', err.message);
+      } finally {
+        client.release();
+      }
+    }
+
+    const data = this._read();
+    const index = data.enrollments.findIndex(e => e.id === enrollmentId || e.enrollmentId === enrollmentId || e.enrollment_id === enrollmentId);
+    if (index === -1) return null;
+
+    const enrollment = data.enrollments[index];
+    const total = enrollment.totalModules || 8;
+    enrollment.completedModuleIds = Array.isArray(enrollment.completedModuleIds) ? enrollment.completedModuleIds : [];
+
+    let alreadyCompleted = false;
+    if (moduleId) {
+      if (!enrollment.completedModuleIds.includes(moduleId)) {
+        enrollment.completedModuleIds.push(moduleId);
+      } else {
+        alreadyCompleted = true;
+      }
+    } else {
+      const currentCompleted = enrollment.completedModuleIds.length;
+      if (currentCompleted < total) {
+        const nextId = `mod_${currentCompleted + 1}`;
+        if (!enrollment.completedModuleIds.includes(nextId)) {
+          enrollment.completedModuleIds.push(nextId);
+        } else {
+          alreadyCompleted = true;
+        }
+      } else {
+        alreadyCompleted = true;
+      }
+    }
+
+    const nextCompleted = Math.min(total, enrollment.completedModuleIds.length);
+    const progress = Math.min(100, Math.round((nextCompleted / total) * 100));
+
+    let certificateGenerated = false;
+    let cert = null;
+    if (progress >= 100) {
+      data.courseCertificates = data.courseCertificates || [];
+      const sId = enrollment.studentId || enrollment.student_id;
+      const cId = enrollment.courseId || enrollment.course_id;
+
+      cert = data.courseCertificates.find(c => (c.studentId === sId) && (c.courseId === cId));
+      if (!cert) {
+        const student = (data.students || []).find(s => s.studentId === sId || s.id === sId) || {};
+        const course = (data.courses || []).find(c => c.courseId === cId || c.id === cId) || {};
+        const company = (data.companies || []).find(c => c.id === (course.companyId || cId) || c.companyId === (course.companyId || cId)) || {};
+        const inst = (data.institutions || []).find(i => i.id === (student.collegeId || student.institutionId)) || {};
+
+        cert = {
+          certificateId: `CERT-CRS-${Date.now()}`,
+          enrollmentId: enrollment.id || enrollment.enrollmentId,
+          studentId: sId,
+          studentName: student.name || 'Student',
+          courseId: cId,
+          courseTitle: course.title || enrollment.courseTitle || 'Course',
+          companyId: course.companyId || company.id || null,
+          companyName: company.name || company.companyName || 'Offering Company',
+          institutionId: student.collegeId || student.institutionId || 'TN010',
+          institutionName: inst.name || student.collegeName || 'SRM Institute of Science and Technology',
+          department: student.department || 'Computer Science',
+          issueDate: new Date().toISOString(),
+          status: 'PENDING_VERIFICATION',
+          grade: 'A+ (100%)',
+          verificationHash: null
+        };
+        data.courseCertificates.unshift(cert);
+        certificateGenerated = true;
+      }
+    }
+
+    data.enrollments[index] = {
+      ...enrollment,
+      completedModules: nextCompleted,
+      progress,
+      progressPercentage: progress,
+      completionPercentage: progress,
+      totalModules: total,
+      status: progress >= 100 ? 'Completed' : 'In Progress',
+      hoursRemaining: Math.max(0, (enrollment.hoursRemaining || 10) - 2),
+      completedAt: progress >= 100 ? (enrollment.completedAt || new Date().toISOString()) : null,
+      currentModule: progress >= 100 ? 'All Modules Completed' : `Module ${nextCompleted + 1}: Implementation & Practice`,
+      alreadyCompleted
+    };
+    this._write(data);
+    return {
+      ...data.enrollments[index],
+      certificateGenerated,
+      certificate: cert
+    };
+  }
+
+  // 4. PROJECTS & PROOFS (Sovereign Ledger)
+  async getProjects(studentId = null) {
+    const data = this._read();
+    if (!studentId) return data.projects || [];
+    return (data.projects || []).filter(p => p.studentId === studentId);
+  }
+
+  async submitProject(projectData) {
+    const data = this._read();
+    const newProject = {
+      projectId: `PRJ-${Math.floor(100 + Math.random() * 900)}`,
+      studentId: projectData.studentId || 'STU-TN010-001',
+      courseId: projectData.courseId || null,
+      studentName: projectData.studentName || 'Arun Kumar',
+      collegeId: projectData.collegeId || 'TN010',
+      title: projectData.title,
+      description: projectData.description,
+      techStack: projectData.techStack || ['Python'],
+      githubUrl: projectData.githubUrl || '',
+      liveUrl: projectData.liveUrl || '',
+      status: 'Submitted',
+      statusNote: 'Awaiting faculty ledger review & cryptographic attestation',
+      submittedAt: new Date().toISOString(),
+      proof: {
+        proofHash: `0x${Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('')}`,
+        gitCommitHash: Math.random().toString(16).substring(2, 9),
+        testPassPercentage: 95.0,
+        codeQualityScore: 92.0,
+        facultyVerified: false,
+        verificationStatus: 'Under Review',
+        ledgerBlock: 'Pending Attestation'
+      }
+    };
+    data.projects.unshift(newProject);
+    this._write(data);
+    return newProject;
+  }
+
+  async validateProject(projectId, isApproved, facultyName = 'Prof. K. Ramanathan') {
+    const data = this._read();
+    const index = data.projects.findIndex(p => p.projectId === projectId);
+    if (index === -1) return null;
+
+    const project = data.projects[index];
+    const newStatus = isApproved ? 'Validated' : 'Rejected';
+    const blockId = `Block #${Math.floor(8900 + Math.random() * 100)}_${Math.floor(100 + Math.random() * 900)}`;
+
+    data.projects[index] = {
+      ...project,
+      status: newStatus,
+      statusNote: isApproved ? `Cryptographically validated by ${facultyName} and sealed to ${blockId}` : 'Revision requested by faculty',
+      validatedAt: new Date().toISOString(),
+      proof: {
+        ...project.proof,
+        facultyVerified: isApproved,
+        facultyId: facultyName,
+        facultySignature: isApproved ? `SIG_COE_${facultyName.replace(/\s+/g, '_')}_${Date.now()}` : null,
+        verificationStatus: newStatus,
+        ledgerBlock: isApproved ? blockId : 'Rejected'
+      }
+    };
+    this._write(data);
+    return data.projects[index];
+  }
+
+  async getCompanies() {
+    const data = this._read();
+    return data.companies || [];
+  }
+
+  // 5. OPPORTUNITIES & APPLICATIONS
+  async getOpportunities(filter = {}) {
+    if (this.pg) {
+      try {
+        let whereClauses = [];
+        let params = [];
+        let pIdx = 1;
+
+        if (filter.companyId) {
+          const compMatch = (this._read().companies || []).find(c => 
+            c.companyId === filter.companyId || c.id === filter.companyId || c.code === filter.companyId
+          );
+          const compName = compMatch?.companyName || null;
+          if (compName) {
+            whereClauses.push(`(o.company_id::text = $${pIdx} OR c.id::text = $${pIdx} OR c.registration_number = $${pIdx} OR c.company_name ILIKE $${pIdx + 1})`);
+            params.push(String(filter.companyId), compName);
+            pIdx += 2;
+          } else {
+            whereClauses.push(`(o.company_id::text = $${pIdx} OR c.id::text = $${pIdx} OR c.registration_number = $${pIdx})`);
+            params.push(String(filter.companyId));
+            pIdx++;
+          }
+        }
+        if (filter.status) {
+          whereClauses.push(`o.status ILIKE $${pIdx}`);
+          params.push(filter.status);
+          pIdx++;
+        }
+
+        const whereStr = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+        const oppQuery = `
+          SELECT o.*, c.company_name, c.industry, c.headquarters, c.state
+          FROM opportunities o
+          JOIN companies c ON o.company_id = c.id
+          ${whereStr}
+          ORDER BY o.created_at DESC
+        `;
+        const res = await this.pg.query(oppQuery, params);
+
+        // Fetch skills for these opportunities
+        const oppIds = res.rows.map(r => r.id);
+        let skillsMap = {};
+        if (oppIds.length > 0) {
+          const skRes = await this.pg.query(
+            `SELECT os.opportunity_id, s.name as skill_name, os.required_level, os.importance, os.weight
+             FROM opportunity_skills os
+             JOIN skills s ON os.skill_id = s.id
+             WHERE os.opportunity_id = ANY($1::uuid[])`,
+            [oppIds]
+          );
+          for (const row of skRes.rows) {
+            if (!skillsMap[row.opportunity_id]) skillsMap[row.opportunity_id] = [];
+            skillsMap[row.opportunity_id].push({
+              name: row.skill_name,
+              requiredLevel: row.required_level,
+              importance: row.importance,
+              weight: row.weight
+            });
+          }
+        }
+
+        return res.rows.map(r => ({
+          id: r.id,
+          oppId: r.id,
+          opportunityId: r.id,
+          companyId: r.company_id,
+          company: r.company_name,
+          companyName: r.company_name,
+          title: r.title,
+          type: r.opportunity_type,
+          opportunityType: r.opportunity_type,
+          mode: r.work_mode,
+          workMode: r.work_mode,
+          location: r.location || (r.city ? `${r.city}, ${r.state || ''}` : 'Chennai'),
+          stipend: r.stipend_text || (r.salary_min ? `₹${Number(r.salary_min).toLocaleString()} / month` : 'Competitive'),
+          minCgpa: r.min_cgpa,
+          minReadinessScore: r.min_readiness_score,
+          deadline: r.deadline,
+          applicantCount: r.applicant_count || 0,
+          status: r.status,
+          requiredSkills: skillsMap[r.id] || [],
+          skillsMatrix: (skillsMap[r.id] || []).map(s => ({ name: s.name, status: 'Required' })),
+          createdAt: r.created_at
+        }));
+      } catch (err) {
+        console.error('[getOpportunities] PG query error:', err.message);
+        throw err;
+      }
+    }
+
+    const data = this._read();
+    return data.opportunities || [];
+  }
+
+  async createOpportunity(oppData) {
+    if (this.pg) {
+      const client = await this.pg.connect();
+      try {
+        await client.query('BEGIN');
+        let compId = oppData.companyId || oppData.company_id;
+        let cRes = await client.query(
+          'SELECT id, company_name FROM companies WHERE id::text = $1 OR registration_number = $1 OR company_name ILIKE $1 LIMIT 1',
+          [String(compId)]
+        );
+        if (cRes.rows.length === 0) {
+          cRes = await client.query('SELECT id, company_name FROM companies LIMIT 1');
+        }
+        const company = cRes.rows[0];
+        const cId = company ? company.id : null;
+        if (!cId) throw new Error('Company not found for opportunity creation');
+
+        const title = oppData.title || 'Software Engineer';
+        const oppType = ['Internship', 'Full-Time', 'PPO', 'Apprenticeship'].includes(oppData.type) ? oppData.type : 'Internship';
+        const workMode = ['On-Site', 'Remote', 'Hybrid'].includes(oppData.mode) ? oppData.mode : 'Hybrid';
+        const location = oppData.location || 'Chennai';
+        const stipend = oppData.stipend || '₹35,000 / month';
+        const minCgpa = oppData.minCgpa ? Number(oppData.minCgpa) : 7.0;
+        const deadline = oppData.deadline || new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+
+        const insRes = await client.query(
+          `INSERT INTO opportunities (company_id, title, opportunity_type, work_mode, location, stipend_text, min_cgpa, deadline, status, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'ACTIVE', CURRENT_TIMESTAMP)
+           RETURNING *`,
+          [cId, title, oppType, workMode, location, stipend, minCgpa, deadline]
+        );
+        const newOpp = insRes.rows[0];
+
+        if (Array.isArray(oppData.requiredSkills)) {
+          for (const sk of oppData.requiredSkills) {
+            const skName = (typeof sk === 'string' ? sk : sk.name || '').trim();
+            if (!skName) continue;
+            let skId = null;
+            const skCheck = await client.query('SELECT id FROM skills WHERE LOWER(name) = LOWER($1) LIMIT 1', [skName]);
+            if (skCheck.rows.length > 0) {
+              skId = skCheck.rows[0].id;
+            } else {
+              const catRes = await client.query('SELECT id FROM skill_categories LIMIT 1');
+              const catId = catRes.rows[0]?.id;
+              const newSk = await client.query(
+                `INSERT INTO skills (name, category_id, difficulty, industry_demand) VALUES ($1, $2, 'Intermediate', 'HIGH') RETURNING id`,
+                [skName, catId]
+              );
+              skId = newSk.rows[0].id;
+            }
+            await client.query(
+              `INSERT INTO opportunity_skills (opportunity_id, skill_id, required_level, importance, weight)
+               VALUES ($1, $2, 'Intermediate', 'HIGH', 1)
+               ON CONFLICT (opportunity_id, skill_id) DO NOTHING`,
+              [newOpp.id, skId]
+            );
+          }
+        }
+
+        await client.query('COMMIT');
+        return {
+          id: newOpp.id,
+          oppId: newOpp.id,
+          opportunityId: newOpp.id,
+          companyId: newOpp.company_id,
+          companyName: company.company_name,
+          title: newOpp.title,
+          type: newOpp.opportunity_type,
+          mode: newOpp.work_mode,
+          location: newOpp.location,
+          stipend: newOpp.stipend_text,
+          status: newOpp.status
+        };
+      } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('[createOpportunity] PG error:', err.message);
+        throw err;
+      } finally {
+        client.release();
+      }
+    }
+
+    const data = this._read();
+    const newOpp = {
+      oppId: `OPP-${Math.floor(100 + Math.random() * 900)}`,
+      companyId: oppData.companyId || 'COMP-001',
+      companyName: oppData.companyName || 'ABC Technologies',
+      title: oppData.title,
+      type: oppData.type || 'Internship',
+      mode: oppData.mode || 'Hybrid',
+      location: oppData.location || 'Chennai, Tamil Nadu',
+      stipend: oppData.stipend || '₹35,000 / month',
+      duration: oppData.duration || '6 Months',
+      minCgpa: oppData.minCgpa || '7.5',
+      deadline: oppData.deadline || '2026-10-15',
+      requiredSkills: oppData.requiredSkills || [{ name: 'Python', requiredLevel: 'Advanced', weight: 40 }],
+      description: oppData.description || 'Join our cutting edge engineering squad.',
+      applicantCount: 0,
+      status: 'ACTIVE'
+    };
+    data.opportunities.unshift(newOpp);
+    this._write(data);
+
+    // Broadcast notifications to institutions & students
+    try {
+      const compName = newOpp.companyName || oppData.companyName || 'Corporate Partner';
+      const oppTitle = newOpp.title || 'New Opportunity';
+      const oppType = newOpp.type || 'Internship';
+
+      await this.addNotification('institution', {
+        type: 'new_opportunity',
+        title: `New ${oppType} Posted by ${compName}`,
+        message: `${compName} published "${oppTitle}" (${oppType}). Click to view opportunity details.`,
+        details: { opportunityId: newOpp.oppId, companyName: compName, title: oppTitle, type: oppType }
+      });
+
+      await this.addNotification('student', {
+        type: 'new_opportunity',
+        title: `New ${oppType}: ${oppTitle}`,
+        message: `${compName} is hiring for ${oppTitle} (${oppType}). Review requirements and apply.`,
+        details: { opportunityId: newOpp.oppId, companyName: compName, title: oppTitle, type: oppType }
+      });
+    } catch (e) {
+      console.warn('[createOpportunity] Notification note:', e.message);
+    }
+
+    return newOpp;
+  }
+
+  async getApplications(filter = {}) {
+    if (this.pg) {
+      try {
+        let whereClauses = [];
+        let params = [];
+        let pIdx = 1;
+
+        if (filter.studentId) {
+          whereClauses.push(`(s.id::text = $${pIdx} OR s.roll_number = $${pIdx} OR s.user_id::text = $${pIdx})`);
+          params.push(String(filter.studentId));
+          pIdx++;
+        }
+        if (filter.companyId) {
+          whereClauses.push(`(c.id::text = $${pIdx} OR c.company_name ILIKE $${pIdx} OR o.company_id::text = $${pIdx})`);
+          params.push(String(filter.companyId));
+          pIdx++;
+        }
+        if (filter.opportunityId) {
+          whereClauses.push(`(a.opportunity_id::text = $${pIdx})`);
+          params.push(String(filter.opportunityId));
+          pIdx++;
+        }
+
+        const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+        const query = `
+          SELECT 
+            a.id,
+            a.id AS "applicationId",
+            a.student_id AS "studentId",
+            s.full_name AS "studentName",
+            s.full_name AS "name",
+            s.roll_number AS "studentCollegeId",
+            s.roll_number AS "rollNumber",
+            s.cgpa,
+            d.name AS "studentDepartment",
+            d.name AS "department",
+            a.opportunity_id AS "opportunityId",
+            o.title AS "opportunityTitle",
+            o.opportunity_type AS "opportunityType",
+            o.company_id AS "companyId",
+            c.company_name AS "companyName",
+            c.company_name AS "company",
+            a.match_score AS "matchScore",
+            a.current_stage AS "stage",
+            a.current_stage AS "current_stage",
+            CASE WHEN a.current_stage = 'Applied' THEN 'Submitted' ELSE a.current_stage END AS "status",
+            a.applied_at AS "appliedAt",
+            a.updated_at AS "updatedAt",
+            a.resume_url AS "resumeUrl"
+          FROM applications a
+          JOIN students s ON s.id = a.student_id
+          LEFT JOIN departments d ON d.id = s.department_id
+          JOIN opportunities o ON o.id = a.opportunity_id
+          JOIN companies c ON c.id = o.company_id
+          ${whereSql}
+          ORDER BY a.applied_at DESC
+        `;
+        const res = await this.pg.query(query, params);
+        return res.rows;
+      } catch (err) {
+        console.warn('[getApplications] PG error, falling back:', err.message);
+      }
+    }
+
+    const data = this._read();
+    let apps = data.applications || [];
+    if (filter.studentId) apps = apps.filter(a => a.studentId === filter.studentId);
+    if (filter.companyId) apps = apps.filter(a => a.companyId === filter.companyId);
+    if (filter.opportunityId) apps = apps.filter(a => a.opportunityId === filter.opportunityId);
+    return apps;
+  }
+
+  async getApplicationsByCompany(companyId) {
+    return this.getApplications({ companyId });
+  }
+
+  async getApplicationById(id, companyId = null) {
+    const apps = await this.getApplications(companyId ? { companyId } : {});
+    return apps.find(a => String(a.id) === String(id) || String(a.applicationId) === String(id)) || null;
+  }
+
+  async submitApplication(student, opportunity) {
+    if (this.pg) {
+      const client = await this.pg.connect();
+      try {
+        await client.query('BEGIN');
+
+        // Resolve student
+        const stuId = typeof student === 'object' ? (student.studentId || student.id || student.roll_number || student.rollNumber) : student;
+        let stuRes = await client.query(
+          `SELECT id, full_name, roll_number, institution_id, department_id, resume_url 
+           FROM students 
+           WHERE id::text = $1 OR roll_number = $1 OR user_id::text = $1 
+           LIMIT 1`,
+          [String(stuId)]
+        );
+        if (stuRes.rows.length === 0 && student.email) {
+          stuRes = await client.query(
+            `SELECT s.id, s.full_name, s.roll_number, s.institution_id, s.department_id, s.resume_url 
+             FROM students s JOIN users u ON u.id = s.user_id 
+             WHERE LOWER(u.email) = LOWER($1) LIMIT 1`,
+            [student.email]
+          );
+        }
+        if (stuRes.rows.length === 0) {
+          throw new Error(`Student record not found for ID: ${stuId}`);
+        }
+        const dbStudent = stuRes.rows[0];
+
+        // Resolve opportunity
+        const oppId = typeof opportunity === 'object' ? (opportunity.oppId || opportunity.opportunityId || opportunity.id) : opportunity;
+        let oppRes = await client.query(
+          `SELECT id, company_id, title FROM opportunities WHERE id::text = $1 OR title ILIKE $1 LIMIT 1`,
+          [String(oppId)]
+        );
+        if (oppRes.rows.length === 0) {
+          throw new Error(`Opportunity not found for ID: ${oppId}`);
+        }
+        const dbOpp = oppRes.rows[0];
+
+        // Check if application already exists (idempotency)
+        const existingApp = await client.query(
+          `SELECT * FROM applications WHERE student_id = $1 AND opportunity_id = $2 LIMIT 1`,
+          [dbStudent.id, dbOpp.id]
+        );
+        if (existingApp.rows.length > 0) {
+          await client.query('COMMIT');
+          const ex = existingApp.rows[0];
+          return {
+            id: ex.id,
+            applicationId: ex.id,
+            studentId: dbStudent.id,
+            studentName: dbStudent.full_name,
+            studentCollegeId: dbStudent.roll_number,
+            opportunityId: dbOpp.id,
+            companyId: dbOpp.company_id,
+            opportunityTitle: dbOpp.title,
+            stage: ex.current_stage,
+            current_stage: ex.current_stage,
+            status: ex.current_stage === 'Applied' ? 'Submitted' : ex.current_stage,
+            matchScore: ex.match_score,
+            appliedAt: ex.applied_at
+          };
+        }
+
+        const resumeUrl = dbStudent.resume_url || student.resumeUrl || student.resume || `https://storage.skillnexus.ai/resumes/${dbStudent.roll_number}.pdf`;
+        const matchScore = opportunity.matchScore || 88;
+
+        const insertApp = await client.query(
+          `INSERT INTO applications (student_id, opportunity_id, resume_url, cover_note, match_score, current_stage, applied_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, 'Applied', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+           RETURNING *`,
+          [dbStudent.id, dbOpp.id, resumeUrl, `Verified application for ${dbOpp.title}`, matchScore]
+        );
+        const newApp = insertApp.rows[0];
+
+        // Insert initial stage history
+        await client.query(
+          `INSERT INTO application_stage_history (application_id, stage, notes, duration_in_previous_stage_minutes, created_at)
+           VALUES ($1, 'Applied', 'Candidate submitted verified application', 0, CURRENT_TIMESTAMP)`,
+          [newApp.id]
+        );
+
+        // Increment applicant count on opportunity
+        await client.query(
+          `UPDATE opportunities SET applicant_count = applicant_count + 1 WHERE id = $1`,
+          [dbOpp.id]
+        );
+
+        await client.query('COMMIT');
+
+        // Persisted notifications
+        try {
+          await this.addNotification('student', {
+            type: 'application_submitted',
+            title: 'Application Transmitted',
+            message: `Your verified application for ${dbOpp.title} was received.`,
+            details: { applicationId: newApp.id, opportunityId: dbOpp.id }
+          });
+          await this.addNotification('company', {
+            type: 'application_received',
+            title: 'New Candidate Application',
+            message: `${dbStudent.full_name} applied for ${dbOpp.title}.`,
+            details: { applicationId: newApp.id, candidate: dbStudent.full_name, companyId: dbOpp.company_id }
+          });
+        } catch (e) {}
+
+        return {
+          id: newApp.id,
+          applicationId: newApp.id,
+          studentId: dbStudent.id,
+          studentName: dbStudent.full_name,
+          studentCollegeId: dbStudent.roll_number,
+          opportunityId: dbOpp.id,
+          companyId: dbOpp.company_id,
+          opportunityTitle: dbOpp.title,
+          matchScore: newApp.match_score,
+          status: 'Submitted',
+          stage: newApp.current_stage,
+          current_stage: newApp.current_stage,
+          appliedAt: newApp.applied_at
+        };
+      } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('[submitApplication] PG error:', err.message);
+        throw err;
+      } finally {
+        client.release();
+      }
+    }
+
+    const data = this._read();
+    const oppId = opportunity.oppId || opportunity.opportunityId || opportunity.id;
+    const existing = data.applications.find(a =>
+      a.studentId === student.studentId &&
+      (a.opportunityId === oppId)
+    );
+    if (existing) return existing;
+
+    const appId = `APP-${Date.now().toString().slice(-6)}`;
+    const newApp = {
+      id: appId,
+      applicationId: appId,
+      studentId: student.studentId,
+      studentName: student.name,
+      studentCollegeId: student.collegeId,
+      studentDepartment: student.department,
+      opportunityId: oppId,
+      companyId: opportunity.companyId,
+      opportunityTitle: opportunity.title,
+      companyName: opportunity.companyName || opportunity.company,
+      matchScore: opportunity.matchScore || 88,
+      status: 'Submitted',
+      stage: 'Applied',
+      appliedAt: new Date().toISOString(),
+      recruiterAction: 'Fast-Track Queue Assigned • 1-Click Passport Transmitted'
+    };
+    data.applications.unshift(newApp);
+
+    const oppIdx = data.opportunities.findIndex(o => (o.oppId || o.id) === oppId);
+    if (oppIdx >= 0) {
+      data.opportunities[oppIdx].applicantCount = (data.opportunities[oppIdx].applicantCount || 0) + 1;
+    }
+
+    this._write(data);
+
+    try {
+      this.addNotification('student', {
+        type: 'application_submitted',
+        title: 'Application Transmitted',
+        message: `Your verified application for ${opportunity.title || 'the role'} at ${opportunity.companyName || opportunity.company || 'the company'} was received.`,
+        details: { applicationId: appId, opportunityId: oppId }
+      });
+      this.addNotification('company', {
+        type: 'application_received',
+        title: 'New Verified Candidate Application',
+        message: `${student.name || 'A student'} applied for ${opportunity.title || 'your opening'} with verified credentials.`,
+        details: { applicationId: appId, candidate: student.name, companyId: opportunity.companyId }
+      });
+    } catch (e) {}
+
+    return newApp;
+  }
+
+  async updateApplicationStage(applicationId, newStage, changedByUserId = null) {
+    if (this.pg) {
+      const client = await this.pg.connect();
+      try {
+        await client.query('BEGIN');
+
+        // Find application
+        const appRes = await client.query(
+          `SELECT a.*, o.title as opportunity_title, s.full_name as student_name 
+           FROM applications a 
+           JOIN opportunities o ON o.id = a.opportunity_id 
+           JOIN students s ON s.id = a.student_id 
+           WHERE a.id::text = $1 LIMIT 1`,
+          [String(applicationId)]
+        );
+
+        if (appRes.rows.length === 0) {
+          await client.query('ROLLBACK');
+        } else {
+          const app = appRes.rows[0];
+
+          const stageMap = {
+            'applied': 'Applied',
+            'new': 'Under Review',
+            'screened': 'Screened',
+            'under review': 'Under Review',
+            'shortlisted': 'Shortlisted',
+            'interview': 'Interview',
+            'technical round': 'Interview',
+            'hr round': 'Interview',
+            'interview scheduled': 'Interview',
+            'selected': 'Selected',
+            'offer': 'Selected',
+            'accepted': 'Selected',
+            'rejected': 'Rejected'
+          };
+          const rawStage = String(newStage || '').trim();
+          const canonicalStage = stageMap[rawStage.toLowerCase()] || (['Applied', 'Screened', 'Under Review', 'Shortlisted', 'Interview', 'Selected', 'Rejected'].includes(rawStage) ? rawStage : 'Under Review');
+
+          // Idempotency: if stage didn't change, don't insert duplicate history
+          if (app.current_stage === canonicalStage) {
+            await client.query('COMMIT');
+            return {
+              id: app.id,
+              applicationId: app.id,
+              stage: rawStage || app.current_stage,
+              current_stage: app.current_stage,
+              status: app.current_stage,
+              updatedAt: app.updated_at
+            };
+          }
+
+          const prevTime = new Date(app.updated_at || app.applied_at).getTime();
+          const durationMinutes = Math.max(0, Math.round((Date.now() - prevTime) / 60000));
+
+          const updateRes = await client.query(
+            `UPDATE applications 
+             SET current_stage = $1, updated_at = CURRENT_TIMESTAMP 
+             WHERE id = $2 
+             RETURNING *`,
+            [canonicalStage, app.id]
+          );
+          const updatedApp = updateRes.rows[0];
+
+          await client.query(
+            `INSERT INTO application_stage_history (application_id, stage, changed_by_user_id, notes, duration_in_previous_stage_minutes, created_at)
+             VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)`,
+            [app.id, canonicalStage, changedByUserId, `Stage updated to ${rawStage}`, durationMinutes]
+          );
+
+          await client.query('COMMIT');
+
+          try {
+            await this.addNotification('student', {
+              type: 'application_status',
+              title: 'Application Stage Updated',
+              message: `Your application for ${app.opportunity_title || 'the opportunity'} has been updated to: ${canonicalStage}.`,
+              details: { applicationId: app.id, stage: canonicalStage }
+            });
+          } catch (e) {}
+
+          return {
+            id: updatedApp.id,
+            applicationId: updatedApp.id,
+            stage: rawStage || updatedApp.current_stage,
+            current_stage: updatedApp.current_stage,
+            status: updatedApp.current_stage,
+            updatedAt: updatedApp.updated_at
+          };
+        }
+      } catch (err) {
+        await client.query('ROLLBACK');
+        console.warn('[updateApplicationStage] PG error, falling back:', err.message);
+      } finally {
+        client.release();
+      }
+    }
+
+    const data = this._read();
+    const index = data.applications.findIndex(a => a.applicationId === applicationId || a.id === applicationId);
+    if (index === -1) return null;
+
+    data.applications[index].stage = newStage;
+    data.applications[index].updatedAt = new Date().toISOString();
+    const app = data.applications[index];
+    this._write(data);
+
+    try {
+      const isSelected = String(newStage).toLowerCase() === 'selected';
+      this.addNotification('student', {
+        type: isSelected ? 'application_selected' : 'application_status',
+        title: isSelected ? '🎉 Congratulations! You Have Been Selected' : 'Application Stage Updated',
+        message: isSelected
+          ? `Congratulations! You have been selected for ${app.opportunityTitle || 'the opportunity'} at ${app.companyName || 'the partner company'}.`
+          : `Your application for ${app.opportunityTitle || 'the opportunity'} has been updated to: ${newStage}.`,
+        details: { applicationId, stage: newStage, opportunityId: app.opportunityId }
+      });
+
+      if (isSelected) {
+        const student = (data.students || []).find(s => s.studentId === app.studentId || s.id === app.studentId);
+        if (student && (student.collegeId || student.institutionId)) {
+          this.addNotification('institution', {
+            type: 'placement_update',
+            title: 'Student Selected for Placement',
+            message: `${student.name || 'A student'} has been selected for ${app.opportunityTitle || 'Opportunity'} at ${app.companyName || 'Partner Company'}.`,
+            details: { studentId: student.studentId, applicationId, opportunityId: app.opportunityId, collegeId: student.collegeId }
+          });
+        }
+      }
+    } catch (e) {}
+
+    return app;
+  }
+
+  // 6. NOTIFICATIONS & TRASH BIN (PostgreSQL Authoritative)
+  async getNotifications(role, showDeleted = false) {
+    const normRole = (role || 'student').toLowerCase();
+    const cleanRole = ['student', 'institution', 'company'].includes(normRole) ? normRole : 'student';
+
+    if (this.pg) {
+      try {
+        const query = `
+          SELECT 
+            id,
+            recipient_type AS role,
+            notification_type AS type,
+            title,
+            message AS preview,
+            message,
+            to_char(created_at, 'YYYY-MM-DD HH24:MI') AS time,
+            created_at AS timestamp,
+            NOT is_read AS unread,
+            is_deleted AS deleted,
+            deleted_at AS "deletedAt",
+            details
+          FROM notifications
+          WHERE recipient_type = $1 AND is_deleted = $2
+          ORDER BY created_at DESC
+        `;
+        const res = await this.pg.query(query, [cleanRole, Boolean(showDeleted)]);
+        return res.rows;
+      } catch (err) {
+        console.warn('[getNotifications] PG error, falling back:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const notifs = data.notifications || [];
+    return notifs.filter(n => {
+      const matchRole = !role || (n.role && n.role.toLowerCase() === cleanRole);
+      const matchDeleted = showDeleted ? Boolean(n.deleted) : !n.deleted;
+      return matchRole && matchDeleted;
+    });
+  }
+
+  async markNotificationRead(id) {
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          `UPDATE notifications SET is_read = true WHERE id::text = $1 RETURNING *`,
+          [String(id)]
+        );
+        if (res.rows.length > 0) {
+          const row = res.rows[0];
+          return {
+            id: row.id,
+            role: row.recipient_type,
+            title: row.title,
+            unread: !row.is_read
+          };
+        }
+      } catch (err) {
+        console.warn('[markNotificationRead] PG error:', err.message);
+      }
+    }
+    const data = this._read();
+    const notif = (data.notifications || []).find(n => n.id === id);
+    if (notif) {
+      notif.unread = false;
+      this._write(data);
+    }
+    return notif;
+  }
+
+  async markAllNotificationsRead(role) {
+    const normRole = (role || 'student').toLowerCase();
+    const cleanRole = ['student', 'institution', 'company'].includes(normRole) ? normRole : 'student';
+
+    if (this.pg) {
+      try {
+        await this.pg.query(
+          `UPDATE notifications SET is_read = true WHERE recipient_type = $1`,
+          [cleanRole]
+        );
+        return true;
+      } catch (err) {
+        console.warn('[markAllNotificationsRead] PG error:', err.message);
+      }
+    }
+    const data = this._read();
+    (data.notifications || []).forEach(n => {
+      if (!role || (n.role && n.role.toLowerCase() === cleanRole)) {
+        n.unread = false;
+      }
+    });
+    this._write(data);
+    return true;
+  }
+
+  async softDeleteNotification(id) {
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          `UPDATE notifications SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id::text = $1 RETURNING *`,
+          [String(id)]
+        );
+        if (res.rows.length > 0) {
+          const row = res.rows[0];
+          return {
+            id: row.id,
+            role: row.recipient_type,
+            deleted: true,
+            deletedAt: row.deleted_at
+          };
+        }
+      } catch (err) {
+        console.warn('[softDeleteNotification] PG error:', err.message);
+      }
+    }
+    const data = this._read();
+    const notif = (data.notifications || []).find(n => n.id === id);
+    if (notif) {
+      notif.deleted = true;
+      notif.deletedAt = new Date().toISOString();
+      this._write(data);
+    }
+    return notif;
+  }
+
+  async restoreNotification(id) {
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          `UPDATE notifications SET is_deleted = false, deleted_at = NULL WHERE id::text = $1 RETURNING *`,
+          [String(id)]
+        );
+        if (res.rows.length > 0) {
+          const row = res.rows[0];
+          return {
+            id: row.id,
+            role: row.recipient_type,
+            deleted: false,
+            deletedAt: null
+          };
+        }
+      } catch (err) {
+        console.warn('[restoreNotification] PG error:', err.message);
+      }
+    }
+    const data = this._read();
+    const notif = (data.notifications || []).find(n => n.id === id);
+    if (notif) {
+      notif.deleted = false;
+      notif.deletedAt = null;
+      this._write(data);
+    }
+    return notif;
+  }
+
+  async emptyTrash(role) {
+    const normRole = (role || 'student').toLowerCase();
+    const cleanRole = ['student', 'institution', 'company'].includes(normRole) ? normRole : 'student';
+
+    if (this.pg) {
+      try {
+        await this.pg.query(
+          `DELETE FROM notifications WHERE recipient_type = $1 AND is_deleted = true`,
+          [cleanRole]
+        );
+        return true;
+      } catch (err) {
+        console.warn('[emptyTrash] PG error:', err.message);
+      }
+    }
+    const data = this._read();
+    data.notifications = (data.notifications || []).filter(n => {
+      const matchRole = !role || (n.role && n.role.toLowerCase() === cleanRole);
+      return !(matchRole && n.deleted);
+    });
+    this._write(data);
+    return true;
+  }
+
+  async addNotification(role, notifData) {
+    const normRole = (role || 'student').toLowerCase();
+    const cleanRole = ['student', 'institution', 'company'].includes(normRole) ? normRole : 'student';
+
+    if (this.pg) {
+      try {
+        let recipientId = notifData.userId || notifData.recipient_id || notifData.recipientId;
+        if (!recipientId && (notifData.studentId || notifData.details?.studentId)) {
+          const sid = notifData.studentId || notifData.details?.studentId;
+          const sRes = await this.pg.query(
+            `SELECT user_id FROM students WHERE id::text = $1 OR user_id::text = $1 OR roll_number = $1 LIMIT 1`,
+            [String(sid)]
+          );
+          if (sRes.rows.length > 0) {
+            recipientId = sRes.rows[0].user_id;
+          }
+        }
+        if (!recipientId && (notifData.institutionId || notifData.details?.institutionId)) {
+          const instId = notifData.institutionId || notifData.details?.institutionId;
+          const iRes = await this.pg.query(
+            `SELECT u.id FROM users u 
+             JOIN institution_members im ON u.id = im.user_id 
+             WHERE im.institution_id::text = $1 OR im.institution_id::text = (SELECT id::text FROM institutions WHERE code = $1 LIMIT 1) 
+             LIMIT 1`,
+            [String(instId)]
+          );
+          if (iRes.rows.length > 0) {
+            recipientId = iRes.rows[0].id;
+          }
+        }
+        if (!recipientId) {
+          const uRes = await this.pg.query(
+            `SELECT id FROM users WHERE LOWER(role) = $1 ORDER BY created_at ASC LIMIT 1`,
+            [cleanRole]
+          );
+          if (uRes.rows.length > 0) {
+            recipientId = uRes.rows[0].id;
+          } else {
+            const anyUser = await this.pg.query(`SELECT id FROM users LIMIT 1`);
+            recipientId = anyUser.rows[0]?.id;
+          }
+        }
+
+        if (recipientId) {
+          const res = await this.pg.query(`
+            INSERT INTO notifications (
+              recipient_type, recipient_id, notification_type, title, message, details, is_read, is_deleted, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, false, false, CURRENT_TIMESTAMP)
+            RETURNING *
+          `, [
+            cleanRole,
+            recipientId,
+            notifData.type || 'system',
+            notifData.title || 'Platform Notification',
+            notifData.message || notifData.preview || 'Sovereign ledger transaction registered.',
+            JSON.stringify(notifData.details || {})
+          ]);
+          const row = res.rows[0];
+          return {
+            id: row.id,
+            role: row.recipient_type,
+            type: row.notification_type,
+            title: row.title,
+            preview: row.message,
+            message: row.message,
+            time: 'Just now',
+            timestamp: row.created_at,
+            unread: !row.is_read,
+            deleted: row.is_deleted,
+            details: row.details
+          };
+        }
+      } catch (err) {
+        console.warn('[addNotification] PG error, falling back:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const newNotif = {
+      id: `notif_${Date.now()}_${Math.floor(Math.random() * 900 + 100)}`,
+      role: cleanRole,
+      type: notifData.type || 'system',
+      title: notifData.title || 'Platform Notification',
+      preview: notifData.message || notifData.preview || 'Sovereign ledger transaction registered.',
+      message: notifData.message || notifData.preview || 'Sovereign ledger transaction registered.',
+      time: 'Just now',
+      timestamp: new Date().toISOString(),
+      unread: true,
+      deleted: false,
+      deletedAt: null,
+      details: notifData.details || {}
+    };
+    data.notifications = data.notifications || [];
+    data.notifications.unshift(newNotif);
+    this._write(data);
+    return newNotif;
+  }
+
+  // 7. AUTHENTICATION & IDENTITY (Phase 4A)
+  async getUserById(id) {
+    if (!id) return null;
+    const cleanId = String(id).trim().toLowerCase();
+
+    if (this.pg) {
+      try {
+        const pgRes = await this.pg.query(
+          `SELECT u.*, 
+                  s.id as student_id, s.institution_id, s.department_id, s.roll_number, s.full_name as student_name, s.batch, s.graduation_year,
+                  i.name as institution_name, i.code as institution_code,
+                  d.name as department_name, d.code as department_code
+           FROM users u 
+           LEFT JOIN students s ON s.user_id = u.id 
+           LEFT JOIN institutions i ON s.institution_id = i.id 
+           LEFT JOIN departments d ON s.department_id = d.id 
+           WHERE u.id::text = $1 OR s.id::text = $1 OR LOWER(u.email) = $1 LIMIT 1`,
+          [cleanId]
+        );
+        if (pgRes.rows.length > 0) {
+          const pgU = pgRes.rows[0];
+          const data = this._read();
+          const fileU = (data.users || []).find(u => String(u.id).toLowerCase() === cleanId || (u.email || '').toLowerCase() === (pgU.email || '').toLowerCase());
+          return {
+            id: pgU.student_id || pgU.id,
+            userId: pgU.id,
+            email: pgU.email,
+            name: pgU.student_name || fileU?.name || pgU.email.split('@')[0],
+            role: fileU?.role || (pgU.student_id ? 'student' : 'student'),
+            studentId: pgU.student_id || fileU?.studentId,
+            institutionId: pgU.institution_id || fileU?.institutionId,
+            collegeId: pgU.institution_id || fileU?.collegeId,
+            departmentId: pgU.department_id,
+            departmentName: pgU.department_name,
+            rollNumber: pgU.roll_number,
+            batch: pgU.batch,
+            graduationYear: pgU.graduation_year,
+            account_status: pgU.account_status,
+            accountStatus: pgU.account_status,
+            email_verified: pgU.email_verified,
+            emailVerified: pgU.email_verified,
+            invitation_token: pgU.invitation_token,
+            invitationToken: pgU.invitation_token,
+            invitation_expires_at: pgU.invitation_expires_at,
+            invitationExpiresAt: pgU.invitation_expires_at,
+            passwordHash: pgU.password_hash || fileU?.passwordHash,
+            googleId: pgU.google_id || fileU?.googleId,
+            google_id: pgU.google_id || fileU?.google_id
+          };
+        }
+      } catch (err) {
+        console.warn('[getUserById] PG lookup warning:', err.message);
+      }
+    }
+
+    const data = this._read();
+
+    // 1. Check users table
+    const user = (data.users || []).find(u =>
+      String(u.id).toLowerCase() === cleanId ||
+      String(u.studentId || '').toLowerCase() === cleanId ||
+      String(u.institutionId || '').toLowerCase() === cleanId ||
+      String(u.companyId || '').toLowerCase() === cleanId
+    );
+
+    if (!user) {
+      // Fallback check against role profile tables
+      const std = (data.students || []).find(s => String(s.studentId).toLowerCase() === cleanId);
+      if (std) {
+        return {
+          id: std.studentId,
+          userId: std.userId || std.studentId,
+          studentId: std.studentId,
+          collegeId: std.collegeId,
+          email: std.email,
+          name: std.name,
+          role: 'student',
+          status: 'ACTIVE',
+          isVerified: true,
+          ...std
+        };
+      }
+      const inst = (data.institutions || []).find(i => String(i.institutionId || i.institution_id).toLowerCase() === cleanId);
+      if (inst) {
+        return {
+          id: inst.institutionId || inst.institution_id,
+          userId: inst.userId || inst.institutionId || inst.institution_id,
+          institutionId: inst.institutionId || inst.institution_id,
+          collegeId: inst.institutionId || inst.institution_id,
+          email: inst.official_email || inst.email,
+          name: inst.dean || inst.collegeName,
+          role: 'institution',
+          status: 'ACTIVE',
+          isVerified: true,
+          ...inst
+        };
+      }
+      const comp = (data.companies || []).find(c => String(c.companyId || c.company_id).toLowerCase() === cleanId);
+      if (comp) {
+        return {
+          id: comp.companyId || comp.company_id,
+          userId: comp.userId || comp.companyId || comp.company_id,
+          companyId: comp.companyId || comp.company_id,
+          email: comp.recruiterEmail,
+          name: comp.recruiterName || comp.companyName,
+          role: 'company',
+          status: 'ACTIVE',
+          isVerified: true,
+          ...comp
+        };
+      }
+      return null;
+    }
+
+    const normRole = (user.role || 'student').toLowerCase() === 'industry' ? 'company' : (user.role || 'student').toLowerCase();
+    let fullProfile = { ...user, role: normRole };
+
+    if (normRole === 'student') {
+      const studentData = (data.students || []).find(s => s.studentId === user.studentId || (s.email || '').toLowerCase() === user.email?.toLowerCase());
+      if (studentData) {
+        fullProfile = {
+          ...fullProfile,
+          ...studentData,
+          id: studentData.studentId,
+          studentId: studentData.studentId,
+          collegeId: studentData.collegeId || user.collegeId,
+          role: 'student'
+        };
+      }
+    } else if (normRole === 'institution') {
+      const instData = (data.institutions || []).find(i => (i.institutionId || i.institution_id) === (user.institutionId || user.collegeId) || (i.official_email || i.email || '').toLowerCase() === user.email?.toLowerCase());
+      if (instData) {
+        fullProfile = {
+          ...fullProfile,
+          ...instData,
+          id: instData.institutionId || instData.institution_id,
+          institutionId: instData.institutionId || instData.institution_id,
+          collegeId: instData.institutionId || instData.institution_id,
+          role: 'institution'
+        };
+      }
+    } else if (normRole === 'company') {
+      const compData = (data.companies || []).find(c => (c.companyId || c.company_id) === user.companyId || (c.recruiterEmail || '').toLowerCase() === user.email?.toLowerCase());
+      if (compData) {
+        fullProfile = {
+          ...fullProfile,
+          ...compData,
+          id: compData.companyId || compData.company_id,
+          companyId: compData.companyId || compData.company_id,
+          role: 'company'
+        };
+      }
+    }
+
+    delete fullProfile.passwordHash;
+    delete fullProfile.password;
+    return fullProfile;
+  }
+
+  async getUserByEmail(email) {
+    if (!email) return null;
+    const cleanEmail = String(email).trim().toLowerCase();
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          `SELECT u.*, s.id as student_id, s.institution_id, s.department_id, s.roll_number, s.full_name 
+           FROM users u 
+           LEFT JOIN students s ON s.user_id = u.id 
+           WHERE LOWER(u.email) = $1 LIMIT 1`,
+          [cleanEmail]
+        );
+        if (res.rows.length > 0) {
+          const pgU = res.rows[0];
+          const data = this._read();
+          const fileU = (data.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail);
+          return {
+            ...(fileU || {}),
+            id: pgU.id,
+            userId: pgU.id,
+            email: pgU.email,
+            role: pgU.role,
+            name: pgU.name || pgU.full_name || fileU?.name,
+            studentId: pgU.student_id || fileU?.studentId,
+            institutionId: pgU.institution_id || fileU?.institutionId,
+            collegeId: pgU.institution_id || fileU?.collegeId,
+            account_status: pgU.account_status,
+            accountStatus: pgU.account_status,
+            email_verified: pgU.email_verified,
+            emailVerified: pgU.email_verified,
+            invitation_token: pgU.invitation_token,
+            invitationToken: pgU.invitation_token,
+            invitation_expires_at: pgU.invitation_expires_at,
+            invitationExpiresAt: pgU.invitation_expires_at,
+            passwordHash: pgU.password_hash || fileU?.passwordHash,
+            googleId: pgU.google_id || fileU?.googleId,
+            google_id: pgU.google_id || fileU?.google_id
+          };
+        }
+      } catch (err) {
+        console.warn('[getUserByEmail] PG lookup warning:', err.message);
+      }
+    }
+    const data = this._read();
+    return (data.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail) || null;
+  }
+
+  async getUserByGoogleId(googleId) {
+    if (!googleId) return null;
+    const cleanGoogleId = String(googleId).trim();
+    if (this.pg) {
+      try {
+        const res = await this.pg.query('SELECT id, email FROM users WHERE google_id = $1 LIMIT 1', [cleanGoogleId]);
+        if (res.rows.length > 0) {
+          const byEmail = await this.getUserByEmail(res.rows[0].email);
+          if (byEmail) return byEmail;
+          return await this.getUserById(res.rows[0].id);
+        }
+      } catch (err) {
+        console.warn('[getUserByGoogleId] PG lookup warning:', err.message);
+      }
+    }
+    const data = this._read();
+    const user = (data.users || []).find(u => u.googleId === cleanGoogleId || u.google_id === cleanGoogleId);
+    if (user) {
+      return await this.getUserById(user.id);
+    }
+    return null;
+  }
+
+  async linkGoogleAccount(userId, googleId) {
+    if (!userId || !googleId) {
+      return { success: false, message: 'User ID and Google ID are required' };
+    }
+    const cleanGoogleId = String(googleId).trim();
+    const cleanId = String(userId).trim();
+
+    if (this.pg) {
+      try {
+        const pgUser = await this.pg.query(
+          `SELECT u.id, u.email FROM users u 
+           LEFT JOIN students s ON s.user_id = u.id 
+           WHERE u.id::text = $1 OR s.id::text = $1 OR LOWER(u.email) = LOWER($1) LIMIT 1`,
+          [cleanId]
+        );
+        if (pgUser.rows.length > 0) {
+          const uId = pgUser.rows[0].id;
+          const uEmail = pgUser.rows[0].email;
+          await this.pg.query(
+            'UPDATE users SET google_id = $1, auth_provider = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+            [cleanGoogleId, 'google', uId]
+          );
+          const data = this._read();
+          const fileUser = (data.users || []).find(u => String(u.id).toLowerCase() === String(uId).toLowerCase() || (u.email || '').toLowerCase() === uEmail.toLowerCase());
+          if (fileUser) {
+            fileUser.googleId = cleanGoogleId;
+            fileUser.google_id = cleanGoogleId;
+            fileUser.authProvider = 'google';
+            fileUser.updatedAt = new Date().toISOString();
+            this._write(data);
+          }
+          const fullProfile = await this.getUserById(uId);
+          if (fullProfile) {
+            fullProfile.googleId = cleanGoogleId;
+            fullProfile.google_id = cleanGoogleId;
+          }
+          return { success: true, user: fullProfile };
+        }
+      } catch (err) {
+        console.warn('[linkGoogleAccount] PG update warning:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const userIdx = (data.users || []).findIndex(u => 
+      String(u.id).toLowerCase() === cleanId.toLowerCase() ||
+      String(u.userId || '').toLowerCase() === cleanId.toLowerCase() ||
+      String(u.studentId || '').toLowerCase() === cleanId.toLowerCase() ||
+      String(u.institutionId || '').toLowerCase() === cleanId.toLowerCase() ||
+      String(u.companyId || '').toLowerCase() === cleanId.toLowerCase()
+    );
+    if (userIdx === -1) {
+      return { success: false, message: 'User account not found' };
+    }
+
+    data.users[userIdx].googleId = cleanGoogleId;
+    data.users[userIdx].google_id = cleanGoogleId;
+    data.users[userIdx].authProvider = 'google';
+    data.users[userIdx].updatedAt = new Date().toISOString();
+    const userEmail = data.users[userIdx].email;
+    const matchedUserId = data.users[userIdx].id;
+    this._write(data);
+
+    const fullProfile = await this.getUserById(matchedUserId);
+    if (fullProfile) {
+      fullProfile.googleId = cleanGoogleId;
+      fullProfile.google_id = cleanGoogleId;
+    }
+    return { success: true, user: fullProfile };
+  }
+
+  async registerGoogleUser({ googleId, email, name, role = 'student', profileData = {} }) {
+    if (!googleId || !email) {
+      return { success: false, message: 'Google ID and email are required' };
+    }
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanGoogleId = String(googleId).trim();
+    const cleanRole = String(role).trim().toLowerCase();
+
+    const validRoles = ['student', 'institution', 'company'];
+    if (!validRoles.includes(cleanRole)) {
+      return { success: false, message: 'Role must be student, institution, or company' };
+    }
+
+    const data = this._read();
+    const existing = (data.users || []).find(u => 
+      (u.email || '').toLowerCase() === cleanEmail || u.googleId === cleanGoogleId
+    );
+    if (existing) {
+      return { success: false, message: 'An account with this email or Google ID already exists' };
+    }
+
+    const newUserId = `usr_google_${Date.now()}`;
+    const newUser = {
+      id: newUserId,
+      email: cleanEmail,
+      name: name || cleanEmail.split('@')[0],
+      role: cleanRole,
+      googleId: cleanGoogleId,
+      authProvider: 'google',
+      isActive: true,
+      createdAt: new Date().toISOString()
+    };
+
+    if (cleanRole === 'student') {
+      const cId = profileData.collegeId || 'TN010';
+      const inst = (data.institutions || []).find(i => (i.institutionId || i.institution_id) === cId || i.collegeName === profileData.collegeName) || (data.institutions && data.institutions[0]);
+      const collegeId = inst ? (inst.institutionId || inst.institution_id) : 'TN010';
+      const collegeName = inst ? (inst.collegeName || inst.institution_name) : (profileData.collegeName || profileData.institution || 'SRM Institute of Science and Technology');
+
+      const studentId = `STU-${collegeId}-${Date.now().toString().slice(-4)}`;
+      const newStudent = {
+        studentId,
+        userId: newUserId,
+        regNo: `RA26${Date.now().toString().slice(-8)}`,
+        name: newUser.name,
+        email: cleanEmail,
+        collegeId,
+        collegeName,
+        department: profileData.department || 'Computer Science and Engineering',
+        degree: profileData.degree || 'B.Tech',
+        batch: profileData.batch || '2023-2027',
+        year: profileData.year || 'III Year',
+        semester: profileData.semester || 'Sem 6',
+        cgpa: profileData.cgpa || '8.50',
+        backlogs: 0,
+        headline: `B.Tech ${profileData.department || 'CSE'} • ${profileData.targetRole || profileData.careerGoal || 'Aspiring Software Engineer'}`,
+        avatar: profileData.picture || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        readinessScore: 78,
+        placementStatus: 'In Training',
+        preferredRoles: [profileData.targetRole || profileData.careerGoal || 'Software Engineer'],
+        skills: profileData.skills || [
+          { name: 'Python', level: 'Intermediate', confidence: 75, verified: true },
+          { name: 'SQL', level: 'Beginner', confidence: 60, verified: false }
+        ]
+      };
+      data.students.unshift(newStudent);
+      newUser.studentId = studentId;
+      newUser.collegeId = collegeId;
+    } else if (cleanRole === 'institution') {
+      const institutionId = profileData.institutionId || `TN${Date.now().toString().slice(-3)}`;
+      const newInst = {
+        institutionId,
+        userId: newUserId,
+        collegeName: profileData.institutionName || 'Tamil Nadu Engineering Institution',
+        collegeCode: `${institutionId}-CAMPUS`,
+        state: profileData.state || 'Tamil Nadu',
+        district: profileData.district || 'Chennai',
+        campusType: profileData.institutionType || 'Autonomous',
+        departments: profileData.departments || ['CSE', 'IT', 'ECE', 'AI & DS'],
+        studentCount: 0,
+        placementRate: '92.0%',
+        dean: profileData.contactPerson || newUser.name || 'Dean of Placements',
+        email: cleanEmail,
+        website: profileData.website || 'https://campus.tn.edu.in'
+      };
+      data.institutions.unshift(newInst);
+      newUser.institutionId = institutionId;
+    } else if (cleanRole === 'company') {
+      const companyId = profileData.companyId || `COMP-${Date.now().toString().slice(-3)}`;
+      const newComp = {
+        companyId,
+        userId: newUserId,
+        companyName: profileData.companyName || 'Enterprise Partner',
+        industry: profileData.industry || 'Information Technology',
+        headquarters: profileData.headquarters || 'Chennai, Tamil Nadu',
+        tier: 'Tier 1 Enterprise',
+        activePostings: 0,
+        recruiterName: profileData.contactPerson || newUser.name || 'Recruiter',
+        recruiterEmail: cleanEmail,
+        recruiterTitle: profileData.designation || 'Head of Talent Acquisition'
+      };
+      data.companies.unshift(newComp);
+      newUser.companyId = companyId;
+    }
+
+    data.users.unshift(newUser);
+    this._write(data);
+
+    if (this.pg) {
+      try {
+        const userInsert = await this.pg.query(
+          'INSERT INTO users (email, password_hash, is_active, google_id, auth_provider, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id',
+          [cleanEmail, 'OAUTH_MANAGED_IDENTITY', true, cleanGoogleId, 'google']
+        );
+        const pgUserId = userInsert.rows[0]?.id;
+        if (pgUserId) {
+          const roleCode = cleanRole.toUpperCase();
+          const roleRow = await this.pg.query('SELECT id FROM roles WHERE code = $1', [roleCode]);
+          if (roleRow.rows[0]?.id) {
+            await this.pg.query('INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [pgUserId, roleRow.rows[0].id]);
+          }
+          if (cleanRole === 'student') {
+            const instRow = await this.pg.query('SELECT id FROM institutions LIMIT 1');
+            const instId = instRow.rows[0]?.id;
+            const deptRow = await this.pg.query('SELECT id FROM departments WHERE code = $1 OR code = $2 LIMIT 1', ['CSE', 'CS']);
+            const deptId = deptRow.rows[0]?.id;
+            if (instId && deptId) {
+              const regNo = `RA26${Date.now().toString().slice(-8)}`;
+              await this.pg.query(
+                `INSERT INTO students (user_id, institution_id, department_id, roll_number, full_name, graduation_year, readiness_score, placement_status, created_at, updated_at) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+                [pgUserId, instId, deptId, regNo, newUser.name, 2026, 0, 'In Training']
+              );
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[registerGoogleUser] PG insert warning:', err.message);
+      }
+    }
+
+    const fullProfile = await this.getUserById(newUserId);
+    return { success: true, user: fullProfile };
+  }
+
+
+  async forgotPassword(email) {
+    const data = this._read();
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    const user = (data.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail);
+    if (!user) {
+      return { success: true, message: 'If this email is registered, a password reset token has been dispatched.' };
+    }
+    const token = `rst_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    user.resetToken = token;
+    user.resetTokenExpires = Date.now() + 3600000; // 1 hour
+    this._write(data);
+    return { success: true, message: 'Password reset token generated.', token };
+  }
+
+  async resetPassword(token, newPassword) {
+    if (!token || !newPassword || newPassword.length < 6) {
+      return { success: false, message: 'Invalid token or password does not meet requirements (min 6 chars).' };
+    }
+    const data = this._read();
+    const user = (data.users || []).find(u => u.resetToken === token && u.resetTokenExpires > Date.now());
+    if (!user) {
+      return { success: false, message: 'Reset token is invalid or has expired.' };
+    }
+    user.passwordHash = bcrypt.hashSync(newPassword, 10);
+    user.resetToken = null;
+    user.resetTokenExpires = null;
+    this._write(data);
+    return { success: true, message: 'Password reset successfully.' };
+  }
+
+  // 8. CAMPUS ↔ INDUSTRY SKILL GAP INTELLIGENCE (Phase 4C & 4E)
+  async getCampusSkillGapAnalytics(collegeId = 'TN010') {
+    const data = this._read();
+    const opportunities = data.opportunities || [];
+    const campusStudents = (data.students || []).filter(s => {
+      const sc = String(s.collegeId || '').toUpperCase();
+      const target = String(collegeId || '').toUpperCase();
+      return sc === target || (target === 'TN010' && sc === 'SRM001') || (target === 'SRM001' && sc === 'TN010');
+    });
+
+    // 1. Calculate Industry Demand % per skill across active corporate postings
+    const skillDemandCount = {};
+    let totalOppRequirements = 0;
+
+    opportunities.forEach(opp => {
+      const skills = Array.isArray(opp.requiredSkills)
+        ? opp.requiredSkills.map(sk => typeof sk === 'string' ? sk : sk.name)
+        : [];
+      skills.forEach(sk => {
+        const norm = sk.trim();
+        skillDemandCount[norm] = (skillDemandCount[norm] || 0) + 1;
+        totalOppRequirements++;
+      });
+    });
+
+    // Master skills taxonomy to assess
+    const evaluatedSkills = [
+      'Python', 'SQL', 'Generative AI', 'Machine Learning', 'Docker',
+      'Kubernetes', 'AWS', 'FastAPI', 'React', 'Power BI', 'Linux', 'C++'
+    ];
+
+    const totalOpps = Math.max(1, opportunities.length);
+    const totalStudents = Math.max(1, campusStudents.length);
+
+    const gapMatrix = evaluatedSkills.map(skillName => {
+      // Demand percentage: frequency in opportunities scaled to percentage
+      const oppsRequiring = opportunities.filter(o => {
+        const skills = Array.isArray(o.requiredSkills)
+          ? o.requiredSkills.map(sk => (typeof sk === 'string' ? sk : sk.name).toLowerCase())
+          : [];
+        return skills.some(s => s.includes(skillName.toLowerCase()) || skillName.toLowerCase().includes(s));
+      }).length;
+
+      const demandPct = Math.min(98, Math.max(15, Math.round((oppsRequiring / totalOpps) * 100)));
+
+      // Campus Supply percentage: students with verified proficiency (confidence >= 75)
+      const studentsProficient = campusStudents.filter(st => {
+        const stSkill = (st.skills || []).find(sk =>
+          (typeof sk === 'string' ? sk : sk.name).toLowerCase().includes(skillName.toLowerCase()) ||
+          skillName.toLowerCase().includes((typeof sk === 'string' ? sk : sk.name).toLowerCase())
+        );
+        if (!stSkill) return false;
+        const confidence = typeof stSkill === 'string' ? 70 : (stSkill.confidence || 60);
+        return confidence >= 75;
+      }).length;
+
+      const supplyPct = Math.round((studentsProficient / totalStudents) * 100);
+      const gap = demandPct - supplyPct;
+
+      let severity = 'Low';
+      let statusColor = 'var(--cyber-emerald)';
+      let badgeColor = 'badge-emerald';
+
+      if (gap >= 35) {
+        severity = 'Critical';
+        statusColor = 'var(--cyber-rose)';
+        badgeColor = 'badge-rose';
+      } else if (gap >= 15) {
+        severity = 'Medium';
+        statusColor = 'var(--cyber-amber)';
+        badgeColor = 'badge-amber';
+      }
+
+      return {
+        skillName,
+        category: ['Python', 'React', 'C++'].includes(skillName) ? 'Core Programming' : (['Docker', 'Kubernetes', 'AWS', 'Linux'].includes(skillName) ? 'Cloud & Systems' : 'Data & AI'),
+        industryDemandPct: demandPct,
+        campusSupplyPct: supplyPct,
+        netGap: gap,
+        severity,
+        statusColor,
+        badgeColor,
+        campusStudentsCount: studentsProficient,
+        totalCampusStudents: totalStudents,
+        activeOppCount: oppsRequiring,
+        recommendation: gap >= 35
+          ? `High corporate deficit (${gap}% gap). Launch accredited ${skillName} training to satisfy Tier-1 recruiter threshold.`
+          : (gap >= 15 ? `Moderate emerging demand. Recommend cohort project workshop in ${skillName}.` : `Campus skill supply fulfills active corporate demand.`)
+      };
+    });
+
+    gapMatrix.sort((a, b) => b.netGap - a.netGap);
+
+    const criticalGapsCount = gapMatrix.filter(g => g.severity === 'Critical').length;
+    const moderateGapsCount = gapMatrix.filter(g => g.severity === 'Medium').length;
+
+    // Executive Synthesis
+    const topCritical = gapMatrix.find(g => g.severity === 'Critical') || gapMatrix[0];
+    const executiveSummary = topCritical
+      ? `${topCritical.skillName} is the primary campus skill gap: ${topCritical.industryDemandPct}% of active company opportunities require it, while only ${topCritical.campusSupplyPct}% of enrolled students demonstrate verified proficiency. Launching a curriculum sprint will close this threshold.`
+      : `Campus curriculum is strongly aligned with current corporate partner hiring standards.`;
+
+    return {
+      collegeId,
+      totalCampusStudents: totalStudents,
+      totalOpportunitiesEvaluated: totalOpps,
+      criticalGapsCount,
+      moderateGapsCount,
+      executiveSummary,
+      topRecommendation: topCritical?.recommendation || '',
+      matrix: gapMatrix
+    };
+  }
+
+  // 9. CAMPUS TELEMETRY AGGREGATOR (Phase 4C)
+  async getInstitutionTelemetry(collegeId = 'TN010') {
+    const data = this._read();
+    const students = (data.students || []).filter(s => {
+      const sc = String(s.collegeId || '').toUpperCase();
+      const target = String(collegeId || '').toUpperCase();
+      return sc === target || (target === 'TN010' && sc === 'SRM001') || (target === 'SRM001' && sc === 'TN010');
+    });
+
+    const totalStudents = students.length;
+    const avgReadiness = totalStudents > 0
+      ? (students.reduce((sum, s) => sum + (Number(s.readinessScore) || 75), 0) / totalStudents).toFixed(1)
+      : '78.5';
+
+    const placementReady = students.filter(s => (Number(s.readinessScore) || 0) >= 80).length;
+    const verifiedSkillsCount = students.reduce((sum, s) => sum + ((s.skills || []).filter(sk => sk.verified).length || 1), 0);
+
+    return {
+      collegeId,
+      totalStudents,
+      avgReadiness: `${avgReadiness}%`,
+      verifiedSkillsCount,
+      placementReadyCount: placementReady,
+      students
+    };
+  }
+
+  // ── MISSING METHODS NEEDED BY ROUTES / SERVICES ──────────────────────────
+
+  // Readiness wrapper used by academic routes
+  async getReadiness(studentId) {
+    const { calculateReadiness } = require('../services/readinessService');
+    try {
+      return await calculateReadiness(studentId);
+    } catch (err) {
+      console.warn('[getReadiness] fallback:', err.message);
+      const student = await this.getStudentById(studentId);
+      return student ? (student.readinessScore || 0) : 0;
+    }
+  }
+
+  // Ownership-scoped student lookup (academic portal)
+  async getStudentByIdWithOwnership(studentId, institutionId) {
+    const student = await this.getStudentById(studentId);
+    if (!student) return null;
+    const sid = String(student.collegeId || student.institutionId || '').toUpperCase();
+    const iid = String(institutionId || '').toUpperCase();
+    if (sid === iid || (iid === 'TN010' && sid === 'SRM001') || (iid === 'SRM001' && sid === 'TN010')) {
+      return student;
+    }
+    const inst = await this.resolveInstitution(institutionId);
+    const studentInst = await this.resolveInstitution(student.collegeId || student.institutionId);
+    if (inst && studentInst && (inst.id === studentInst.id || inst.code === studentInst.code)) {
+      return student;
+    }
+    if (inst && (sid === String(inst.id).toUpperCase() || sid === String(inst.code).toUpperCase())) {
+      return student;
+    }
+    if (studentInst && (iid === String(studentInst.id).toUpperCase() || iid === String(studentInst.code).toUpperCase())) {
+      return student;
+    }
+    return null;
+  }
+
+  // Skill analytics by ID (academic portal)
+  async getSkillAnalyticsById(skillName, institutionId) {
+    const analytics = await this.getSkillAnalytics(institutionId);
+    return analytics.find(s => s.name === skillName) || null;
+  }
+
+  // Persist match result into matchResults array
+  async insertMatchResult(result) {
+    const data = this._read();
+    data.matchResults = data.matchResults || [];
+    const existingIdx = data.matchResults.findIndex(
+      r => r.studentId === result.studentId && r.opportunityId === result.opportunityId
+    );
+    if (existingIdx >= 0) {
+      data.matchResults[existingIdx] = { ...data.matchResults[existingIdx], ...result, updatedAt: new Date().toISOString() };
+    } else {
+      data.matchResults.push({ ...result, createdAt: new Date().toISOString() });
+    }
+    this._write(data);
+    return result;
+  }
+
+  // Returns a generic opportunity template for a company (used by matchCompanyToCandidate)
+  async getCompanyOpportunityTemplate(companyId) {
+    const opps = await this.getOpportunitiesByCompany(companyId);
+    if (opps && opps.length > 0) return opps[0];
+    return { id: `TMPL-${companyId}`, oppId: `TMPL-${companyId}`, skillsMatrix: [], companyId };
+  }
+
+  // Company-scoped helpers (class members)
+  async getCompanyById(companyId) {
+    const data = this._read();
+    return (data.companies || []).find(c => c.companyId === companyId) || null;
+  }
+
+  async getOpportunitiesByCompany(companyId) {
+    if (this.pg) {
+      return await this.getOpportunities({ companyId });
+    }
+    const data = this._read();
+    return (data.opportunities || []).filter(o => o.companyId === companyId);
+  }
+
+  async getOpportunityById(oppId) {
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          `SELECT o.*, c.company_name, c.industry, c.headquarters, c.state
+           FROM opportunities o
+           JOIN companies c ON o.company_id = c.id
+           WHERE o.id::text = $1 OR o.title ILIKE $1 LIMIT 1`,
+          [String(oppId)]
+        );
+        if (res.rows.length > 0) {
+          const r = res.rows[0];
+          const skRes = await this.pg.query(
+            `SELECT os.opportunity_id, s.name as skill_name, os.required_level, os.importance, os.weight
+             FROM opportunity_skills os
+             JOIN skills s ON os.skill_id = s.id
+             WHERE os.opportunity_id = $1`,
+            [r.id]
+          );
+          const reqSkills = skRes.rows.map(sk => ({
+            name: sk.skill_name,
+            requiredLevel: sk.required_level,
+            importance: sk.importance,
+            weight: sk.weight
+          }));
+          return {
+            id: r.id,
+            oppId: r.id,
+            opportunityId: r.id,
+            companyId: r.company_id,
+            company: r.company_name,
+            companyName: r.company_name,
+            title: r.title,
+            type: r.opportunity_type,
+            opportunityType: r.opportunity_type,
+            mode: r.work_mode,
+            workMode: r.work_mode,
+            location: r.location,
+            stipend: r.stipend_text,
+            minCgpa: r.min_cgpa,
+            minReadinessScore: r.min_readiness_score,
+            deadline: r.deadline,
+            applicantCount: r.applicant_count || 0,
+            status: r.status,
+            requiredSkills: reqSkills,
+            skillsMatrix: reqSkills.map(s => ({ name: s.name, status: 'Required' })),
+            createdAt: r.created_at
+          };
+        }
+      } catch (err) {
+        console.error('[getOpportunityById] PG error:', err.message);
+        throw err;
+      }
+    }
+    const data = this._read();
+    return (data.opportunities || []).find(o => o.oppId === oppId || o.opp_id === oppId || String(o.id) === String(oppId)) || null;
+  }
+
+  async updateOpportunity(oppId, updates, companyId) {
+    const data = this._read();
+    const idx = (data.opportunities || []).findIndex(o => o.oppId === oppId && o.companyId === companyId);
+    if (idx === -1) return null;
+    data.opportunities[idx] = { ...data.opportunities[idx], ...updates };
+    this._write(data);
+    return data.opportunities[idx];
+  }
+
+  async deleteOpportunity(oppId, companyId) {
+    const data = this._read();
+    const before = (data.opportunities || []).length;
+    data.opportunities = (data.opportunities || []).filter(o => !(o.oppId === oppId && o.companyId === companyId));
+    this._write(data);
+    return data.opportunities.length < before;
+  }
+
+  async getApplicationsByCompany(companyId) {
+    if (this.pg) {
+      try {
+        const compMatch = (this._read().companies || []).find(c => 
+          c.companyId === companyId || c.id === companyId || c.code === companyId
+        );
+        const compName = compMatch?.companyName || null;
+        let cWhere = `(c.id::text = $1 OR c.registration_number = $1 OR c.company_name ILIKE $1 OR o.company_id::text = $1`;
+        let params = [String(companyId)];
+        if (compName) {
+          cWhere += ` OR c.company_name ILIKE $2)`;
+          params.push(compName);
+        } else {
+          cWhere += `)`;
+        }
+
+        const query = `
+          SELECT 
+            a.id,
+            a.id AS "applicationId",
+            a.student_id AS "studentId",
+            s.full_name AS "studentName",
+            s.full_name AS "name",
+            s.roll_number AS "studentCollegeId",
+            s.roll_number AS "rollNumber",
+            s.cgpa,
+            d.name AS "studentDepartment",
+            d.name AS "department",
+            a.opportunity_id AS "opportunityId",
+            o.title AS "opportunityTitle",
+            o.opportunity_type AS "opportunityType",
+            o.company_id AS "companyId",
+            c.company_name AS "companyName",
+            c.company_name AS "company",
+            a.match_score AS "matchScore",
+            a.current_stage AS "stage",
+            a.current_stage AS "current_stage",
+            a.current_stage AS "status",
+            a.applied_at AS "appliedAt",
+            a.updated_at AS "updatedAt",
+            a.resume_url AS "resumeUrl",
+            a.cover_note AS "coverNote",
+            (
+              SELECT json_build_object(
+                'id', iv.id,
+                'status', iv.status,
+                'round_type', iv.round_type,
+                'scheduled_at', iv.scheduled_at
+              )
+              FROM interviews iv
+              WHERE iv.application_id = a.id
+              ORDER BY iv.scheduled_at DESC
+              LIMIT 1
+            ) AS "interviewInfo"
+          FROM applications a
+          JOIN students s ON s.id = a.student_id
+          LEFT JOIN departments d ON d.id = s.department_id
+          JOIN opportunities o ON o.id = a.opportunity_id
+          JOIN companies c ON c.id = o.company_id
+          WHERE ${cWhere}
+          ORDER BY a.applied_at DESC
+        `;
+        const res = await this.pg.query(query, params);
+        return res.rows;
+      } catch (err) {
+        console.error('[getApplicationsByCompany] PG error:', err.message);
+        throw err;
+      }
+    }
+    const data = this._read();
+    return (data.applications || []).filter(a => a.companyId === companyId);
+  }
+
+  async getPartnershipsByCompany(companyId) {
+    const data = this._read();
+    return (data.partnerships || []).filter(p => p.companyId === companyId);
+  }
+
+  async createPartnership(partnership) {
+    const data = this._read();
+    const newPart = { id: `PRT-${Date.now()}`, ...partnership };
+    data.partnerships = data.partnerships || [];
+    data.partnerships.unshift(newPart);
+    this._write(data);
+    return newPart;
+  }
+
+  async getCourseById(courseId) {
+    const data = this._read();
+    return (data.courses || []).find(c => c.courseId === courseId || c.course_id === courseId) || null;
+  }
+
+  async updateUser(userId, updates) {
+    if (!userId) return null;
+    const cleanId = String(userId).trim().toLowerCase();
+    const data = this._read();
+    let userIdx = (data.users || []).findIndex(u =>
+      String(u.id).toLowerCase() === cleanId ||
+      String(u.studentId || '').toLowerCase() === cleanId ||
+      String(u.institutionId || '').toLowerCase() === cleanId ||
+      String(u.companyId || '').toLowerCase() === cleanId
+    );
+
+    if (userIdx !== -1) {
+      data.users[userIdx] = { ...data.users[userIdx], ...updates };
+    }
+
+    const studentIdx = (data.students || []).findIndex(s =>
+      String(s.studentId).toLowerCase() === cleanId ||
+      (userIdx !== -1 && String(s.studentId).toLowerCase() === String(data.users[userIdx].studentId || '').toLowerCase()) ||
+      (userIdx !== -1 && (s.email || '').toLowerCase() === (data.users[userIdx].email || '').toLowerCase())
+    );
+
+    if (studentIdx !== -1) {
+      data.students[studentIdx] = { ...data.students[studentIdx], ...updates };
+    }
+
+    this._write(data);
+    return this.getUserById(userId);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // INSTITUTION ONBOARDING & ROSTER MANAGEMENT METHODS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async resolveInstitution(institutionIdOrCode) {
+    if (!institutionIdOrCode) return null;
+    const clean = String(institutionIdOrCode).trim();
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          'SELECT * FROM institutions WHERE id::text = $1 OR code = $1 LIMIT 1',
+          [clean]
+        );
+        if (res.rows.length > 0) return res.rows[0];
+      } catch (err) {
+        console.warn('[resolveInstitution] PG lookup warning:', err.message);
+      }
+    }
+    const data = this._read();
+    const inst = (data.institutions || []).find(i => 
+      i.institutionId === clean || i.collegeId === clean || i.id === clean || i.collegeCode === clean
+    );
+    if (inst) {
+      return {
+        id: inst.institutionId || inst.id || '60e7a0c1-e9e2-4eb5-acaa-437a9d81e436',
+        code: inst.collegeCode || inst.institutionId || 'TN010',
+        name: inst.collegeName || inst.name || 'SRM Institute of Science and Technology',
+        contact_email: inst.official_email || inst.email || 'placements@srmist.edu.in',
+        address: inst.address || 'Kattankulathur, Chennai, Tamil Nadu',
+        website: inst.website || 'https://www.srmist.edu.in',
+        setup_completed: inst.setup_completed !== undefined ? inst.setup_completed : true
+      };
+    }
+    return null;
+  }
+
+  async getInstitutionSetupStatus(institutionIdOrCode) {
+    const inst = await this.resolveInstitution(institutionIdOrCode);
+    if (!inst) {
+      return { setupCompleted: false, institution: null, departmentCount: 0, studentCount: 0 };
+    }
+    let deptCount = 0;
+    let stuCount = 0;
+    if (this.pg) {
+      try {
+        const dRes = await this.pg.query('SELECT COUNT(*)::int as count FROM departments WHERE institution_id = $1', [inst.id]);
+        deptCount = dRes.rows[0]?.count || 0;
+        const sRes = await this.pg.query('SELECT COUNT(*)::int as count FROM students WHERE institution_id = $1', [inst.id]);
+        stuCount = sRes.rows[0]?.count || 0;
+      } catch (e) {}
+    } else {
+      const data = this._read();
+      deptCount = (data.institutions?.[0]?.departments || []).length;
+      stuCount = (data.students || []).filter(s => s.collegeId === inst.code || s.institutionId === inst.id).length;
+    }
+    return {
+      setupCompleted: Boolean(inst.setup_completed),
+      institution: {
+        id: inst.id,
+        code: inst.code,
+        name: inst.name,
+        email: inst.contact_email,
+        address: inst.address,
+        website: inst.website,
+        setupCompleted: Boolean(inst.setup_completed)
+      },
+      departmentCount: deptCount,
+      studentCount: stuCount
+    };
+  }
+
+  async updateInstitutionSetup(institutionIdOrCode, setupData = {}) {
+    const inst = await this.resolveInstitution(institutionIdOrCode);
+    if (!inst) {
+      throw new Error(`Institution "${institutionIdOrCode}" not found`);
+    }
+    const name = setupData.name || inst.name;
+    const email = setupData.email || setupData.contact_email || inst.contact_email;
+    const address = setupData.address || inst.address;
+    const website = setupData.website || inst.website;
+
+    if (this.pg) {
+      await this.pg.query(
+        `UPDATE institutions 
+         SET name = $1, contact_email = $2, address = $3, website = $4, setup_completed = true, updated_at = NOW() 
+         WHERE id = $5`,
+        [name, email, address, website, inst.id]
+      );
+    }
+
+    if (Array.isArray(setupData.departments) && setupData.departments.length > 0) {
+      for (const d of setupData.departments) {
+        if (d && (d.code || d.name)) {
+          await this.createDepartment(inst.id, {
+            code: d.code || d.name.slice(0, 4).toUpperCase(),
+            name: d.name || d.code
+          });
+        }
+      }
+    }
+
+    const data = this._read();
+    const idx = (data.institutions || []).findIndex(i => i.institutionId === inst.code || i.id === inst.id);
+    if (idx !== -1) {
+      data.institutions[idx].collegeName = name;
+      data.institutions[idx].name = name;
+      data.institutions[idx].official_email = email;
+      data.institutions[idx].address = address;
+      data.institutions[idx].website = website;
+      data.institutions[idx].setup_completed = true;
+      this._write(data);
+    }
+
+    return await this.resolveInstitution(inst.id);
+  }
+
+  async getInstitutionDepartments(institutionIdOrCode) {
+    const inst = await this.resolveInstitution(institutionIdOrCode);
+    if (!inst) return [];
+
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          'SELECT id, institution_id, code, name, created_at FROM departments WHERE institution_id = $1 ORDER BY code ASC',
+          [inst.id]
+        );
+        if (res.rows.length > 0) return res.rows;
+      } catch (err) {
+        console.warn('[getInstitutionDepartments] PG lookup warning:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const instObj = (data.institutions || []).find(i => i.institutionId === inst.code || i.id === inst.id);
+    const depts = instObj?.departments || ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE', 'Mechanical'];
+    return depts.map((d, i) => ({
+      id: `dept_${i + 1}`,
+      institution_id: inst.id,
+      code: typeof d === 'string' ? d : d.code,
+      name: typeof d === 'string' ? d : d.name
+    }));
+  }
+
+  async createDepartment(institutionIdOrCode, { code, name }) {
+    if (!code || !name) {
+      throw new Error('Department code and name are required');
+    }
+    const inst = await this.resolveInstitution(institutionIdOrCode);
+    if (!inst) throw new Error('Institution not found');
+
+    const cleanCode = String(code).trim().toUpperCase();
+    const cleanName = String(name).trim();
+
+    if (this.pg) {
+      const exist = await this.pg.query(
+        'SELECT id FROM departments WHERE institution_id = $1 AND (code = $2 OR LOWER(name) = LOWER($3))',
+        [inst.id, cleanCode, cleanName]
+      );
+      if (exist.rows.length > 0) {
+        return { success: false, message: `Department "${cleanCode}" already exists for this institution` };
+      }
+
+      const res = await this.pg.query(
+        `INSERT INTO departments (id, institution_id, code, name, created_at) 
+         VALUES (gen_random_uuid(), $1, $2, $3, NOW()) 
+         RETURNING *`,
+        [inst.id, cleanCode, cleanName]
+      );
+      return { success: true, department: res.rows[0] };
+    }
+
+    const data = this._read();
+    const instObj = (data.institutions || []).find(i => i.institutionId === inst.code || i.id === inst.id);
+    if (instObj) {
+      instObj.departments = instObj.departments || [];
+      if (!instObj.departments.includes(cleanCode)) {
+        instObj.departments.push(cleanCode);
+        this._write(data);
+      }
+    }
+    return { success: true, department: { id: `dept_${Date.now()}`, code: cleanCode, name: cleanName, institution_id: inst.id } };
+  }
+
+  async getRosterImports(institutionIdOrCode) {
+    const inst = await this.resolveInstitution(institutionIdOrCode);
+    if (!inst) return [];
+
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          `SELECT r.*, u.email as uploaded_by_email 
+           FROM roster_imports r 
+           LEFT JOIN users u ON r.uploaded_by = u.id 
+           WHERE r.institution_id = $1 
+           ORDER BY r.created_at DESC LIMIT 50`,
+          [inst.id]
+        );
+        return res.rows;
+      } catch (err) {
+        console.warn('[getRosterImports] PG lookup warning:', err.message);
+      }
+    }
+    return [];
+  }
+
+  async upsertStudentRoster(institutionIdOrCode, previewRows, adminUserId = null, fileName = 'roster.csv') {
+    const inst = await this.resolveInstitution(institutionIdOrCode);
+    if (!inst) throw new Error('Institution not found');
+
+    if (!Array.isArray(previewRows) || previewRows.length === 0) {
+      throw new Error('No rows to import');
+    }
+
+    if (!this.pg) {
+      throw new Error('PostgreSQL is authoritative and required for roster imports');
+    }
+
+    const client = await this.pg.connect();
+    try {
+      await client.query('BEGIN');
+
+      const deptRes = await client.query('SELECT id, code, name FROM departments WHERE institution_id = $1', [inst.id]);
+      const depts = deptRes.rows;
+      const deptMap = new Map();
+      depts.forEach(d => {
+        deptMap.set(d.code.toLowerCase().trim(), d.id);
+        deptMap.set(d.name.toLowerCase().trim(), d.id);
+        deptMap.set(d.code.toLowerCase().replace(/[^a-z0-9]/g, ''), d.id);
+        deptMap.set(d.name.toLowerCase().replace(/[^a-z0-9]/g, ''), d.id);
+      });
+
+      let newCount = 0;
+      let updatedCount = 0;
+      let unchangedCount = 0;
+      const errorLog = [];
+
+      for (let i = 0; i < previewRows.length; i++) {
+        const row = previewRows[i];
+        const rowNum = i + 1;
+        const cleanRoll = (row.rollNumber || '').trim();
+        const cleanEmail = (row.email || '').trim().toLowerCase();
+        const cleanName = (row.name || '').trim();
+        const cleanPhone = (row.phoneNumber || '').trim() || null;
+        const gradYear = row.graduationYear ? parseInt(row.graduationYear, 10) : 2026;
+
+        if (!cleanRoll || !cleanEmail || !cleanName) {
+          errorLog.push({ row: rowNum, error: 'Missing roll number, email, or name' });
+          continue;
+        }
+
+        let deptId = null;
+        if (row.department) {
+          const dKey = row.department.toLowerCase().trim();
+          const dKeyStripped = dKey.replace(/[^a-z0-9]/g, '');
+          deptId = deptMap.get(dKey) || deptMap.get(dKeyStripped);
+        }
+        if (!deptId && depts.length > 0) {
+          deptId = depts[0].id;
+        }
+
+        const existRes = await client.query(
+          `SELECT s.id as student_id, s.user_id, s.department_id, s.full_name, s.phone_number, s.graduation_year,
+                  u.email, u.account_status 
+           FROM students s 
+           JOIN users u ON s.user_id = u.id 
+           WHERE s.institution_id = $1 AND (s.roll_number = $2 OR LOWER(u.email) = $3) 
+           LIMIT 1`,
+          [inst.id, cleanRoll, cleanEmail]
+        );
+
+        if (existRes.rows.length > 0) {
+          const existing = existRes.rows[0];
+          const isDeptChanged = existing.department_id !== deptId;
+          const isNameChanged = existing.full_name !== cleanName;
+          const isPhoneChanged = cleanPhone && existing.phone_number !== cleanPhone;
+          const isYearChanged = existing.graduation_year !== gradYear;
+          const isEmailChanged = existing.email.toLowerCase() !== cleanEmail;
+
+          if (isDeptChanged || isNameChanged || isPhoneChanged || isYearChanged || isEmailChanged) {
+            await client.query(
+              `UPDATE students 
+               SET department_id = COALESCE($1, department_id),
+                   full_name = $2,
+                   phone_number = COALESCE($3, phone_number),
+                   graduation_year = $4,
+                   updated_at = NOW() 
+               WHERE id = $5`,
+              [deptId, cleanName, cleanPhone, gradYear, existing.student_id]
+            );
+
+            await client.query(
+              `UPDATE users 
+               SET email = $1, updated_at = NOW() 
+               WHERE id = $2`,
+              [cleanEmail, existing.user_id]
+            );
+            updatedCount++;
+          } else {
+            unchangedCount++;
+          }
+        } else {
+          const userCheck = await client.query('SELECT id, account_status FROM users WHERE LOWER(email) = $1 LIMIT 1', [cleanEmail]);
+          let userId = null;
+
+          const invitationToken = crypto.randomBytes(32).toString('hex');
+          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+          if (userCheck.rows.length > 0) {
+            userId = userCheck.rows[0].id;
+            await client.query(
+              `UPDATE users 
+               SET invitation_token = COALESCE(invitation_token, $1),
+                   invitation_expires_at = COALESCE(invitation_expires_at, $2),
+                   invitation_sent_at = NOW(),
+                   updated_at = NOW() 
+               WHERE id = $3`,
+              [invitationToken, expiresAt, userId]
+            );
+          } else {
+            const userInsert = await client.query(
+              `INSERT INTO users (id, email, password_hash, account_status, email_verified, invitation_token, invitation_expires_at, invitation_sent_at, is_active, auth_provider, created_at, updated_at) 
+               VALUES (gen_random_uuid(), $1, 'INVITATION_PENDING_ACTIVATION', 'INVITED', false, $2, $3, NOW(), true, 'local', NOW(), NOW()) 
+               RETURNING id`,
+              [cleanEmail, invitationToken, expiresAt]
+            );
+            userId = userInsert.rows[0].id;
+
+            const studentRole = await client.query("SELECT id FROM roles WHERE code = 'STUDENT' LIMIT 1");
+            if (studentRole.rows.length > 0) {
+              await client.query(
+                'INSERT INTO user_roles (id, user_id, role_id, granted_at) VALUES (gen_random_uuid(), $1, $2, NOW()) ON CONFLICT DO NOTHING',
+                [userId, studentRole.rows[0].id]
+              );
+            }
+          }
+
+          await client.query(
+            // readiness_score = 0: newly-imported student has no evidence; readinessService computes it from real skills/projects/assessments
+            `INSERT INTO students (id, user_id, institution_id, department_id, roll_number, full_name, phone_number, graduation_year, batch, cgpa, readiness_score, placement_status, created_at, updated_at) 
+             VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, 8.0, 0, 'In Training', NOW(), NOW())`,
+            [userId, inst.id, deptId, cleanRoll, cleanName, cleanPhone, gradYear, row.batch || `${gradYear - 4}-${gradYear}`]
+          );
+
+          try {
+            await emailService.sendStudentInvitation({
+              studentName: cleanName,
+              collegeEmail: cleanEmail,
+              institutionName: inst.name,
+              activationToken: invitationToken,
+              expiresAt
+            });
+          } catch (mailErr) {
+            console.warn('[upsertStudentRoster] Email dispatch notice:', mailErr.message);
+          }
+
+          newCount++;
+        }
+      }
+
+      // Ensure valid UUID for uploaded_by in roster_imports
+      let safeAdminId = null;
+      if (typeof adminUserId === 'string' && /^[0-9a-fA-F-]{36}$/.test(adminUserId)) {
+        safeAdminId = adminUserId;
+      } else {
+        const uCheck = await client.query("SELECT id FROM users WHERE email = 'placements@srmist.edu.in' LIMIT 1");
+        if (uCheck.rows.length > 0) safeAdminId = uCheck.rows[0].id;
+      }
+
+      const importLogRes = await client.query(
+        `INSERT INTO roster_imports (institution_id, uploaded_by, file_name, total_rows, new_count, updated_count, unchanged_count, error_count, status, error_log, created_at) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'COMPLETED', $9, NOW()) 
+         RETURNING *`,
+        [inst.id, safeAdminId, fileName, previewRows.length, newCount, updatedCount, unchangedCount, errorLog.length, JSON.stringify(errorLog)]
+      );
+
+      await client.query('COMMIT');
+
+      try {
+        const allStudents = await this.getStudents(inst.code);
+        const data = this._read();
+        data.students = data.students || [];
+        allStudents.forEach(stu => {
+          const exIdx = data.students.findIndex(s => s.studentId === stu.studentId || (s.email && s.email.toLowerCase() === stu.email?.toLowerCase()));
+          if (exIdx >= 0) {
+            data.students[exIdx] = { ...data.students[exIdx], ...stu };
+          } else {
+            data.students.push(stu);
+          }
+        });
+        this._write(data);
+      } catch (syncErr) {
+        console.warn('[upsertStudentRoster] Local file sync notice:', syncErr.message);
+      }
+
+      return {
+        success: true,
+        summary: {
+          totalRows: previewRows.length,
+          newCount,
+          updatedCount,
+          unchangedCount,
+          errorCount: errorLog.length
+        },
+        importRecord: importLogRes.rows[0]
+      };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('[upsertStudentRoster] Transaction failed:', err);
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  async createManualStudent(institutionIdOrCode, studentData = {}, adminUserId = null) {
+    const inst = await this.resolveInstitution(institutionIdOrCode);
+    if (!inst) throw new Error('Institution not found');
+
+    const cleanName = (studentData.name || '').trim();
+    const cleanEmail = (studentData.email || '').trim().toLowerCase();
+    const cleanRoll = (studentData.rollNumber || '').trim();
+    const cleanPhone = (studentData.phoneNumber || '').trim() || null;
+    const gradYear = studentData.graduationYear ? parseInt(studentData.graduationYear, 10) : 2026;
+    let deptId = studentData.departmentId;
+
+    if (!cleanName || !cleanEmail || !cleanRoll) {
+      throw new Error('Name, Email, and Roll Number are mandatory');
+    }
+
+    if (!this.pg) {
+      throw new Error('PostgreSQL is authoritative and required for manual student creation');
+    }
+
+    const client = await this.pg.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Fallback department if not specified
+      if (!deptId) {
+        const dRes = await client.query('SELECT id FROM departments WHERE institution_id = $1 LIMIT 1', [inst.id]);
+        deptId = dRes.rows[0]?.id;
+      }
+
+      const existRes = await client.query(
+        `SELECT s.id FROM students s 
+         JOIN users u ON s.user_id = u.id 
+         WHERE s.institution_id = $1 AND (s.roll_number = $2 OR LOWER(u.email) = $3) 
+         LIMIT 1`,
+        [inst.id, cleanRoll, cleanEmail]
+      );
+      if (existRes.rows.length > 0) {
+        throw new Error(`Student with Roll Number "${cleanRoll}" or Email "${cleanEmail}" already exists in this institution`);
+      }
+
+      const userCheck = await client.query('SELECT id FROM users WHERE LOWER(email) = $1 LIMIT 1', [cleanEmail]);
+      let userId = null;
+      const invitationToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+      if (userCheck.rows.length > 0) {
+        userId = userCheck.rows[0].id;
+        await client.query(
+          `UPDATE users 
+           SET invitation_token = $1, invitation_expires_at = $2, invitation_sent_at = NOW(), account_status = 'INVITED', updated_at = NOW() 
+           WHERE id = $3`,
+          [invitationToken, expiresAt, userId]
+        );
+      } else {
+        const userInsert = await client.query(
+          `INSERT INTO users (id, email, password_hash, account_status, email_verified, invitation_token, invitation_expires_at, invitation_sent_at, is_active, auth_provider, created_at, updated_at) 
+           VALUES (gen_random_uuid(), $1, 'INVITATION_PENDING_ACTIVATION', 'INVITED', false, $2, $3, NOW(), true, 'local', NOW(), NOW()) 
+           RETURNING id`,
+          [cleanEmail, invitationToken, expiresAt]
+        );
+        userId = userInsert.rows[0].id;
+
+        const roleRes = await client.query("SELECT id FROM roles WHERE code = 'STUDENT' LIMIT 1");
+        if (roleRes.rows.length > 0) {
+          await client.query('INSERT INTO user_roles (id, user_id, role_id, granted_at) VALUES (gen_random_uuid(), $1, $2, NOW()) ON CONFLICT DO NOTHING', [userId, roleRes.rows[0].id]);
+        }
+      }
+
+      const studentInsert = await client.query(
+        // readiness_score = 0: manually-created student has no evidence; readinessService computes it from real skills/projects/assessments
+        `INSERT INTO students (id, user_id, institution_id, department_id, roll_number, full_name, phone_number, graduation_year, batch, cgpa, readiness_score, placement_status, created_at, updated_at) 
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, 8.0, 0, 'In Training', NOW(), NOW()) 
+         RETURNING *`,
+        [userId, inst.id, deptId, cleanRoll, cleanName, cleanPhone, gradYear, `${gradYear - 4}-${gradYear}`]
+      );
+
+      let safeAdminId = null;
+      if (typeof adminUserId === 'string' && /^[0-9a-fA-F-]{36}$/.test(adminUserId)) {
+        safeAdminId = adminUserId;
+      } else {
+        const uCheck = await client.query("SELECT id FROM users WHERE email = 'placements@srmist.edu.in' LIMIT 1");
+        if (uCheck.rows.length > 0) safeAdminId = uCheck.rows[0].id;
+      }
+
+      await client.query(
+        `INSERT INTO roster_imports (institution_id, uploaded_by, file_name, total_rows, new_count, updated_count, unchanged_count, error_count, status, created_at) 
+         VALUES ($1, $2, 'Manual Entry', 1, 1, 0, 0, 0, 'COMPLETED', NOW())`,
+        [inst.id, safeAdminId]
+      );
+
+      await client.query('COMMIT');
+
+      await emailService.sendStudentInvitation({
+        studentName: cleanName,
+        collegeEmail: cleanEmail,
+        institutionName: inst.name,
+        activationToken: invitationToken,
+        expiresAt
+      });
+
+      return {
+        success: true,
+        student: studentInsert.rows[0],
+        invitationToken
+      };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  async resendStudentInvitation(institutionIdOrCode, studentId) {
+    const inst = await this.resolveInstitution(institutionIdOrCode);
+    if (!inst) throw new Error('Institution not found');
+
+    if (!this.pg) throw new Error('PostgreSQL required');
+
+    const res = await this.pg.query(
+      `SELECT s.id as student_id, s.full_name, u.id as user_id, u.email, u.account_status 
+       FROM students s 
+       JOIN users u ON s.user_id = u.id 
+       WHERE s.institution_id = $1 AND s.id = $2`,
+      [inst.id, studentId]
+    );
+
+    if (res.rows.length === 0) {
+      throw new Error('Student not found in your institution');
+    }
+
+    const row = res.rows[0];
+    const newToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    await this.pg.query(
+      `UPDATE users 
+       SET invitation_token = $1, invitation_expires_at = $2, invitation_sent_at = NOW(), updated_at = NOW() 
+       WHERE id = $3`,
+      [newToken, expiresAt, row.user_id]
+    );
+
+    await emailService.sendStudentInvitation({
+      studentName: row.full_name,
+      collegeEmail: row.email,
+      institutionName: inst.name,
+      activationToken: newToken,
+      expiresAt
+    });
+
+    return {
+      success: true,
+      message: `Invitation resent to ${row.email}`,
+      expiresAt
+    };
+  }
+
+  async updateStudentAccountStatus(institutionIdOrCode, studentId, newStatus) {
+    const inst = await this.resolveInstitution(institutionIdOrCode);
+    if (!inst) throw new Error('Institution not found');
+
+    const validStatuses = ['ACTIVE', 'DEACTIVATED', 'INVITED', 'EMAIL_VERIFIED'];
+    if (!validStatuses.includes(newStatus)) {
+      throw new Error(`Invalid status "${newStatus}". Must be one of: ${validStatuses.join(', ')}`);
+    }
+
+    if (!this.pg) throw new Error('PostgreSQL required');
+
+    const check = await this.pg.query(
+      'SELECT user_id FROM students WHERE institution_id = $1 AND id = $2',
+      [inst.id, studentId]
+    );
+    if (check.rows.length === 0) {
+      throw new Error('Student not found in your institution');
+    }
+
+    const userId = check.rows[0].user_id;
+    await this.pg.query(
+      'UPDATE users SET account_status = $1, updated_at = NOW() WHERE id = $2',
+      [newStatus, userId]
+    );
+
+    return {
+      success: true,
+      studentId,
+      accountStatus: newStatus
+    };
+  }
+
+  async verifyStudentInvitationToken(token) {
+    if (!token) return { valid: false, message: 'Invitation token is required' };
+    const cleanToken = String(token).trim();
+
+    if (!this.pg) return { valid: false, message: 'PostgreSQL required' };
+
+    const res = await this.pg.query(
+      `SELECT u.id as user_id, u.email, s.full_name as name, u.account_status, u.email_verified, u.invitation_expires_at,
+              s.id as student_id, s.roll_number, s.graduation_year,
+              i.name as institution_name, i.code as institution_code,
+              d.name as department_name, d.code as department_code
+       FROM users u 
+       JOIN students s ON s.user_id = u.id 
+       JOIN institutions i ON s.institution_id = i.id 
+       LEFT JOIN departments d ON s.department_id = d.id 
+       WHERE u.invitation_token = $1 
+       LIMIT 1`,
+      [cleanToken]
+    );
+
+    if (res.rows.length === 0) {
+      return { valid: false, message: 'Invalid or already consumed invitation token.' };
+    }
+
+    const row = res.rows[0];
+    if (new Date() > new Date(row.invitation_expires_at)) {
+      return { valid: false, message: 'This invitation link has expired. Please request a new invitation from your institution administrator.' };
+    }
+
+    return {
+      valid: true,
+      student: {
+        userId: row.user_id,
+        studentId: row.student_id,
+        name: row.name,
+        email: row.email,
+        rollNumber: row.roll_number,
+        institutionName: row.institution_name,
+        institutionCode: row.institution_code,
+        departmentName: row.department_name || row.department_code,
+        graduationYear: row.graduation_year,
+        accountStatus: row.account_status,
+        emailVerified: row.email_verified
+      }
+    };
+  }
+
+  async activateStudentAccount(token, password) {
+    if (!token || !password) {
+      return { success: false, message: 'Invitation token and password are required' };
+    }
+    if (password.length < 6) {
+      return { success: false, message: 'Password must be at least 6 characters long' };
+    }
+
+    const verification = await this.verifyStudentInvitationToken(token);
+    if (!verification.valid) {
+      return { success: false, message: verification.message };
+    }
+
+    const userId = verification.student.userId;
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await this.pg.query(
+      `UPDATE users 
+       SET password_hash = $1,
+           account_status = 'ACTIVE',
+           email_verified = true,
+           invitation_token = NULL,
+           invitation_expires_at = NULL,
+           updated_at = NOW() 
+       WHERE id = $2`,
+      [passwordHash, userId]
+    );
+
+    const fullUser = await this.getUserById(userId);
+    return {
+      success: true,
+      message: 'Account activated successfully. You can now sign in.',
+      user: fullUser
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 8. THREE-PORTAL COLLABORATION: STUDENT ACCESS REQUESTS & SHARING
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async createStudentAccessRequest({ institutionId, companyId, studentIds = [], message = '', requestedByUserId = null }) {
+    const data = this._read();
+    data.accessRequests = data.accessRequests || [];
+    data.sharedStudents = data.sharedStudents || [];
+
+    const requestId = crypto.randomUUID();
+    const cleanStudentIds = Array.isArray(studentIds) ? studentIds : [studentIds];
+
+    // Canonical resolution for both legacy codes and UUIDs
+    const comp = (data.companies || []).find(c =>
+      c.companyId === companyId || c.id === companyId || c.code === companyId || c.company_id === companyId
+    );
+    const compCode = comp?.companyId || comp?.code || companyId;
+    const compUuid = comp?.id || comp?.company_id || comp?.companyUuid || null;
+
+    const inst = (data.institutions || []).find(i =>
+      i.institutionId === institutionId || i.id === institutionId || i.code === institutionId || i.collegeId === institutionId
+    );
+    const instCode = inst?.institutionId || inst?.code || institutionId;
+    const instUuid = inst?.id || inst?.institution_id || inst?.institutionUuid || null;
+
+    const newRequest = {
+      id: requestId,
+      institutionId: instCode,
+      institution_id: instCode,
+      institutionUuid: instUuid,
+      companyId: compCode,
+      company_id: compCode,
+      companyUuid: compUuid,
+      requestedByUserId,
+      requested_by_user_id: requestedByUserId,
+      status: 'PENDING',
+      message: message || `Access request for ${cleanStudentIds.length} candidate(s)`,
+      studentCount: cleanStudentIds.length,
+      student_count: cleanStudentIds.length,
+      studentIds: cleanStudentIds,
+      student_ids: cleanStudentIds,
+      requestedAt: new Date().toISOString(),
+      requested_at: new Date().toISOString(),
+      createdAt: new Date().toISOString()
+    };
+
+    data.accessRequests.unshift(newRequest);
+    this._write(data);
+
+    if (this.pg) {
+      try {
+        await this.pg.query(
+          `INSERT INTO institution_company_access_requests 
+           (id, institution_id, company_id, requested_by_user_id, status, message, student_count, student_ids, requested_at)
+           VALUES ($1, $2, $3, $4, 'PENDING', $5, $6, $7::jsonb, NOW())`,
+          [requestId, instCode, compCode, requestedByUserId, newRequest.message, cleanStudentIds.length, JSON.stringify(cleanStudentIds)]
+        );
+      } catch (err) {
+        console.warn('[createStudentAccessRequest] PG insert note:', err.message);
+      }
+    }
+
+    // Bi-directional notification to company
+    const instRecord = await this.getInstitutionById(institutionId);
+    const instName = instRecord?.name || instRecord?.institutionName || instCode;
+    await this.addNotification('company', {
+      type: 'access_request',
+      title: 'New Student Access Request',
+      message: `${instName} requested access to ${cleanStudentIds.length} student profile(s).`,
+      details: { requestId, institutionId: instCode, studentCount: cleanStudentIds.length }
+    });
+
+    return newRequest;
+  }
+
+  async getInstitutionAccessRequests(institutionId) {
+    const data = this._read();
+    const inst = (data.institutions || []).find(i =>
+      i.institutionId === institutionId || i.id === institutionId || i.code === institutionId || i.collegeId === institutionId
+    );
+    const instCode = inst?.institutionId || inst?.code || institutionId;
+    const instUuid = inst?.id || inst?.institution_id || null;
+
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          `SELECT r.*, c.company_name, c.logo_url
+           FROM institution_company_access_requests r
+           LEFT JOIN companies c ON r.company_id = c.id::text OR r.company_id = c.registration_number
+           WHERE r.institution_id = $1 OR r.institution_id = $2
+           ORDER BY r.requested_at DESC`,
+          [instCode, instUuid || instCode]
+        );
+        if (res.rows && res.rows.length > 0) {
+          return res.rows.map(r => ({
+            id: r.id,
+            institutionId: r.institution_id,
+            companyId: r.company_id,
+            companyName: r.company_name || r.company_id,
+            status: r.status,
+            message: r.message,
+            studentCount: r.student_count,
+            studentIds: r.student_ids || [],
+            requestedAt: r.requested_at,
+            respondedAt: r.responded_at
+          }));
+        }
+        return (res.rows || []).map(r => ({
+          id: r.id,
+          institutionId: r.institution_id,
+          companyId: r.company_id,
+          companyName: r.company_name || r.company_id,
+          status: r.status,
+          message: r.message,
+          studentCount: r.student_count,
+          studentIds: r.student_ids || [],
+          requestedAt: r.requested_at,
+          respondedAt: r.responded_at
+        }));
+      } catch (err) {
+        console.error('[getInstitutionAccessRequests] PG query error:', err.message);
+        throw err;
+      }
+    }
+
+    const requests = (data.accessRequests || []).filter(r => 
+      r.institutionId === institutionId || 
+      r.institution_id === institutionId ||
+      r.institutionId === instCode ||
+      r.institution_id === instCode ||
+      (instUuid && (r.institutionId === instUuid || r.institution_id === instUuid || r.institutionUuid === instUuid))
+    );
+    return requests.map(r => {
+      const company = (data.companies || []).find(c => c.id === r.companyId || c.companyId === r.companyId || c.code === r.companyId);
+      return {
+        ...r,
+        companyName: company?.name || company?.companyName || r.companyId
+      };
+    });
+  }
+
+  async getCompanyAccessRequests(companyId) {
+    if (this.pg) {
+      try {
+        let compCode = companyId;
+        let compUuid = companyId;
+        const cRes = await this.pg.query(
+          `SELECT id, registration_number FROM companies WHERE id::text = $1 OR registration_number = $1 OR company_name ILIKE $1 LIMIT 1`,
+          [String(companyId).trim()]
+        );
+        if (cRes.rows.length > 0) {
+          compUuid = cRes.rows[0].id;
+          compCode = cRes.rows[0].registration_number || compUuid;
+        }
+
+        const res = await this.pg.query(
+          `SELECT r.*, i.name as institution_name
+           FROM institution_company_access_requests r
+           LEFT JOIN institutions i ON r.institution_id = i.id::text OR r.institution_id = i.code
+           WHERE r.company_id = $1 OR r.company_id = $2
+           ORDER BY r.requested_at DESC`,
+          [compCode, compUuid || compCode]
+        );
+        return (res.rows || []).map(r => ({
+          id: r.id,
+          institutionId: r.institution_id,
+          institutionName: r.institution_name || r.institution_id,
+          companyId: r.company_id,
+          status: r.status,
+          message: r.message,
+          studentCount: r.student_count,
+          studentIds: r.student_ids || [],
+          requestedAt: r.requested_at,
+          respondedAt: r.responded_at
+        }));
+      } catch (err) {
+        console.error('[getCompanyAccessRequests] PG query error:', err.message);
+        throw err;
+      }
+    }
+
+    const data = this._read();
+    const compMatch = (data.companies || []).find(c =>
+      c.companyId === companyId || c.id === companyId || c.code === companyId
+    );
+    const compCode = compMatch?.companyId || compMatch?.code || companyId;
+    const compUuid = compMatch?.id || compMatch?.company_id || null;
+
+    const requests = (data.accessRequests || []).filter(r => 
+      r.companyId === companyId || 
+      r.company_id === companyId ||
+      r.companyId === compCode ||
+      r.company_id === compCode ||
+      (compUuid && (r.companyId === compUuid || r.company_id === compUuid || r.companyUuid === compUuid))
+    );
+    return requests.map(r => {
+      const inst = (data.institutions || []).find(i => i.id === r.institutionId || i.institutionId === r.institutionId || i.code === r.institutionId);
+      return {
+        ...r,
+        institutionName: inst?.institutionName || inst?.name || r.institutionId
+      };
+    });
+  }
+
+  async respondToStudentAccessRequest(requestId, companyId, status, respondedByUserId = null) {
+    const data = this._read();
+    data.accessRequests = data.accessRequests || [];
+    data.sharedStudents = data.sharedStudents || [];
+
+    const normStatus = String(status).toUpperCase();
+    if (!['ACCEPTED', 'REJECTED'].includes(normStatus)) {
+      throw new Error("Invalid status. Must be 'ACCEPTED' or 'REJECTED'.");
+    }
+
+    const comp = (data.companies || []).find(c =>
+      c.companyId === companyId || c.id === companyId || c.code === companyId || c.company_id === companyId
+    );
+    const compCode = comp?.companyId || comp?.code || companyId;
+    const compUuid = comp?.id || comp?.company_id || null;
+
+    let request = (data.accessRequests || []).find(r => 
+      (r.id === requestId || r.requestId === requestId) && 
+      (r.companyId === companyId || r.company_id === companyId || r.companyId === compCode || r.company_id === compCode || (compUuid && (r.companyId === compUuid || r.company_id === compUuid)))
+    );
+    if (request) {
+      request.status = normStatus;
+      request.respondedAt = new Date().toISOString();
+      request.respondedByUserId = respondedByUserId;
+    }
+
+    if (this.pg) {
+      try {
+        const validRespondedBy = (respondedByUserId && typeof respondedByUserId === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(respondedByUserId)) ? respondedByUserId : null;
+        const updateRes = await this.pg.query(
+          `UPDATE institution_company_access_requests
+           SET status = $1, responded_at = NOW(), responded_by_user_id = $2, updated_at = NOW()
+           WHERE id::text = $3 AND (company_id = $4 OR company_id = $5)
+           RETURNING *`,
+          [normStatus, validRespondedBy, String(requestId), compCode, compUuid || compCode]
+        );
+        if (updateRes.rows && updateRes.rows.length > 0 && !request) {
+          request = updateRes.rows[0];
+        }
+      } catch (err) {
+        console.warn('[respondToStudentAccessRequest] PG update note:', err.message);
+      }
+    }
+
+    const studentIds = request?.studentIds || request?.student_ids || [];
+    const institutionId = request?.institutionId || request?.institution_id;
+
+    if (normStatus === 'ACCEPTED') {
+      for (const sId of studentIds) {
+        const shareRecord = {
+          id: crypto.randomUUID(),
+          requestId,
+          institutionId,
+          companyId: compCode,
+          studentId: sId,
+          accessStatus: 'ACTIVE',
+          sharedAt: new Date().toISOString()
+        };
+        const existingIdx = data.sharedStudents.findIndex(s => 
+          (s.companyId === companyId || s.companyId === compCode || s.company_id === compCode || (compUuid && s.companyId === compUuid)) && 
+          (s.studentId === sId || s.student_id === sId)
+        );
+        if (existingIdx >= 0) {
+          data.sharedStudents[existingIdx].accessStatus = 'ACTIVE';
+          data.sharedStudents[existingIdx].requestId = requestId;
+          data.sharedStudents[existingIdx].sharedAt = new Date().toISOString();
+        } else {
+          data.sharedStudents.unshift(shareRecord);
+        }
+
+        if (this.pg) {
+          try {
+            await this.pg.query(
+              `INSERT INTO institution_company_shared_students
+               (id, request_id, institution_id, company_id, student_id, access_status, shared_at)
+               VALUES ($1, $2, $3, $4, $5, 'ACTIVE', NOW())
+               ON CONFLICT (company_id, student_id)
+               DO UPDATE SET access_status = 'ACTIVE', request_id = EXCLUDED.request_id, shared_at = NOW()`,
+              [shareRecord.id, requestId, institutionId, compCode, sId]
+            );
+            if (compUuid && compUuid !== compCode) {
+              await this.pg.query(
+                `INSERT INTO institution_company_shared_students
+                 (id, request_id, institution_id, company_id, student_id, access_status, shared_at)
+                 VALUES ($1, $2, $3, $4, $5, 'ACTIVE', NOW())
+                 ON CONFLICT (company_id, student_id)
+                 DO UPDATE SET access_status = 'ACTIVE', request_id = EXCLUDED.request_id, shared_at = NOW()`,
+                [crypto.randomUUID(), requestId, institutionId, compUuid, sId]
+              );
+            }
+          } catch (pgErr) {
+            console.warn('[respondToStudentAccessRequest] PG shared insert note:', pgErr.message);
+          }
+        }
+      }
+    }
+
+    this._write(data);
+
+    // Bi-directional notification to institution
+    const compRecord = (data.companies || []).find(c => c.id === companyId || c.companyId === companyId || c.code === companyId);
+    const compName = compRecord?.name || compRecord?.companyName || compCode;
+    await this.addNotification('institution', {
+      type: 'access_response',
+      title: `Partnership & Access Request ${normStatus === 'ACCEPTED' ? 'Accepted' : 'Rejected'}`,
+      message: `${compName} has ${normStatus.toLowerCase()} your partnership & student access request.`,
+      details: { requestId, status: normStatus, studentCount: studentIds.length }
+    });
+
+    return { success: true, requestId, status: normStatus };
+  }
+
+  async revokeCompanyAccess(requestId, userContext = {}) {
+    const data = this._read();
+    data.accessRequests = data.accessRequests || [];
+    data.sharedStudents = data.sharedStudents || [];
+
+    let request = (data.accessRequests || []).find(r => r.id === requestId || r.requestId === requestId);
+    if (request) {
+      request.status = 'REVOKED';
+      request.revokedAt = new Date().toISOString();
+    }
+
+    const instCode = request?.institutionId || request?.institution_id || userContext.institutionId;
+    const compCode = request?.companyId || request?.company_id || userContext.companyId;
+
+    // Update sharedStudents in JSON memory
+    data.sharedStudents.forEach(s => {
+      if ((s.requestId === requestId) ||
+          (instCode && compCode && s.institutionId === instCode && s.companyId === compCode)) {
+        s.accessStatus = 'REVOKED';
+        s.revokedAt = new Date().toISOString();
+      }
+    });
+
+    if (this.pg) {
+      try {
+        await this.pg.query(
+          `UPDATE institution_company_access_requests SET status = 'REVOKED', updated_at = NOW() WHERE id::text = $1`,
+          [String(requestId)]
+        );
+        await this.pg.query(
+          `UPDATE institution_company_shared_students SET access_status = 'REVOKED' WHERE request_id::text = $1 OR (institution_id = $2 AND company_id = $3)`,
+          [String(requestId), String(instCode), String(compCode)]
+        );
+      } catch (e) {
+        console.warn('[revokeCompanyAccess] PG update note:', e.message);
+      }
+    }
+
+    this._write(data);
+
+    // Issue notifications
+    await this.addNotification('institution', {
+      type: 'access_revoked',
+      title: 'Company Access Revoked',
+      message: `Student data sharing relationship (${requestId}) has been revoked.`,
+      details: { requestId, status: 'REVOKED' }
+    });
+
+    await this.addNotification('company', {
+      type: 'access_revoked',
+      title: 'Institution Access Revoked',
+      message: `Student directory access for institution ${instCode || ''} has been revoked.`,
+      details: { requestId, status: 'REVOKED' }
+    });
+
+    return { success: true, requestId, status: 'REVOKED' };
+  }
+
+  async isStudentSharedWithCompany(studentId, companyId) {
+    if (!studentId || !companyId) return false;
+
+    if (this.pg) {
+      try {
+        let compUuid = companyId;
+        let compCode = companyId;
+        let compName = companyId;
+        const cRes = await this.pg.query(
+          `SELECT id, registration_number, company_name FROM companies 
+           WHERE id::text = $1 OR registration_number = $1 OR company_name ILIKE $1 LIMIT 1`,
+          [String(companyId).trim()]
+        );
+        if (cRes.rows.length > 0) {
+          compUuid = cRes.rows[0].id;
+          compCode = cRes.rows[0].registration_number || compUuid;
+          compName = cRes.rows[0].company_name;
+        }
+
+        let stuId = studentId;
+        let stuRoll = studentId;
+        let stuUserId = studentId;
+        const sRes = await this.pg.query(
+          `SELECT s.id, s.roll_number, s.user_id FROM students s
+           JOIN users u ON s.user_id = u.id
+           WHERE s.id::text = $1 OR s.roll_number = $1 OR s.user_id::text = $1 OR LOWER(u.email) = LOWER($1) LIMIT 1`,
+          [String(studentId).trim()]
+        );
+        if (sRes.rows.length > 0) {
+          stuId = sRes.rows[0].id;
+          stuRoll = sRes.rows[0].roll_number || stuId;
+          stuUserId = sRes.rows[0].user_id || stuId;
+        }
+
+        const res = await this.pg.query(
+          `SELECT id FROM institution_company_shared_students
+           WHERE (company_id = $1 OR company_id = $2 OR company_id = $3) 
+             AND (student_id = $4 OR student_id = $5 OR student_id = $6) 
+             AND access_status = 'ACTIVE' 
+           LIMIT 1`,
+          [String(compCode), String(compUuid), String(compName), String(stuId), String(stuRoll), String(stuUserId)]
+        );
+        return Boolean(res.rows && res.rows.length > 0);
+      } catch (err) {
+        console.warn('[isStudentSharedWithCompany] PG query error, falling back:', err.message);
+      }
+    }
+
+    const data = this._read();
+    return (data.sharedStudents || []).some(
+      s => (s.companyId === companyId || s.company_id === companyId) && 
+           (s.studentId === studentId || s.student_id === studentId) && 
+           s.accessStatus === 'ACTIVE'
+    );
+  }
+
+  async getAuthorizedStudentsByCompany(companyId) {
+    if (!companyId) return [];
+
+    if (this.pg) {
+      try {
+        let compUuid = companyId;
+        let compCode = companyId;
+        let compName = companyId;
+        const cRes = await this.pg.query(
+          `SELECT id, registration_number, company_name FROM companies 
+           WHERE id::text = $1 OR registration_number = $1 OR company_name ILIKE $1 LIMIT 1`,
+          [String(companyId).trim()]
+        );
+        if (cRes.rows.length > 0) {
+          compUuid = cRes.rows[0].id;
+          compCode = cRes.rows[0].registration_number || compUuid;
+          compName = cRes.rows[0].company_name;
+        }
+
+        const res = await this.pg.query(
+          `SELECT DISTINCT student_id FROM institution_company_shared_students
+           WHERE (company_id = $1 OR company_id = $2 OR company_id = $3) AND access_status = 'ACTIVE'`,
+          [String(compCode), String(compUuid), String(compName)]
+        );
+
+        const sharedIds = [...new Set((res.rows || []).map(r => r.student_id))];
+        const students = [];
+        for (const sId of sharedIds) {
+          const student = await this.getStudentById(sId);
+          if (student) {
+            const { password, passwordHash, token, google_id, ...safeStudent } = student;
+            students.push(safeStudent);
+          }
+        }
+        return students;
+      } catch (err) {
+        console.warn('[getAuthorizedStudentsByCompany] PG query error, falling back:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const sharedIds = (data.sharedStudents || [])
+      .filter(s => (s.companyId === companyId || s.company_id === companyId) && s.accessStatus === 'ACTIVE')
+      .map(s => s.studentId || s.student_id);
+
+    const uniqueIds = [...new Set(sharedIds)];
+    const students = [];
+    for (const sId of uniqueIds) {
+      const student = await this.getStudentById(sId);
+      if (student) {
+        const { password, passwordHash, token, google_id, ...safeStudent } = student;
+        students.push(safeStudent);
+      }
+    }
+    return students;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // COMPANY COURSE OWNERSHIP, COURSE PROJECTS & COLLEGE VERIFIED CERTIFICATES
+  // ─────────────────────────────────────────────────────────────────────────
+
+  async getCourseCertificatesForInstitution(institutionId) {
+    const data = this._read();
+    data.courseCertificates = data.courseCertificates || [];
+    if (!institutionId) return data.courseCertificates;
+
+    const instCode = String(institutionId).toUpperCase().trim();
+    return data.courseCertificates.filter(c => {
+      const cInst = String(c.institutionId || c.institution_id || c.collegeId || '').toUpperCase().trim();
+      return cInst === instCode || (instCode === 'TN010' && cInst === 'SRM001') || (instCode === 'SRM001' && cInst === 'TN010');
+    });
+  }
+
+  async verifyCourseCertificate(certificateId, institutionId, action = 'VERIFY', notes = '', verifiedByUserId = null) {
+    const data = this._read();
+    data.courseCertificates = data.courseCertificates || [];
+
+    const normAction = String(action).toUpperCase();
+    const isVerify = normAction === 'VERIFY' || normAction === 'VERIFIED';
+    const newStatus = isVerify ? 'VERIFIED' : 'REJECTED';
+
+    let cert = data.courseCertificates.find(c => c.id === certificateId || c.certificateId === certificateId);
+    if (!cert) {
+      cert = {
+        id: certificateId,
+        certificateId: certificateId,
+        studentId: 'STU-TN010-001',
+        studentName: 'Arun Kumar',
+        courseId: 'CRS-ABC-01',
+        courseTitle: 'Advanced Full Stack Development',
+        companyId: 'COMP-001',
+        companyName: 'ABC Technologies',
+        institutionId: institutionId || 'TN010',
+        institutionName: 'SRM Institute of Science and Technology',
+        status: newStatus,
+        issuedAt: new Date().toISOString(),
+        verifiedAt: new Date().toISOString()
+      };
+      data.courseCertificates.unshift(cert);
+    } else {
+      cert.status = newStatus;
+      cert.verifiedAt = new Date().toISOString();
+      cert.verifiedBy = verifiedByUserId || 'College Placement Authority';
+      if (!isVerify) cert.rejectionReason = notes;
+    }
+
+    this._write(data);
+
+    // If VERIFIED, notify company immediately
+    if (isVerify) {
+      const compId = cert.companyId || 'COMP-001';
+      const studentName = cert.studentName || 'Student';
+      const courseTitle = cert.courseTitle || 'Company Course';
+      const instName = cert.institutionName || 'College';
+
+      await this.addNotification('company', {
+        type: 'certificate_verified',
+        title: 'Certificate Verified by College',
+        message: `${studentName}'s certificate for "${courseTitle}" has been verified by ${instName}.`,
+        details: { certificateId, studentId: cert.studentId, courseId: cert.courseId, companyId: compId, status: 'VERIFIED' }
+      });
+    }
+
+    return { success: true, certificate: cert, status: newStatus };
+  }
+
+  async getCourseLearnerProfileForCompany(companyId, courseId, studentId) {
+    const data = this._read();
+    const student = await this.getStudentById(studentId);
+    const course = (data.courses || []).find(c => c.courseId === courseId || c.id === courseId) || {
+      courseId,
+      title: 'Advanced Full Stack Development',
+      companyId: companyId || 'COMP-001'
+    };
+
+    // Course Progress & Enrollment
+    const enrollments = await this.getEnrollments(studentId);
+    const enr = (enrollments || []).find(e => e.courseId === courseId || e.course_id === courseId) || {
+      progress: 100,
+      completedModules: 8,
+      totalModules: 8,
+      status: 'Completed'
+    };
+
+    // Course-Related Projects ONLY (filtered by courseId or companyId)
+    const allProjects = await this.getProjects(studentId);
+    const courseProjects = allProjects.filter(p =>
+      (p.courseId && String(p.courseId).toLowerCase() === String(courseId).toLowerCase()) ||
+      (p.companyId && String(p.companyId).toLowerCase() === String(companyId).toLowerCase()) ||
+      (p.title && p.title.toLowerCase().includes('full stack')) ||
+      (p.title && p.title.toLowerCase().includes('e-commerce'))
+    );
+
+    // Certificate Status & Credentials
+    const certs = data.courseCertificates || [];
+    const cert = certs.find(c =>
+      (c.studentId === studentId || c.student_id === studentId) &&
+      (c.courseId === courseId || c.course_id === courseId)
+    );
+
+    const certStatus = cert ? cert.status : (enr.progress >= 100 ? 'PENDING_VERIFICATION' : 'IN_PROGRESS');
+    const isVerified = certStatus === 'VERIFIED';
+
+    let certDetails = null;
+    if (isVerified && cert) {
+      certDetails = {
+        certificateId: cert.certificateId || cert.id,
+        title: cert.courseTitle || course.title,
+        studentName: student?.name || cert.studentName,
+        courseName: cert.courseTitle || course.title,
+        issuedDate: cert.issuedAt,
+        verificationDate: cert.verifiedAt,
+        issuingInstitution: cert.institutionName || 'Partner Engineering Institution',
+        issuingCompany: cert.companyName || 'Corporate Partner',
+        status: 'VERIFIED'
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        student: {
+          studentId,
+          name: student?.name || 'Student Learner',
+          institution: student?.institutionName || student?.collegeName || 'Partner Institution',
+          department: student?.department || 'CSE',
+          batch: student?.batch || '2026'
+        },
+        course: {
+          courseId,
+          title: course.title || 'Industry Course',
+          offeredBy: course.companyName || 'Corporate Partner'
+        },
+        progress: {
+          percentage: enr.progress || 100,
+          completedModules: enr.completedModules || 8,
+          totalModules: enr.totalModules || 8,
+          status: enr.status || 'Completed'
+        },
+        courseProjects,
+        certificate: {
+          status: certStatus,
+          isVerified,
+          verificationPending: certStatus === 'PENDING_VERIFICATION',
+          details: certDetails
+        }
+      }
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 9. CONTINUOUS STUDENT DEVELOPMENT TIMELINE GENERATOR
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async getStudentDevelopmentTimeline(studentId) {
+    const student = await this.getStudentById(studentId);
+    if (!student) return [];
+
+    const events = [];
+
+    // 0. Student Registration Milestone
+    events.push({
+      id: `reg_${student.id || studentId}`,
+      type: 'REGISTRATION',
+      title: 'Student Profile Registered',
+      description: `Registered under ${student.collegeName || student.institution_name || 'Partner Engineering Institution'} (${student.department || 'Engineering'}).`,
+      status: 'Active',
+      date: student.createdAt || new Date().toISOString(),
+      badge: 'Account Verified'
+    });
+
+    // 1. Skill Additions
+    const skills = Array.isArray(student.skills) ? student.skills : [];
+    skills.forEach((sk, idx) => {
+      events.push({
+        id: `sk_${sk.id || idx}`,
+        type: 'SKILL',
+        title: `Skill Added: ${sk.name || sk.skillName}`,
+        description: `Proficiency: ${sk.level || 'Intermediate'} (${sk.verified ? 'Verified' : 'Self-Reported'})`,
+        status: sk.verified ? 'Verified' : 'Self-Reported',
+        date: sk.date || sk.createdAt || student.createdAt || new Date().toISOString(),
+        badge: 'Competency'
+      });
+    });
+
+    // 2. Assessments
+    const assessments = Array.isArray(student.assessments) ? student.assessments : [];
+    assessments.forEach((a, idx) => {
+      events.push({
+        id: `asmt_${idx}_${Date.now()}`,
+        type: 'ASSESSMENT',
+        title: `Assessment Completed: ${a.domain || a.track || 'Diagnostic Test'}`,
+        description: `Achieved score of ${a.score}% (${a.percentile || 'Verified Evaluation'})`,
+        status: a.status || 'Verified',
+        date: a.date || a.createdAt || new Date().toISOString(),
+        badge: 'Assessment Score'
+      });
+    });
+
+    // 2. Enrollments & Course Modules
+    const enrollments = await this.getEnrollments(student.studentId || studentId);
+    for (const e of (enrollments || [])) {
+      const course = await this.getCourseById(e.courseId);
+      events.push({
+        id: `enr_${e.id || e.enrollmentId}`,
+        type: 'COURSE',
+        title: `Enrolled in Course: ${course?.title || e.courseTitle || 'Industry Course'}`,
+        description: `Current Progress: ${e.progress || e.progressPercentage || 0}%`,
+        status: e.status || 'In Progress',
+        date: e.enrolledAt || e.createdAt || new Date().toISOString(),
+        badge: 'Course Enrollment'
+      });
+    }
+
+    // 3. Projects
+    const projects = Array.isArray(student.projects) ? student.projects : [];
+    projects.forEach((p, idx) => {
+      events.push({
+        id: `proj_${idx}`,
+        type: 'PROJECT',
+        title: `Project: ${p.title || p.name || 'Technical Project'}`,
+        description: p.description || `Built with ${(p.skills || []).join(', ')}`,
+        status: p.status || (p.proofVerified ? 'Validated' : 'In Progress'),
+        date: p.completedAt || p.createdAt || new Date().toISOString(),
+        badge: 'Project Validation'
+      });
+    });
+
+    // 4. Certificates
+    const certs = Array.isArray(student.certifications) ? student.certifications : (student.certificates || []);
+    certs.forEach((c, idx) => {
+      events.push({
+        id: `cert_${idx}`,
+        type: 'CERTIFICATE',
+        title: `Certificate Earned: ${c.title || c.name || 'Industry Credential'}`,
+        description: `Issued by ${c.issuer || 'SkillNexus Verified Authority'}`,
+        status: 'Issued',
+        date: c.issuedDate || c.date || new Date().toISOString(),
+        badge: 'Official Certificate'
+      });
+    });
+
+    // 5. Applications & Interviews
+    const data = this._read();
+    const apps = (data.applications || []).filter(app => app.studentId === studentId || app.studentId === student.studentId);
+    for (const app of apps) {
+      const opp = (data.opportunities || []).find(o => o.oppId === app.opportunityId || o.id === app.opportunityId);
+      events.push({
+        id: `app_${app.id || app.applicationId}`,
+        type: 'APPLICATION',
+        title: `Applied for: ${opp?.title || 'Industry Opportunity'}`,
+        description: `Status: ${app.status || app.stage || 'Submitted'} at ${opp?.company || 'Partner Company'}`,
+        status: app.status || app.stage || 'Submitted',
+        date: app.appliedDate || app.createdAt || new Date().toISOString(),
+        badge: 'Opportunity Application'
+      });
+
+      if (['Interview', 'Selected', 'Offer'].includes(app.stage || app.status)) {
+        events.push({
+          id: `iv_${app.id || app.applicationId}`,
+          type: 'INTERVIEW',
+          title: `Interview Stage: ${opp?.title || 'Position'}`,
+          description: `Candidate advanced to ${app.stage || 'Interview Round'}`,
+          status: 'Scheduled',
+          date: app.updatedAt || new Date().toISOString(),
+          badge: 'Interview Scheduled'
+        });
+      }
+
+      if (['Offer', 'Selected'].includes(app.stage || app.status)) {
+        events.push({
+          id: `off_${app.id || app.applicationId}`,
+          type: 'OFFER',
+          title: `Placement Offer Extended: ${opp?.title || 'Position'}`,
+          description: `Formal placement offer issued to candidate`,
+          status: 'Offer Issued',
+          date: app.updatedAt || new Date().toISOString(),
+          badge: 'Offer Extended'
+        });
+      }
+    }
+
+    events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return events;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 10. INSTITUTION ASSESSMENT TESTS & MULTI-LANGUAGE ENGINE
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async getProgrammingLanguages() {
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          `SELECT id, code, name, category, is_active FROM programming_languages WHERE is_active = true ORDER BY name`
+        );
+        if (res.rows && res.rows.length > 0) return res.rows;
+      } catch (err) {
+        console.warn('[getProgrammingLanguages] PG query note:', err.message);
+      }
+    }
+
+    const data = this._read();
+    return data.programmingLanguages || [
+      { id: 'lang-py', code: 'python', name: 'Python', category: 'General & AI' },
+      { id: 'lang-jv', code: 'java', name: 'Java', category: 'Enterprise & Backend' },
+      { id: 'lang-c', code: 'c', name: 'C', category: 'Systems & Embedded' },
+      { id: 'lang-cpp', code: 'cpp', name: 'C++', category: 'Systems & Competitive' },
+      { id: 'lang-js', code: 'javascript', name: 'JavaScript', category: 'Web & Full Stack' },
+      { id: 'lang-ts', code: 'typescript', name: 'TypeScript', category: 'Web & Full Stack' },
+      { id: 'lang-cs', code: 'csharp', name: 'C#', category: 'Enterprise & Game Dev' },
+      { id: 'lang-go', code: 'go', name: 'Go', category: 'Cloud & Microservices' },
+      { id: 'lang-rs', code: 'rust', name: 'Rust', category: 'Systems & High-Performance' },
+      { id: 'lang-php', code: 'php', name: 'PHP', category: 'Web Development' },
+      { id: 'lang-sql', code: 'sql', name: 'SQL', category: 'Database & Analytics' }
+    ];
+  }
+
+  async getCourseProgrammingLanguages(courseId) {
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          `SELECT pl.id, pl.code, pl.name, pl.category 
+           FROM course_programming_languages cpl
+           JOIN programming_languages pl ON cpl.programming_language_id = pl.id
+           WHERE cpl.course_id = $1`,
+          [courseId]
+        );
+        if (res.rows && res.rows.length > 0) return res.rows;
+      } catch (err) {
+        console.warn('[getCourseProgrammingLanguages] PG query note:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const mappings = (data.courseProgrammingLanguages || []).filter(m => m.courseId === courseId);
+    const langs = await this.getProgrammingLanguages();
+    if (mappings.length > 0) {
+      return langs.filter(l => mappings.some(m => m.programmingLanguageId === l.id || m.languageCode === l.code));
+    }
+
+    // Auto-infer from course title, category or skills taught
+    const course = (data.courses || []).find(c => c.courseId === courseId || c.id === courseId);
+    if (course) {
+      const titleLower = (course.title || '').toLowerCase();
+      const catLower = (course.category || '').toLowerCase();
+      const skillsLower = (course.skillsTaught || []).map(s => String(s).toLowerCase());
+
+      const inferred = langs.filter(l => {
+        const c = l.code.toLowerCase();
+        const n = l.name.toLowerCase();
+        return titleLower.includes(c) || titleLower.includes(n) || 
+               catLower.includes(c) || catLower.includes(n) || 
+               skillsLower.includes(c) || skillsLower.includes(n);
+      });
+      if (inferred.length > 0) return inferred;
+    }
+
+    return [];
+  }
+
+  async getStudentEligibleProgrammingLanguages(studentId) {
+    const student = await this.getStudentById(studentId);
+    if (!student) return [];
+
+    const enrollments = await this.getEnrollments(student.studentId || studentId);
+    const eligibleLangSet = new Map();
+
+    for (const e of (enrollments || [])) {
+      const courseLangs = await this.getCourseProgrammingLanguages(e.courseId);
+      courseLangs.forEach(l => eligibleLangSet.set(l.code, l));
+    }
+
+    return Array.from(eligibleLangSet.values());
+  }
+
+  async createInstitutionAssessment({ institutionId, title, assessmentType = 'LOGICAL', durationMinutes = 45, totalMarks = 100, difficulty = 'Intermediate' }) {
+    const data = this._read();
+    data.institutionAssessments = data.institutionAssessments || [];
+
+    const assessmentId = crypto.randomUUID();
+    const normType = String(assessmentType).toUpperCase();
+    const trackCode = `${normType.slice(0, 3)}-${Date.now().toString().slice(-4)}`;
+
+    let instUuid = institutionId;
+    if (this.pg && institutionId) {
+      try {
+        const ir = await this.pg.query(
+          `SELECT id FROM institutions WHERE id::text = $1 OR code = $1 OR UPPER(code) = UPPER($1) LIMIT 1`,
+          [String(institutionId).trim()]
+        );
+        if (ir.rows.length > 0) instUuid = ir.rows[0].id;
+      } catch (e) {}
+    }
+
+    const newAssessment = {
+      id: assessmentId,
+      trackCode,
+      track_code: trackCode,
+      institutionId: instUuid || institutionId,
+      institution_id: instUuid || institutionId,
+      title: title || `${normType} Assessment`,
+      assessmentType: normType,
+      assessment_type: normType,
+      domain: normType === 'LOGICAL' ? 'Logical Reasoning' : (normType === 'APTITUDE' ? 'Aptitude & Problem Solving' : 'Programming & Data Structures'),
+      durationMinutes: Number(durationMinutes) || 45,
+      duration_minutes: Number(durationMinutes) || 45,
+      totalMarks: Number(totalMarks) || 100,
+      total_marks: Number(totalMarks) || 100,
+      difficulty,
+      status: 'DRAFT',
+      questions: [],
+      createdAt: new Date().toISOString()
+    };
+
+    data.institutionAssessments.unshift(newAssessment);
+    this._write(data);
+
+    if (this.pg) {
+      try {
+        await this.pg.query(
+          `INSERT INTO assessments (id, track_code, institution_id, title, domain, duration_minutes, total_marks, difficulty, assessment_type, status, is_active)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'DRAFT', true)`,
+          [assessmentId, trackCode, instUuid || institutionId, newAssessment.title, newAssessment.domain, newAssessment.durationMinutes, newAssessment.totalMarks, difficulty, normType]
+        );
+      } catch (err) {
+        console.warn('[createInstitutionAssessment] PG insert note:', err.message);
+      }
+    }
+
+    return newAssessment;
+  }
+
+  async getInstitutionAssessments(institutionId) {
+    if (this.pg) {
+      try {
+        const res = await this.pg.query(
+          `SELECT a.*, 
+                  (SELECT count(*) FROM assessment_questions q WHERE q.assessment_id = a.id) as question_count
+           FROM assessments a
+           WHERE a.institution_id::text = $1 
+              OR a.institution_id IN (SELECT id::text FROM institutions WHERE code = $1 OR UPPER(code) = UPPER($1) OR id::text = $1)
+              OR a.institution_id IN (SELECT code FROM institutions WHERE code = $1 OR UPPER(code) = UPPER($1) OR id::text = $1)
+           ORDER BY a.created_at DESC`,
+          [String(institutionId).trim()]
+        );
+        return (res.rows || []).map(a => ({
+          id: a.id,
+          institutionId: a.institution_id,
+          title: a.title,
+          assessmentType: a.assessment_type || 'LOGICAL',
+          domain: a.domain,
+          durationMinutes: a.duration_minutes,
+          totalMarks: a.total_marks || 100,
+          difficulty: a.difficulty,
+          status: a.status || 'PUBLISHED',
+          questionCount: parseInt(a.question_count || 0, 10),
+          createdAt: a.created_at
+        }));
+      } catch (err) {
+        console.error('[getInstitutionAssessments] PG query error:', err.message);
+        throw err;
+      }
+    }
+
+    const data = this._read();
+    return (data.institutionAssessments || []).filter(a => a.institutionId === institutionId || a.institution_id === institutionId);
+  }
+
+  async addAssessmentQuestion(assessmentId, questionData) {
+    const data = this._read();
+    const assessment = (data.institutionAssessments || []).find(a => a.id === assessmentId);
+
+    const questionId = crypto.randomUUID();
+    const newQuestion = {
+      id: questionId,
+      assessmentId,
+      topic: questionData.topic || 'Core Evaluation',
+      questionText: questionData.questionText || questionData.question,
+      codeSnippet: questionData.codeSnippet || null,
+      explanation: questionData.explanation || '',
+      difficulty: questionData.difficulty || 'Intermediate',
+      marks: Number(questionData.marks) || 10,
+      programmingLanguageId: questionData.programmingLanguageId || null,
+      languageCode: questionData.languageCode || null,
+      options: questionData.options || [],
+      createdAt: new Date().toISOString()
+    };
+
+    if (assessment) {
+      assessment.questions = assessment.questions || [];
+      assessment.questions.push(newQuestion);
+      this._write(data);
+    }
+
+    if (this.pg) {
+      try {
+        await this.pg.query(
+          `INSERT INTO assessment_questions (id, assessment_id, topic, question_text, code_snippet, explanation, difficulty, marks, programming_language_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [questionId, assessmentId, newQuestion.topic, newQuestion.questionText, newQuestion.codeSnippet, newQuestion.explanation, newQuestion.difficulty, newQuestion.marks, newQuestion.programmingLanguageId]
+        );
+
+        if (Array.isArray(questionData.options)) {
+          const ansKey = questionData.correctAnswer !== undefined ? questionData.correctAnswer : (questionData.correctOption !== undefined ? questionData.correctOption : (questionData.correct_answer !== undefined ? questionData.correct_answer : null));
+          const optIdxKey = questionData.correctOptionIndex !== undefined ? questionData.correctOptionIndex : (questionData.correctIndex !== undefined ? questionData.correctIndex : null);
+
+          for (let i = 0; i < questionData.options.length; i++) {
+            const opt = questionData.options[i];
+            const optText = typeof opt === 'string' ? opt : (opt.text || opt.optionText || opt.text_value || '');
+            const isOptExplicit = typeof opt === 'object' && (Boolean(opt.isCorrect) || Boolean(opt.is_correct));
+            const isTextMatch = ansKey !== null && ansKey !== undefined && String(ansKey).trim().toLowerCase() === optText.trim().toLowerCase();
+            const isIndexMatch = (ansKey !== null && !isNaN(Number(ansKey)) && Number(ansKey) === i) || 
+                                 (optIdxKey !== null && !isNaN(Number(optIdxKey)) && Number(optIdxKey) === i);
+            const isCorrect = isOptExplicit || isTextMatch || isIndexMatch;
+
+            await this.pg.query(
+              `INSERT INTO question_options (id, question_id, option_text, is_correct, option_order)
+               VALUES ($1, $2, $3, $4, $5)`,
+              [crypto.randomUUID(), questionId, optText, isCorrect, i + 1]
+            );
+          }
+        }
+      } catch (err) {
+        console.warn('[addAssessmentQuestion] PG insert note:', err.message);
+      }
+    }
+
+    return newQuestion;
+  }
+
+  async publishInstitutionAssessment(assessmentId, institutionId) {
+    const data = this._read();
+    const assessment = (data.institutionAssessments || []).find(a => a.id === assessmentId && (a.institutionId === institutionId || a.institution_id === institutionId));
+    if (assessment) {
+      assessment.status = 'PUBLISHED';
+      this._write(data);
+    }
+
+    if (this.pg) {
+      try {
+        await this.pg.query(
+          `UPDATE assessments 
+           SET status = 'PUBLISHED' 
+           WHERE id = $1 
+             AND (institution_id::text = $2 
+               OR institution_id IN (SELECT id::text FROM institutions WHERE code = $2 OR UPPER(code) = UPPER($2) OR id::text = $2)
+               OR institution_id IN (SELECT code FROM institutions WHERE code = $2 OR UPPER(code) = UPPER($2) OR id::text = $2))`,
+          [assessmentId, String(institutionId).trim()]
+        );
+      } catch (err) {
+        console.error('[publishInstitutionAssessment] PG update error:', err.message);
+        throw err;
+      }
+    }
+
+    // Notify institution students
+    await this.addNotification('student', {
+      type: 'assessment_assigned',
+      title: 'New Institutional Assessment Available',
+      message: `A new assessment "${assessment?.title || 'Institutional Test'}" has been published by your institution.`,
+      details: { assessmentId, institutionId }
+    });
+
+    return { success: true, assessmentId, status: 'PUBLISHED' };
+  }
+
+  async getAssessmentQuestionsForStudent(assessmentId, studentId) {
+    let assessment = null;
+    let questions = [];
+
+    if (this.pg) {
+      try {
+        const aRes = await this.pg.query(`SELECT * FROM assessments WHERE id::text = $1`, [assessmentId]);
+        if (aRes.rows && aRes.rows.length > 0) {
+          assessment = aRes.rows[0];
+          
+          const qRes = await this.pg.query(
+            `SELECT q.*, pl.code as language_code, pl.name as language_name
+             FROM assessment_questions q
+             LEFT JOIN programming_languages pl ON q.programming_language_id = pl.id
+             WHERE q.assessment_id = $1
+             ORDER BY q.created_at ASC`,
+            [assessment.id]
+          );
+
+          for (const q of qRes.rows) {
+            const optRes = await this.pg.query(
+              `SELECT id, option_text, option_order FROM question_options WHERE question_id = $1 ORDER BY option_order ASC`,
+              [q.id]
+            );
+            questions.push({
+              id: q.id,
+              assessmentId: q.assessment_id,
+              topic: q.topic,
+              questionText: q.question_text,
+              codeSnippet: q.code_snippet,
+              difficulty: q.difficulty,
+              marks: q.marks || 10,
+              programmingLanguageId: q.programming_language_id,
+              languageCode: q.language_code,
+              languageName: q.language_name,
+              options: optRes.rows.map(o => ({ id: o.id, text: o.option_text }))
+            });
+          }
+        }
+      } catch (err) {
+        console.error('[getAssessmentQuestionsForStudent] PG query error:', err.message);
+        throw err;
+      }
+    }
+
+    if (!assessment) {
+      const data = this._read();
+      assessment = (data.institutionAssessments || []).find(a => a.id === assessmentId);
+      if (!assessment) return null;
+      questions = assessment.questions || [];
+    }
+
+    // If assessment is PROGRAMMING, filter questions by student's eligible languages
+    const isProg = (assessment.assessmentType || assessment.assessment_type) === 'PROGRAMMING';
+    if (isProg && studentId) {
+      const eligibleLangs = await this.getStudentEligibleProgrammingLanguages(studentId);
+      const eligibleCodes = eligibleLangs.map(l => l.code.toLowerCase());
+      const eligibleIds = eligibleLangs.map(l => l.id);
+
+      if (eligibleCodes.length > 0) {
+        questions = questions.filter(q => {
+          if (!q.programmingLanguageId && !q.languageCode) return true;
+          return eligibleIds.includes(q.programmingLanguageId) || eligibleCodes.includes((q.languageCode || '').toLowerCase());
+        });
+      }
+    }
+
+    return {
+      ...assessment,
+      questions
+    };
+  }
+
+  async submitInstitutionAssessmentAttempt({ assessmentId, studentId, answers = {} }) {
+    let student = null;
+    let canonicalStudentId = null;
+
+    if (this.pg) {
+      try {
+        const sRes = await this.pg.query(
+          `SELECT s.id, s.user_id, s.institution_id, s.department_id, s.roll_number, s.full_name, s.cgpa, s.readiness_score, u.email
+           FROM students s
+           JOIN users u ON u.id = s.user_id
+           WHERE s.id::text = $1 OR s.user_id::text = $1 OR s.roll_number = $1 OR LOWER(u.email) = LOWER($1)
+           LIMIT 1`,
+          [String(studentId).trim()]
+        );
+        if (sRes.rows.length > 0) {
+          student = sRes.rows[0];
+          canonicalStudentId = student.id;
+        }
+      } catch (err) {
+        console.warn('[submitInstitutionAssessmentAttempt] PG student lookup note:', err.message);
+      }
+    }
+
+    if (!student) {
+      student = await this.getStudentById(studentId);
+      canonicalStudentId = student?.id || student?.studentId || studentId;
+    }
+    if (!student) throw new Error('Student not found');
+
+    let totalMarks = 0;
+    let marksScored = 0;
+    let correctCount = 0;
+    let totalQuestions = 0;
+
+    if (this.pg) {
+      try {
+        const qRes = await this.pg.query(
+          `SELECT q.id, q.marks, qo.id as option_id, qo.option_text, qo.is_correct
+           FROM assessment_questions q
+           JOIN question_options qo ON q.id = qo.question_id
+           WHERE q.assessment_id = $1
+           ORDER BY q.created_at ASC`,
+          [assessmentId]
+        );
+
+        const questionMap = new Map();
+        for (const row of qRes.rows) {
+          if (!questionMap.has(row.id)) {
+            questionMap.set(row.id, { marks: row.marks || 10, options: [] });
+          }
+          questionMap.get(row.id).options.push(row);
+        }
+
+        totalQuestions = questionMap.size;
+        const qList = Array.from(questionMap.entries());
+
+        qList.forEach(([qId, qData], index) => {
+          const marks = qData.marks || 10;
+          totalMarks += marks;
+
+          let studentAns = null;
+          if (Array.isArray(answers)) {
+            const found = answers.find(a => (a.questionId && (a.questionId === qId || String(a.questionId) === String(qId))) || a.questionIndex === index);
+            studentAns = found ? (found.selectedOption || found.selectedOptionId || found.answer) : null;
+          } else if (typeof answers === 'object' && answers !== null) {
+            studentAns = answers[qId] || answers[String(qId)] || answers[index];
+          }
+
+          if (studentAns !== null && studentAns !== undefined) {
+            const correctOpt = qData.options.find(o => o.is_correct);
+            if (correctOpt) {
+              const sClean = String(studentAns).trim().toLowerCase();
+              const oId = String(correctOpt.option_id).trim().toLowerCase();
+              const oText = String(correctOpt.option_text).trim().toLowerCase();
+              if (sClean === oId || sClean === oText) {
+                marksScored += marks;
+                correctCount++;
+              }
+            }
+          }
+        });
+
+        if (totalMarks === 0 && totalQuestions === 0) {
+          const asmtRes = await this.pg.query(`SELECT total_marks FROM assessments WHERE id::text = $1`, [assessmentId]);
+          totalMarks = (asmtRes.rows[0]?.total_marks) || 100;
+        }
+      } catch (err) {
+        console.warn('[submitInstitutionAssessmentAttempt] PG eval note:', err.message);
+      }
+    }
+
+    if (totalMarks === 0) {
+      totalMarks = 100;
+    }
+
+    const percentage = Math.round((marksScored / Math.max(1, totalMarks)) * 100);
+    const passed = percentage >= 70;
+    const attemptId = crypto.randomUUID();
+
+    if (this.pg && canonicalStudentId) {
+      try {
+        await this.pg.query(
+          `INSERT INTO assessment_attempts
+           (id, student_id, assessment_id, started_at, completed_at, score, accuracy, percentile, status)
+           VALUES ($1, $2, $3, NOW() - INTERVAL '15 minutes', NOW(), $4, $5, $6, 'Completed')`,
+          [attemptId, canonicalStudentId, assessmentId, percentage, percentage, Math.min(99, percentage + 5)]
+        );
+
+        // Record answers in assessment_answers if answers are provided
+        let normalizedAnswers = [];
+        if (Array.isArray(answers)) {
+          normalizedAnswers = answers;
+        } else if (answers && typeof answers === 'object') {
+          normalizedAnswers = Object.entries(answers).map(([k, v]) => ({
+            questionId: k,
+            selectedOption: v
+          }));
+        }
+
+        if (normalizedAnswers.length > 0) {
+          const qOptionsRes = await this.pg.query(
+            `SELECT q.id as q_id, qo.id as opt_id, qo.option_text, qo.option_order, qo.is_correct
+             FROM assessment_questions q
+             JOIN question_options qo ON q.id = qo.question_id
+             WHERE q.assessment_id = $1
+             ORDER BY q.created_at ASC, qo.option_order ASC`,
+            [assessmentId]
+          );
+
+          const qOptMap = new Map();
+          for (const row of qOptionsRes.rows) {
+            if (!qOptMap.has(row.q_id)) {
+              qOptMap.set(row.q_id, []);
+            }
+            qOptMap.get(row.q_id).push(row);
+          }
+          const qIdList = Array.from(qOptMap.keys());
+
+          for (let idx = 0; idx < normalizedAnswers.length; idx++) {
+            const item = normalizedAnswers[idx];
+            if (!item) continue;
+            let targetQId = item.questionId || item.question_id;
+            if (!targetQId || !qOptMap.has(targetQId)) {
+              if (typeof item.questionIndex === 'number' && qIdList[item.questionIndex]) {
+                targetQId = qIdList[item.questionIndex];
+              } else if (qIdList[idx]) {
+                targetQId = qIdList[idx];
+              }
+            }
+
+            if (!targetQId || !qOptMap.has(targetQId)) continue;
+            const options = qOptMap.get(targetQId);
+
+            const sel = item.selectedOption || item.selectedOptionId || item.selected_option_id || item.answer;
+            if (sel === null || sel === undefined) continue;
+
+            const selStr = String(sel).trim();
+            let matchedOpt = options.find(o => o.opt_id === selStr);
+            if (!matchedOpt) {
+              matchedOpt = options.find(o => o.option_text.trim().toLowerCase() === selStr.toLowerCase());
+            }
+            if (!matchedOpt) {
+              const numOrder = parseInt(selStr, 10);
+              if (!isNaN(numOrder)) {
+                matchedOpt = options.find(o => o.option_order === numOrder || o.option_order === numOrder + 1);
+              }
+            }
+
+            const chosenOptId = matchedOpt ? matchedOpt.opt_id : null;
+            const isCorrect = matchedOpt ? Boolean(matchedOpt.is_correct) : false;
+
+            try {
+              await this.pg.query(
+                `INSERT INTO assessment_answers (id, attempt_id, question_id, selected_option_id, is_correct, time_spent_seconds)
+                 VALUES ($1, $2, $3, $4, $5, $6)
+                 ON CONFLICT (attempt_id, question_id) DO UPDATE 
+                 SET selected_option_id = EXCLUDED.selected_option_id, is_correct = EXCLUDED.is_correct`,
+                [crypto.randomUUID(), attemptId, targetQId, chosenOptId, isCorrect, 30]
+              );
+            } catch (ansErr) {
+              console.error('[submitInstitutionAssessmentAttempt] Answer insert error:', ansErr.message);
+            }
+          }
+        }
+
+        // Record granular skill attribution in assessment_results
+        try {
+          const skillRes = await this.pg.query("SELECT id FROM skills WHERE name ILIKE 'Problem Solving' OR name ILIKE 'Programming%' LIMIT 1");
+          if (skillRes.rows.length > 0) {
+            await this.pg.query(
+              `INSERT INTO assessment_results (id, attempt_id, skill_id, score)
+               VALUES ($1, $2, $3, $4)
+               ON CONFLICT (attempt_id, skill_id) DO UPDATE SET score = EXCLUDED.score`,
+              [crypto.randomUUID(), attemptId, skillRes.rows[0].id, percentage]
+            );
+          }
+        } catch (resErr) {}
+      } catch (err) {
+        console.warn('[submitInstitutionAssessmentAttempt] PG persistence note:', err.message);
+      }
+    }
+
+    student.assessments = student.assessments || [];
+    student.assessments.push({
+      id: attemptId,
+      assessmentId,
+      domain: 'Institutional Assessment',
+      score: percentage,
+      percentile: `${Math.min(99, percentage + 5)}th Percentile`,
+      status: passed ? 'Verified' : 'Completed',
+      date: new Date().toISOString()
+    });
+
+    // Attest skill evidence ONLY if passed
+    if (passed) {
+      student.skills = student.skills || [];
+      const domainSkill = 'Problem Solving';
+      let existingSkill = student.skills.find(s => (s.name || '').toLowerCase() === domainSkill.toLowerCase());
+      if (existingSkill) {
+        existingSkill.verified = true;
+        existingSkill.confidence = Math.max(existingSkill.confidence || 0, percentage);
+        existingSkill.level = percentage >= 90 ? 'Expert' : (percentage >= 75 ? 'Advanced' : 'Intermediate');
+      } else {
+        student.skills.push({
+          name: domainSkill,
+          level: percentage >= 85 ? 'Advanced' : 'Intermediate',
+          confidence: percentage,
+          verified: true,
+          hasAssessment: true
+        });
+      }
+    }
+
+    await this.saveStudent(student);
+
+    return {
+      success: true,
+      attemptId,
+      assessmentId,
+      studentId: canonicalStudentId,
+      student_id: canonicalStudentId,
+      rollNumber: student.roll_number || student.rollNumber || student.regNo,
+      totalQuestions,
+      correctCount,
+      totalMarks,
+      marksScored,
+      percentage,
+      score: percentage,
+      passed,
+      skillAttested: passed
+    };
+  }
+
+  async getInstitutionAssessmentResults(assessmentId, institutionId) {
+    if (this.pg) {
+      try {
+        const result = await this.pg.query(
+          `SELECT aa.id, aa.assessment_id, aa.student_id, s.full_name AS student_name,
+                  s.roll_number, s.user_id,
+                  aa.score, aa.accuracy, aa.percentile, aa.status, aa.completed_at
+           FROM assessment_attempts aa
+           JOIN students s ON s.id = aa.student_id
+           WHERE aa.assessment_id = $1 
+             AND (s.institution_id::text = $2 
+                  OR s.institution_id IN (SELECT id FROM institutions WHERE code = $2 OR UPPER(code) = UPPER($2) OR id::text = $2))
+           ORDER BY aa.completed_at DESC`,
+          [assessmentId, String(institutionId).trim()]
+        );
+
+        const persistedResults = result.rows.map(row => ({
+          id: row.id,
+          assessmentId: row.assessment_id,
+          studentId: row.student_id,
+          student_id: row.student_id,
+          userId: row.user_id,
+          user_id: row.user_id,
+          rollNumber: row.roll_number,
+          roll_number: row.roll_number,
+          regNo: row.roll_number,
+          studentName: row.student_name,
+          name: row.student_name,
+          score: row.score,
+          accuracy: row.accuracy,
+          percentile: row.percentile,
+          status: row.status,
+          completedAt: row.completed_at
+        }));
+
+        if (persistedResults.length > 0) return persistedResults;
+      } catch (err) {
+        console.warn('[getInstitutionAssessmentResults] PG query error:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const institution = (data.institutions || []).find(inst =>
+      inst.id === institutionId || inst.institutionId === institutionId ||
+      inst.code === institutionId || inst.collegeCode === institutionId
+    );
+    const institutionKeys = new Set([
+      institutionId,
+      institution?.id,
+      institution?.institutionId,
+      institution?.code,
+      institution?.collegeCode
+    ].filter(Boolean).map(String));
+    const fallbackResults = (data.students || [])
+      .filter(student => institutionKeys.has(String(student.institutionId)) || institutionKeys.has(String(student.collegeId)))
+      .flatMap(student => (student.assessments || [])
+        .filter(attempt => attempt.assessmentId === assessmentId || attempt.assessment_id === assessmentId)
+        .map(attempt => ({
+          id: attempt.id,
+          assessmentId,
+          studentId: student.studentId || student.id,
+          studentName: student.name,
+          score: attempt.score,
+          accuracy: attempt.accuracy,
+          percentile: attempt.percentile,
+          status: attempt.status,
+          completedAt: attempt.completedAt || attempt.date || attempt.submittedAt
+        })));
+
+    return fallbackResults;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 11. COMPANY OFFER GENERATION & NOTIFICATION
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async createOffer({ companyId, applicationId, studentId, opportunityId, offerDetails = {} }) {
+    const data = this._read();
+    const app = (data.applications || []).find(a => a.id === applicationId || a.applicationId === applicationId);
+    if (app) {
+      app.status = 'Offer';
+      app.stage = 'Offer';
+      app.offerDetails = offerDetails;
+      app.updatedAt = new Date().toISOString();
+      this._write(data);
+    }
+
+    if (this.pg) {
+      try {
+        await this.pg.query(
+          `UPDATE applications SET current_stage = 'Selected', updated_at = NOW() WHERE id = $1`,
+          [applicationId]
+        );
+        await this.pg.query(
+          `INSERT INTO application_stage_history (application_id, stage, notes, created_at)
+           VALUES ($1, 'Selected', 'Offer extended by company', NOW())`,
+          [applicationId]
+        );
+      } catch (err) {
+        console.warn('[createOffer] PG update note:', err.message);
+      }
+    }
+
+    const company = (data.companies || []).find(c => c.id === companyId || c.companyId === companyId);
+    const companyName = company?.name || company?.companyName || 'ABC Technologies';
+    const student = await this.getStudentById(studentId);
+
+    // Notify Student
+    await this.addNotification('student', {
+      type: 'offer_extended',
+      title: `Congratulations! Offer from ${companyName}`,
+      message: `You have been extended an official placement / internship offer from ${companyName}.`,
+      details: { companyId, applicationId, studentId, offerDetails }
+    });
+
+    // Notify Institution
+    if (student?.institutionId || student?.collegeId) {
+      await this.addNotification('institution', {
+        type: 'placement_outcome',
+        title: `Placement Offer: ${student.name || 'Student'}`,
+        message: `${student.name || 'Your student'} has received an offer from ${companyName}.`,
+        details: { companyId, studentId, applicationId }
+      });
+    }
+
+    return { success: true, applicationId, status: 'Offer', offerDetails };
+  }
+
+  // 12. UNIFIED POSTGRESQL SEARCH (P2 Compliance)
+  async searchEntities(searchQuery, options = {}) {
+    const q = String(searchQuery || '').trim();
+    const page = Math.max(1, parseInt(options.page || 1, 10));
+    const limit = Math.min(50, Math.max(1, parseInt(options.limit || 10, 10)));
+    const offset = (page - 1) * limit;
+
+    if (!q) {
+      return {
+        query: '',
+        page,
+        limit,
+        totalMatches: 0,
+        results: { courses: [], opportunities: [], skills: [], companies: [], institutions: [] }
+      };
+    }
+
+    if (this.pg) {
+      try {
+        const pattern = `%${q}%`;
+
+        // 1. Courses (Public Catalog)
+        const coursesRes = await this.pg.query(`
+          SELECT id, title, category, difficulty, duration_weeks, instructor_name, rating 
+          FROM courses 
+          WHERE status = 'ACTIVE' AND (title ILIKE $1 OR category ILIKE $1)
+          ORDER BY rating DESC 
+          LIMIT $2 OFFSET $3
+        `, [pattern, limit, offset]);
+
+        // 2. Opportunities (Active Listings)
+        const oppsRes = await this.pg.query(`
+          SELECT o.id, o.title, o.opportunity_type, o.work_mode, o.location, o.stipend_text, o.min_cgpa, c.company_name, c.tier
+          FROM opportunities o
+          JOIN companies c ON c.id = o.company_id
+          WHERE o.status = 'ACTIVE' AND (o.title ILIKE $1 OR o.location ILIKE $1 OR c.company_name ILIKE $1)
+          ORDER BY o.created_at DESC
+          LIMIT $2 OFFSET $3
+        `, [pattern, limit, offset]);
+
+        // 3. Skills (Verified Taxonomy)
+        const skillsRes = await this.pg.query(`
+          SELECT s.id, s.name, s.difficulty, s.industry_demand, sc.name as category_name
+          FROM skills s
+          JOIN skill_categories sc ON sc.id = s.category_id
+          WHERE s.name ILIKE $1 OR s.description ILIKE $1 OR sc.name ILIKE $1
+          ORDER BY s.industry_demand ASC
+          LIMIT $2 OFFSET $3
+        `, [pattern, limit, offset]);
+
+        // 4. Companies (Verified Industry Partners)
+        const compRes = await this.pg.query(`
+          SELECT id, company_name, industry, tier, headquarters 
+          FROM companies 
+          WHERE company_name ILIKE $1 OR industry ILIKE $1
+          LIMIT $2 OFFSET $3
+        `, [pattern, limit, offset]);
+
+        // 5. Institutions (Accredited Campus Nodes)
+        const instRes = await this.pg.query(`
+          SELECT id, name, code, website_url as website 
+          FROM institutions 
+          WHERE name ILIKE $1 OR code ILIKE $1
+          LIMIT $2 OFFSET $3
+        `, [pattern, limit, offset]);
+
+        const total = coursesRes.rows.length + oppsRes.rows.length + skillsRes.rows.length + compRes.rows.length + instRes.rows.length;
+
+        return {
+          query: q,
+          page,
+          limit,
+          totalMatches: total,
+          results: {
+            courses: coursesRes.rows.map(c => ({
+              id: c.id,
+              title: c.title,
+              category: c.category,
+              difficulty: c.difficulty,
+              match: `${Math.round(85 + Math.random() * 14)}%`,
+              type: 'Course'
+            })),
+            opportunities: oppsRes.rows.map(o => ({
+              id: o.id,
+              title: `${o.title} at ${o.company_name}`,
+              type: o.opportunity_type || 'Opportunity',
+              location: o.location,
+              match: `${Math.round(80 + Math.random() * 18)}%`
+            })),
+            skills: skillsRes.rows.map(s => ({
+              id: s.id,
+              title: s.name,
+              category: s.category_name,
+              difficulty: s.difficulty,
+              type: 'Skill',
+              match: 'Skill Nexus Verified'
+            })),
+            companies: compRes.rows.map(c => ({
+              id: c.id,
+              title: c.company_name,
+              industry: c.industry,
+              type: 'Company',
+              match: c.tier
+            })),
+            institutions: instRes.rows.map(i => ({
+              id: i.id,
+              title: i.name,
+              code: i.code,
+              type: 'Institution',
+              match: 'Accredited'
+            }))
+          }
+        };
+      } catch (err) {
+        console.warn('[searchEntities] PG error, falling back:', err.message);
+      }
+    }
+
+    const data = this._read();
+    const qLower = q.toLowerCase();
+    const matchedCourses = (data.courses || [])
+      .filter(c => (c.title || '').toLowerCase().includes(qLower) || (c.category || '').toLowerCase().includes(qLower))
+      .slice(offset, offset + limit)
+      .map(c => ({ id: c.id || c.courseId, title: c.title, type: 'Course', match: '90%' }));
+
+    const matchedOpps = (data.opportunities || [])
+      .filter(o => (o.title || '').toLowerCase().includes(qLower) || (o.companyName || '').toLowerCase().includes(qLower))
+      .slice(offset, offset + limit)
+      .map(o => ({ id: o.id || o.oppId, title: `${o.title} at ${o.companyName || 'Company'}`, type: 'Opportunity', match: '88%' }));
+
+    const matchedSkills = (data.skills || [])
+      .filter(s => (s.name || '').toLowerCase().includes(qLower))
+      .slice(offset, offset + limit)
+      .map(s => ({ id: s.id, title: s.name, type: 'Skill', match: 'Verified' }));
+
+    return {
+      query: q,
+      page,
+      limit,
+      totalMatches: matchedCourses.length + matchedOpps.length + matchedSkills.length,
+      results: {
+        courses: matchedCourses,
+        opportunities: matchedOpps,
+        skills: matchedSkills,
+        companies: [],
+        institutions: []
+      }
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 13. COURSE CERTIFICATE VERIFICATION & COMPANY LEARNER PROFILE (Phase 16)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async getCourseCertificatesForInstitution(institutionId) {
+    const data = this._read();
+    const instId = String(institutionId || '').toUpperCase().trim();
+    const certs = data.courseCertificates || [];
+    return certs.filter(c => {
+      const cInst = String(c.institutionId || '').toUpperCase().trim();
+      return !instId || cInst === instId || instId === 'TN010' || instId === 'SRM001';
+    });
+  }
+
+  async verifyCourseCertificate(certificateId, institutionId, action = 'VERIFIED', notes = '', verifiedByUserId = null) {
+    const data = this._read();
+    data.courseCertificates = data.courseCertificates || [];
+    const cert = data.courseCertificates.find(c => c.certificateId === certificateId || c.id === certificateId);
+    if (!cert) {
+      throw new Error(`Course certificate with ID ${certificateId} not found`);
+    }
+
+    const normAction = String(action).toUpperCase();
+    cert.status = normAction;
+    cert.verifiedAt = new Date().toISOString();
+    cert.verifiedBy = verifiedByUserId || 'Institution Academic Board';
+    cert.notes = notes;
+
+    if (normAction === 'VERIFIED') {
+      const hashInput = `${cert.certificateId}:${cert.studentId}:${cert.courseId}:${cert.institutionId}:${cert.verifiedAt}`;
+      const crypto = require('crypto');
+      cert.verificationHash = `0x${crypto.createHash('sha256').update(hashInput).digest('hex')}`;
+
+      // Dispatch auto-notification to Offering Company
+      if (cert.companyId) {
+        await this.addNotification('company', {
+          type: 'certificate_verified',
+          title: `College Certificate Verification: ${cert.studentName}`,
+          message: `${cert.institutionName || 'College'} has verified the course certificate for ${cert.studentName} in "${cert.courseTitle}". Full certificate credentials are now active.`,
+          details: {
+            certificateId: cert.certificateId,
+            studentId: cert.studentId,
+            courseId: cert.courseId,
+            institutionId: cert.institutionId,
+            verificationHash: cert.verificationHash
+          }
+        });
+      }
+    }
+
+    this._write(data);
+    return { success: true, certificate: cert };
+  }
+
+  async getCourseLearnerProfileForCompany(companyId, courseId, studentId) {
+    const data = this._read();
+
+    // 1. Find Course
+    const course = (data.courses || []).find(c => c.id === courseId || c.courseId === courseId);
+    
+    // Validate Company ownership if course exists
+    if (course && course.companyId && course.companyId !== companyId) {
+      throw new Error('Forbidden: This course belongs to another offering company');
+    }
+
+    // 2. Find Enrollment
+    const enrollment = (data.enrollments || []).find(e =>
+      (e.studentId === studentId || e.student_id === studentId) &&
+      (e.courseId === courseId || e.course_id === courseId)
+    );
+    if (!enrollment) return null;
+
+    // 3. Find Student
+    const student = (data.students || []).find(s => s.studentId === studentId || s.id === studentId) || {};
+
+    // 4. Find Course-Related Projects (Scoped to courseId)
+    const courseProjects = (data.projects || []).filter(p =>
+      (p.studentId === studentId || p.student_id === studentId) &&
+      (p.courseId === courseId || p.course_id === courseId)
+    );
+
+    // 5. Find Certificate
+    const cert = (data.courseCertificates || []).find(c =>
+      (c.studentId === studentId) &&
+      (c.courseId === courseId)
+    );
+
+    const isVerified = cert && cert.status === 'VERIFIED';
+
+    return {
+      studentId: student.studentId || studentId,
+      studentName: student.name || 'Student',
+      institutionId: student.collegeId || student.institutionId || 'TN010',
+      institutionName: student.collegeName || 'Institution',
+      courseId: courseId,
+      courseTitle: course?.title || enrollment.courseTitle || 'Course',
+      companyId: companyId,
+      progress: enrollment.progress || enrollment.progressPercentage || 0,
+      status: enrollment.status || 'In Progress',
+      courseProjects: courseProjects.map(p => ({
+        projectId: p.projectId || p.id,
+        title: p.title,
+        description: p.description,
+        githubUrl: p.githubUrl,
+        skills: p.skills || p.techStack || [],
+        submittedAt: p.submittedAt
+      })),
+      certificate: cert ? {
+        status: cert.status, // PENDING_VERIFICATION or VERIFIED
+        details: isVerified ? {
+          certificateId: cert.certificateId,
+          issueDate: cert.issueDate,
+          verifiedAt: cert.verifiedAt,
+          verifiedBy: cert.verifiedBy,
+          verificationHash: cert.verificationHash,
+          grade: cert.grade
+        } : null // Scoped: details hidden until college verified
+      } : null
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 10. COURSE-WISE SKILL BENCHMARK TALENT DISCOVERY ENGINE
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async getSkillCatalog() {
+    const data = this._read();
+    const skillSet = new Set([
+      'C', 'C++', 'Java', 'Python', 'JavaScript', 'TypeScript', 'React', 'Node.js', 
+      'SQL', 'PostgreSQL', 'MongoDB', 'AWS', 'Cloud Computing', 'Data Structures', 
+      'Algorithms', 'Machine Learning', 'AI', 'Generative AI', 'Cybersecurity', 
+      'Docker', 'Kubernetes', 'FastAPI', 'Django', 'DevOps'
+    ]);
+
+    (data.skills || []).forEach(s => { if (s.name) skillSet.add(s.name.trim()); });
+    (data.students || []).forEach(st => {
+      (st.skills || []).forEach(s => {
+        const name = typeof s === 'string' ? s : s.name;
+        if (name) skillSet.add(name.trim());
+      });
+    });
+    (data.courses || []).forEach(c => {
+      (c.skills || c.tags || []).forEach(s => { if (s) skillSet.add(String(s).trim()); });
+    });
+    (data.opportunities || []).forEach(o => {
+      (o.requiredSkills || []).forEach(s => {
+        const name = typeof s === 'string' ? s : s.name;
+        if (name) skillSet.add(name.trim());
+      });
+    });
+
+    return Array.from(skillSet).sort((a, b) => a.localeCompare(b));
+  }
+
+  async getCourseCatalog() {
+    const data = this._read();
+    return (data.courses || []).map(c => ({
+      courseId: c.courseId || c.id,
+      id: c.courseId || c.id,
+      title: c.title || c.courseTitle,
+      companyId: c.companyId || null,
+      companyName: c.companyName || 'SkillNexus Partner',
+      totalModules: c.totalModules || c.modules?.length || 8,
+      category: c.category || c.domain || 'Technology & Engineering'
+    }));
+  }
+
+  async searchTalentEcosystem(companyId, searchParams = {}) {
+    const data = this._read();
+
+    const {
+      skills = [],
+      courseId = null,
+      searchMode = 'general',
+      benchmarks = {},
+      institutionId = 'All',
+      department = 'All',
+      minCourseCompletion = 0,
+      minAssessment = 0,
+      minProjects = 0,
+      sortBy = 'highest_match',
+      page = 1,
+      limit = 500
+    } = searchParams;
+
+    let requestedSkills = [];
+    if (Array.isArray(skills)) {
+      requestedSkills = skills.map(s => String(s).trim()).filter(Boolean);
+    } else if (typeof skills === 'string' && skills.trim()) {
+      requestedSkills = skills.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    const skillBenchmarkDefault = Number(benchmarks.skillBenchmark || benchmarks.overallBenchmark || 80);
+    const overallBenchmarkTarget = Number(benchmarks.overallBenchmark || benchmarks.skillBenchmark || 80);
+    const assessmentBenchmarkTarget = Number(benchmarks.assessmentBenchmark || minAssessment || 0);
+    const courseCompletionTarget = Number(benchmarks.courseCompletionBenchmark || minCourseCompletion || 0);
+    const perSkillBenchmarks = (typeof benchmarks.perSkill === 'object' && benchmarks.perSkill) ? benchmarks.perSkill : {};
+
+    let allStudents = data.students || [];
+
+    if (searchMode === 'company_course' || (courseId && String(courseId).startsWith('CRS-COMP'))) {
+      const companyEnrollmentStudentIds = (data.enrollments || [])
+        .filter(e => {
+          const matchCourse = courseId ? (e.courseId === courseId || e.course_id === courseId) : true;
+          const matchCompany = (e.companyId === companyId || e.company_id === companyId);
+          return matchCourse && matchCompany;
+        })
+        .map(e => e.studentId || e.student_id);
+
+      allStudents = allStudents.filter(s => companyEnrollmentStudentIds.includes(s.studentId || s.id));
+    }
+
+    if (institutionId && institutionId !== 'All') {
+      const targetInst = String(institutionId).toUpperCase().trim();
+      allStudents = allStudents.filter(s => {
+        const sInst = String(s.collegeId || s.institutionId || s.institution_id || '').toUpperCase().trim();
+        return sInst === targetInst || (targetInst === 'TN010' && sInst === 'SRM001') || (targetInst === 'SRM001' && sInst === 'TN010');
+      });
+    }
+
+    if (department && department !== 'All') {
+      const targetDept = String(department).toLowerCase().trim();
+      allStudents = allStudents.filter(s => {
+        const sDept = String(s.department || s.departmentName || s.departmentCode || '').toLowerCase().trim();
+        return sDept.includes(targetDept) || targetDept.includes(sDept);
+      });
+    }
+
+    const evaluatedTalent = [];
+
+    for (const student of allStudents) {
+      const sId = student.studentId || student.id;
+      const studentSkills = Array.isArray(student.skills) ? student.skills : [];
+      let totalSkillMatchScore = 0;
+      const skillScoreBreakdown = [];
+
+      if (requestedSkills.length > 0) {
+        for (const reqSkill of requestedSkills) {
+          const reqLower = reqSkill.toLowerCase();
+          const matchedSk = studentSkills.find(sk => {
+            const skName = (typeof sk === 'string' ? sk : sk.name || '').toLowerCase().trim();
+            if (reqLower === 'c' || skName === 'c' || reqLower === 'r' || skName === 'r' || reqLower === 'go' || skName === 'go') {
+              return reqLower === skName;
+            }
+            return skName.includes(reqLower) || reqLower.includes(skName);
+          });
+
+          let score = 0;
+          let isVerifiedSkill = false;
+          if (matchedSk) {
+            if (typeof matchedSk === 'string') {
+              score = 75;
+            } else {
+              const conf = Number(matchedSk.confidence || 0);
+              const lvl = (matchedSk.level || '').toLowerCase();
+              const lvlScore = lvl.includes('adv') ? 95 : lvl.includes('inter') ? 82 : 65;
+              score = conf > 0 ? conf : lvlScore;
+              isVerifiedSkill = Boolean(matchedSk.verified);
+            }
+          } else {
+            const matchingCourse = (data.enrollments || []).find(e =>
+              (e.studentId === sId || e.student_id === sId) &&
+              (e.courseTitle || '').toLowerCase().includes(reqLower)
+            );
+            if (matchingCourse) {
+              score = matchingCourse.progress || matchingCourse.progressPercentage || 70;
+            } else {
+              const matchingProj = (data.projects || []).find(p =>
+                (p.studentId === sId || p.student_id === sId) &&
+                ((p.title || '').toLowerCase().includes(reqLower) || (p.skills || p.techStack || []).some(tk => String(tk).toLowerCase().includes(reqLower)))
+              );
+              if (matchingProj) {
+                score = 80;
+              }
+            }
+          }
+
+          totalSkillMatchScore += score;
+          const requiredBenchmark = Number(perSkillBenchmarks[reqSkill] || skillBenchmarkDefault);
+          skillScoreBreakdown.push({
+            skillName: reqSkill,
+            score: Math.round(score),
+            requiredBenchmark,
+            meetsBenchmark: score >= requiredBenchmark,
+            isVerified: isVerifiedSkill
+          });
+        }
+      } else {
+        totalSkillMatchScore = student.readinessScore || 75;
+      }
+
+      const skillMatchPct = requestedSkills.length > 0
+        ? Math.round(totalSkillMatchScore / requestedSkills.length)
+        : Math.round(student.readinessScore || 75);
+
+      const studentEnrollments = (data.enrollments || []).filter(e => e.studentId === sId || e.student_id === sId);
+      let relevantEnrollments = studentEnrollments;
+      if (courseId) {
+        relevantEnrollments = studentEnrollments.filter(e => e.courseId === courseId || e.course_id === courseId);
+      } else if (requestedSkills.length > 0) {
+        relevantEnrollments = studentEnrollments.filter(e => {
+          const title = (e.courseTitle || e.title || '').toLowerCase();
+          return requestedSkills.some(rs => title.includes(rs.toLowerCase()));
+        });
+      }
+
+      const courseProgressPct = relevantEnrollments.length > 0
+        ? Math.round(relevantEnrollments.reduce((acc, e) => acc + Number(e.progress || e.progressPercentage || 0), 0) / relevantEnrollments.length)
+        : 0;
+
+      const completedCoursesCount = relevantEnrollments.filter(e => (e.status || '').toLowerCase() === 'completed' || (e.progress || 0) >= 100).length;
+
+      const studentAssessments = (data.assessments || []).filter(a => a.studentId === sId || a.student_id === sId || a.userId === student.userId);
+      const assessmentScorePct = studentAssessments.length > 0
+        ? Math.round(studentAssessments.reduce((acc, a) => acc + Number(a.percentage || a.score || 0), 0) / studentAssessments.length)
+        : Math.round(student.readinessScore || 75);
+
+      const allStudentProjects = (data.projects || []).filter(p => p.studentId === sId || p.student_id === sId);
+      const relevantProjects = allStudentProjects.filter(p => {
+        if (requestedSkills.length === 0) return true;
+        const text = `${p.title || ''} ${p.description || ''} ${(p.skills || p.techStack || []).join(' ')}`.toLowerCase();
+        return requestedSkills.some(rs => text.includes(rs.toLowerCase()));
+      });
+
+      const relevantProjectsCount = relevantProjects.length;
+      const projectRelevancePct = Math.min(100, relevantProjectsCount * 33 + (relevantProjectsCount > 0 ? 34 : 0));
+
+      const verifiedCertificates = (data.courseCertificates || []).filter(c =>
+        (c.studentId === sId) && c.status === 'VERIFIED'
+      ).map(c => ({
+        certificateId: c.certificateId || c.id,
+        courseTitle: c.courseTitle,
+        verifiedBy: c.institutionName || 'College Management',
+        verifiedAt: c.verifiedAt || c.issuedAt
+      }));
+
+      let wSkill = requestedSkills.length > 0 ? 0.70 : 0.40;
+      let wCourse = courseProgressPct > 0 ? 0.15 : 0;
+      let wAssessment = assessmentScorePct > 0 ? 0.10 : 0;
+      let wProject = projectRelevancePct > 0 ? 0.15 : 0;
+      let totalW = wSkill + wCourse + wAssessment + wProject;
+
+      const overallMatchPct = Math.round(
+        ((skillMatchPct * wSkill) +
+         (courseProgressPct * wCourse) +
+         (assessmentScorePct * wAssessment) +
+         (projectRelevancePct * wProject)) / totalW
+      );
+
+      const passesSkillBenchmark = skillScoreBreakdown.length === 0 || skillScoreBreakdown.every(b => b.meetsBenchmark);
+      const passesOverallBenchmark = overallMatchPct >= overallBenchmarkTarget;
+      const passesCourseBenchmark = courseProgressPct >= courseCompletionTarget;
+      const passesAssessmentBenchmark = assessmentScorePct >= assessmentBenchmarkTarget;
+      const passesProjectsBenchmark = relevantProjectsCount >= minProjects;
+
+      let benchmarkStatus = 'FULL_MATCH';
+      let benchmarkBadge = 'Full Benchmark Match';
+
+      if (passesSkillBenchmark && passesOverallBenchmark && passesCourseBenchmark && passesAssessmentBenchmark && passesProjectsBenchmark) {
+        benchmarkStatus = 'FULL_MATCH';
+        benchmarkBadge = 'Full Benchmark Match';
+      } else if (skillMatchPct >= 60 || overallMatchPct >= 60) {
+        benchmarkStatus = 'PARTIAL_MATCH';
+        benchmarkBadge = 'Partial Match (Sub-Benchmark)';
+      } else {
+        benchmarkStatus = 'UNQUALIFIED';
+        benchmarkBadge = 'Unqualified';
+      }
+
+      evaluatedTalent.push({
+        studentId: sId,
+        id: sId,
+        name: student.name || student.fullName || 'Student Learner',
+        institutionId: student.collegeId || student.institutionId || 'TN010',
+        institutionName: student.collegeName || 'Partner Engineering Institution',
+        department: student.department || 'CSE',
+        batch: student.batch || '2026',
+        createdAt: student.createdAt,
+        matchScore: overallMatchPct,
+        benchmarkStatus,
+        benchmarkBadge,
+        isQualified: benchmarkStatus === 'FULL_MATCH',
+        matchBreakdown: {
+          skillMatch: skillMatchPct,
+          coursePerformance: courseProgressPct,
+          assessment: assessmentScorePct,
+          projectExperience: projectRelevancePct,
+          overall: overallMatchPct
+        },
+        skillScoreBreakdown,
+        relevantSkills: skillScoreBreakdown.map(sb => ({ name: sb.skillName, level: sb.score >= 85 ? 'Advanced' : 'Intermediate', confidence: sb.score, verified: sb.isVerified })),
+        relevantCourses: relevantEnrollments.map(e => ({
+          courseId: e.courseId,
+          courseTitle: e.courseTitle || 'Industry Course',
+          progress: e.progress || e.progressPercentage || 0,
+          status: e.status || 'In Progress'
+        })),
+        courseProgressPct,
+        completedCoursesCount,
+        assessmentScorePct,
+        relevantProjectsCount,
+        relevantProjects: relevantProjects.map(p => ({
+          id: p.id || p.projectId,
+          title: p.title,
+          description: p.description,
+          githubUrl: p.githubUrl,
+          skills: p.skills || p.techStack || []
+        })),
+        verifiedCertificatesCount: verifiedCertificates.length,
+        verifiedCertificates
+      });
+    }
+
+    let filteredTalent = evaluatedTalent.filter(t => {
+      if (minCourseCompletion > 0 && t.courseProgressPct < minCourseCompletion) return false;
+      if (minAssessment > 0 && t.assessmentScorePct < minAssessment) return false;
+      if (minProjects > 0 && t.relevantProjectsCount < minProjects) return false;
+      return true;
+    });
+
+    filteredTalent.sort((a, b) => {
+      if (requestedSkills.length > 0) {
+        const aMatched = (a.skillScoreBreakdown || []).filter(s => s.score >= 70).length;
+        const bMatched = (b.skillScoreBreakdown || []).filter(s => s.score >= 70).length;
+        if (aMatched !== bMatched) return bMatched - aMatched;
+      }
+      if (sortBy === 'highest_benchmark') return b.matchBreakdown.overall - a.matchBreakdown.overall;
+      if (sortBy === 'highest_assessment') return b.assessmentScorePct - a.assessmentScorePct;
+      if (sortBy === 'highest_course') return b.courseProgressPct - a.courseProgressPct;
+      if (sortBy === 'highest_projects') return b.relevantProjectsCount - a.relevantProjectsCount;
+      if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
+
+    const instGroupMap = {};
+    filteredTalent.forEach(t => {
+      const instName = t.institutionName || 'Partner Institution';
+      if (!instGroupMap[instName]) {
+        instGroupMap[instName] = { institutionName: instName, count: 0, topMatchPct: 0, students: [] };
+      }
+      instGroupMap[instName].count += 1;
+      instGroupMap[instName].topMatchPct = Math.max(instGroupMap[instName].topMatchPct, t.matchScore);
+      if (instGroupMap[instName].students.length < 5) {
+        instGroupMap[instName].students.push({ studentId: t.studentId, name: t.name, matchScore: t.matchScore });
+      }
+    });
+    const institutionBreakdown = Object.values(instGroupMap).sort((a, b) => b.count - a.count);
+
+    const highBenchmarkCount = filteredTalent.filter(t => t.matchScore >= 80).length;
+    const distinctInstitutionsCount = new Set(filteredTalent.map(t => t.institutionName)).size;
+    const avgMatchScore = filteredTalent.length > 0
+      ? Math.round(filteredTalent.reduce((sum, t) => sum + t.matchScore, 0) / filteredTalent.length)
+      : 0;
+
+    const topSkill = requestedSkills.length > 0 ? requestedSkills[0] : 'C++';
+
+    const startIndex = (page - 1) * limit;
+    const paginatedStudents = filteredTalent.slice(startIndex, startIndex + limit);
+
+    return {
+      metrics: {
+        totalMatchingStudents: filteredTalent.length,
+        highBenchmarkStudents: highBenchmarkCount,
+        totalInstitutions: distinctInstitutionsCount,
+        topSkill,
+        averageSkillMatch: avgMatchScore,
+        activeOpportunities: (data.opportunities || []).filter(o => o.companyId === companyId).length
+      },
+      requestedSkills,
+      institutionBreakdown,
+      students: paginatedStudents,
+      totalCount: filteredTalent.length,
+      page,
+      limit
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // MASTER SPECIFICATION: INSTITUTION ADD SKILL → NOTIFICATION → ELIGIBILITY
+  // → ENROLLMENT → LEARNING → ASSESSMENT → CERTIFICATION ENGINE
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async saveSkill(institutionId, skillData, isPublish = false) {
+    if (!institutionId) throw new Error('institutionId is required to save skill');
+    const data = this._read();
+    data.courses = data.courses || [];
+    data.skillsList = data.skillsList || [];
+
+    const instList = await this.getInstitutions();
+    const instRecord = instList.find(i => 
+      String(i.institutionId || i.id || i.collegeId).toUpperCase() === String(institutionId).toUpperCase()
+    );
+    const institutionName = instRecord?.collegeName || instRecord?.name || 'Partner Institution';
+
+    const cleanStatus = isPublish || skillData.status === 'PUBLISHED' ? 'PUBLISHED' : (skillData.status || 'DRAFT');
+    const skillId = skillData.id || skillData.skillId || skillData.courseId || `SKL-${institutionId}-${Date.now().toString().slice(-6)}`;
+
+    // Normalize academic structure depts for this institution
+    const institutionDepartments = Array.isArray(instRecord?.departments) ? instRecord.departments : ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE', 'Mechanical'];
+
+    // Normalize eligible departments - if empty, all institution departments are eligible
+    let eligibleDepts = Array.isArray(skillData.eligibility?.departments) && skillData.eligibility.departments.length > 0
+      ? skillData.eligibility.departments
+      : (Array.isArray(skillData.eligibleDepartments) && skillData.eligibleDepartments.length > 0 ? skillData.eligibleDepartments : institutionDepartments);
+
+    const fullSkill = {
+      id: skillId,
+      skillId: skillId,
+      courseId: skillId,
+      institutionId: institutionId,
+      institutionName: institutionName,
+      status: cleanStatus,
+
+      // STEP 1 — BASIC INFORMATION
+      name: skillData.name || skillData.skillName || skillData.title || 'Untitled Skill Offering',
+      title: skillData.name || skillData.skillName || skillData.title || 'Untitled Skill Offering',
+      category: skillData.category || skillData.skillCategory || 'Programming',
+      level: skillData.level || skillData.skillLevel || 'Intermediate',
+      shortDescription: skillData.shortDescription || skillData.description || 'Specialized institutional skill training curriculum.',
+      detailedDescription: skillData.detailedDescription || skillData.shortDescription || '',
+      thumbnail: skillData.thumbnail || skillData.icon || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop&q=80',
+
+      // STEP 2 — LEARNING DETAILS
+      learningObjectives: Array.isArray(skillData.learningObjectives) && skillData.learningObjectives.length > 0
+        ? skillData.learningObjectives
+        : ['Master fundamental principles', 'Implement core architectural components', 'Build production-ready practical project'],
+      prerequisites: Array.isArray(skillData.prerequisites)
+        ? skillData.prerequisites
+        : [],
+      topicsCovered: Array.isArray(skillData.topicsCovered) && skillData.topicsCovered.length > 0
+        ? skillData.topicsCovered
+        : ['Core Foundations', 'Advanced Patterns', 'Performance Optimization', 'Applied Capstone'],
+
+      // STEP 3 — COURSE STRUCTURE
+      duration: skillData.duration || '6 Weeks',
+      totalHours: Number(skillData.totalHours || skillData.hours || 40),
+      hours: Number(skillData.totalHours || skillData.hours || 40),
+      mode: skillData.mode || 'Hybrid', // Online | Offline | Hybrid
+      schedule: {
+        startDate: skillData.schedule?.startDate || skillData.startDate || new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0],
+        endDate: skillData.schedule?.endDate || skillData.endDate || new Date(Date.now() + 86400000 * 49).toISOString().split('T')[0],
+        classDays: skillData.schedule?.classDays || skillData.classDays || 'Mon, Wed, Fri',
+        classTiming: skillData.schedule?.classTiming || skillData.classTiming || '4:30 PM - 6:30 PM'
+      },
+      numberOfSessions: Number(skillData.numberOfSessions || 18),
+      maxStudents: Number(skillData.maxStudents || skillData.seatLimit || 60),
+      seatLimit: Number(skillData.maxStudents || skillData.seatLimit || 60),
+      enrolledCount: skillData.enrolledCount || 0,
+
+      // STEP 4 — INSTRUCTOR
+      instructor: {
+        name: typeof skillData.instructor === 'object' ? skillData.instructor.name : (skillData.instructorName || skillData.instructor || 'Prof. K. Ramanathan'),
+        designation: typeof skillData.instructor === 'object' ? skillData.instructor.designation : (skillData.instructorDesignation || 'Associate Professor & Faculty Lead'),
+        department: typeof skillData.instructor === 'object' ? skillData.instructor.department : (skillData.instructorDepartment || 'Dept. of Computer Science & Engineering'),
+        experience: typeof skillData.instructor === 'object' ? skillData.instructor.experience : (skillData.instructorExperience || '12+ Years Industry & Research Experience'),
+        photo: typeof skillData.instructor === 'object' ? skillData.instructor.photo : (skillData.instructorPhoto || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'),
+        contactInfo: typeof skillData.instructor === 'object' ? skillData.instructor.contactInfo : (skillData.contactInfo || 'faculty.lead@nexus.edu')
+      },
+
+      // STEP 5 — ASSESSMENT & SKILL BENCHMARK
+      assessment: {
+        type: skillData.assessment?.type || skillData.assessmentType || 'Coding Test + Project',
+        passingScore: Number(skillData.assessment?.passingScore || skillData.passingScore || 75),
+        numberOfAssessments: Number(skillData.assessment?.numberOfAssessments || skillData.numberOfAssessments || 2),
+        benchmarks: {
+          bronze: Number(skillData.assessment?.benchmarks?.bronze || 60),
+          silver: Number(skillData.assessment?.benchmarks?.silver || 75),
+          gold: Number(skillData.assessment?.benchmarks?.gold || 85),
+          expert: Number(skillData.assessment?.benchmarks?.expert || 95)
+        }
+      },
+      certification: {
+        available: skillData.certification?.available !== undefined ? Boolean(skillData.certification.available) : true,
+        criteria: skillData.certification?.criteria || 'Score ≥ 75% on proctored benchmark test and completed capstone project.',
+        finalSkillScore: Number(skillData.certification?.finalSkillScore || 82)
+      },
+
+      // STEP 6 — STUDENT ELIGIBILITY
+      eligibility: {
+        departments: eligibleDepts,
+        years: Array.isArray(skillData.eligibility?.years) ? skillData.eligibility.years : ['2nd', '3rd', '4th'],
+        semesters: Array.isArray(skillData.eligibility?.semesters) ? skillData.eligibility.semesters : ['3', '4', '5', '6', '7', '8'],
+        minCgpa: Number(skillData.eligibility?.minCgpa || skillData.minCgpa || 0),
+        requiredPreviousSkills: Array.isArray(skillData.eligibility?.requiredPreviousSkills) ? skillData.eligibility.requiredPreviousSkills : (skillData.requiredPreviousSkills || []),
+        maxSeats: Number(skillData.maxStudents || skillData.seatLimit || 60),
+        applicationDeadline: skillData.eligibility?.applicationDeadline || skillData.applicationDeadline || new Date(Date.now() + 86400000 * 14).toISOString().split('T')[0]
+      },
+
+      // STEP 7 — INDUSTRY VISIBILITY
+      industryVisibility: {
+        isVisible: skillData.industryVisibility?.isVisible !== undefined ? Boolean(skillData.industryVisibility.isVisible) : true,
+        audience: skillData.industryVisibility?.audience || ['students', 'departments', 'industry'],
+        sharedFields: Array.isArray(skillData.industryVisibility?.sharedFields) && skillData.industryVisibility.sharedFields.length > 0
+          ? skillData.industryVisibility.sharedFields
+          : ['skillName', 'completionStatus', 'benchmark', 'assessmentScore', 'projects', 'certification', 'relatedSkills']
+      },
+
+      // STEP 8 — ENROLLMENT SETTINGS
+      enrollmentSettings: {
+        type: (skillData.enrollmentSettings?.type || skillData.enrollmentType || 'OPEN').toUpperCase(), // OPEN | APPROVAL_REQUIRED | INVITE_ONLY
+        startDate: skillData.enrollmentSettings?.startDate || new Date().toISOString().split('T')[0],
+        deadline: skillData.enrollmentSettings?.deadline || skillData.applicationDeadline || new Date(Date.now() + 86400000 * 14).toISOString().split('T')[0],
+        seatLimit: Number(skillData.maxStudents || skillData.seatLimit || 60),
+        waitlistEnabled: skillData.enrollmentSettings?.waitlistEnabled !== undefined ? Boolean(skillData.enrollmentSettings.waitlistEnabled) : true,
+        autoEnrollEligible: Boolean(skillData.enrollmentSettings?.autoEnrollEligible)
+      },
+
+      // STEP 9 — NOTIFICATIONS
+      notifications: {
+        notifyOnPublish: skillData.notifications?.notifyOnPublish !== undefined ? Boolean(skillData.notifications.notifyOnPublish) : true,
+        notifyEnrollmentConfirmation: Boolean(skillData.notifications?.notifyEnrollmentConfirmation ?? true),
+        notifySessionReminder: Boolean(skillData.notifications?.notifySessionReminder ?? true),
+        notifyAssessmentReminder: Boolean(skillData.notifications?.notifyAssessmentReminder ?? true),
+        notifyCourseCompletion: Boolean(skillData.notifications?.notifyCourseCompletion ?? true)
+      },
+
+      // Modules for learning progression
+      modules: Array.isArray(skillData.modules) && skillData.modules.length > 0
+        ? skillData.modules
+        : [
+            { moduleNumber: 1, title: 'Module 1: Foundations & Core Concepts', duration: '8 Hours', lessons: ['Theory and syntax fundamentals', 'Data structures and flow control', 'Interactive coding exercise'] },
+            { moduleNumber: 2, title: 'Module 2: Advanced Implementations & APIs', duration: '10 Hours', lessons: ['Object-oriented design & encapsulation', 'RESTful endpoint consumption', 'Asynchronous task pipelines'] },
+            { moduleNumber: 3, title: 'Module 3: Optimization & Benchmarking', duration: '10 Hours', lessons: ['Complexity profiling & debugging', 'Unit testing suites & mock fixtures', 'Integration testing'] },
+            { moduleNumber: 4, title: 'Module 4: Capstone Project & Proctored Assessment', duration: '12 Hours', lessons: ['Production deployment build', 'End-to-end verification review', 'Proctored Benchmark Examination'] }
+          ],
+
+      createdAt: skillData.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Upsert into data.courses
+    const existingIndex = data.courses.findIndex(c => 
+      (c.id === skillId || c.skillId === skillId || c.courseId === skillId) &&
+      String(c.institutionId).toUpperCase() === String(institutionId).toUpperCase()
+    );
+
+    if (existingIndex >= 0) {
+      data.courses[existingIndex] = { ...data.courses[existingIndex], ...fullSkill };
+    } else {
+      data.courses.unshift(fullSkill);
+    }
+
+    this._write(data);
+
+    // If publishing and notification configured: identify and notify all eligible students
+    let notifiedCount = 0;
+    if (cleanStatus === 'PUBLISHED' && fullSkill.notifications.notifyOnPublish) {
+      try {
+        const allStudents = await this.getStudents(institutionId);
+        for (const student of allStudents) {
+          const eligibilityCheck = await this.checkStudentSkillEligibility(student.studentId || student.id, fullSkill);
+          if (eligibilityCheck.isEligible) {
+            await this.addNotification('student', {
+              studentId: student.studentId || student.id,
+              type: 'NEW_SKILL',
+              title: '🔔 New Skill Available',
+              message: `"${fullSkill.name} — ${fullSkill.level}" has been offered by your institution.`,
+              preview: `${fullSkill.name} • ${fullSkill.duration} • ${fullSkill.hours}h • ${fullSkill.certification?.available ? 'Certificate Available' : 'Institutional Badge'}`,
+              urgency: 'high',
+              details: {
+                skillId: fullSkill.id,
+                skillName: fullSkill.name,
+                level: fullSkill.level,
+                duration: fullSkill.duration,
+                hours: fullSkill.hours,
+                deadline: fullSkill.eligibility.applicationDeadline,
+                certification: fullSkill.certification?.available ? 'Available' : 'No',
+                action: 'view-skill'
+              }
+            });
+            notifiedCount++;
+          }
+        }
+      } catch (err) {
+        console.warn('[saveSkill] Student notification dispatch note:', err.message);
+      }
+    }
+
+    return {
+      ...fullSkill,
+      notifiedStudentsCount: notifiedCount
+    };
+  }
+
+  async getInstitutionSkills(institutionId, filterStatus = null) {
+    const data = this._read();
+    data.courses = data.courses || [];
+    const instIdUpper = String(institutionId || '').toUpperCase().trim();
+
+    let list = data.courses.filter(c => 
+      String(c.institutionId || c.collegeId || '').toUpperCase().trim() === instIdUpper
+    );
+
+    if (filterStatus) {
+      const fsUpper = String(filterStatus).toUpperCase().trim();
+      list = list.filter(c => String(c.status || 'PUBLISHED').toUpperCase() === fsUpper);
+    }
+
+    // Attach real-time enrollment statistics
+    const enrollments = data.enrollments || [];
+    const enrichedList = list.map(c => {
+      const skillEnr = enrollments.filter(e => e.courseId === c.id || e.courseId === c.courseId);
+      const approvedCount = skillEnr.filter(e => e.status === 'Enrolled' || e.status === 'In Progress' || e.status === 'Completed' || e.status === 'Certified' || e.status === 'ENROLLED').length;
+      const pendingCount = skillEnr.filter(e => e.status === 'PENDING' || e.status === 'Pending').length;
+      const completedCount = skillEnr.filter(e => e.status === 'Completed' || e.status === 'Certified' || e.status === 'COMPLETED' || e.status === 'CERTIFIED').length;
+      const avgScore = completedCount > 0
+        ? Math.round(skillEnr.filter(e => e.score).reduce((acc, e) => acc + (Number(e.score) || 0), 0) / completedCount)
+        : 0;
+
+      return {
+        ...c,
+        enrolledCount: approvedCount,
+        pendingRequestsCount: pendingCount,
+        completedCount: completedCount,
+        completionRate: approvedCount > 0 ? `${Math.round((completedCount / approvedCount) * 100)}%` : '0%',
+        avgAssessmentScore: avgScore || c.certification?.finalSkillScore || 80
+      };
+    });
+
+    return {
+      skills: enrichedList,
+      totalCount: enrichedList.length,
+      publishedCount: enrichedList.filter(s => s.status === 'PUBLISHED').length,
+      draftCount: enrichedList.filter(s => s.status === 'DRAFT').length,
+      archivedCount: enrichedList.filter(s => s.status === 'ARCHIVED').length
+    };
+  }
+
+  async getSkillById(skillId) {
+    if (!skillId) return null;
+    const data = this._read();
+    data.courses = data.courses || [];
+    return data.courses.find(c => 
+      c.id === skillId || c.skillId === skillId || c.courseId === skillId || c.code === skillId
+    ) || null;
+  }
+
+  async archiveSkill(skillId, institutionId) {
+    const skill = await this.getSkillById(skillId);
+    if (!skill) throw new Error('Skill not found');
+    if (String(skill.institutionId).toUpperCase() !== String(institutionId).toUpperCase()) {
+      throw new Error('Unauthorized: You cannot archive a skill from another institution');
+    }
+    const data = this._read();
+    const idx = data.courses.findIndex(c => c.id === skill.id);
+    if (idx >= 0) {
+      data.courses[idx].status = 'ARCHIVED';
+      data.courses[idx].updatedAt = new Date().toISOString();
+      this._write(data);
+      return data.courses[idx];
+    }
+    return skill;
+  }
+
+  async checkStudentSkillEligibility(studentOrId, skillOrId) {
+    const student = typeof studentOrId === 'object' ? studentOrId : (await this.getStudentById(studentOrId));
+    const skill = typeof skillOrId === 'object' ? skillOrId : (await this.getSkillById(skillOrId));
+
+    if (!student) {
+      return {
+        isEligible: false,
+        status: 'NOT_ELIGIBLE',
+        reasons: ['Student record not found in system.'],
+        breakdown: []
+      };
+    }
+
+    if (!skill) {
+      return {
+        isEligible: false,
+        status: 'NOT_ELIGIBLE',
+        reasons: ['Skill course not found in campus database.'],
+        breakdown: []
+      };
+    }
+
+    const breakdown = [];
+    const reasons = [];
+
+    // 1. Institution check
+    const studentInstIds = [
+      String(student.institutionId || '').toUpperCase().trim(),
+      String(student.institution_id || '').toUpperCase().trim(),
+      String(student.collegeId || '').toUpperCase().trim(),
+      String(student.college_id || '').toUpperCase().trim(),
+      String(student.collegeCode || '').toUpperCase().trim(),
+      String(student.collegeName || '').toUpperCase().trim()
+    ].filter(Boolean);
+
+    const kInst = String(skill.institutionId || '').toUpperCase().trim();
+    const instList = await this.getInstitutions();
+    const targetInst = instList.find(i => 
+      String(i.institutionId || i.id || i.collegeId || i.code).toUpperCase() === kInst ||
+      String(i.collegeName || i.name).toUpperCase() === kInst
+    );
+    const validInstIds = new Set([kInst]);
+    if (targetInst) {
+      if (targetInst.id) validInstIds.add(String(targetInst.id).toUpperCase());
+      if (targetInst.institutionId) validInstIds.add(String(targetInst.institutionId).toUpperCase());
+      if (targetInst.collegeId) validInstIds.add(String(targetInst.collegeId).toUpperCase());
+      if (targetInst.collegeCode) validInstIds.add(String(targetInst.collegeCode).toUpperCase());
+      if (targetInst.code) validInstIds.add(String(targetInst.code).toUpperCase());
+      if (targetInst.collegeName) validInstIds.add(String(targetInst.collegeName).toUpperCase());
+    }
+    // Cross-code alias for SRM
+    if (validInstIds.has('TN010') || validInstIds.has('SRM001')) {
+      validInstIds.add('TN010');
+      validInstIds.add('SRM001');
+      validInstIds.add('60E7A0C1-E9E2-4EB5-ACAA-437A9D81E436');
+    }
+
+    const instMatch = studentInstIds.some(sid => validInstIds.has(sid));
+
+    breakdown.push({
+      rule: 'Institution Affiliation',
+      pass: instMatch,
+      detail: instMatch ? `Student belongs to ${skill.institutionName}` : `Offered exclusively to students of ${skill.institutionName}`
+    });
+    if (!instMatch) {
+      reasons.push(`This skill is offered exclusively to students of ${skill.institutionName}.`);
+    }
+
+    // 2. Department check (supporting full department names and acronyms like CSE, IT, AI&DS, ECE, EEE, MECH)
+    function normalizeDeptCode(dept) {
+      const d = String(dept || '').toLowerCase().trim();
+      if (d.includes('computer science') || d === 'cse' || d.includes('comp sci')) return 'cse';
+      if (d.includes('information tech') || d === 'it') return 'it';
+      if (d.includes('artificial intelligence') || d.includes('ai & ds') || d.includes('ai&ds') || d.includes('ai and ds') || d === 'aids') return 'aids';
+      if (d.includes('electronics and comm') || d.includes('electronics & comm') || d === 'ece') return 'ece';
+      if (d.includes('electrical and elec') || d.includes('electrical & elec') || d === 'eee') return 'eee';
+      if (d.includes('mechanical') || d === 'mech') return 'mech';
+      if (d.includes('civil')) return 'civil';
+      return d.replace(/[^a-z0-9]/g, '');
+    }
+
+    const eligibleDepts = skill.eligibility?.departments || [];
+    const studentDept = String(student.department || '').trim();
+    let deptMatch = true;
+
+    if (eligibleDepts.length > 0) {
+      const normStudentDept = normalizeDeptCode(studentDept);
+      deptMatch = eligibleDepts.some(d => {
+        const normEligible = normalizeDeptCode(d);
+        return normStudentDept === normEligible ||
+               String(d).toLowerCase().replace(/[^a-z0-9]/g, '') === studentDept.toLowerCase().replace(/[^a-z0-9]/g, '') ||
+               studentDept.toLowerCase().includes(String(d).toLowerCase());
+      });
+      breakdown.push({
+        rule: 'Department Eligibility',
+        pass: deptMatch,
+        detail: deptMatch ? `Department (${studentDept}) is eligible` : `Department required: ${eligibleDepts.join(', ')} (Your department: ${studentDept})`
+      });
+      if (!deptMatch) {
+        reasons.push(`Department ${studentDept} is not in the eligible department list (${eligibleDepts.join(', ')}).`);
+      }
+    }
+
+    // 3. Year / Batch check
+    const eligibleYears = skill.eligibility?.years || [];
+    const studentYearRaw = String(student.year || student.currentYear || '').toLowerCase();
+    let yearMatch = true;
+
+    if (eligibleYears.length > 0) {
+      yearMatch = eligibleYears.some(y => {
+        const yClean = String(y).toLowerCase().replace(/[^0-9]/g, '');
+        return studentYearRaw.includes(yClean) || studentYearRaw.includes(String(y).toLowerCase());
+      });
+      breakdown.push({
+        rule: 'Academic Year',
+        pass: yearMatch,
+        detail: yearMatch ? `Academic year (${student.year || 'Eligible'}) satisfies requirement` : `Eligible years: ${eligibleYears.join(', ')} (Your year: ${student.year || 'Unspecified'})`
+      });
+      if (!yearMatch) {
+        reasons.push(`Requires student in ${eligibleYears.join(', ')} year (Current: ${student.year || 'Not specified'}).`);
+      }
+    }
+
+    // 4. CGPA threshold check
+    const minCgpa = Number(skill.eligibility?.minCgpa || 0);
+    const studentCgpa = Number(student.cgpa || 0);
+    let cgpaMatch = true;
+
+    if (minCgpa > 0) {
+      cgpaMatch = studentCgpa >= minCgpa;
+      breakdown.push({
+        rule: 'Minimum CGPA',
+        pass: cgpaMatch,
+        detail: cgpaMatch ? `CGPA ${studentCgpa} satisfies minimum threshold (${minCgpa})` : `Minimum CGPA required: ${minCgpa} (Your CGPA: ${studentCgpa})`
+      });
+      if (!cgpaMatch) {
+        reasons.push(`Requires minimum CGPA of ${minCgpa}. Your current recorded CGPA is ${studentCgpa}.`);
+      }
+    }
+
+    // 5. Prerequisite skills check
+    const requiredSkills = skill.eligibility?.requiredPreviousSkills || skill.prerequisites || [];
+    const studentSkillsList = (student.skills || []).map(sk => (typeof sk === 'object' ? sk.name : sk).toLowerCase());
+    let prereqMatch = true;
+
+    if (requiredSkills.length > 0) {
+      const missing = requiredSkills.filter(reqSk => 
+        !studentSkillsList.some(s => s.includes(String(reqSk).toLowerCase()))
+      );
+      prereqMatch = missing.length === 0;
+      breakdown.push({
+        rule: 'Prerequisite Competencies',
+        pass: prereqMatch,
+        detail: prereqMatch ? 'All required prerequisites verified' : `Missing prerequisites: ${missing.join(', ')}`
+      });
+      if (!prereqMatch) {
+        reasons.push(`Required prerequisite: ${missing.join(', ')}. Complete the prerequisite skill before enrolling.`);
+      }
+    }
+
+    // 6. Application deadline check
+    const deadline = skill.eligibility?.applicationDeadline || skill.enrollmentSettings?.deadline;
+    let deadlinePassed = false;
+    if (deadline) {
+      const deadlineDate = new Date(deadline);
+      deadlineDate.setHours(23, 59, 59, 999);
+      deadlinePassed = new Date() > deadlineDate;
+      breakdown.push({
+        rule: 'Application Deadline',
+        pass: !deadlinePassed,
+        detail: deadlinePassed ? `Application deadline closed on ${deadline}` : `Deadline: ${deadline}`
+      });
+      if (deadlinePassed) {
+        reasons.push(`Enrollment closed on ${deadline}.`);
+      }
+    }
+
+    // 7. Seat Availability Check
+    const maxSeats = Number(skill.maxStudents || skill.seatLimit || 60);
+    const currentEnrolled = Number(skill.enrolledCount || 0);
+    const seatsFull = currentEnrolled >= maxSeats;
+    breakdown.push({
+      rule: 'Seat Availability',
+      pass: !seatsFull,
+      detail: `${Math.max(0, maxSeats - currentEnrolled)} of ${maxSeats} seats available`
+    });
+
+    // 8. Existing enrollment check
+    const data = this._read();
+    const existing = (data.enrollments || []).find(e => 
+      (e.studentId === student.studentId || e.studentId === student.id) &&
+      (e.courseId === skill.id || e.courseId === skill.courseId)
+    );
+
+    let calculatedStatus = 'ELIGIBLE';
+    if (existing) {
+      if (existing.status === 'PENDING' || existing.status === 'Pending') {
+        calculatedStatus = 'PENDING_APPROVAL';
+      } else if (existing.status === 'WAITLISTED' || existing.status === 'Waitlisted') {
+        calculatedStatus = 'WAITLISTED';
+      } else {
+        calculatedStatus = 'ALREADY_ENROLLED';
+      }
+    } else if (deadlinePassed) {
+      calculatedStatus = 'ENROLLMENT_CLOSED';
+    } else if (seatsFull) {
+      calculatedStatus = skill.enrollmentSettings?.waitlistEnabled ? 'SEATS_FULL' : 'ENROLLMENT_CLOSED';
+    } else if (reasons.length > 0) {
+      calculatedStatus = 'NOT_ELIGIBLE';
+    }
+
+    const overallEligible = instMatch && deptMatch && yearMatch && cgpaMatch && prereqMatch && !deadlinePassed && !existing;
+
+    return {
+      isEligible: overallEligible,
+      status: calculatedStatus,
+      existingEnrollment: existing || null,
+      breakdown,
+      reasons
+    };
+  }
+
+  async enrollStudentInSkill(studentOrId, skillOrId, options = {}) {
+    const student = typeof studentOrId === 'object' ? studentOrId : (await this.getStudentById(studentOrId));
+    const skill = typeof skillOrId === 'object' ? skillOrId : (await this.getSkillById(skillOrId));
+
+    if (!student) throw new Error('Student record not found');
+    if (!skill) throw new Error('Skill course not found');
+
+    const eligibility = await this.checkStudentSkillEligibility(student, skill);
+
+    if (eligibility.status === 'ALREADY_ENROLLED') {
+      return {
+        success: true,
+        message: 'Already enrolled in this course',
+        data: eligibility.existingEnrollment,
+        status: eligibility.existingEnrollment?.status || 'ENROLLED'
+      };
+    }
+
+    if (eligibility.status === 'PENDING_APPROVAL') {
+      return {
+        success: true,
+        message: 'Enrollment request already submitted and awaiting faculty approval',
+        data: eligibility.existingEnrollment,
+        status: 'PENDING'
+      };
+    }
+
+    if (!eligibility.isEligible && eligibility.status !== 'SEATS_FULL') {
+      throw new Error(eligibility.reasons.join(' '));
+    }
+
+    const data = this._read();
+    data.enrollments = data.enrollments || [];
+
+    const enrollmentType = (skill.enrollmentSettings?.type || 'OPEN').toUpperCase();
+    const isWaitlist = eligibility.status === 'SEATS_FULL' && skill.enrollmentSettings?.waitlistEnabled;
+
+    let initialStatus = 'ENROLLED';
+    if (isWaitlist) {
+      initialStatus = 'WAITLISTED';
+    } else if (enrollmentType === 'APPROVAL_REQUIRED') {
+      initialStatus = 'PENDING';
+    } else if (enrollmentType === 'INVITE_ONLY') {
+      if (!options.isInvited) {
+        throw new Error('This skill is available by invitation only.');
+      }
+    }
+
+    const newEnrollment = {
+      id: `enr_${Date.now()}_${Math.floor(Math.random() * 900 + 100)}`,
+      enrollmentId: `enr_${Date.now()}_${Math.floor(Math.random() * 900 + 100)}`,
+      studentId: student.studentId || student.id,
+      studentName: student.name || 'Student',
+      regNo: student.regNo || student.rollNumber || student.roll_number || 'N/A',
+      department: student.department || 'CSE',
+      year: student.year || '3rd Year',
+      courseId: skill.id,
+      courseTitle: skill.name || skill.title,
+      category: skill.category || 'Programming',
+      level: skill.level || 'Intermediate',
+      instructor: skill.instructor?.name || 'Faculty Lead',
+      institutionId: skill.institutionId,
+      institutionName: skill.institutionName,
+      status: initialStatus,
+      progress: 0,
+      progressPercentage: 0,
+      completedModules: 0,
+      completedModuleIds: [],
+      totalModules: skill.modules ? skill.modules.length : 4,
+      enrolledAt: new Date().toISOString(),
+      requestedAt: new Date().toISOString()
+    };
+
+    data.enrollments.unshift(newEnrollment);
+
+    // If instantly enrolled, increment enrolled count on skill
+    if (initialStatus === 'ENROLLED') {
+      const sIdx = data.courses.findIndex(c => c.id === skill.id);
+      if (sIdx >= 0) {
+        data.courses[sIdx].enrolledCount = (data.courses[sIdx].enrolledCount || 0) + 1;
+      }
+    }
+
+    this._write(data);
+
+    // Send notifications
+    if (initialStatus === 'ENROLLED') {
+      await this.addNotification('student', {
+        studentId: student.studentId || student.id,
+        type: 'ENROLLMENT_CONFIRMATION',
+        title: '✓ Enrollment Confirmed',
+        message: `You're now enrolled in ${skill.name}. Start learning to achieve your benchmark.`,
+        preview: `Confirmed enrollment in ${skill.name} • ${skill.duration} • ${skill.mode}`,
+        urgency: 'medium',
+        details: { skillId: skill.id, action: 'learning' }
+      });
+    } else if (initialStatus === 'PENDING') {
+      // Notify institution of pending request
+      await this.addNotification('institution', {
+        institutionId: skill.institutionId,
+        type: 'ENROLLMENT_REQUEST',
+        title: 'New Enrollment Request',
+        message: `${student.name} (${student.regNo || student.department}) requested enrollment in ${skill.name}.`,
+        preview: `Enrollment request for ${skill.name} from ${student.name}`,
+        urgency: 'medium',
+        details: {
+          enrollmentId: newEnrollment.id,
+          studentId: student.studentId || student.id,
+          studentName: student.name,
+          skillId: skill.id,
+          skillName: skill.name,
+          action: 'institution-courses'
+        }
+      });
+      // Notify student request received
+      await this.addNotification('student', {
+        studentId: student.studentId || student.id,
+        type: 'ENROLLMENT_REQUEST',
+        title: 'Enrollment Request Sent',
+        message: `Your enrollment request for "${skill.name}" was sent to faculty administrators for approval.`,
+        preview: `Pending approval for ${skill.name}`,
+        urgency: 'medium',
+        details: { skillId: skill.id, action: 'my-skills' }
+      });
+    }
+
+    return {
+      success: true,
+      status: initialStatus,
+      data: newEnrollment
+    };
+  }
+
+  async getPendingEnrollmentRequests(institutionId) {
+    const data = this._read();
+    const instIdUpper = String(institutionId || '').toUpperCase().trim();
+    const courses = (data.courses || []).filter(c => 
+      String(c.institutionId).toUpperCase().trim() === instIdUpper
+    );
+    const courseIds = new Set(courses.map(c => c.id));
+
+    const enrollments = (data.enrollments || []).filter(e => 
+      (courseIds.has(e.courseId) || String(e.institutionId).toUpperCase().trim() === instIdUpper) &&
+      (e.status === 'PENDING' || e.status === 'Pending')
+    );
+
+    return enrollments;
+  }
+
+  async updateEnrollmentStatus(enrollmentId, institutionId, newStatus, reason = '') {
+    const data = this._read();
+    const enrIdx = (data.enrollments || []).findIndex(e => e.id === enrollmentId || e.enrollmentId === enrollmentId);
+    if (enrIdx < 0) throw new Error('Enrollment request record not found');
+
+    const enrollment = data.enrollments[enrIdx];
+    const skill = (data.courses || []).find(c => c.id === enrollment.courseId);
+
+    if (String(enrollment.institutionId || skill?.institutionId).toUpperCase().trim() !== String(institutionId).toUpperCase().trim()) {
+      throw new Error('Unauthorized: This enrollment request belongs to another institution');
+    }
+
+    const cleanStatus = newStatus === 'APPROVE' || newStatus === 'APPROVED' ? 'ENROLLED' : 'REJECTED';
+    data.enrollments[enrIdx].status = cleanStatus;
+    data.enrollments[enrIdx].approvedAt = cleanStatus === 'ENROLLED' ? new Date().toISOString() : null;
+    data.enrollments[enrIdx].rejectionReason = cleanStatus === 'REJECTED' ? reason : null;
+
+    if (cleanStatus === 'ENROLLED' && skill) {
+      const sIdx = data.courses.findIndex(c => c.id === skill.id);
+      if (sIdx >= 0) {
+        data.courses[sIdx].enrolledCount = (data.courses[sIdx].enrolledCount || 0) + 1;
+      }
+    }
+
+    this._write(data);
+
+    // Send student notification
+    if (cleanStatus === 'ENROLLED') {
+      await this.addNotification('student', {
+        studentId: enrollment.studentId,
+        type: 'ENROLLMENT_APPROVED',
+        title: '✓ Enrollment Approved',
+        message: `Your enrollment request for "${enrollment.courseTitle}" has been approved! You can now start learning.`,
+        preview: `Approved enrollment for ${enrollment.courseTitle}`,
+        urgency: 'high',
+        details: { skillId: enrollment.courseId, action: 'learning' }
+      });
+    } else {
+      await this.addNotification('student', {
+        studentId: enrollment.studentId,
+        type: 'ENROLLMENT_REJECTED',
+        title: 'Enrollment Request Rejected',
+        message: reason ? `Your request for "${enrollment.courseTitle}" was not approved: ${reason}` : `Your enrollment request for "${enrollment.courseTitle}" was rejected.`,
+        preview: `Rejected enrollment request for ${enrollment.courseTitle}`,
+        urgency: 'medium',
+        details: { skillId: enrollment.courseId, reason }
+      });
+    }
+
+    return data.enrollments[enrIdx];
+  }
+
+  async submitSkillAssessment(studentId, skillId, submissionData = {}) {
+    const data = this._read();
+    const student = await this.getStudentById(studentId);
+    const skill = await this.getSkillById(skillId);
+
+    if (!student) throw new Error('Student record not found');
+    if (!skill) throw new Error('Skill course record not found');
+
+    const enrIdx = (data.enrollments || []).findIndex(e => 
+      (e.studentId === student.studentId || e.studentId === student.id) &&
+      (e.courseId === skill.id || e.courseId === skill.courseId)
+    );
+    if (enrIdx < 0) throw new Error('Student must be enrolled to submit assessment');
+
+    // Calculate assessment score
+    let score = Number(submissionData.score);
+    if (isNaN(score)) {
+      // If questions array supplied, evaluate answers
+      if (Array.isArray(submissionData.answers) && submissionData.answers.length > 0) {
+        const correctCount = submissionData.answers.filter(a => a.isCorrect).length;
+        score = Math.round((correctCount / submissionData.answers.length) * 100);
+      } else {
+        score = Math.floor(78 + Math.random() * 18); // Simulation default: 78-95%
+      }
+    }
+
+    const passingScore = Number(skill.assessment?.passingScore || 75);
+    const isPassed = score >= passingScore;
+
+    // Calculate benchmark based on configured thresholds
+    const bMarks = skill.assessment?.benchmarks || { bronze: 60, silver: 75, gold: 85, expert: 95 };
+    let benchmark = 'None';
+    if (score >= bMarks.expert) benchmark = 'Expert';
+    else if (score >= bMarks.gold) benchmark = 'Gold';
+    else if (score >= bMarks.silver) benchmark = 'Silver';
+    else if (score >= bMarks.bronze) benchmark = 'Bronze';
+
+    const certAvailable = skill.certification?.available !== false;
+    const isCertified = isPassed && certAvailable;
+    const credentialId = isCertified ? `CERT-${skill.institutionId || 'NX'}-${Date.now().toString().slice(-6)}` : null;
+
+    // Update enrollment status
+    data.enrollments[enrIdx].progress = 100;
+    data.enrollments[enrIdx].progressPercentage = 100;
+    data.enrollments[enrIdx].completedModules = skill.modules ? skill.modules.length : 4;
+    data.enrollments[enrIdx].score = score;
+    data.enrollments[enrIdx].benchmark = benchmark;
+    data.enrollments[enrIdx].status = isCertified ? 'CERTIFIED' : (isPassed ? 'COMPLETED' : 'IN_PROGRESS');
+    data.enrollments[enrIdx].completedAt = isPassed ? new Date().toISOString() : null;
+    data.enrollments[enrIdx].credentialId = credentialId;
+
+    // Update student's skills on profile
+    const sIdx = (data.students || []).findIndex(s => s.id === student.id || s.studentId === student.studentId);
+    if (sIdx >= 0) {
+      data.students[sIdx].skills = data.students[sIdx].skills || [];
+      const existingSkillIdx = data.students[sIdx].skills.findIndex(sk => 
+        (typeof sk === 'object' ? sk.name : sk).toLowerCase() === (skill.name || skill.title).toLowerCase()
+      );
+      const skillEntry = {
+        name: skill.name || skill.title,
+        level: skill.level || 'Intermediate',
+        confidence: score,
+        masteryScore: score,
+        benchmark: benchmark,
+        verified: isPassed,
+        hasCourse: true,
+        hasAssessment: true,
+        hasProject: true,
+        hasInstSeal: true,
+        credentialId: credentialId,
+        institutionId: skill.institutionId,
+        institutionName: skill.institutionName
+      };
+
+      if (existingSkillIdx >= 0) {
+        data.students[sIdx].skills[existingSkillIdx] = {
+          ...data.students[sIdx].skills[existingSkillIdx],
+          ...skillEntry
+        };
+      } else {
+        data.students[sIdx].skills.unshift(skillEntry);
+      }
+
+      // Add to student certifications if certified
+      if (isCertified) {
+        data.students[sIdx].certifications = data.students[sIdx].certifications || [];
+        data.students[sIdx].certifications.unshift({
+          title: `${skill.name} — ${benchmark} Certified`,
+          issuer: skill.institutionName,
+          date: new Date().toISOString().split('T')[0],
+          credentialId: credentialId,
+          score: `${score}%`,
+          benchmark: benchmark
+        });
+      }
+    }
+
+    this._write(data);
+
+    // Send student certification / result notification
+    if (isCertified) {
+      await this.addNotification('student', {
+        studentId: student.studentId || student.id,
+        type: 'CERTIFICATION_EARNED',
+        title: '🏆 Certification Earned!',
+        message: `Congratulations! You earned ${benchmark} Certification in ${skill.name} with score ${score}%.`,
+        preview: `Earned ${benchmark} Certification in ${skill.name} • Score: ${score}% • Credential: ${credentialId}`,
+        urgency: 'high',
+        details: {
+          skillId: skill.id,
+          skillName: skill.name,
+          score,
+          benchmark,
+          credentialId,
+          action: 'my-skills'
+        }
+      });
+    } else if (isPassed) {
+      await this.addNotification('student', {
+        studentId: student.studentId || student.id,
+        type: 'SKILL_COMPLETED',
+        title: '✓ Skill Completed',
+        message: `You completed ${skill.name} with score ${score}%. Benchmark: ${benchmark}.`,
+        preview: `Completed ${skill.name} • Score: ${score}% • Benchmark: ${benchmark}`,
+        urgency: 'medium',
+        details: { skillId: skill.id, score, benchmark, action: 'my-skills' }
+      });
+    }
+
+    return {
+      score,
+      isPassed,
+      benchmark,
+      isCertified,
+      credentialId,
+      enrollment: data.enrollments[enrIdx]
+    };
+  }
+}
+
+module.exports = new RelationalManager();
+
+

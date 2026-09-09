@@ -1,0 +1,1871 @@
+/* ==========================================================================
+   SKILLNEXUS AI - UNIFIED PREMIUM ENTERPRISE COLOR & THEME SYSTEM
+   Supports BOTH Light Mode and Dark Mode across all portals and pages.
+   High-Contrast Deep Navy/Black Text for Light Mode, Luminous Text for Dark Mode.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. COLOR SYSTEM & DESIGN TOKENS
+   -------------------------------------------------------------------------- */
+
+/* DEFAULT: LIGHT MODE — PREMIUM AURORA GLASSMORPHISM DESIGN SYSTEM */
+:root,
+[data-theme="light"],
+html.light {
+  /* Body & Container Backgrounds — Soft layered aurora base */
+  --bg-space: #F8FAFF;
+  --bg-primary: #EEF0FF;
+  --bg-sidebar: rgba(255, 255, 255, 0.92);
+  --bg-header: rgba(255, 255, 255, 0.82);
+  --bg-card: rgba(255, 255, 255, 0.78);
+  --bg-card-hover: rgba(245, 243, 255, 0.88);
+  --bg-elevated: rgba(255, 255, 255, 0.85);
+  --bg-input: rgba(255, 255, 255, 0.68);
+  --bg-glass: rgba(255, 255, 255, 0.70);
+
+  /* Semantic Alias Tokens */
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-elevated: rgba(255, 255, 255, 0.85);
+  --surface-hover: rgba(245, 243, 255, 0.88);
+
+  /* Borders & Dividers — Violet-tinted glass borders */
+  --border-subtle: rgba(108, 92, 231, 0.12);
+  --border-glow: #D9DCF0;
+  --border-active: #6C5CE7;
+  --border-strong: #B8BEDD;
+
+  /* Typography — High-contrast navy-violet for readability */
+  --text-heading: #20245A;
+  --text-primary: #25275F;
+  --text-secondary: #454A73;
+  --text-muted: #5F668C;
+  --text-dim: #5F668C;
+  --text-disabled: #9AA0BD;
+
+  /* Brand & Semantic Accents — Electric Violet + Aurora */
+  --brand-primary: #6D5CE7;
+  --brand-secondary: #8B7CF6;
+  --brand-accent: #22D3EE;
+  --cyber-blue: #6D5CE7;
+  --cyber-blue-hover: #5B4BD6;
+  --cyber-cyan: #22D3EE;
+  --cyber-cyan-bright: #0EA5E9;
+  --cyber-purple: #D946EF;
+  --cyber-purple-light: #C026D3;
+  --cyber-emerald: #10B981;
+  --cyber-emerald-bright: #047857;
+  --cyber-amber: #F59E0B;
+  --cyber-amber-bright: #B45309;
+  --cyber-rose: #F43F5E;
+  --cyber-rose-bright: #BE123C;
+
+  /* Dim Accent Backgrounds (Glassmorphic Icon Containers) */
+  --cyber-cyan-dim: rgba(34, 211, 238, 0.10);
+  --cyber-purple-dim: rgba(217, 70, 239, 0.10);
+  --cyber-emerald-dim: rgba(16, 185, 129, 0.10);
+  --cyber-amber-dim: rgba(245, 158, 11, 0.10);
+  --cyber-rose-dim: rgba(244, 63, 94, 0.10);
+  --cyber-blue-dim: rgba(108, 92, 231, 0.10);
+
+  /* Shadows & Elevated Glows — Soft violet layered */
+  --shadow-subtle: 0 2px 12px rgba(108, 92, 231, 0.06), 0 1px 4px rgba(108, 92, 231, 0.04);
+  --shadow-card: 0 8px 32px rgba(108, 92, 231, 0.08), 0 2px 8px rgba(108, 92, 231, 0.04);
+  --shadow-dropdown: 0 12px 40px rgba(108, 92, 231, 0.14), 0 4px 16px rgba(108, 92, 231, 0.06);
+  --cyber-cyan-glow: 0 0 16px rgba(34, 211, 238, 0.22);
+  --cyber-purple-glow: 0 0 16px rgba(217, 70, 239, 0.22);
+  --cyber-blue-glow: 0 0 16px rgba(108, 92, 231, 0.22);
+  --glow: 0 0 16px rgba(108, 92, 231, 0.22);
+
+  /* Hero & AI Gradients — Electric Violet → Aurora Purple → Aqua Cyan */
+  --grad-ai-primary: linear-gradient(135deg, #6C5CE7 0%, #8B7CF6 50%, #22D3EE 100%);
+  --grad-hero-banner: linear-gradient(135deg, rgba(247, 248, 255, 0.97) 0%, rgba(238, 240, 255, 0.95) 50%, rgba(230, 252, 255, 0.95) 100%);
+  --grad-cyan-blue: linear-gradient(135deg, #22D3EE 0%, #60A5FA 100%);
+  --grad-purple-indigo: linear-gradient(135deg, #8B7CF6 0%, #6C5CE7 100%);
+  --grad-emerald-teal: linear-gradient(135deg, #10B981 0%, #22D3EE 100%);
+
+  /* Navigation Active Item */
+  --nav-active-bg: rgba(108, 92, 231, 0.08);
+  --nav-active-text: #6C5CE7;
+  --nav-active-border: #6C5CE7;
+  --nav-active-glow: 0 0 14px rgba(108, 92, 231, 0.15);
+}
+
+/* DARK MODE (Futuristic Midnight AI Interface) */
+[data-theme="dark"],
+html.dark {
+  /* Body & Container Backgrounds */
+  --bg-space: #070A13;
+  --bg-primary: #0B1020;
+  --bg-sidebar: #0B1020;
+  --bg-header: #0B1020;
+  --bg-card: #10172A;
+  --bg-card-hover: #151D32;
+  --bg-elevated: #151D32;
+  --bg-input: #151D32;
+  --bg-glass: rgba(16, 23, 42, 0.88);
+
+  /* Semantic Alias Tokens */
+  --surface: #10172A;
+  --surface-elevated: #151D32;
+  --surface-hover: #1A243D;
+
+  /* Borders & Dividers */
+  --border-subtle: rgba(148, 163, 184, 0.14);
+  --border-glow: #25324A;
+  --border-active: #6366F1;
+  --border-strong: #334155;
+
+  /* Typography Contrast in Dark Mode */
+  --text-heading: #F8FAFC;
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-dim: #94A3B8;
+  --text-disabled: #64748B;
+
+  /* Brand & Semantic Accents — Electric Indigo, AI Violet, Cyan */
+  --brand-primary: #6366F1;
+  --brand-secondary: #8B5CF6;
+  --brand-accent: #06B6D4;
+  --cyber-blue: #6366F1;
+  --cyber-blue-hover: #818CF8;
+  --cyber-cyan: #06B6D4;
+  --cyber-cyan-bright: #22D3EE;
+  --cyber-purple: #8B5CF6;
+  --cyber-purple-light: #A78BFA;
+  --cyber-emerald: #10B981;
+  --cyber-emerald-bright: #34D399;
+  --cyber-amber: #F59E0B;
+  --cyber-amber-bright: #FBBF24;
+  --cyber-rose: #EF4444;
+  --cyber-rose-bright: #F87171;
+
+  /* Dim Accent Backgrounds (Glass Icon Containers) */
+  --cyber-cyan-dim: rgba(6, 182, 212, 0.14);
+  --cyber-purple-dim: rgba(139, 92, 246, 0.14);
+  --cyber-emerald-dim: rgba(16, 185, 129, 0.14);
+  --cyber-amber-dim: rgba(245, 158, 11, 0.14);
+  --cyber-rose-dim: rgba(239, 68, 68, 0.14);
+  --cyber-blue-dim: rgba(99, 102, 241, 0.14);
+
+  /* Shadows & Ambient Glows */
+  --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 12px 40px rgba(0, 0, 0, 0.7);
+  --cyber-cyan-glow: 0 0 20px rgba(6, 182, 212, 0.3);
+  --cyber-purple-glow: 0 0 20px rgba(139, 92, 246, 0.3);
+  --cyber-blue-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+  --glow: 0 0 20px rgba(99, 102, 241, 0.3);
+
+  /* Hero & AI Gradients (Electric Indigo -> AI Violet -> Cyan) */
+  --grad-ai-primary: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #06B6D4 100%);
+  --grad-hero-banner: linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(139, 92, 246, 0.15) 50%, rgba(6, 182, 212, 0.12) 100%);
+  --grad-cyan-blue: linear-gradient(135deg, #06B6D4 0%, #6366F1 100%);
+  --grad-purple-indigo: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+  --grad-emerald-teal: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+
+  /* Navigation Active Item (Dark Mode) */
+  --nav-active-bg: rgba(99, 102, 241, 0.16);
+  --nav-active-text: #06B6D4;
+  --nav-active-border: #6366F1;
+  --nav-active-glow: 0 0 16px rgba(99, 102, 241, 0.2);
+}
+
+/* Global Font & Geometry Constants */
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --topbar-height: 60px;
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 72px;
+}
+
+/* --------------------------------------------------------------------------
+   2. BASE RESET & GLOBAL TYPOGRAPHY
+   -------------------------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background-color: var(--bg-space);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-heading);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+p, span, div, label {
+  color: inherit;
+}
+
+/* Root app wrappers */
+#root, .nexus-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Ambient Background Overlay — Soft Aurora Violet/Cyan/Blue Glow */
+.cyber-bg-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  background: 
+    radial-gradient(circle at 10% 15%, rgba(108, 92, 231, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(34, 211, 238, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 50% 85%, rgba(96, 165, 250, 0.05) 0%, transparent 55%),
+    radial-gradient(circle at 35% 55%, rgba(217, 70, 239, 0.04) 0%, transparent 45%);
+  transition: background 0.3s ease;
+}
+
+[data-theme="dark"] .cyber-bg-glow,
+html.dark .cyber-bg-glow {
+  background: 
+    radial-gradient(circle at 10% 15%, rgba(20, 184, 166, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(14, 165, 233, 0.22) 0%, transparent 50%),
+    radial-gradient(circle at 50% 85%, rgba(124, 58, 237, 0.15) 0%, transparent 55%);
+}
+
+.cyber-grid-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
+  opacity: 0.25;
+}
+
+[data-theme="dark"] .cyber-grid-overlay,
+html.dark .cyber-grid-overlay {
+  opacity: 0.4;
+}
+
+/* --------------------------------------------------------------------------
+   3. APP LAYOUT STRUCTURE
+   -------------------------------------------------------------------------- */
+.app-layout {
+  display: flex;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.main-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.main-viewport {
+  flex: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: var(--bg-space);
+  transition: background-color 0.25s ease;
+}
+
+/* --------------------------------------------------------------------------
+   4. TOP NAVIGATION BAR (HEADER)
+   -------------------------------------------------------------------------- */
+.topbar {
+  height: var(--topbar-height);
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--shadow-subtle);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-heading);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-size: 18px;
+}
+
+.logo-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--grad-cyan-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-weight: 900;
+  box-shadow: var(--cyber-cyan-glow);
+}
+
+.search-input-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 7px 14px;
+  width: 380px;
+  transition: all 0.2s ease;
+}
+
+.search-input-box:focus-within {
+  border-color: var(--cyber-blue);
+  box-shadow: 0 0 12px var(--cyber-blue-dim);
+}
+
+.search-input-box input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+}
+
+.search-input-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Compact Pill Theme Toggle Button */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-subtle);
+}
+
+.theme-toggle-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--cyber-blue);
+  border-color: var(--cyber-blue);
+  box-shadow: 0 0 12px var(--cyber-blue-dim);
+  transform: translateY(-1px);
+}
+
+.user-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.user-profile-badge:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-glow);
+}
+
+.avatar-img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--cyber-blue);
+}
+
+/* --------------------------------------------------------------------------
+   5. SIDEBAR NAVIGATION
+   -------------------------------------------------------------------------- */
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  z-index: 40;
+  transition: width 0.3s ease, background-color 0.25s ease, border-color 0.25s ease;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sidebar-nav-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+
+.nav-section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 700;
+  padding: 8px 12px 4px;
+  font-family: var(--font-mono);
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.nav-link-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nav-link-item:hover {
+  color: var(--text-heading);
+  background: var(--bg-card-hover);
+}
+
+.nav-link-item.active {
+  color: var(--nav-active-text);
+  background: var(--nav-active-bg);
+  border-color: var(--border-subtle);
+  border-left: 3px solid var(--nav-active-border);
+  box-shadow: var(--nav-active-glow);
+  font-weight: 700;
+}
+
+.nav-link-item svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+/* --------------------------------------------------------------------------
+   6. CARDS, HERO BANNERS & GLASSMORPHISM ICONS
+   -------------------------------------------------------------------------- */
+.glass-panel,
+.company-card,
+.metric-stat-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--text-primary);
+}
+
+.glass-panel:hover,
+.company-card:hover {
+  border-color: var(--border-active);
+  box-shadow: var(--shadow-card), 0 0 20px var(--cyber-blue-dim);
+  transform: translateY(-2px);
+}
+
+/* Glassmorphic Icon Containers */
+.glass-icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--cyber-blue-dim);
+  border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--cyber-blue);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.glass-icon-box:hover {
+  border-color: var(--cyber-blue);
+  box-shadow: 0 6px 20px var(--cyber-blue-dim);
+  transform: translateY(-2px);
+}
+
+.glass-icon-cyan {
+  background: var(--cyber-cyan-dim);
+  color: var(--cyber-cyan);
+  border-color: var(--cyber-cyan-dim);
+}
+
+.glass-icon-purple {
+  background: var(--cyber-purple-dim);
+  color: var(--cyber-purple);
+  border-color: var(--cyber-purple-dim);
+}
+
+.glass-icon-emerald {
+  background: var(--cyber-emerald-dim);
+  color: var(--cyber-emerald);
+  border-color: var(--cyber-emerald-dim);
+}
+
+.glass-icon-amber {
+  background: var(--cyber-amber-dim);
+  color: var(--cyber-amber);
+  border-color: var(--cyber-amber-dim);
+}
+
+/* Stat Cards */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.metric-stat-card {
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--border-subtle);
+}
+
+.metric-stat-card.accent-cyan::before { background: var(--cyber-cyan); box-shadow: var(--cyber-cyan-glow); }
+.metric-stat-card.accent-emerald::before { background: var(--cyber-emerald); }
+.metric-stat-card.accent-purple::before { background: var(--cyber-purple); box-shadow: var(--cyber-purple-glow); }
+.metric-stat-card.accent-amber::before { background: var(--cyber-amber); }
+
+.metric-stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+}
+
+.metric-stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-heading);
+  line-height: 1.1;
+  font-family: var(--font-mono);
+}
+
+.metric-stat-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   7. BUTTONS
+   -------------------------------------------------------------------------- */
+.btn-cyber-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: var(--grad-ai-primary);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 13.5px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(108, 92, 231, 0.28);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-cyber-primary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 22px rgba(108, 92, 231, 0.38);
+}
+
+.btn-cyber-primary:active {
+  transform: translateY(0px);
+  box-shadow: 0 2px 8px rgba(108, 92, 231, 0.25);
+}
+
+.btn-cyber-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cyber-outline:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--cyber-blue);
+  color: var(--text-heading);
+  box-shadow: 0 0 12px rgba(108, 92, 231, 0.10);
+}
+
+.btn-cyber-purple {
+  background: var(--cyber-purple);
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--cyber-purple-glow);
+  transition: all 0.2s ease;
+}
+
+.btn-cyber-purple:hover {
+  background: var(--cyber-purple-light);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(217, 70, 239, 0.30);
+}
+
+/* --------------------------------------------------------------------------
+   8. BADGES & PILLS
+   -------------------------------------------------------------------------- */
+.code-font {
+  font-family: var(--font-mono);
+}
+
+.cyber-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badge-cyan {
+  background: var(--cyber-cyan-dim);
+  color: var(--cyber-cyan);
+  border: 1px solid var(--cyber-cyan-dim);
+}
+
+.badge-emerald {
+  background: var(--cyber-emerald-dim);
+  color: var(--cyber-emerald);
+  border: 1px solid var(--cyber-emerald-dim);
+}
+
+.badge-purple {
+  background: var(--cyber-purple-dim);
+  color: var(--cyber-purple);
+  border: 1px solid var(--cyber-purple-dim);
+}
+
+.badge-amber {
+  background: var(--cyber-amber-dim);
+  color: var(--cyber-amber);
+  border: 1px solid var(--cyber-amber-dim);
+}
+
+.badge-rose {
+  background: var(--cyber-rose-dim);
+  color: var(--cyber-rose);
+  border: 1px solid var(--cyber-rose-dim);
+}
+
+.badge-blue {
+  background: var(--cyber-blue-dim);
+  color: var(--cyber-blue);
+  border: 1px solid var(--cyber-blue-dim);
+}
+
+/* --------------------------------------------------------------------------
+   9. FORM CONTROLS & TABLES
+   -------------------------------------------------------------------------- */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 9px 12px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--cyber-blue);
+  box-shadow: 0 0 0 2px var(--cyber-blue-dim);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: rgba(108, 92, 231, 0.05);
+  color: var(--text-heading);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #E3E5F2;
+}
+
+[data-theme="dark"] th,
+html.dark th {
+  background-color: var(--bg-input);
+  border-bottom-color: var(--border-subtle);
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #E3E5F2;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+[data-theme="dark"] td,
+html.dark td {
+  border-bottom-color: var(--border-subtle);
+}
+
+tr:hover td {
+  background-color: var(--bg-card-hover);
+}
+
+/* --------------------------------------------------------------------------
+   10. MODALS & OVERLAYS & EMPTY STATES
+   -------------------------------------------------------------------------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 15, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content-box {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glow);
+  border-radius: 16px;
+  box-shadow: var(--shadow-dropdown);
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  color: var(--text-primary);
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.empty-state-card {
+  background: var(--bg-input);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 12px;
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.flex-icon-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  vertical-align: middle;
+}
+
+/* Page Telemetry Headers & Filter Pills */
+.page-top-telemetry {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.page-title-group h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 4px 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.page-title-group p {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.telemetry-node-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--cyber-blue-dim);
+  border: 1px solid var(--border-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--cyber-blue);
+  letter-spacing: 0.05em;
+}
+
+.filter-tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-pills-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-input);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+}
+
+.filter-pill {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.filter-pill:hover {
+  color: var(--cyber-blue);
+  background: var(--bg-card-hover);
+}
+
+.filter-pill.active {
+  background: var(--grad-ai-primary);
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.28);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* --------------------------------------------------------------------------
+   11. CUSTOM SCROLLBARS
+   -------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-space);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-glow);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cyber-blue);
+}
+
+/* --------------------------------------------------------------------------
+   12. RESPONSIVE MEDIA QUERIES
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: var(--sidebar-collapsed-width);
+  }
+  .sidebar .nav-text,
+  .sidebar .sidebar-user-details,
+  .sidebar .nav-section-title {
+    display: none;
+  }
+  .nav-link-item {
+    padding: 9px;
+    justify-content: center;
+  }
+  .search-input-box {
+    width: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-viewport {
+    padding: 16px;
+  }
+  .search-input-box {
+    display: none;
+  }
+  .metrics-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .metrics-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   13. LIGHT MODE — COMPREHENSIVE VISUAL & INLINE STYLE OVERRIDES
+   Scattered inline styles in JSX components are gracefully transformed
+   into a premium, high-contrast, glassy, aurora-glow light theme.
+   Scoped strictly to light mode (when NOT data-theme="dark" and NOT html.dark).
+   ========================================================================== */
+
+/* ─── Global Text & Contrast Overrides ─── */
+:root:not([data-theme="dark"]) .main-viewport h1,
+:root:not([data-theme="dark"]) .main-viewport h2,
+:root:not([data-theme="dark"]) .main-viewport h3,
+:root:not([data-theme="dark"]) .main-viewport h4,
+html:not(.dark) .main-viewport h1,
+html:not(.dark) .main-viewport h2,
+html:not(.dark) .main-viewport h3,
+html:not(.dark) .main-viewport h4,
+:root:not([data-theme="dark"]) .glass-panel h1,
+:root:not([data-theme="dark"]) .glass-panel h2,
+:root:not([data-theme="dark"]) .glass-panel h3,
+:root:not([data-theme="dark"]) .glass-panel h4,
+html:not(.dark) .glass-panel h1,
+html:not(.dark) .glass-panel h2,
+html:not(.dark) .glass-panel h3,
+html:not(.dark) .glass-panel h4,
+:root:not([data-theme="dark"]) .company-portal-root h1,
+:root:not([data-theme="dark"]) .company-portal-root h2,
+:root:not([data-theme="dark"]) .company-portal-root h3,
+:root:not([data-theme="dark"]) .company-portal-root h4,
+html:not(.dark) .company-portal-root h1,
+html:not(.dark) .company-portal-root h2,
+html:not(.dark) .company-portal-root h3,
+html:not(.dark) .company-portal-root h4 {
+  color: #20245A !important;
+}
+
+/* Base text on glass panels and viewports */
+:root:not([data-theme="dark"]) .glass-panel,
+:root:not([data-theme="dark"]) .metric-stat-card,
+html:not(.dark) .glass-panel,
+html:not(.dark) .metric-stat-card {
+  color: #25275F;
+}
+
+/* Inline white / near-white text on light panels (no quotes in selector for real DOM matching) */
+:root:not([data-theme="dark"]) .main-viewport [style*="color: #fff" i]:not(button):not(.btn-cyber-primary):not(.btn-cyber-purple):not([class*="btn-"]):not([style*="gradient"]):not([style*="var(--grad"]),
+:root:not([data-theme="dark"]) .main-viewport [style*="color:#fff" i]:not(button):not(.btn-cyber-primary):not(.btn-cyber-purple):not([class*="btn-"]):not([style*="gradient"]):not([style*="var(--grad"]),
+:root:not([data-theme="dark"]) .main-viewport [style*="color: rgb(255, 255, 255)"]:not(button):not(.btn-cyber-primary):not(.btn-cyber-purple):not([class*="btn-"]):not([style*="gradient"]):not([style*="var(--grad"]),
+:root:not([data-theme="dark"]) .main-viewport [style*="color: rgb(248, 250, 252)"]:not(button):not(.btn-cyber-primary):not(.btn-cyber-purple):not([class*="btn-"]):not([style*="gradient"]):not([style*="var(--grad"]),
+:root:not([data-theme="dark"]) .main-viewport [style*="color: #f8fafc" i]:not(button):not(.btn-cyber-primary):not(.btn-cyber-purple):not([class*="btn-"]):not([style*="gradient"]):not([style*="var(--grad"]),
+:root:not([data-theme="dark"]) .main-viewport [style*="color: #e2e8f0" i]:not(button):not(.btn-cyber-primary):not(.btn-cyber-purple):not([class*="btn-"]):not([style*="gradient"]):not([style*="var(--grad"]),
+:root:not([data-theme="dark"]) .main-viewport [style*="color: rgb(226, 232, 240)"]:not(button):not(.btn-cyber-primary):not(.btn-cyber-purple):not([class*="btn-"]):not([style*="gradient"]):not([style*="var(--grad"]),
+html:not(.dark) .main-viewport [style*="color: #fff" i]:not(button):not(.btn-cyber-primary):not(.btn-cyber-purple):not([class*="btn-"]):not([style*="gradient"]):not([style*="var(--grad"]),
+html:not(.dark) .main-viewport [style*="color: rgb(255, 255, 255)"]:not(button):not(.btn-cyber-primary):not(.btn-cyber-purple):not([class*="btn-"]):not([style*="gradient"]):not([style*="var(--grad"]),
+html:not(.dark) .main-viewport [style*="color: rgb(248, 250, 252)"]:not(button):not(.btn-cyber-primary):not(.btn-cyber-purple):not([class*="btn-"]):not([style*="gradient"]):not([style*="var(--grad"]),
+html:not(.dark) .main-viewport [style*="color: #f8fafc" i]:not(button):not(.btn-cyber-primary):not(.btn-cyber-purple):not([class*="btn-"]):not([style*="gradient"]):not([style*="var(--grad"]),
+html:not(.dark) .main-viewport [style*="color: #e2e8f0" i]:not(button):not(.btn-cyber-primary):not(.btn-cyber-purple):not([class*="btn-"]):not([style*="gradient"]):not([style*="var(--grad"]) {
+  color: #20245A !important;
+}
+
+/* Secondary muted labels */
+:root:not([data-theme="dark"]) .main-viewport [style*="#94a3b8" i],
+html:not(.dark) .main-viewport [style*="#94a3b8" i],
+:root:not([data-theme="dark"]) .main-viewport [style*="rgb(148, 163, 184)"],
+html:not(.dark) .main-viewport [style*="rgb(148, 163, 184)"] {
+  color: #5F668C !important;
+}
+
+/* ─── Metric / KPI Numbers ─── */
+:root:not([data-theme="dark"]) .main-viewport [style*="fontFamily: 'var(--font-mono)'"][style*="fontWeight: 800"],
+:root:not([data-theme="dark"]) .main-viewport [style*="font-mono"][style*="fontWeight: 800"],
+html:not(.dark) .main-viewport [style*="fontFamily: 'var(--font-mono)'"][style*="fontWeight: 800"],
+html:not(.dark) .main-viewport [style*="font-mono"][style*="fontWeight: 800"] {
+  color: #4338CA !important;
+}
+
+/* ─── Circular Progress Percentage (on light bg) ─── */
+:root:not([data-theme="dark"]) .main-viewport svg + div,
+:root:not([data-theme="dark"]) .main-viewport [style*="inset: 0"],
+html:not(.dark) .main-viewport svg + div,
+html:not(.dark) .main-viewport [style*="inset: 0"] {
+  color: #20245A !important;
+}
+
+/* ─── Progress Bar Backgrounds & Ring Tracks ─── */
+:root:not([data-theme="dark"]) svg circle[stroke*="255,255,255"],
+:root:not([data-theme="dark"]) svg circle[stroke*="255, 255, 255"],
+html:not(.dark) svg circle[stroke*="255,255,255"],
+html:not(.dark) svg circle[stroke*="255, 255, 255"] {
+  stroke: #E4E7F5 !important;
+}
+
+:root:not([data-theme="dark"]) .main-viewport [style*="255,255,255,0.0"],
+:root:not([data-theme="dark"]) .main-viewport [style*="255, 255, 255, 0.0"],
+html:not(.dark) .main-viewport [style*="255,255,255,0.0"],
+html:not(.dark) .main-viewport [style*="255, 255, 255, 0.0"] {
+  background-color: #E4E7F5 !important;
+}
+
+/* ─── Dark Inline Backgrounds Overrides (Slate & Navy → Glassy Aurora Card) ─── */
+:root:not([data-theme="dark"]) [style*="rgba(15, 23, 42"],
+html:not(.dark) [style*="rgba(15, 23, 42"],
+:root:not([data-theme="dark"]) [style*="rgba(30, 41, 59"],
+html:not(.dark) [style*="rgba(30, 41, 59"],
+:root:not([data-theme="dark"]) [style*="rgba(11, 17, 32"],
+html:not(.dark) [style*="rgba(11, 17, 32"],
+:root:not([data-theme="dark"]) [style*="rgba(13, 21, 39"],
+html:not(.dark) [style*="rgba(13, 21, 39"],
+:root:not([data-theme="dark"]) [style*="rgba(8, 13, 26"],
+html:not(.dark) [style*="rgba(8, 13, 26"],
+:root:not([data-theme="dark"]) [style*="background: #0B1120" i],
+html:not(.dark) [style*="background: #0B1120" i],
+:root:not([data-theme="dark"]) [style*="background:#0B1120" i],
+html:not(.dark) [style*="background:#0B1120" i],
+:root:not([data-theme="dark"]) [style*="background: rgb(11, 17, 32)"],
+html:not(.dark) [style*="background: rgb(11, 17, 32)"],
+:root:not([data-theme="dark"]) [style*="background: #090E1F" i],
+html:not(.dark) [style*="background: #090E1F" i],
+:root:not([data-theme="dark"]) [style*="background:#090E1F" i],
+html:not(.dark) [style*="background:#090E1F" i],
+:root:not([data-theme="dark"]) [style*="background: #070c18" i],
+html:not(.dark) [style*="background: #070c18" i],
+:root:not([data-theme="dark"]) [style*="background: #070b14" i],
+html:not(.dark) [style*="background: #070b14" i],
+:root:not([data-theme="dark"]) [style*="background: #070B16" i],
+html:not(.dark) [style*="background: #070B16" i],
+:root:not([data-theme="dark"]) [style*="background: #080D1A" i],
+html:not(.dark) [style*="background: #080D1A" i] {
+  background: rgba(255, 255, 255, 0.78) !important;
+  border-color: rgba(108, 92, 231, 0.12) !important;
+  color: #25275F !important;
+}
+
+/* ─── Dark Gradients Overrides (Headers, Banners, Cards) ─── */
+:root:not([data-theme="dark"]) [style*="linear-gradient(135deg, rgba(15, 23, 42"],
+html:not(.dark) [style*="linear-gradient(135deg, rgba(15, 23, 42"],
+:root:not([data-theme="dark"]) [style*="linear-gradient(145deg, rgba(15, 23, 42"],
+html:not(.dark) [style*="linear-gradient(145deg, rgba(15, 23, 42"],
+:root:not([data-theme="dark"]) [style*="linear-gradient(90deg, rgba(15, 23, 42"],
+html:not(.dark) [style*="linear-gradient(90deg, rgba(15, 23, 42"],
+:root:not([data-theme="dark"]) [style*="linear-gradient(135deg, rgba(30, 41, 59"],
+html:not(.dark) [style*="linear-gradient(135deg, rgba(30, 41, 59"],
+:root:not([data-theme="dark"]) [style*="linear-gradient(180deg, #0d1527"],
+html:not(.dark) [style*="linear-gradient(180deg, #0d1527"],
+:root:not([data-theme="dark"]) [style*="linear-gradient(135deg, #0d1527"],
+html:not(.dark) [style*="linear-gradient(135deg, #0d1527"],
+:root:not([data-theme="dark"]) [style*="linear-gradient(180deg, #090E1F"],
+html:not(.dark) [style*="linear-gradient(180deg, #090E1F"],
+:root:not([data-theme="dark"]) [style*="linear-gradient(180deg, #130C24"],
+html:not(.dark) [style*="linear-gradient(180deg, #130C24"],
+:root:not([data-theme="dark"]) [style*="linear-gradient(180deg, #071518"],
+html:not(.dark) [style*="linear-gradient(180deg, #071518"],
+:root:not([data-theme="dark"]) [style*="linear-gradient(180deg, #0B1120"],
+html:not(.dark) [style*="linear-gradient(180deg, #0B1120"] {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 243, 255, 0.88) 100%) !important;
+  border: 1px solid rgba(108, 92, 231, 0.14) !important;
+  box-shadow: 0 8px 30px rgba(108, 92, 231, 0.07) !important;
+  color: #25275F !important;
+}
+
+/* ─── Cyber Gauge Discs (Frontier Readiness, Career Index, Learning Progress, Tech Radar) ───
+   Preserves the signature glowing cyber gauge aesthetic shown in the user reference:
+   Rich dark navy/black cyber center disc, brilliant neon cyan/purple border & glow,
+   and brightly appearing high-contrast electric text inside across all pages. ─── */
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle, #0" i],
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle,#0" i],
+:root:not([data-theme="dark"]) [style*="50%"][style*="#0B172E" i],
+:root:not([data-theme="dark"]) [style*="50%"][style*="#0D162C" i],
+html:not(.dark) [style*="radial-gradient(circle, #0" i],
+html:not(.dark) [style*="radial-gradient(circle,#0" i],
+html:not(.dark) [style*="50%"][style*="#0B172E" i],
+html:not(.dark) [style*="50%"][style*="#0D162C" i] {
+  background: radial-gradient(circle, #0B172E 60%, rgba(0, 212, 255, 0.25) 100%) !important;
+  border-color: var(--cyber-cyan) !important;
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.38), inset 0 0 12px rgba(34, 211, 238, 0.18) !important;
+  color: #00F0FF !important;
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.65), 0 0 2px #FFFFFF !important;
+}
+
+/* Force all text/numbers inside cyber gauge discs to appear brilliantly in bright glowing cyan */
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle, #0" i] *,
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle,#0" i] *,
+:root:not([data-theme="dark"]) [style*="50%"][style*="#0B172E" i] *,
+:root:not([data-theme="dark"]) [style*="50%"][style*="#0D162C" i] *,
+html:not(.dark) [style*="radial-gradient(circle, #0" i] *,
+html:not(.dark) [style*="radial-gradient(circle,#0" i] *,
+html:not(.dark) [style*="50%"][style*="#0B172E" i] *,
+html:not(.dark) [style*="50%"][style*="#0D162C" i] * {
+  color: #00F0FF !important;
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.65), 0 0 2px #FFFFFF !important;
+}
+
+/* Sub-labels like "MASTERY" inside the gauge */
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle, #0" i] span[style*="uppercase"],
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle,#0" i] span[style*="uppercase"],
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle, #0" i] [style*="fontSize: '9px'"],
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle, #0" i] [style*="fontSize: '8px'"],
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle, #0" i] [style*="font-size: 9px"],
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle, #0" i] [style*="font-size: 8px"],
+html:not(.dark) [style*="radial-gradient(circle, #0" i] span[style*="uppercase"],
+html:not(.dark) [style*="radial-gradient(circle,#0" i] span[style*="uppercase"] {
+  color: #A5B4FC !important;
+  text-shadow: none !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+}
+
+/* Purple gauge disc variant (TechDeepDive Personalized Readiness) */
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle, #0F1A30" i],
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle,#0F1A30" i],
+:root:not([data-theme="dark"]) [style*="50%"][style*="#0F1A30" i],
+html:not(.dark) [style*="radial-gradient(circle, #0F1A30" i],
+html:not(.dark) [style*="radial-gradient(circle,#0F1A30" i],
+html:not(.dark) [style*="50%"][style*="#0F1A30" i] {
+  background: radial-gradient(circle, #0F1A30 60%, rgba(217, 70, 239, 0.25) 100%) !important;
+  border-color: var(--cyber-purple) !important;
+  box-shadow: 0 0 18px rgba(217, 70, 239, 0.38), inset 0 0 12px rgba(217, 70, 239, 0.18) !important;
+  color: #F0ABFC !important;
+  text-shadow: 0 0 12px rgba(217, 70, 239, 0.65), 0 0 2px #FFFFFF !important;
+}
+
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle, #0F1A30" i] *,
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle,#0F1A30" i] *,
+:root:not([data-theme="dark"]) [style*="50%"][style*="#0F1A30" i] *,
+html:not(.dark) [style*="radial-gradient(circle, #0F1A30" i] *,
+html:not(.dark) [style*="radial-gradient(circle,#0F1A30" i] *,
+html:not(.dark) [style*="50%"][style*="#0F1A30" i] * {
+  color: #F0ABFC !important;
+  text-shadow: 0 0 12px rgba(217, 70, 239, 0.65), 0 0 2px #FFFFFF !important;
+}
+
+/* Icons inside the cyber gauge (e.g. Opportunities.jsx ShieldCheck) */
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle, #0" i] svg,
+:root:not([data-theme="dark"]) [style*="radial-gradient(circle,#0" i] svg,
+html:not(.dark) [style*="radial-gradient(circle, #0" i] svg,
+html:not(.dark) [style*="radial-gradient(circle,#0" i] svg {
+  color: #00F0FF !important;
+  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.7)) !important;
+}
+
+/* Student Activation Page Background */
+:root:not([data-theme="dark"]) [style*="radial-gradient(ellipse at 50% 20%"],
+html:not(.dark) [style*="radial-gradient(ellipse at 50% 20%"] {
+  background: radial-gradient(ellipse at 50% 20%, rgba(108,92,231,0.06), transparent 70%), #F8FAFF !important;
+}
+
+/* ─── Modals, Dialogs & Dropdowns ─── */
+:root:not([data-theme="dark"]) [role="dialog"],
+:root:not([data-theme="dark"]) .modal,
+:root:not([data-theme="dark"]) .modal-content,
+html:not(.dark) [role="dialog"],
+html:not(.dark) .modal,
+html:not(.dark) .modal-content {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1px solid rgba(108, 92, 231, 0.16) !important;
+  box-shadow: 0 20px 60px rgba(108, 92, 231, 0.14), 0 0 24px rgba(108, 92, 231, 0.06) !important;
+  color: #25275F !important;
+}
+
+:root:not([data-theme="dark"]) [style*="background: #0a101f" i],
+:root:not([data-theme="dark"]) [style*="background: #090D1A" i],
+html:not(.dark) [style*="background: #0a101f" i],
+html:not(.dark) [style*="background: #090D1A" i] {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(108, 92, 231, 0.14) !important;
+  color: #25275F !important;
+}
+
+/* ─── Subdued Borders in Light Mode ─── */
+:root:not([data-theme="dark"]) [style*="rgba(255, 255, 255, 0.1"],
+:root:not([data-theme="dark"]) [style*="rgba(255,255,255,0.1"],
+:root:not([data-theme="dark"]) [style*="rgba(255, 255, 255, 0.08"],
+:root:not([data-theme="dark"]) [style*="rgba(255,255,255,0.08"],
+:root:not([data-theme="dark"]) [style*="rgba(255, 255, 255, 0.05"],
+:root:not([data-theme="dark"]) [style*="rgba(255,255,255,0.05"],
+html:not(.dark) [style*="rgba(255, 255, 255, 0.1"],
+html:not(.dark) [style*="rgba(255,255,255,0.1"],
+html:not(.dark) [style*="rgba(255, 255, 255, 0.08"],
+html:not(.dark) [style*="rgba(255,255,255,0.08"] {
+  border-color: rgba(108, 92, 231, 0.12) !important;
+}
+
+/* ─── Gradient Buttons (Keep White Text Crisp) ─── */
+:root:not([data-theme="dark"]) .btn-cyber-primary,
+:root:not([data-theme="dark"]) .btn-cyber-purple,
+:root:not([data-theme="dark"]) [class*="btn-cyber-primary"],
+:root:not([data-theme="dark"]) .role-card-btn,
+html:not(.dark) .btn-cyber-primary,
+html:not(.dark) .btn-cyber-purple,
+html:not(.dark) [class*="btn-cyber-primary"],
+html:not(.dark) .role-card-btn {
+  color: #FFFFFF !important;
+}
+
+:root:not([data-theme="dark"]) [style*="background: 'linear-gradient"],
+:root:not([data-theme="dark"]) [style*="background: linear-gradient(135deg, #4f46e5"],
+:root:not([data-theme="dark"]) [style*="background: linear-gradient(135deg, #7C3AED"],
+:root:not([data-theme="dark"]) [style*="background: linear-gradient(135deg, #10B981"],
+:root:not([data-theme="dark"]) [style*="background: linear-gradient(135deg, #0284c7"],
+html:not(.dark) [style*="background: 'linear-gradient"],
+html:not(.dark) [style*="background: linear-gradient(135deg, #4f46e5"],
+html:not(.dark) [style*="background: linear-gradient(135deg, #7C3AED"],
+html:not(.dark) [style*="background: linear-gradient(135deg, #10B981"],
+html:not(.dark) [style*="background: linear-gradient(135deg, #0284c7"] {
+  color: #FFFFFF !important;
+}
+
+:root:not([data-theme="dark"]) [style*="linear-gradient"] svg,
+html:not(.dark) [style*="linear-gradient"] svg {
+  color: inherit !important;
+}
+
+/* ─── Questionnaire & CTA Banners ─── */
+:root:not([data-theme="dark"]) .main-viewport [style*="rgba(79, 70, 229, 0.15)"],
+html:not(.dark) .main-viewport [style*="rgba(79, 70, 229, 0.15)"] {
+  background: linear-gradient(135deg, rgba(108,92,231,0.08) 0%, rgba(34,211,238,0.06) 100%) !important;
+  border: 1px solid rgba(108,92,231,0.14) !important;
+  box-shadow: 0 4px 20px rgba(108,92,231,0.08), 0 0 12px rgba(108,92,231,0.04) !important;
+}
+
+/* ─── Topbar & Sidebar Refinements ─── */
+:root:not([data-theme="dark"]) .topbar,
+html:not(.dark) .topbar {
+  background: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(108, 92, 231, 0.10) !important;
+  box-shadow: 0 2px 14px rgba(108, 92, 231, 0.04) !important;
+}
+
+:root:not([data-theme="dark"]) .sidebar,
+html:not(.dark) .sidebar {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 2px 0 16px rgba(108, 92, 231, 0.04) !important;
+  border-right: 1px solid rgba(108, 92, 231, 0.10) !important;
+}
+
+:root:not([data-theme="dark"]) .nav-link-item,
+html:not(.dark) .nav-link-item {
+  color: #454A73 !important;
+}
+
+:root:not([data-theme="dark"]) .nav-link-item:hover,
+html:not(.dark) .nav-link-item:hover {
+  color: #20245A !important;
+  background: rgba(108, 92, 231, 0.05) !important;
+}
+
+:root:not([data-theme="dark"]) .nav-link-item.active,
+html:not(.dark) .nav-link-item.active {
+  color: #6D5CE7 !important;
+  background: rgba(108, 92, 231, 0.08) !important;
+}
+
+:root:not([data-theme="dark"]) .nav-link-item.active svg,
+html:not(.dark) .nav-link-item.active svg {
+  color: #6D5CE7 !important;
+}
+
+/* ─── Search Box & Inputs ─── */
+:root:not([data-theme="dark"]) .search-input-box,
+html:not(.dark) .search-input-box {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(108, 92, 231, 0.14) !important;
+}
+
+:root:not([data-theme="dark"]) .search-input-box:focus-within,
+html:not(.dark) .search-input-box:focus-within {
+  border-color: #6D5CE7 !important;
+  box-shadow: 0 0 14px rgba(108, 92, 231, 0.15) !important;
+}
+
+:root:not([data-theme="dark"]) input::placeholder,
+:root:not([data-theme="dark"]) textarea::placeholder,
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: #737A9C !important;
+}
+
+:root:not([data-theme="dark"]) input[type="text"],
+:root:not([data-theme="dark"]) input[type="email"],
+:root:not([data-theme="dark"]) input[type="password"],
+:root:not([data-theme="dark"]) input[type="number"],
+:root:not([data-theme="dark"]) select,
+:root:not([data-theme="dark"]) textarea,
+html:not(.dark) input[type="text"],
+html:not(.dark) input[type="email"],
+html:not(.dark) input[type="password"],
+html:not(.dark) input[type="number"],
+html:not(.dark) select,
+html:not(.dark) textarea {
+  background-color: rgba(255, 255, 255, 0.82) !important;
+  border-color: #D9DDF0 !important;
+  color: #25275F !important;
+}
+
+:root:not([data-theme="dark"]) input:focus,
+:root:not([data-theme="dark"]) select:focus,
+:root:not([data-theme="dark"]) textarea:focus,
+html:not(.dark) input:focus,
+html:not(.dark) select:focus,
+html:not(.dark) textarea:focus {
+  border-color: #6D5CE7 !important;
+  box-shadow: 0 0 0 3px rgba(109, 92, 231, 0.12) !important;
+}
+
+/* ─── Controls: Theme Toggle & User Profile ─── */
+:root:not([data-theme="dark"]) .theme-toggle-btn,
+html:not(.dark) .theme-toggle-btn {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(108, 92, 231, 0.14) !important;
+  color: #454A73 !important;
+}
+
+:root:not([data-theme="dark"]) .theme-toggle-btn:hover,
+html:not(.dark) .theme-toggle-btn:hover {
+  color: #6D5CE7 !important;
+  border-color: #6D5CE7 !important;
+  background: rgba(108, 92, 231, 0.06) !important;
+}
+
+:root:not([data-theme="dark"]) .user-profile-badge,
+html:not(.dark) .user-profile-badge {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(108, 92, 231, 0.12) !important;
+}
+
+/* ─── Filter Pills & Badges ─── */
+:root:not([data-theme="dark"]) .filter-pills-group,
+html:not(.dark) .filter-pills-group {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(108, 92, 231, 0.12) !important;
+}
+
+:root:not([data-theme="dark"]) .filter-pill,
+html:not(.dark) .filter-pill {
+  color: #5F668C !important;
+}
+
+:root:not([data-theme="dark"]) .filter-pill:hover,
+html:not(.dark) .filter-pill:hover {
+  color: #6D5CE7 !important;
+}
+
+:root:not([data-theme="dark"]) .filter-pill.active,
+html:not(.dark) .filter-pill.active {
+  color: #FFFFFF !important;
+  background: #6D5CE7 !important;
+}
+
+:root:not([data-theme="dark"]) .cyber-badge.badge-cyan { color: #0E7490 !important; }
+:root:not([data-theme="dark"]) .cyber-badge.badge-emerald { color: #047857 !important; }
+:root:not([data-theme="dark"]) .cyber-badge.badge-purple { color: #6D28D9 !important; }
+:root:not([data-theme="dark"]) .cyber-badge.badge-amber { color: #B45309 !important; }
+:root:not([data-theme="dark"]) .cyber-badge.badge-rose { color: #BE123C !important; }
+:root:not([data-theme="dark"]) .cyber-badge.badge-blue { color: #4338CA !important; }
+
+/* ─── Card Hover Glow Refinement ─── */
+:root:not([data-theme="dark"]) .glass-panel:hover,
+:root:not([data-theme="dark"]) .company-card:hover,
+html:not(.dark) .glass-panel:hover,
+html:not(.dark) .company-card:hover {
+  border-color: rgba(108, 92, 231, 0.20) !important;
+  box-shadow: 0 12px 36px rgba(75, 70, 150, 0.10), 0 0 16px rgba(108, 92, 231, 0.06) !important;
+}
+
+/* ─── Scrollbars in Light Mode ─── */
+:root:not([data-theme="dark"]) ::-webkit-scrollbar-track,
+html:not(.dark) ::-webkit-scrollbar-track {
+  background: #F8FAFF !important;
+}
+
+:root:not([data-theme="dark"]) ::-webkit-scrollbar-thumb,
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background: rgba(108, 92, 231, 0.16) !important;
+  border-radius: 8px;
+}
+
+:root:not([data-theme="dark"]) ::-webkit-scrollbar-thumb:hover,
+html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: #6D5CE7 !important;
+}
+
+/* ==========================================================================
+   14. INSTITUTION PORTAL — DEDICATED LIGHT-MODE THEME
+   Identity: Royal Purple (#7C3AED) + Electric Blue (#3B82F6) + Cyan (#06B6D4)
+   Secondary Accents: Emerald (#10B981) + Amber (#F59E0B) + Coral (#F43F5E)
+   Applies across all 19 Institution components, dossiers, rosters, and modals.
+   ========================================================================== */
+
+/* ─── Institution Dark Inline Backgrounds Overrides (Slate & Navy → Frosted Glass) ─── */
+:root:not([data-theme="dark"]) [style*="rgba(10, 16, 30"],
+:root:not([data-theme="dark"]) [style*="rgba(10,16,30"],
+:root:not([data-theme="dark"]) [style*="rgba(16, 26, 48"],
+:root:not([data-theme="dark"]) [style*="rgba(16,26,48"],
+:root:not([data-theme="dark"]) [style*="rgba(5, 10, 20"],
+:root:not([data-theme="dark"]) [style*="rgba(5,10,20"],
+html:not(.dark) [style*="rgba(10, 16, 30"],
+html:not(.dark) [style*="rgba(10,16,30"],
+html:not(.dark) [style*="rgba(16, 26, 48"],
+html:not(.dark) [style*="rgba(16,26,48"],
+html:not(.dark) [style*="rgba(5, 10, 20"],
+html:not(.dark) [style*="rgba(5,10,20"] {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(124, 58, 237, 0.12) !important;
+  color: #25275F !important;
+}
+
+/* ─── Institution Header Banners & Gradients ─── */
+:root:not([data-theme="dark"]) [style*="linear-gradient(135deg, rgba(16,26,48"],
+:root:not([data-theme="dark"]) [style*="linear-gradient(135deg, rgba(16, 26, 48"],
+:root:not([data-theme="dark"]) [style*="linear-gradient(90deg, rgba(40,215,255,0.06) 0%, rgba(10,16,30"],
+html:not(.dark) [style*="linear-gradient(135deg, rgba(16,26,48"],
+html:not(.dark) [style*="linear-gradient(135deg, rgba(16, 26, 48"],
+html:not(.dark) [style*="linear-gradient(90deg, rgba(40,215,255,0.06) 0%, rgba(10,16,30"] {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(243, 240, 255, 0.90) 50%, rgba(238, 246, 255, 0.90) 100%) !important;
+  border: 1px solid rgba(124, 58, 237, 0.16) !important;
+  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.06) !important;
+}
+
+/* ─── Institution Student Roster & Database Tables ─── */
+:root:not([data-theme="dark"]) table thead tr,
+html:not(.dark) table thead tr,
+:root:not([data-theme="dark"]) .main-viewport table th,
+html:not(.dark) .main-viewport table th {
+  background: rgba(124, 58, 237, 0.05) !important;
+  color: #20245A !important;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.12) !important;
+  font-weight: 700 !important;
+}
+
+:root:not([data-theme="dark"]) .main-viewport table td,
+html:not(.dark) .main-viewport table td {
+  border-bottom: 1px solid rgba(124, 58, 237, 0.07) !important;
+  color: #25275F !important;
+}
+
+:root:not([data-theme="dark"]) .main-viewport table tbody tr:hover td,
+html:not(.dark) .main-viewport table tbody tr:hover td {
+  background: rgba(124, 58, 237, 0.035) !important;
+}
+
+/* Institution Roster Sub-divs with near-invisible white backgrounds */
+:root:not([data-theme="dark"]) .main-viewport [style*="background: 'rgba(255,255,255,0.02)'"],
+:root:not([data-theme="dark"]) .main-viewport [style*="background: 'rgba(255, 255, 255, 0.02)'"],
+:root:not([data-theme="dark"]) .main-viewport [style*="background: 'rgba(255,255,255,0.04)'"],
+:root:not([data-theme="dark"]) .main-viewport [style*="background: 'rgba(255, 255, 255, 0.04)'"],
+html:not(.dark) .main-viewport [style*="background: 'rgba(255,255,255,0.02)'"],
+html:not(.dark) .main-viewport [style*="background: 'rgba(255, 255, 255, 0.02)'"],
+html:not(.dark) .main-viewport [style*="background: 'rgba(255,255,255,0.04)'"],
+html:not(.dark) .main-viewport [style*="background: 'rgba(255, 255, 255, 0.04)'"] {
+  background: rgba(124, 58, 237, 0.03) !important;
+  border: 1px solid rgba(124, 58, 237, 0.08) !important;
+}
+
+/* ─── Institution Student Details Dossier Modal & Drawer ─── */
+:root:not([data-theme="dark"]) [style*="background: 'rgba(5, 10, 20, 0.85)'"],
+html:not(.dark) [style*="background: 'rgba(5, 10, 20, 0.85)'"] {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Quick Metrics in Dossier (CGPA, Course Progress, Readiness, Status, Ledger Seal) */
+:root:not([data-theme="dark"]) .main-viewport [style*="background: 'rgba(10,16,30,0.6)'"],
+html:not(.dark) .main-viewport [style*="background: 'rgba(10,16,30,0.6)'"] {
+  background: rgba(255, 255, 255, 0.90) !important;
+  border: 1px solid rgba(124, 58, 237, 0.12) !important;
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.04) !important;
+}
+
+/* ─── Institution Placement Pipeline Funnel Flow ─── */
+:root:not([data-theme="dark"]) .main-viewport [style*="minmax(130px, 1fr)"],
+html:not(.dark) .main-viewport [style*="minmax(130px, 1fr)"] {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(124, 58, 237, 0.14) !important;
+  box-shadow: 0 4px 18px rgba(124, 58, 237, 0.05) !important;
+}
+
+:root:not([data-theme="dark"]) .main-viewport [style*="minmax(130px, 1fr)"] > div,
+html:not(.dark) .main-viewport [style*="minmax(130px, 1fr)"] > div {
+  background: rgba(124, 58, 237, 0.035) !important;
+  border: 1px solid rgba(124, 58, 237, 0.08) !important;
+  border-radius: 8px !important;
+}
+
+/* ─── Institution Setup Wizard, Single Candidate & Roster Modals ─── */
+:root:not([data-theme="dark"]) [style*="linear-gradient(145deg, rgba(15, 23, 42"],
+html:not(.dark) [style*="linear-gradient(145deg, rgba(15, 23, 42"] {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid rgba(124, 58, 237, 0.18) !important;
+  box-shadow: 0 20px 60px rgba(124, 58, 237, 0.15) !important;
+  color: #25275F !important;
+}
+
+/* Modal header stripes in Institution wizards */
+:root:not([data-theme="dark"]) [style*="background: 'rgba(6, 182, 212, 0.04)'"],
+:root:not([data-theme="dark"]) [style*="background: 'rgba(168, 85, 247, 0.04)'"],
+html:not(.dark) [style*="background: 'rgba(6, 182, 212, 0.04)'"],
+html:not(.dark) [style*="background: 'rgba(168, 85, 247, 0.04)'"] {
+  background: linear-gradient(90deg, rgba(124, 58, 237, 0.06) 0%, rgba(59, 130, 246, 0.04) 100%) !important;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.12) !important;
+}
+
+/* Stepper dots in Setup Wizard */
+:root:not([data-theme="dark"]) [style*="background: currentStep === step"],
+html:not(.dark) [style*="background: currentStep === step"] {
+  color: #FFFFFF !important;
+}
+
+/* ─── Institution Primary Buttons & Navigation Accents ─── */
+:root:not([data-theme="dark"]) .institution-console-wrapper .btn-cyber-primary,
+:root:not([data-theme="dark"]) .main-viewport [style*="linear-gradient(135deg, #0284c7, #0369a1)"],
+html:not(.dark) .main-viewport [style*="linear-gradient(135deg, #0284c7, #0369a1)"] {
+  background: linear-gradient(135deg, #7C3AED 0%, #3B82F6 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.28) !important;
+  border: none !important;
+}
+
+/* ─── Institution Login Page Refinement ─── */
+:root:not([data-theme="dark"]) [style*="linear-gradient(180deg, #130C24 0%, #060913 100%)"],
+html:not(.dark) [style*="linear-gradient(180deg, #130C24 0%, #060913 100%)"] {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.07) 0%, rgba(59, 130, 246, 0.05) 50%, rgba(255, 255, 255, 0.95) 100%) !important;
+  border-right: 1px solid rgba(124, 58, 237, 0.12) !important;
+}
+
+/* ==========================================================================
+   15. INDUSTRY PORTAL & CORPORATE WORKSPACE — DEDICATED LIGHT-MODE SYSTEM
+   Identity: Cyan (#06B6D4) + Sky Blue (#38BDF8) + Electric Blue (#3B82F6) + Violet (#7C3AED)
+   Secondary Accents: Emerald (#10B981) + Magenta (#D946EF) + Amber (#F59E0B)
+   Applies across all 22 Company components, candidate dossiers, modals & chat.
+   ========================================================================== */
+
+/* ─── Industry Dark Inline Backgrounds Overrides (Slate & Midnight → Frosted Glass) ─── */
+:root:not([data-theme="dark"]) .company-portal-root [style*="rgba(10, 18, 36" i],
+:root:not([data-theme="dark"]) .company-portal-root [style*="rgba(10,18,36" i],
+:root:not([data-theme="dark"]) .company-portal-root [style*="rgba(2, 6, 23" i],
+:root:not([data-theme="dark"]) .company-portal-root [style*="rgba(2,6,23" i],
+:root:not([data-theme="dark"]) .company-portal-root [style*="rgba(15, 23, 42" i],
+:root:not([data-theme="dark"]) .company-portal-root [style*="rgba(15,23,42" i],
+:root:not([data-theme="dark"]) .company-portal-root [style*="rgba(30, 41, 59" i],
+:root:not([data-theme="dark"]) .company-portal-root [style*="rgba(30,41,59" i],
+html:not(.dark) .company-portal-root [style*="rgba(10, 18, 36" i],
+html:not(.dark) .company-portal-root [style*="rgba(10,18,36" i],
+html:not(.dark) .company-portal-root [style*="rgba(2, 6, 23" i],
+html:not(.dark) .company-portal-root [style*="rgba(2,6,23" i],
+html:not(.dark) .company-portal-root [style*="rgba(15, 23, 42" i],
+html:not(.dark) .company-portal-root [style*="rgba(15,23,42" i],
+html:not(.dark) .company-portal-root [style*="rgba(30, 41, 59" i],
+html:not(.dark) .company-portal-root [style*="rgba(30,41,59" i] {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(6, 182, 212, 0.16) !important;
+  color: #20245A !important;
+}
+
+/* Candidate Scoped Read-Only Dossier Modal Overlay (fix backdrop dark tone) */
+:root:not([data-theme="dark"]) .company-portal-root [style*="rgba(2, 6, 23, 0.85)"],
+html:not(.dark) .company-portal-root [style*="rgba(2, 6, 23, 0.85)"] {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* ─── Industry Header Banners & Gradients ─── */
+:root:not([data-theme="dark"]) .company-portal-root [style*="linear-gradient(135deg, rgba(13, 23, 43"],
+:root:not([data-theme="dark"]) .company-portal-root [style*="linear-gradient(135deg, rgba(13,23,43"],
+:root:not([data-theme="dark"]) .company-portal-root [style*="linear-gradient(90deg, rgba(15, 23, 42"],
+:root:not([data-theme="dark"]) .company-portal-root [style*="linear-gradient(90deg, rgba(15,23,42"],
+:root:not([data-theme="dark"]) .company-portal-root [style*="linear-gradient(135deg, rgba(30, 41, 59"],
+:root:not([data-theme="dark"]) .company-portal-root [style*="linear-gradient(135deg, rgba(30,41,59"],
+html:not(.dark) .company-portal-root [style*="linear-gradient(135deg, rgba(13, 23, 43"],
+html:not(.dark) .company-portal-root [style*="linear-gradient(135deg, rgba(13,23,43"],
+html:not(.dark) .company-portal-root [style*="linear-gradient(90deg, rgba(15, 23, 42"],
+html:not(.dark) .company-portal-root [style*="linear-gradient(90deg, rgba(15,23,42"],
+html:not(.dark) .company-portal-root [style*="linear-gradient(135deg, rgba(30, 41, 59"],
+html:not(.dark) .company-portal-root [style*="linear-gradient(135deg, rgba(30,41,59"] {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 249, 255, 0.90) 50%, rgba(245, 243, 255, 0.90) 100%) !important;
+  border: 1px solid rgba(6, 182, 212, 0.20) !important;
+  box-shadow: 0 8px 32px rgba(6, 182, 212, 0.08) !important;
+  color: #20245A !important;
+}
+
+/* ─── Industry Candidate Roster & Application Pipeline Tables ─── */
+:root:not([data-theme="dark"]) .company-table th,
+html:not(.dark) .company-table th {
+  background: rgba(6, 182, 212, 0.06) !important;
+  color: #20245A !important;
+  border-bottom: 1px solid rgba(6, 182, 212, 0.14) !important;
+  font-weight: 700 !important;
+}
+
+:root:not([data-theme="dark"]) .company-table td,
+html:not(.dark) .company-table td {
+  border-bottom: 1px solid rgba(6, 182, 212, 0.08) !important;
+  color: #25275F !important;
+}
+
+:root:not([data-theme="dark"]) .company-table tbody tr:hover td,
+html:not(.dark) .company-table tbody tr:hover td {
+  background: rgba(6, 182, 212, 0.035) !important;
+}
+
+/* ─── Company Modals: Compare, Invite, Add Talent Pool, New Opportunity ─── */
+:root:not([data-theme="dark"]) .company-modal-overlay,
+html:not(.dark) .company-modal-overlay {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+:root:not([data-theme="dark"]) .company-modal-content,
+html:not(.dark) .company-modal-content {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1px solid rgba(6, 182, 212, 0.22) !important;
+  box-shadow: 0 20px 60px rgba(6, 182, 212, 0.14), 0 0 24px rgba(6, 182, 212, 0.06) !important;
+  color: #20245A !important;
+}
+
+:root:not([data-theme="dark"]) .company-modal-content .text-white,
+html:not(.dark) .company-modal-content .text-white {
+  color: #20245A !important;
+}
+
+:root:not([data-theme="dark"]) .company-modal-content .text-slate-400,
+html:not(.dark) .company-modal-content .text-slate-400 {
+  color: #5F668C !important;
+}
+
+:root:not([data-theme="dark"]) .company-modal-content .text-slate-200,
+html:not(.dark) .company-modal-content .text-slate-200 {
+  color: #33385C !important;
+}
+
+:root:not([data-theme="dark"]) .company-modal-content input,
+:root:not([data-theme="dark"]) .company-modal-content textarea,
+:root:not([data-theme="dark"]) .company-modal-content select,
+html:not(.dark) .company-modal-content input,
+html:not(.dark) .company-modal-content textarea,
+html:not(.dark) .company-modal-content select {
+  background-color: rgba(255, 255, 255, 0.90) !important;
+  border-color: rgba(6, 182, 212, 0.22) !important;
+  color: #20245A !important;
+}
+
+/* ─── Direct Recruiter Messages: 2-Column Chat Layout Overrides ─── */
+:root:not([data-theme="dark"]) .company-portal-root .bg-\[\#091122\],
+html:not(.dark) .company-portal-root .bg-\[\#091122\] {
+  background: rgba(248, 250, 255, 0.96) !important;
+  border-right: 1px solid rgba(6, 182, 212, 0.12) !important;
+}
+
+:root:not([data-theme="dark"]) .company-portal-root .bg-\[\#0D172B\],
+html:not(.dark) .company-portal-root .bg-\[\#0D172B\] {
+  background: rgba(255, 255, 255, 0.94) !important;
+}
+
+:root:not([data-theme="dark"]) .company-portal-root .bg-\[\#0A1428\],
+html:not(.dark) .company-portal-root .bg-\[\#0A1428\] {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(6, 182, 212, 0.12) !important;
+}
+
+:root:not([data-theme="dark"]) .company-portal-root .border-\[\#091122\],
+html:not(.dark) .company-portal-root .border-\[\#091122\] {
+  border-color: #FFFFFF !important;
+}
+
+/* Student incoming chat bubble */
+:root:not([data-theme="dark"]) .company-portal-root .bg-white\/\[0\.05\],
+html:not(.dark) .company-portal-root .bg-white\/\[0\.05\] {
+  background: rgba(6, 182, 212, 0.06) !important;
+  border-color: rgba(6, 182, 212, 0.16) !important;
+  color: #20245A !important;
+}
+
+/* Recruiter outgoing chat bubble */
+:root:not([data-theme="dark"]) .company-portal-root .bg-gradient-to-r.from-blue-600.to-cyan-500,
+html:not(.dark) .company-portal-root .bg-gradient-to-r.from-blue-600.to-cyan-500 {
+  background: linear-gradient(135deg, #0284C7 0%, #06B6D4 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.25) !important;
+}
+
+/* ─── Industry Auth & Corporate Onboarding (IndustryLogin.jsx) ─── */
+:root:not([data-theme="dark"]) [style*="linear-gradient(180deg, #071518 0%, #060913 100%)"],
+html:not(.dark) [style*="linear-gradient(180deg, #071518 0%, #060913 100%)"] {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(16, 185, 129, 0.06) 50%, rgba(255, 255, 255, 0.95) 100%) !important;
+  border-right: 1px solid rgba(6, 182, 212, 0.14) !important;
+}
+
+:root:not([data-theme="dark"]) [style*="background: '#0B1120'"],
+:root:not([data-theme="dark"]) [style*="background: #0B1120"],
+:root:not([data-theme="dark"]) [style*="background: #0b1120"],
+html:not(.dark) [style*="background: '#0B1120'"],
+html:not(.dark) [style*="background: #0B1120"],
+html:not(.dark) [style*="background: #0b1120"] {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: #D9DDF0 !important;
+  color: #20245A !important;
+}
+
+
+

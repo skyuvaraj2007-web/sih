@@ -1,0 +1,165 @@
+const express = require('express');
+const router = express.Router();
+const relationalManager = require('../db/relationalManager');
+const { requireAuth } = require('../middleware/auth');
+
+// GET /api/opportunities
+router.get('/', requireAuth, async (req, res) => {
+  const { type, minMatch = 0, search, modality } = req.query;
+  let opportunities = await relationalManager.getOpportunities();
+
+  if (type && type !== 'all') {
+    opportunities = opportunities.filter(o => (o.type || '').toLowerCase().includes(type.toLowerCase()));
+  }
+  if (Number(minMatch) > 0) {
+    opportunities = opportunities.filter(o => (o.matchScore || 0) >= Number(minMatch));
+  }
+  if (modality) {
+    opportunities = opportunities.filter(o => (o.location || '').toLowerCase().includes(modality.toLowerCase()));
+  }
+  if (search) {
+    const q = search.toLowerCase();
+    opportunities = opportunities.filter(o =>
+      (o.title || '').toLowerCase().includes(q) ||
+      (o.company || o.companyName || '').toLowerCase().includes(q) ||
+      (o.skillsMatrix || []).some(s => (s.name || '').toLowerCase().includes(q))
+    );
+  }
+
+  const studentId = req.user?.studentId || req.user?.id;
+  const matchingService = require('../services/matchingService');
+
+  // Compute live match scores for student via canonical matchingService
+  if (studentId) {
+    opportunities = await Promise.all(opportunities.map(async (opp) => {
+      try {
+        const match = await matchingService.matchStudentToOpportunity(studentId, opp.id || opp.opportunityId);
+        return {
+          ...opp,
+          matchScore: match.matchScore,
+          matchedSkills: match.matchedSkills,
+          missingSkills: match.missingSkills,
+          matchExplanation: match.explanation,
+          matchEvidence: match.evidence
+        };
+      } catch (e) {
+        return opp;
+      }
+    }));
+  }
+
+  let topMatch = 0;
+  let topCompany = '';
+  opportunities.forEach(o => {
+    if ((o.matchScore || 0) > topMatch) {
+      topMatch = o.matchScore;
+      topCompany = o.company || o.companyName || '';
+    }
+  });
+
+  // Student-specific applied IDs
+  let appliedIds = [];
+  try {
+    const apps = await relationalManager.getApplications({ studentId });
+    appliedIds = (apps || []).map(a => a.opportunityId || a.opportunity_id);
+  } catch (e) {}
+
+  res.json({
+    success: true,
+    data: opportunities,
+    metrics: {
+      totalRoles: opportunities.length,
+      topMatchScore: topMatch,
+      topMatchCompany: topCompany || (opportunities[0]?.company || opportunities[0]?.companyName || 'Available'),
+      appliedCount: appliedIds.length
+    },
+    appliedIds
+  });
+});
+
+// GET /api/opportunities/:id
+router.get('/:id', requireAuth, async (req, res) => {
+  try {
+    const opp = await relationalManager.getOpportunityById(req.params.id);
+    if (!opp) {
+      return res.status(404).json({ success: false, message: 'Opportunity not found' });
+    }
+
+    const studentId = req.user?.studentId || req.user?.id;
+    let match = { matchScore: 0, matchedSkills: [], missingSkills: [] };
+    if (studentId) {
+      try {
+        const matchingService = require('../services/matchingService');
+        match = await matchingService.matchStudentToOpportunity(studentId, req.params.id);
+      } catch (e) {}
+    }
+
+    res.json({
+      success: true,
+      data: {
+        ...opp,
+        matchScore: match?.matchScore ?? 0,
+        matchedSkills: match?.matchedSkills || [],
+        missingSkills: match?.missingSkills || [],
+        evidence: match?.evidence,
+        explanation: match?.explanation
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/opportunities/:id/match
+router.get('/:id/match', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const opportunityId = req.params.id;
+    const result = await require('../services/matchingService').matchStudentToOpportunity(studentId, opportunityId);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/opportunities/:id/apply
+router.post('/:id/apply', requireAuth, async (req, res) => {
+  try {
+    const opp = await relationalManager.getOpportunityById(req.params.id);
+    if (!opp) {
+      return res.status(404).json({ success: false, message: 'Opportunity not found' });
+    }
+
+    const studentId = req.user?.studentId || req.user?.id;
+    const student = await relationalManager.getStudentById(studentId);
+    const oppId = opp.oppId || opp.id || req.params.id;
+
+    // Prevent duplicate applications: UNIQUE(student_id, opportunity_id)
+    const data = relationalManager._read();
+    const existing = (data.applications || []).find(a =>
+      (a.studentId === studentId || (student && a.studentId === student.studentId)) &&
+      (a.opportunityId === oppId || a.opportunityId === req.params.id)
+    );
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: 'Conflict: You have already applied for this opportunity.'
+      });
+    }
+
+    const application = await relationalManager.submitApplication(
+      student || { studentId },
+      opp
+    );
+
+    res.status(201).json({
+      success: true,
+      message: `Application transmitted successfully to ${opp.company || opp.companyName || 'the company'}! Your verified profile has been attached.`,
+      data: application
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+module.exports = router;
