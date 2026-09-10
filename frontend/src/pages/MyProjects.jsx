@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   FolderGit2,
   Plus,
@@ -11,186 +11,107 @@ import {
   Sparkles,
   Share2,
   X,
-  Code
+  Code,
+  AlertTriangle,
+  Award,
+  Layers,
+  Activity,
+  Check
 } from 'lucide-react';
-import {
-  submitProjectForValidation,
-  getAllProjects,
-  getStudentProjects
-} from '../services/nexusDataStore';
+import { projectService } from '../services/projectService';
+import ProjectDetailModal from '../components/student/ProjectDetailModal';
+import ProjectCreateModal from '../components/student/ProjectCreateModal';
 
 export default function MyProjects({ onShowToast }) {
   const [activeFilter, setActiveFilter] = useState('All Projects');
-  const [showNewModal, setShowNewModal] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newCategory, setNewCategory] = useState('GENERATIVE AI & LLMOPS');
-  const [newTech, setNewTech] = useState('Python, FastAPI, ChromaDB');
+  const [activeTab, setActiveTab] = useState('portfolio'); // 'portfolio' or 'timeline'
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
 
-  const [projects, setProjects] = useState([
-    {
-      id: "prj_01",
-      title: "AI Chatbot using LLM + RAG",
-      category: "GENERATIVE AI & LLMOPS",
-      progress: 60,
-      status: "In Progress",
-      statusClass: "badge-cyan",
-      note: "Peer Review Pending (1 of 2 Reviews Done)",
-      linkedTo: "Linked to Generative AI Fundamentals (Module 6)",
-      techStack: ["Python", "FastAPI", "ChromaDB", "LangChain", "Llama 3"],
-      repoUrl: "https://github.com/arunkumar/llm-rag-enterprise-assistant",
-      sandboxText: "Launch Sandbox"
-    },
-    {
-      id: "prj_02",
-      title: "Data Analytics & Predictive Retention Dashboard",
-      category: "DATA SCIENCE & BI",
-      progress: 100,
-      benchmarkMatch: "94% Benchmark Match",
-      status: "Validated & Minted",
-      statusClass: "badge-emerald",
-      note: "Cryptographically Verified • Ledger Block #NX-89214",
-      linkedTo: "Linked to Digital Talent Passport for Corporate Screening",
-      techStack: ["Python", "Pandas", "Streamlit", "PostgreSQL", "Scikit-Learn"],
-      repoUrl: "https://github.com/arunkumar/customer-churn-retention-bi",
-      demoUrl: "https://retention-dashboard-demo.nexus.app",
-      proofAvailable: true
-    },
-    {
-      id: "prj_03",
-      title: "Modern Developer Portfolio & Interactive Tech Sandbox",
-      category: "FRONTEND & FULL STACK",
-      progress: 100,
-      benchmarkMatch: "100% Complete",
-      status: "Completed",
-      statusClass: "badge-cyan",
-      note: "98 Lighthouse Score • Production CI/CD Deployed",
-      linkedTo: "Public URL & Code Repos Indexed",
-      techStack: ["React", "Tailwind CSS", "TypeScript", "Vite"],
-      repoUrl: "https://github.com/arunkumar/dev-portfolio-sandbox",
-      demoUrl: "https://arunkumar.nexusdev.app"
-    },
-    {
-      id: "prj_04",
-      title: "Multi-Agent Algorithmic Market Scanner",
-      category: "AGENTIC AI & QUANT",
-      progress: 25,
-      status: "In Progress (Sandbox Active)",
-      statusClass: "badge-purple",
-      note: "Worker: sandbox-running: agent-worker-01.nexus",
-      linkedTo: "Connected to Emerging Tech Radar #03",
-      techStack: ["AutoGen", "Python", "Docker", "Redis"],
-      repoUrl: "https://github.com/arunkumar/agentic-quant-scanner",
-      sandboxText: "Resume Session"
+  const [projects, setProjects] = useState([]);
+  const [metrics, setMetrics] = useState({
+    totalProjects: 0,
+    activeProjects: 0,
+    verifiedProjects: 0,
+    totalActivities: 0,
+    totalEvidence: 0,
+    portfolioStrength: { score: 78, level: 'Proficient' }
+  });
+  const [activityFeed, setActivityFeed] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProjectData = useCallback(async () => {
+    setLoading(true);
+    try {
+      let filterParam = 'all';
+      if (activeFilter.includes('In Progress')) filterParam = 'in-progress';
+      else if (activeFilter.includes('Completed')) filterParam = 'completed';
+      else if (activeFilter.includes('Validated') || activeFilter.includes('Verified')) filterParam = 'validated';
+
+      const [projRes, feedRes] = await Promise.all([
+        projectService.getProjects(filterParam).catch(() => ({ data: [], metrics: {} })),
+        projectService.getActivityFeed().catch(() => ({ data: [] }))
+      ]);
+
+      if (projRes?.data) {
+        setProjects(projRes.data);
+      }
+      if (projRes?.metrics) {
+        setMetrics(prev => ({ ...prev, ...projRes.metrics }));
+      }
+      if (feedRes?.data) {
+        setActivityFeed(feedRes.data);
+      }
+    } catch (err) {
+      console.error('Failed to load project portfolio:', err);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  }, [activeFilter]);
 
-  // Reactive listener for faculty verification updates
   useEffect(() => {
-    const handleProjectUpdate = () => {
-      const allPrjs = getAllProjects();
-      setProjects(prev => prev.map(p => {
-        const found = allPrjs.find(ap => ap.title.toLowerCase() === p.title.toLowerCase() || ap.projectId === p.id);
-        if (found) {
-          return {
-            ...p,
-            status: found.status === 'Verified' ? 'Validated & Minted' : found.status === 'Submitted' ? 'Submitted for Faculty Validation' : p.status,
-            statusClass: found.status === 'Verified' ? 'badge-emerald' : found.status === 'Submitted' ? 'badge-amber' : p.statusClass,
-            note: found.status === 'Verified' 
-              ? `Cryptographically Verified • Ledger Block ${found.validation?.blockNumber || '#NX-89412'}` 
-              : found.status === 'Submitted' 
-                ? 'Submitted to Faculty Queue • Sandbox Automated Testing Active'
-                : p.note
-          };
+    fetchProjectData();
+  }, [fetchProjectData]);
+
+  const handleSubmitForValidation = async (prj) => {
+    try {
+      const res = await projectService.submitProjectForVerification(prj.id);
+      if (res.success) {
+        if (onShowToast) {
+          onShowToast({
+            title: 'Submitted for Academic Review',
+            message: `"${prj.title}" dispatched to institution faculty ledger verification queue.`,
+            type: 'success'
+          });
         }
-        return p;
-      }));
-    };
-
-    window.addEventListener('nexus_project_verified', handleProjectUpdate);
-    window.addEventListener('nexus_project_submitted', handleProjectUpdate);
-    window.addEventListener('nexus_data_updated', handleProjectUpdate);
-    return () => {
-      window.removeEventListener('nexus_project_verified', handleProjectUpdate);
-      window.removeEventListener('nexus_project_submitted', handleProjectUpdate);
-      window.removeEventListener('nexus_data_updated', handleProjectUpdate);
-    };
-  }, []);
-
-  const handleSubmitForValidation = (prj) => {
-    let auth = {};
-    try { auth = JSON.parse(localStorage.getItem('nexus_auth_user')) || {}; } catch {}
-
-    const submitted = submitProjectForValidation({
-      studentId: auth.studentId || auth.id || 'STU-TN010-001',
-      studentName: auth.name || 'Arun Kumar',
-      department: auth.department || 'CSE',
-      institutionId: auth.collegeId || 'TN010',
-      title: prj.title,
-      category: prj.category,
-      technologies: prj.techStack,
-      repositoryUrl: prj.repoUrl
-    });
-
-    setProjects(prev => prev.map(p => (p.id === prj.id || p.title === prj.title) ? {
-      ...p,
-      status: 'Submitted for Faculty Validation',
-      statusClass: 'badge-amber',
-      note: 'Submitted to Faculty Queue • Sandbox Automated Testing Active'
-    } : p));
-
-    if (onShowToast) {
-      onShowToast({
-        title: 'Submitted for Faculty Review',
-        message: `"${prj.title}" dispatched to ${auth.college || 'Institution'} faculty ledger verification queue.`,
-        type: 'success'
-      });
+        fetchProjectData();
+      }
+    } catch (err) {
+      if (onShowToast) onShowToast({ title: 'Submission Failed', message: err.message, type: 'error' });
     }
   };
 
-  const handleCreateProject = (e) => {
-    e.preventDefault();
-    if (!newTitle.trim()) return;
-
-    let auth = {};
-    try { auth = JSON.parse(localStorage.getItem('nexus_auth_user')) || {}; } catch {}
-
-    const newPrj = {
-      id: "prj_" + Date.now(),
-      title: newTitle,
-      category: newCategory,
-      progress: 10,
-      status: "In Progress (Active Sandbox)",
-      statusClass: "badge-cyan",
-      note: "Initial commits indexed & verified via Git",
-      linkedTo: "Linked to Active Development Ledger",
-      techStack: newTech.split(',').map(s => s.trim()),
-      repoUrl: "https://github.com/arunkumar/" + newTitle.toLowerCase().replace(/\s+/g, '-'),
-      sandboxText: "Launch Sandbox"
-    };
-
-    setProjects([newPrj, ...projects]);
-    setShowNewModal(false);
-    setNewTitle('');
-
-    // Register project into central nexusDataStore
-    submitProjectForValidation({
-      studentId: auth.studentId || auth.id || 'STU-TN010-001',
-      studentName: auth.name || 'Arun Kumar',
-      department: auth.department || 'CSE',
-      institutionId: auth.collegeId || 'TN010',
-      title: newPrj.title,
-      category: newPrj.category,
-      technologies: newPrj.techStack,
-      repositoryUrl: newPrj.repoUrl
-    });
-
-    if (onShowToast) {
-      onShowToast({
-        title: 'Project Initialized & Dispatched',
-        message: `${newTitle} registered with VCS tracking & submitted for verification.`,
-        type: 'success'
-      });
+  const handleLaunchSandbox = async (prj) => {
+    try {
+      const res = await projectService.launchSandbox(prj.id);
+      if (res.success && onShowToast) {
+        onShowToast({
+          title: 'Cloud Sandbox Running',
+          message: `Worker node online for ${prj.title}. Live dev container ready on port 8080.`,
+          type: 'info'
+        });
+      }
+    } catch (err) {
+      if (onShowToast) onShowToast({ title: 'Sandbox Error', message: err.message, type: 'error' });
     }
+  };
+
+  const getStatusBadgeClass = (status, verificationStatus) => {
+    if (verificationStatus === 'VERIFIED') return 'badge-emerald';
+    if (verificationStatus === 'PENDING') return 'badge-amber';
+    if (verificationStatus === 'NEEDS_CORRECTION') return 'badge-rose';
+    if (status === 'COMPLETED' || status === 'Completed') return 'badge-cyan';
+    return 'badge-purple';
   };
 
   return (
@@ -203,13 +124,15 @@ export default function MyProjects({ onShowToast }) {
             <span>//</span>
             <span>BUILD & VALIDATE</span>
             <span>•</span>
-            <span>4 Live Node</span>
+            <span>{projects.length} Active Nodes</span>
           </div>
           <h1>My Projects</h1>
-          <p>Don't just learn. Prove it. Turn classroom theory into production-grade verified project proof authenticated directly against corporate engineering baselines.</p>
+          <p>
+            Don't just learn. Prove it. Turn classroom theory into production-grade verified project proof authenticated directly against corporate engineering baselines.
+          </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: '8px',
             padding: '6px 14px', borderRadius: '8px',
@@ -221,373 +144,462 @@ export default function MyProjects({ onShowToast }) {
           </div>
 
           <button
-            onClick={() => setShowNewModal(true)}
+            onClick={() => setShowCreateModal(true)}
             className="btn-cyber-primary"
           >
             <Plus size={15} />
-            <span>New Project</span>
+            <span>New Project Experience</span>
           </button>
         </div>
       </div>
 
-      {/* Top 4 Metrics Row matching Page 9 */}
-      <div className="metrics-row" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+      {/* Top Metrics Row */}
+      <div className="metrics-row" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
         <div className="metric-stat-card accent-cyan">
           <div className="metric-stat-header">
             <span>TOTAL PROJECTS</span>
             <FolderGit2 size={13} color="var(--cyber-cyan)" />
           </div>
-          <div className="metric-stat-value">{projects.length}</div>
-          <div className="metric-stat-sub">2 Active • 2 Verified</div>
+          <div className="metric-stat-value">{metrics.totalProjects || projects.length}</div>
+          <div className="metric-stat-sub">{metrics.activeProjects || 0} Active • {metrics.verifiedProjects || 0} Verified</div>
         </div>
 
         <div className="metric-stat-card accent-emerald">
           <div className="metric-stat-header">
-            <span>VERIFIED COMMITS</span>
-            <GitBranch size={13} color="var(--cyber-emerald)" />
+            <span>COLLEGE VERIFIED</span>
+            <ShieldCheck size={13} color="var(--cyber-emerald)" />
           </div>
-          <div className="metric-stat-value">142</div>
-          <div className="metric-stat-sub">Synced via Git</div>
+          <div className="metric-stat-value">{metrics.verifiedProjects || 0}</div>
+          <div className="metric-stat-sub">Authenticated by Institution</div>
         </div>
 
         <div className="metric-stat-card accent-purple">
           <div className="metric-stat-header">
-            <span>RECRUITER PROOF RATE</span>
-            <ShieldCheck size={13} color="var(--cyber-purple)" />
+            <span>PROJECT ACTIVITIES</span>
+            <Activity size={13} color="var(--cyber-purple)" />
           </div>
-          <div className="metric-stat-value">88%</div>
-          <div className="metric-stat-sub">Tier-1 Ready</div>
+          <div className="metric-stat-value">{metrics.totalActivities || 0}</div>
+          <div className="metric-stat-sub">Milestones recorded</div>
         </div>
 
         <div className="metric-stat-card accent-amber">
           <div className="metric-stat-header">
+            <span>PORTFOLIO STRENGTH</span>
+            <Sparkles size={13} color="var(--cyber-amber)" />
+          </div>
+          <div className="metric-stat-value">
+            {metrics.portfolioStrength?.score || 85}<span style={{ fontSize: '16px' }}>/100</span>
+          </div>
+          <div className="metric-stat-sub">{metrics.portfolioStrength?.level || 'Proficient'} Level</div>
+        </div>
+
+        <div className="metric-stat-card" style={{ background: 'var(--bg-card)' }}>
+          <div className="metric-stat-header">
             <span>CLOUD SANDBOXES</span>
-            <Terminal size={13} color="var(--cyber-amber)" />
+            <Terminal size={13} color="var(--cyber-cyan)" />
           </div>
           <div className="metric-stat-value">2</div>
           <div className="metric-stat-sub">Running Online</div>
         </div>
       </div>
 
-      {/* Filter Tabs Row matching Page 9 */}
-      <div className="filter-tabs-row">
-        <div className="filter-pills-group">
-          {['All Projects (4)', 'In Progress (2)', 'Completed (1)', 'Validated (2)', 'Recommended (3)'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveFilter(tab)}
-              className={`filter-pill ${activeFilter === tab ? 'active' : ''}`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+      {/* View Tabs (Portfolio vs Activity Timeline) */}
+      <div style={{
+        display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)',
+        marginBottom: '20px', paddingBottom: '2px'
+      }}>
+        <button
+          onClick={() => setActiveTab('portfolio')}
+          style={{
+            padding: '10px 20px', background: activeTab === 'portfolio' ? 'rgba(0,242,254,0.1)' : 'transparent',
+            color: activeTab === 'portfolio' ? 'var(--cyber-cyan)' : 'var(--text-secondary)',
+            border: 'none', borderBottom: activeTab === 'portfolio' ? '2px solid var(--cyber-cyan)' : '2px solid transparent',
+            fontWeight: 700, fontSize: '13.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
+          }}
+        >
+          <FolderGit2 size={16} />
+          <span>Project Portfolio</span>
+          <span style={{ fontSize: '10px', background: 'rgba(0,242,254,0.2)', padding: '2px 7px', borderRadius: '10px' }}>
+            {projects.length}
+          </span>
+        </button>
 
-        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-          SORT BY: <strong style={{ color: 'var(--text-primary)' }}>Recent Activity</strong>
-        </div>
+        <button
+          onClick={() => setActiveTab('timeline')}
+          style={{
+            padding: '10px 20px', background: activeTab === 'timeline' ? 'rgba(168,85,247,0.1)' : 'transparent',
+            color: activeTab === 'timeline' ? 'var(--cyber-purple)' : 'var(--text-secondary)',
+            border: 'none', borderBottom: activeTab === 'timeline' ? '2px solid var(--cyber-purple)' : '2px solid transparent',
+            fontWeight: 700, fontSize: '13.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
+          }}
+        >
+          <Activity size={16} />
+          <span>Professional Activity Feed</span>
+          <span style={{ fontSize: '10px', background: 'rgba(168,85,247,0.2)', padding: '2px 7px', borderRadius: '10px' }}>
+            {activityFeed.length}
+          </span>
+        </button>
       </div>
 
-      {/* Main Grid: 4 Project Cards on Left + Right Rail */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }}>
-        {/* Left: Project Cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          {projects.map((prj) => (
-            <div key={prj.id} className="glass-panel" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                    <span className={`cyber-badge ${prj.statusClass}`} style={{ fontSize: '9.5px' }}>
-                      {prj.status}
-                    </span>
-                    <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                      {prj.category}
-                    </span>
-                  </div>
+      {activeTab === 'portfolio' ? (
+        <>
+          {/* Filter Pills */}
+          <div className="filter-tabs-row" style={{ marginBottom: '20px' }}>
+            <div className="filter-pills-group">
+              {['All Projects', 'In Progress', 'Completed', 'Validated'].map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveFilter(tab)}
+                  className={`filter-pill ${activeFilter.includes(tab.split(' ')[0]) ? 'active' : ''}`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
 
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    {prj.title}
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              SORT BY: <strong style={{ color: 'var(--text-primary)' }}>Verified Rigor</strong>
+            </div>
+          </div>
+
+          {/* Main Grid: Projects on Left + Right Rail */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }}>
+            {/* Left: Project Cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+                  <div className="spinner" style={{ margin: '0 auto 12px' }} />
+                  Loading projects...
+                </div>
+              ) : projects.length === 0 ? (
+                <div className="glass-panel" style={{ padding: '48px 24px', textAlign: 'center' }}>
+                  <FolderGit2 size={40} style={{ color: 'var(--text-muted)', margin: '0 auto 12px', opacity: 0.4 }} />
+                  <h3 style={{ fontSize: '16px', color: 'var(--text-primary)', margin: '0 0 6px' }}>
+                    No projects found for filter
                   </h3>
-                  <div style={{ fontSize: '12px', color: 'var(--cyber-cyan)', marginTop: '2px' }}>
-                    {prj.linkedTo}
-                  </div>
-                </div>
-
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
-                    {prj.progress}%
-                  </span>
-                  <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
-                    {prj.benchmarkMatch || 'M1/20 Tasks Cleared'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Tech Stack Pills */}
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
-                {prj.techStack.map((tech, idx) => (
-                  <span key={idx} style={{
-                    padding: '3px 8px', borderRadius: '4px',
-                    background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)',
-                    fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)'
-                  }}>
-                    {tech}
-                  </span>
-                ))}
-              </div>
-
-              {/* Status Note Banner */}
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '10px 14px', background: 'var(--bg-input)',
-                borderRadius: '8px', border: '1px solid var(--border-subtle)',
-                marginBottom: '16px', fontSize: '11.5px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
-                  <span className="status-dot-pulse"></span>
-                  <span>{prj.note}</span>
-                </div>
-              </div>
-
-              {/* Card Actions */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
-                {prj.status !== 'Validated & Minted' && prj.status !== 'Verified' && !prj.status.includes('Submitted') && (
-                  <button
-                    onClick={() => handleSubmitForValidation(prj)}
-                    className="btn-cyber-outline"
-                    style={{ fontSize: '12px', padding: '7px 14px', borderColor: 'rgba(16,185,129,0.5)', color: 'var(--cyber-emerald)' }}
-                  >
-                    <ShieldCheck size={13} />
-                    <span>Submit for Validation</span>
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px' }}>
+                    Create your first professional project experience to build verified credentials.
+                  </p>
+                  <button onClick={() => setShowCreateModal(true)} className="btn-cyber-primary">
+                    <Plus size={14} /> Add Project Experience
                   </button>
-                )}
+                </div>
+              ) : (
+                projects.map((prj) => {
+                  const isVerified = prj.verificationStatus === 'VERIFIED';
+                  const isPending = prj.verificationStatus === 'PENDING';
+                  const needsCorr = prj.verificationStatus === 'NEEDS_CORRECTION';
+                  const techList = Array.isArray(prj.technologies) ? prj.technologies : (prj.techStack || []);
 
-                <a
-                  href={prj.repoUrl}
-                  target="_blank"
-                  rel="noreferrer"
+                  return (
+                    <div key={prj.id} className="glass-panel" style={{ padding: '24px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                            <span className={`cyber-badge ${getStatusBadgeClass(prj.status, prj.verificationStatus)}`} style={{ fontSize: '9.5px' }}>
+                              {isVerified ? 'College Verified' : isPending ? 'Review Pending' : needsCorr ? 'Correction Requested' : (prj.status || 'Active')}
+                            </span>
+                            <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                              {prj.category}
+                            </span>
+                            {prj.role && (
+                              <span style={{ fontSize: '11px', color: 'var(--cyber-cyan)', fontWeight: 600 }}>
+                                • {prj.role}
+                              </span>
+                            )}
+                          </div>
+
+                          <h3
+                            onClick={() => setSelectedProjectId(prj.id)}
+                            style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', cursor: 'pointer' }}
+                          >
+                            {prj.title}
+                          </h3>
+                          <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.5 }}>
+                            {prj.shortDescription || prj.description || 'Demonstrating production-grade capability.'}
+                          </div>
+                        </div>
+
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
+                            {prj.progress || 25}%
+                          </span>
+                          <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
+                            {prj.activities?.length || 1} Milestones
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Tech Stack Pills */}
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                        {techList.map((tech, idx) => (
+                          <span key={idx} style={{
+                            padding: '3px 8px', borderRadius: '4px',
+                            background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)',
+                            fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)'
+                          }}>
+                            {tech}
+                          </span>
+                        ))}
+                        {(prj.skills || []).map((sk, idx) => (
+                          <span key={idx} style={{
+                            padding: '3px 8px', borderRadius: '4px',
+                            background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)',
+                            fontSize: '11px', color: 'var(--cyber-purple, #a855f7)'
+                          }}>
+                            ✓ {sk}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Status Note Banner */}
+                      <div style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '10px 14px', background: 'var(--bg-input)',
+                        borderRadius: '8px', border: '1px solid var(--border-subtle)',
+                        marginBottom: '16px', fontSize: '11.5px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+                          <span className="status-dot-pulse"></span>
+                          <span>
+                            {isVerified
+                              ? `Cryptographically Verified by ${prj.verifiedBy || 'Institution'}`
+                              : isPending
+                                ? 'Submitted to College Review Board • Automated telemetry active'
+                                : needsCorr
+                                  ? `Correction needed: ${prj.correctionReason}`
+                                  : (prj.note || 'Active development synced')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Card Actions */}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => setSelectedProjectId(prj.id)}
+                          className="btn-cyber-outline"
+                          style={{ fontSize: '12px', padding: '7px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                        >
+                          <Eye size={13} />
+                          <span>Review Experience</span>
+                        </button>
+
+                        {!isVerified && !isPending && (
+                          <button
+                            onClick={() => handleSubmitForValidation(prj)}
+                            className="btn-cyber-outline"
+                            style={{ fontSize: '12px', padding: '7px 14px', borderColor: 'rgba(16,185,129,0.5)', color: 'var(--cyber-emerald)' }}
+                          >
+                            <ShieldCheck size={13} />
+                            <span>Submit for Validation</span>
+                          </button>
+                        )}
+
+                        {prj.repoUrl && (
+                          <a
+                            href={prj.repoUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="btn-cyber-outline"
+                            style={{ textDecoration: 'none', fontSize: '12px', padding: '7px 14px' }}
+                          >
+                            <ExternalLink size={13} />
+                            <span>Repository</span>
+                          </a>
+                        )}
+
+                        <button
+                          onClick={() => handleLaunchSandbox(prj)}
+                          className="btn-cyber-primary"
+                          style={{ fontSize: '12px', padding: '7px 14px' }}
+                        >
+                          <Terminal size={13} />
+                          <span>Launch Sandbox</span>
+                        </button>
+
+                        {prj.demoUrl && (
+                          <a
+                            href={prj.demoUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="btn-cyber-primary"
+                            style={{ textDecoration: 'none', fontSize: '12px', padding: '7px 14px' }}
+                          >
+                            <ExternalLink size={13} />
+                            <span>Live Demo</span>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Right Rail: Nexus AI Evaluation & Recommended Capstones */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Nexus AI Evaluation */}
+              <div className="glass-panel" style={{ padding: '20px', borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--cyber-purple)', fontSize: '11.5px', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', fontFamily: 'var(--font-mono)' }}>
+                  <Sparkles size={14} />
+                  <span>NEXUS AI PORTFOLIO INSIGHTS</span>
+                </div>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '14px' }}>
+                  {metrics.portfolioStrength?.label || "Your verified project demonstrations boost your software engineering recruiter match from 78% to 92%."}
+                </p>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'rgba(139, 92, 246, 0.08)', borderRadius: '6px', border: '1px solid rgba(139, 92, 246, 0.2)', marginBottom: '12px', fontSize: '11.5px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Portfolio Readiness:</span>
+                  <strong style={{ color: 'var(--cyber-cyan)' }}>{metrics.portfolioStrength?.score || 85}% / 100%</strong>
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (projects.length > 0) setSelectedProjectId(projects[0].id);
+                  }}
                   className="btn-cyber-outline"
-                  style={{ textDecoration: 'none', fontSize: '12px', padding: '7px 14px' }}
+                  style={{ width: '100%', padding: '8px', fontSize: '12px' }}
                 >
-                  <ExternalLink size={13} />
-                  <span>View Repository</span>
-                </a>
-
-                {prj.sandboxText && (
-                  <button
-                    onClick={() => {
-                      if (onShowToast) {
-                        onShowToast({
-                          title: 'Sandbox Initializing',
-                          message: `Cloud worker provisioned for ${prj.title}. Port 8080 open.`,
-                          type: 'info'
-                        });
-                      }
-                    }}
-                    className="btn-cyber-primary"
-                    style={{ fontSize: '12px', padding: '7px 14px' }}
-                  >
-                    <Terminal size={13} fill="#060B14" />
-                    <span>{prj.sandboxText}</span>
-                  </button>
-                )}
-
-                {prj.demoUrl && (
-                  <a
-                    href={prj.demoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn-cyber-primary"
-                    style={{ textDecoration: 'none', fontSize: '12px', padding: '7px 14px' }}
-                  >
-                    <ExternalLink size={13} />
-                    <span>Live Demo</span>
-                  </a>
-                )}
+                  Review AI Project Analysis
+                </button>
               </div>
-            </div>
-          ))}
-        </div>
 
-        {/* Right Rail: Nexus AI Evaluation & Recommended Capstones matching Page 9 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Nexus AI Evaluation */}
-          <div className="glass-panel" style={{ padding: '20px', borderColor: 'rgba(139, 92, 246, 0.3)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--cyber-purple)', fontSize: '11.5px', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', fontFamily: 'var(--font-mono)' }}>
-              <Sparkles size={14} />
-              <span>NEXUS AI EVALUATION</span>
-            </div>
-            <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '14px' }}>
-              "Your AI Chatbot project is 1 test suite away from proving Intermediate RAG engineering competency. Completing Milestone 3 will boost your TechCorp internship match from 92% to 96%."
-            </p>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'rgba(139, 92, 246, 0.08)', borderRadius: '6px', border: '1px solid rgba(139, 92, 246, 0.2)', marginBottom: '12px', fontSize: '11.5px' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>RAG Readiness Factor:</span>
-              <strong style={{ color: 'var(--cyber-cyan)' }}>84% / 100%</strong>
-            </div>
-
-            <button
-              onClick={() => {
-                if (onShowToast) {
-                  onShowToast({
-                    title: 'Test Directives Loaded',
-                    message: 'Milestone 3 RAG integration tests added to active workspace.',
-                    type: 'info'
-                  });
-                }
-              }}
-              className="btn-cyber-outline"
-              style={{ width: '100%', padding: '8px', fontSize: '12px' }}
-            >
-              Review Test Suite Directives
-            </button>
-          </div>
-
-          {/* Recommended Capstones */}
-          <div className="glass-panel" style={{ padding: '20px' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>
-              RECOMMENDED CAPSTONES
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-              Production blueprints calibrated for Arun's profile to maximize recruiter visibility.
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                <span className="cyber-badge badge-cyan" style={{ fontSize: '8.5px', marginBottom: '4px' }}>HIGH YIELD</span>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
-                  Distributed Vector Similarity Engine
+              {/* Recommended Capstones */}
+              <div className="glass-panel" style={{ padding: '20px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>
+                  RECOMMENDED BLUEPRINTS
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  Build a concurrent vector similarity indexer with HNSW graph indexing in C++/Rust.
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                  High-yield blueprints calibrated to maximize corporate recruiter interest.
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', fontSize: '11px' }}>
-                  <span style={{ color: 'var(--cyber-emerald)' }}>+18% Recruiter Inbound</span>
-                  <button 
-                    onClick={() => {
-                      setNewTitle('Distributed Vector Similarity Engine');
-                      setNewCategory('CLOUD & DISTRIBUTED');
-                      setNewTech('C++, Rust, HNSW, Python, Docker');
-                      setShowNewModal(true);
-                    }}
-                    style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', cursor: 'pointer', fontWeight: 600 }}
-                  >
-                    Fork Blueprint →
-                  </button>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                    <span className="cyber-badge badge-cyan" style={{ fontSize: '8.5px', marginBottom: '4px' }}>HIGH YIELD</span>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+                      Distributed Vector Similarity Engine
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Build a concurrent vector similarity indexer with HNSW graph indexing in C++/Rust.
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', fontSize: '11px' }}>
+                      <span style={{ color: 'var(--cyber-emerald)' }}>+18% Recruiter Inbound</span>
+                      <button
+                        onClick={() => setShowCreateModal(true)}
+                        style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', cursor: 'pointer', fontWeight: 600 }}
+                      >
+                        Fork Blueprint →
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                    <span className="cyber-badge badge-emerald" style={{ fontSize: '8.5px', marginBottom: '4px' }}>FINTECH STANDARD</span>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+                      Real-Time Financial Fraud Stream
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Kafka streaming consumer paired with an isolation forest model detecting anomalies.
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', fontSize: '11px' }}>
+                      <span style={{ color: 'var(--cyber-emerald)' }}>+15% Recruiter Inbound</span>
+                      <button
+                        onClick={() => setShowCreateModal(true)}
+                        style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', cursor: 'pointer', fontWeight: 600 }}
+                      >
+                        Fork Blueprint →
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                <span className="cyber-badge badge-emerald" style={{ fontSize: '8.5px', marginBottom: '4px' }}>FINTECH STANDARD</span>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
-                  Real-Time Financial Fraud Stream
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  Kafka streaming consumer paired with an isolation forest model detecting anomalies.
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', fontSize: '11px' }}>
-                  <span style={{ color: 'var(--cyber-emerald)' }}>+15% Recruiter Inbound</span>
-                  <button 
-                    onClick={() => {
-                      setNewTitle('Real-Time Financial Fraud Stream');
-                      setNewCategory('DATA SCIENCE & BI');
-                      setNewTech('Kafka, Python, Isolation Forest, Redis, Docker');
-                      setShowNewModal(true);
-                    }}
-                    style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', cursor: 'pointer', fontWeight: 600 }}
-                  >
-                    Fork Blueprint →
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Share Evidence Dossier Button */}
-          <button
-            onClick={() => {
-              if (onShowToast) {
-                onShowToast({
-                  title: 'Evidence Dossier Exported',
-                  message: 'Public authenticated dossier link copied to clipboard.',
-                  type: 'success'
-                });
-              }
-            }}
-            className="btn-cyber-outline"
-            style={{ width: '100%', padding: '10px', fontSize: '12.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-          >
-            <Share2 size={14} color="var(--cyber-cyan)" />
-            <span>Share Evidence Dossier</span>
-          </button>
-        </div>
-      </div>
-
-      {/* New Project Modal */}
-      {showNewModal && (
-        <div className="modal-backdrop" onClick={() => setShowNewModal(false)}>
-          <div className="modal-content-box" style={{ padding: '24px' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Initialize New Project & Cloud Sandbox
-              </h3>
-              <button onClick={() => setShowNewModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                <X size={18} />
+              {/* Share Evidence Dossier Button */}
+              <button
+                onClick={() => {
+                  if (onShowToast) {
+                    onShowToast({
+                      title: 'Evidence Dossier Exported',
+                      message: 'Public authenticated dossier link copied to clipboard.',
+                      type: 'success'
+                    });
+                  }
+                }}
+                className="btn-cyber-outline"
+                style={{ width: '100%', padding: '10px', fontSize: '12.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              >
+                <Share2 size={14} color="var(--cyber-cyan)" />
+                <span>Share Evidence Dossier</span>
               </button>
             </div>
-
-            <form onSubmit={handleCreateProject} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  PROJECT TITLE
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Distributed Vector Similarity Engine"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '10px 14px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  CATEGORY
-                </label>
-                <select
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }}
-                >
-                  <option>GENERATIVE AI & LLMOPS</option>
-                  <option>DATA SCIENCE & BI</option>
-                  <option>AGENTIC AI & QUANT</option>
-                  <option>FRONTEND & FULL STACK</option>
-                  <option>CLOUD & DISTRIBUTED</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  TECH STACK (COMMA SEPARATED)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Python, FastAPI, Docker, ChromaDB"
-                  value={newTech}
-                  onChange={(e) => setNewTech(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }}
-                />
-              </div>
-
-              <button type="submit" className="btn-cyber-primary" style={{ marginTop: '8px', padding: '11px' }}>
-                Create & Launch Cloud Sandbox
-              </button>
-            </form>
           </div>
+        </>
+      ) : (
+        /* Activity Timeline Tab */
+        <div style={{ maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {activityFeed.length === 0 ? (
+            <div className="glass-panel" style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              <Activity size={36} style={{ opacity: 0.3, margin: '0 auto 10px' }} />
+              <p style={{ margin: 0, fontSize: '13px' }}>No recorded activity events yet.</p>
+            </div>
+          ) : (
+            activityFeed.map((evt, idx) => (
+              <div
+                key={evt.id || idx}
+                className="glass-panel"
+                style={{
+                  padding: '16px 20px', display: 'flex', justifyContent: 'space-between',
+                  alignItems: 'center', gap: '14px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <div style={{
+                    width: '32px', height: '32px', borderRadius: '8px',
+                    background: evt.type.includes('VERIFIED') ? 'rgba(16, 185, 129, 0.12)' : 'rgba(0, 242, 254, 0.12)',
+                    color: evt.type.includes('VERIFIED') ? 'var(--cyber-emerald)' : 'var(--cyber-cyan)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                  }}>
+                    {evt.type.includes('VERIFIED') ? <ShieldCheck size={16} /> : <GitBranch size={16} />}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {evt.title}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      {evt.description}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
+                    {evt.timestamp ? new Date(evt.timestamp).toLocaleDateString() : 'Recent'}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
+
+      {/* Project Detail Modal */}
+      {selectedProjectId && (
+        <ProjectDetailModal
+          projectId={selectedProjectId}
+          isOpen={Boolean(selectedProjectId)}
+          onClose={() => setSelectedProjectId(null)}
+          onShowToast={onShowToast}
+          onProjectUpdated={fetchProjectData}
+        />
+      )}
+
+      {/* Project Create Modal */}
+      <ProjectCreateModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onShowToast={onShowToast}
+        onProjectCreated={fetchProjectData}
+      />
     </div>
   );
 }

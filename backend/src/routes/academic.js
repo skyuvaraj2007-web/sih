@@ -18,6 +18,25 @@ function verifyInstitution(req, res, next) {
   next();
 }
 
+// ---------- Dashboard Stats ----------
+router.get('/dashboard-stats', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const students = await relationalManager.getStudents(req.institutionId);
+    const skills = await relationalManager.getInstitutionSkills(req.institutionId);
+    res.json({
+      success: true,
+      data: {
+        totalStudents: students.length,
+        totalSkills: skills.length,
+        activeLearners: students.length,
+        placementRate: 85
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ---------- Students ----------
 router.get('/students', requireAuth, verifyInstitution, async (req, res) => {
   try {
@@ -114,7 +133,8 @@ router.put('/skills/:id', requireAuth, verifyInstitution, async (req, res) => {
       data: saved
     });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    const status = err.message.includes('Unauthorized') ? 403 : 400;
+    res.status(status).json({ success: false, message: err.message });
   }
 });
 
@@ -209,6 +229,32 @@ router.get('/skill-analytics/:skillId', requireAuth, verifyInstitution, async (r
   }
 });
 
+// ---------- Skill Intelligence & Enrolled Students ----------
+router.get('/skills/:skillId/students', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const skill = await relationalManager.getSkillById(req.params.skillId);
+    if (!skill) return res.status(404).json({ success: false, message: 'Skill not found' });
+    if (String(skill.institutionId).toUpperCase() !== String(req.institutionId).toUpperCase()) {
+      return res.status(403).json({ success: false, message: 'Unauthorized: You cannot access students for another institution\'s skill' });
+    }
+    const students = await relationalManager.getInstitutionSkillStudents(req.params.skillId, req.institutionId);
+    res.json({ success: true, data: students, count: students.length });
+  } catch (err) {
+    const status = err.message.includes('Unauthorized') ? 403 : err.message.includes('not found') ? 404 : 500;
+    res.status(status).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/skills/:skillId/intelligence', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const analytics = await relationalManager.getInstitutionSkillAnalytics(req.params.skillId, req.institutionId);
+    res.json({ success: true, data: analytics });
+  } catch (err) {
+    const status = err.message.includes('Unauthorized') ? 403 : err.message.includes('not found') ? 404 : 500;
+    res.status(status).json({ success: false, message: err.message });
+  }
+});
+
 // ---------- Readiness ----------
 router.get('/readiness', requireAuth, verifyInstitution, async (req, res) => {
   try {
@@ -236,6 +282,98 @@ router.get('/analytics', requireAuth, verifyInstitution, async (req, res) => {
   try {
     const analytics = await relationalManager.getInstitutionAnalytics(req.institutionId);
     res.json({ success: true, data: analytics });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ---------- Communication Skill Intelligence ----------
+router.get('/communication-analytics', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    // Only mapped students for this institution
+    const students = await relationalManager.getStudents(req.institutionId);
+    const mappedStudents = Array.isArray(students) ? students : [];
+
+    // Filter students with actual recorded communication activities
+    const activeStudents = mappedStudents.filter(s => {
+      const comm = s.communication;
+      return comm && Array.isArray(comm.activities) && comm.activities.length > 0;
+    });
+
+    const totalActive = activeStudents.length;
+
+    // Calculate averages across active students
+    let avgOverall = 0;
+    let avgVocab = 0;
+    let avgGrammar = 0;
+    let avgReading = 0;
+    let avgListening = 0;
+    let avgSpeaking = 0;
+    let avgConversation = 0;
+
+    const distribution = {
+      beginner: 0,     // < 40%
+      developing: 0,   // 40% - 69%
+      intermediate: 0, // 70% - 84%
+      advanced: 0      // 85% - 100%
+    };
+
+    if (totalActive > 0) {
+      let sumOverall = 0;
+      let sumVocab = 0;
+      let sumGrammar = 0;
+      let sumReading = 0;
+      let sumListening = 0;
+      let sumSpeaking = 0;
+      let sumConversation = 0;
+
+      activeStudents.forEach(s => {
+        const c = s.communication || {};
+        const cats = c.categories || {};
+        const overall = Number(c.overallScore) || 0;
+
+        sumOverall += overall;
+        sumVocab += Number(cats.vocabulary?.score ?? cats.vocabulary ?? 0);
+        sumGrammar += Number(cats.grammar?.score ?? cats.grammar ?? 0);
+        sumReading += Number(cats.reading?.score ?? cats.reading ?? 0);
+        sumListening += Number(cats.listening?.score ?? cats.listening ?? 0);
+        sumSpeaking += Number(cats.speaking?.score ?? cats.speaking ?? 0);
+        sumConversation += Number(cats.conversation?.score ?? cats.conversation ?? 0);
+
+        if (overall >= 85) distribution.advanced++;
+        else if (overall >= 70) distribution.intermediate++;
+        else if (overall >= 40) distribution.developing++;
+        else distribution.beginner++;
+      });
+
+      avgOverall = Math.round(sumOverall / totalActive);
+      avgVocab = Math.round(sumVocab / totalActive);
+      avgGrammar = Math.round(sumGrammar / totalActive);
+      avgReading = Math.round(sumReading / totalActive);
+      avgListening = Math.round(sumListening / totalActive);
+      avgSpeaking = Math.round(sumSpeaking / totalActive);
+      avgConversation = Math.round(sumConversation / totalActive);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        institutionId: req.institutionId,
+        totalMappedStudents: mappedStudents.length,
+        activeCommunicationStudents: totalActive,
+        participationRate: mappedStudents.length > 0 ? Math.round((totalActive / mappedStudents.length) * 100) : 0,
+        averageCommunicationSkill: avgOverall,
+        categories: {
+          vocabulary: avgVocab,
+          grammar: avgGrammar,
+          reading: avgReading,
+          listening: avgListening,
+          speaking: avgSpeaking,
+          conversation: avgConversation
+        },
+        distribution
+      }
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -608,6 +746,219 @@ router.post('/course-certificates/:id/reject', requireAuth, verifyInstitution, a
     res.json({ success: true, data: result });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ---------- Student Certificate Verification Workspace ----------
+router.get('/certificates', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const result = await relationalManager.getInstitutionCertificates(req.institutionId, req.query);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/certificates/analytics', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const analytics = await relationalManager.getInstitutionCertificateAnalytics(req.institutionId);
+    res.json({ success: true, data: analytics });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/certificates/:id', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const cert = await relationalManager.getInstitutionCertificateById(req.institutionId, req.params.id);
+    const student = await relationalManager.getStudentById(cert.studentId);
+    res.json({
+      success: true,
+      data: {
+        ...cert,
+        studentDetails: student ? {
+          name: student.name,
+          email: student.email,
+          regNo: student.regNo || student.registerNumber,
+          department: student.department,
+          year: student.year,
+          readinessScore: student.readinessScore || student.careerReadinessScore || 0
+        } : null,
+        viewUrl: `/api/certificates/${cert.id}/view`,
+        downloadUrl: `/api/certificates/${cert.id}/download`
+      }
+    });
+  } catch (err) {
+    const status = err.message.includes('not found') ? 404 : 403;
+    res.status(status).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/certificates/:id/verify', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const reviewerInfo = {
+      id: req.user?.id,
+      name: req.user?.name || req.user?.email || 'Institution Reviewer',
+      email: req.user?.email
+    };
+    const verified = await relationalManager.verifyStudentCertificate(req.institutionId, req.params.id, reviewerInfo);
+    res.json({
+      success: true,
+      message: 'Certificate successfully verified and associated with student verified skills.',
+      data: verified
+    });
+  } catch (err) {
+    const status = err.message.includes('Unauthorized') ? 403 : err.message.includes('not found') ? 404 : 400;
+    res.status(status).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/certificates/:id/reject', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const { reason, notes, rejectionReason } = req.body || {};
+    const finalReason = rejectionReason || reason || notes;
+    if (!finalReason || !String(finalReason).trim()) {
+      return res.status(400).json({ success: false, message: 'Rejection reason is mandatory.' });
+    }
+    const reviewerInfo = {
+      id: req.user?.id,
+      name: req.user?.name || req.user?.email || 'Institution Reviewer',
+      email: req.user?.email
+    };
+    const rejected = await relationalManager.rejectStudentCertificate(req.institutionId, req.params.id, reviewerInfo, finalReason);
+    res.json({
+      success: true,
+      message: 'Certificate rejected with feedback recorded.',
+      data: rejected
+    });
+  } catch (err) {
+    const status = err.message.includes('Unauthorized') ? 403 : err.message.includes('not found') ? 404 : 400;
+    res.status(status).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/certificates/:id/request-correction', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const { reason, notes, correctionReason } = req.body || {};
+    const finalReason = correctionReason || reason || notes;
+    if (!finalReason || !String(finalReason).trim()) {
+      return res.status(400).json({ success: false, message: 'Correction details are mandatory.' });
+    }
+    const reviewerInfo = {
+      id: req.user?.id,
+      name: req.user?.name || req.user?.email || 'Institution Reviewer',
+      email: req.user?.email
+    };
+    const updated = await relationalManager.requestCertificateCorrection(req.institutionId, req.params.id, reviewerInfo, finalReason);
+    res.json({
+      success: true,
+      message: 'Correction request dispatched to student.',
+      data: updated
+    });
+  } catch (err) {
+    const status = err.message.includes('Unauthorized') ? 403 : err.message.includes('not found') ? 404 : 400;
+    res.status(status).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/certificates/:id/review', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const reviewerInfo = {
+      id: req.user?.id,
+      name: req.user?.name || req.user?.email || 'Institution Reviewer',
+      email: req.user?.email
+    };
+    const updated = await relationalManager.reviewStudentCertificate(req.institutionId, req.params.id, reviewerInfo);
+    res.json({
+      success: true,
+      message: 'Certificate status marked as under review.',
+      data: updated
+    });
+  } catch (err) {
+    const status = err.message.includes('Unauthorized') ? 403 : err.message.includes('not found') ? 404 : 400;
+    res.status(status).json({ success: false, message: err.message });
+  }
+});
+
+// ---------- Institution Skill Gaps ----------
+router.get('/skill-gaps', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const intelligence = await relationalManager.getInstitutionSkillGapIntelligence(req.institutionId);
+    res.json({ success: true, data: intelligence });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ---------- Institution Student Project Verification (Pillars 2 & 3) ----------
+router.get('/projects/queue', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const projects = await relationalManager.getInstitutionProjects(req.institutionId, req.query);
+    res.json({ success: true, data: projects, count: projects.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/projects/analytics', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const analytics = await relationalManager.getInstitutionProjectAnalytics(req.institutionId);
+    res.json({ success: true, data: analytics });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/projects/:id/verify', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const { notes } = req.body || {};
+    const verified = await relationalManager.verifyStudentProject(req.institutionId, req.params.id, notes);
+    res.json({
+      success: true,
+      message: 'Project verified successfully by institution and linked to student skill evidence.',
+      data: verified
+    });
+  } catch (err) {
+    const status = err.message.includes('Unauthorized') ? 403 : err.message.includes('not found') ? 404 : 400;
+    res.status(status).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/projects/:id/reject', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const { reason, notes, rejectionReason } = req.body || {};
+    const finalReason = rejectionReason || reason || notes;
+    if (!finalReason || !String(finalReason).trim()) {
+      return res.status(400).json({ success: false, message: 'Rejection reason is mandatory.' });
+    }
+    const rejected = await relationalManager.rejectStudentProject(req.institutionId, req.params.id, finalReason);
+    res.json({
+      success: true,
+      message: 'Project rejected with mandatory review feedback.',
+      data: rejected
+    });
+  } catch (err) {
+    const status = err.message.includes('Unauthorized') ? 403 : err.message.includes('not found') ? 404 : 400;
+    res.status(status).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/projects/:id/request-correction', requireAuth, verifyInstitution, async (req, res) => {
+  try {
+    const { reason, notes, correctionReason } = req.body || {};
+    const finalReason = correctionReason || reason || notes;
+    if (!finalReason || !String(finalReason).trim()) {
+      return res.status(400).json({ success: false, message: 'Correction details are mandatory.' });
+    }
+    const updated = await relationalManager.requestProjectCorrection(req.institutionId, req.params.id, finalReason);
+    res.json({
+      success: true,
+      message: 'Correction request dispatched to student.',
+      data: updated
+    });
+  } catch (err) {
+    const status = err.message.includes('Unauthorized') ? 403 : err.message.includes('not found') ? 404 : 400;
+    res.status(status).json({ success: false, message: err.message });
   }
 });
 

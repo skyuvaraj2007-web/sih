@@ -324,6 +324,32 @@ export default function SkillDetailsModal({
                     {skill.detailedDescription}
                   </p>
                 )}
+                {skill.whyImportant && (
+                  <div style={{ marginTop: '10px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.2)', fontSize: '12.5px', color: 'var(--text-primary)' }}>
+                    <strong style={{ color: 'var(--cyber-cyan)' }}>Why this skill is important: </strong>
+                    {skill.whyImportant}
+                  </div>
+                )}
+              </div>
+
+              {/* Technologies & Related Skills */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>CORE TECHNOLOGIES & TOOLS</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {(skill.technologies || ['Python', 'VS Code', 'Git']).map((t, i) => (
+                      <span key={i} className="cyber-badge" style={{ fontSize: '11px' }}>{t}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>RELATED SKILLS</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {(skill.relatedSkills || ['Data Structures', 'Algorithms']).map((rs, i) => (
+                      <span key={i} className="cyber-badge badge-purple" style={{ fontSize: '11px' }}>{rs}</span>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* What You'll Learn */}
@@ -332,7 +358,7 @@ export default function SkillDetailsModal({
                   What You'll Learn
                 </h4>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  {skill.learningObjectives?.map((obj, i) => (
+                  {(skill.learningOutcomes || skill.learningObjectives || []).map((obj, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: 'var(--text-primary)' }}>
                       <Check size={14} color="#10B981" style={{ flexShrink: 0 }} />
                       <span>{obj}</span>
@@ -341,41 +367,72 @@ export default function SkillDetailsModal({
                 </div>
               </div>
 
-              {/* Course Structure & Schedule Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', padding: '14px', background: 'var(--bg-input)', borderRadius: '12px', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>DURATION</div>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>{skill.duration}</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>TOTAL HOURS</div>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>{skill.totalHours} Hours</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>SCHEDULE</div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>{skill.schedule?.classDays}</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>BENCHMARK</div>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#F59E0B' }}>
-                    Pass: {skill.assessment?.passingScore || 75}%
-                  </div>
-                </div>
-              </div>
-
               {/* Topics Covered */}
               <div>
                 <h4 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-heading)', margin: '0 0 8px' }}>
-                  Curriculum Modules & Topics
+                  Curriculum Topics
                 </h4>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {skill.topicsCovered?.map((topic, i) => (
+                  {(skill.topics || skill.topicsCovered || []).map((topic, i) => (
                     <span key={i} style={{ padding: '4px 10px', borderRadius: '14px', background: 'rgba(124, 58, 237, 0.08)', color: '#7C3AED', fontSize: '12px', fontWeight: 600 }}>
                       {topic}
                     </span>
                   ))}
                 </div>
               </div>
+
+              {/* Structured Modules & Learning Path */}
+              {Array.isArray(skill.modules) && skill.modules.length > 0 && (
+                <div>
+                  <h4 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-heading)', margin: '0 0 10px' }}>
+                    Structured Learning Path ({skill.modules.length} Modules)
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {skill.modules.map((mod, mIdx) => (
+                      <div key={mIdx} style={{ padding: '12px 14px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                            Module {mod.moduleNumber || mIdx + 1}: {mod.title}
+                          </span>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{mod.duration}</span>
+                        </div>
+                        <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', margin: '0 0 6px' }}>
+                          {mod.description}
+                        </p>
+                        {Array.isArray(mod.lessons) && mod.lessons.length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            {mod.lessons.map((les, lIdx) => (
+                              <span key={lIdx} style={{ fontSize: '10.5px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(0, 212, 255, 0.08)', color: 'var(--cyber-cyan)' }}>
+                                • {typeof les === 'object' ? les.title : String(les)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Practical Capstone Project */}
+              {skill.project && (
+                <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(139, 92, 246, 0.06)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--cyber-purple)', marginBottom: '4px', textTransform: 'uppercase' }}>
+                    PRACTICAL CAPSTONE PROJECT
+                  </div>
+                  <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-heading)', margin: '0 0 4px' }}>
+                    {skill.project.title || `${skill.name} Capstone`}
+                  </h4>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 8px' }}>
+                    {skill.project.description}
+                  </p>
+                  {Array.isArray(skill.project.requirements) && (
+                    <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                      <strong>Key requirements:</strong> {skill.project.requirements.join(' • ')}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Instructor & Certification */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>

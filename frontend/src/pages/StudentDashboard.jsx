@@ -4,7 +4,7 @@ import {
   ArrowRight, ExternalLink, Search, Bell, ChevronRight, ChevronLeft,
   Flame, Star, Trophy, Target, Zap, TrendingUp, CheckCircle2,
   Clock, BookMarked, FileText, Heart, Sparkles, BarChart2,
-  User, Bookmark, Eye, HelpCircle, Rocket, Code, Brain
+  User, Bookmark, Eye, HelpCircle, Rocket, Code, Brain, MessageSquare
 } from 'lucide-react';
 import { loadAssessmentStore } from '../services/assessmentStore';
 import StudentSkillQuestionnaireModal from '../components/StudentSkillQuestionnaireModal';
@@ -33,7 +33,7 @@ function CircularProgress({ size, strokeWidth, progress, color, bgColor }) {
 /* =========================================================================
    SKILL BAR COMPONENT
    ========================================================================= */
-function SkillBar({ label, value, color, isGap }) {
+function SkillBar({ label, value, color, isGap, onClick }) {
   const [animated, setAnimated] = useState(0);
   useEffect(() => {
     const timer = setTimeout(() => setAnimated(value), 200);
@@ -41,9 +41,25 @@ function SkillBar({ label, value, color, isGap }) {
   }, [value]);
 
   return (
-    <div style={{ marginBottom: '12px' }}>
+    <div
+      onClick={onClick}
+      style={{
+        marginBottom: '12px',
+        cursor: onClick ? 'pointer' : 'default',
+        padding: onClick ? '6px 8px' : '0',
+        borderRadius: onClick ? '8px' : '0',
+        transition: 'background 0.2s ease',
+        background: 'transparent'
+      }}
+      onMouseEnter={e => { if (onClick) e.currentTarget.style.background = 'rgba(139, 92, 246, 0.08)'; }}
+      onMouseLeave={e => { if (onClick) e.currentTarget.style.background = 'transparent'; }}
+      title={onClick ? `Click to launch ${label} learning module` : undefined}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-        <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>{label}</span>
+        <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {label}
+          {onClick && <span style={{ fontSize: '11px', color: '#8B5CF6', fontWeight: 700 }}>↗</span>}
+        </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ fontSize: '12px', fontWeight: 700, color: isGap ? '#FF9D4D' : color || 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
             {value}%
@@ -167,6 +183,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user }) {
   /* ---- Quick Actions ---- */
   const quickActions = [
     { icon: Award, label: 'Take Assessment', desc: 'Test your skills', page: 'assessment', color: '#3478FF', bg: 'rgba(52, 120, 255, 0.12)' },
+    { icon: MessageSquare, label: 'Communication', desc: 'Duolingo-style drills', page: 'communication', color: '#8B5CF6', bg: 'rgba(139, 92, 246, 0.12)' },
     { icon: BookOpen, label: 'Continue Learning', desc: 'Resume your course', page: 'learning', color: '#8B5CF6', bg: 'rgba(139, 92, 246, 0.12)' },
     { icon: FolderGit2, label: 'Build Project', desc: 'Get AI project ideas', page: 'projects', color: '#2FE0A1', bg: 'rgba(47, 224, 161, 0.12)' },
     { icon: Cpu, label: 'Explore Technologies', desc: "Discover what's next", page: 'advanced-tech', color: '#28D7FF', bg: 'rgba(40, 215, 255, 0.12)' },
@@ -600,7 +617,14 @@ export default function StudentDashboard({ setActivePage, onShowToast, user }) {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', padding: '10px 0' }}>
           {capabilities.map((cap, i) => (
-            <SkillBar key={i} label={cap.label} value={cap.value} color={cap.color} isGap={cap.isGap} />
+            <SkillBar
+              key={i}
+              label={cap.label}
+              value={cap.value}
+              color={cap.color}
+              isGap={cap.isGap}
+              onClick={cap.label.toLowerCase().includes('communication') ? () => setActivePage('communication') : undefined}
+            />
           ))}
         </div>
         {capabilities.every(c => c.value === 0) && (

@@ -31,6 +31,7 @@ import StudentActivation from './pages/StudentActivation';
 import StudentCollegePage from './pages/StudentCollegePage';
 import OtpVerificationPage from './pages/OtpVerificationPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import CommunicationLearning from './pages/CommunicationLearning';
 
 // ════════════════════════════════════════════════════════════════
 // URL SYNCHRONIZATION & ROLE NORMALIZATION UTILITIES
@@ -71,6 +72,7 @@ export const pageToPath = (page, role, tab = 'dashboard') => {
     if (page === 'enroll') return '/student/enroll';
     if (page === 'advanced-tech') return '/student/advanced-tech';
     if (page === 'advanced-tech-deepdive') return '/student/advanced-tech-deepdive';
+    if (page === 'communication') return '/student/communication';
     return '/student/home';
   }
 
@@ -188,6 +190,7 @@ export const resolvePath = (pathname, currentUser) => {
     if (path === '/student/enroll') return { page: 'enroll' };
     if (path === '/student/advanced-tech') return { page: 'advanced-tech' };
     if (path === '/student/advanced-tech-deepdive') return { page: 'advanced-tech-deepdive' };
+    if (path === '/student/communication' || path === '/communication') return { page: 'communication' };
     return { page: 'home' };
   }
 
@@ -762,6 +765,9 @@ export default function App() {
               )}
               {activePage === 'enroll' && (
                 <CourseEnrollment setActivePage={navigateGuarded} onShowToast={showToast} user={user} />
+              )}
+              {activePage === 'communication' && (
+                <CommunicationLearning setActivePage={navigateGuarded} user={user} onShowToast={showToast} />
               )}
               {activePage === 'projects' && (
                 <MyProjects onShowToast={showToast} user={user} />

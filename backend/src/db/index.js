@@ -20,7 +20,17 @@ class Database {
     this.filePath = DB_FILE;
   }
 
+  _ensurePgRuntime(action = 'access') {
+    if (String(process.env.POSTGRESQL_REQUIRED || '').toLowerCase() === 'true') {
+      const err = new Error(`DATABASE ERROR: PostgreSQL is mandatory (POSTGRESQL_REQUIRED=true). Legacy db.json ${action} is strictly disabled.`);
+      err.code = 'POSTGRESQL_REQUIRED';
+      throw err;
+    }
+    return true;
+  }
+
   _read() {
+    this._ensurePgRuntime('read');
     try {
       const content = fs.readFileSync(this.filePath, 'utf-8');
       return JSON.parse(content);
@@ -32,6 +42,7 @@ class Database {
   }
 
   _write(data) {
+    this._ensurePgRuntime('write');
     fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2), 'utf-8');
   }
 

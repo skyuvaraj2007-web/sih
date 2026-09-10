@@ -14,7 +14,8 @@ import {
   UserPlus,
   History,
   Mail,
-  Power
+  Power,
+  MessageSquare
 } from 'lucide-react';
 import { getStudentProjects, getStudentEnrollments } from '../../services/nexusDataStore';
 import { academicService } from '../../services/academicService';
@@ -476,6 +477,7 @@ export default function InstitutionStudentDetails({ onShowToast, institution }) 
             <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
               {[
                 { id: 'overview', label: 'Academic & 4-Point Verification' },
+                { id: 'communication', label: `Communication (${selectedStudent.communication?.overallScore ?? selectedStudent.capabilities?.communication ?? 0}%)` },
                 { id: 'skills', label: `Verified Skills (${(selectedStudent.skills || []).length})` },
                 { id: 'projects', label: `Projects & Proofs (${selectedProjects.length})` },
                 { id: 'courses', label: `Learning (${selectedEnrollments.length})` }
@@ -664,6 +666,137 @@ export default function InstitutionStudentDetails({ onShowToast, institution }) 
                     </div>
                   ))
                 )}
+              </div>
+            )}
+
+            {/* TAB CONTENT: Communication Skills */}
+            {activeDossierTab === 'communication' && (
+              <div>
+                {(() => {
+                  const comm = selectedStudent.communication || {};
+                  const cats = comm.categories || {};
+                  const overall = Number(comm.overallScore ?? selectedStudent.capabilities?.communication ?? 0);
+                  const activities = Array.isArray(comm.activities) ? comm.activities : [];
+                  const latestAct = activities.length > 0 ? activities[activities.length - 1] : null;
+
+                  return (
+                    <div>
+                      {/* Top Metric Header */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '20px', textAlign: 'center' }}>
+                        <div style={{ padding: '14px', background: 'rgba(139,92,246,0.08)', borderRadius: '8px', border: '1px solid rgba(139,92,246,0.25)' }}>
+                          <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>OVERALL SKILL</div>
+                          <div style={{ fontSize: '22px', fontWeight: 800, color: '#8B5CF6', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>{overall}%</div>
+                          <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>Level {comm.level || 1}</div>
+                        </div>
+                        <div style={{ padding: '14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                          <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>LESSONS COMPLETED</div>
+                          <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--cyber-cyan)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                            {activities.filter(a => a.completion).length}
+                          </div>
+                          <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>{activities.length} Attempts</div>
+                        </div>
+                        <div style={{ padding: '14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                          <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>LATEST SCORE</div>
+                          <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--cyber-emerald)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                            {latestAct ? `${latestAct.score}%` : '0%'}
+                          </div>
+                          <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>{latestAct ? `${latestAct.accuracy}% Acc` : 'No tests'}</div>
+                        </div>
+                        <div style={{ padding: '14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                          <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>ACTIVE STREAK</div>
+                          <div style={{ fontSize: '22px', fontWeight: 800, color: '#FF9D4D', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                            {comm.streak || 0}d
+                          </div>
+                          <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>{comm.xp || 0} XP Total</div>
+                        </div>
+                      </div>
+
+                      {/* 6 Category Sub-Skills Breakdown */}
+                      <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
+                        Communication Sub-Capability Breakdown
+                      </h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
+                        {[
+                          { key: 'vocabulary', label: 'Vocabulary & Lexicon', color: 'var(--cyber-cyan)' },
+                          { key: 'grammar', label: 'Grammar & Syntax', color: '#8B5CF6' },
+                          { key: 'reading', label: 'Reading Comprehension', color: '#3B82F6' },
+                          { key: 'listening', label: 'Listening Comprehension', color: '#FF9D4D' },
+                          { key: 'speaking', label: 'Speaking & Articulation', color: 'var(--cyber-emerald)' },
+                          { key: 'conversation', label: 'Workplace Conversation', color: '#EC4899' }
+                        ].map(cat => {
+                          const val = Number(cats[cat.key]?.score ?? cats[cat.key] ?? 0);
+                          return (
+                            <div key={cat.key} style={{ padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', marginBottom: '4px' }}>
+                                <span style={{ color: 'var(--text-secondary)' }}>{cat.label}</span>
+                                <span style={{ fontWeight: 700, color: cat.color, fontFamily: 'var(--font-mono)' }}>{val}%</span>
+                              </div>
+                              <div style={{ height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden' }}>
+                                <div style={{ width: `${val}%`, height: '100%', background: cat.color, borderRadius: '3px', transition: 'width 0.3s ease' }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Strengths & Improvement Areas */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+                        <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(46, 224, 161, 0.05)', border: '1px solid rgba(46, 224, 161, 0.2)' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--cyber-emerald)', textTransform: 'uppercase', marginBottom: '6px' }}>
+                            ✓ Validated Strengths
+                          </div>
+                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            {comm.strengths && comm.strengths.length > 0
+                              ? comm.strengths.join(', ')
+                              : overall >= 60 ? 'Strong baseline verbal foundation' : 'None established yet (score ≥60% needed)'}
+                          </div>
+                        </div>
+                        <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255, 157, 77, 0.05)', border: '1px solid rgba(255, 157, 77, 0.2)' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: '#FF9D4D', textTransform: 'uppercase', marginBottom: '6px' }}>
+                            • Improvement Priorities
+                          </div>
+                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            {comm.areasToImprove && comm.areasToImprove.length > 0
+                              ? comm.areasToImprove.join(', ')
+                              : 'Practice interview and speaking drills to elevate proficiency.'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Practice Activity History */}
+                      <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
+                        Recent Practice Activity
+                      </h4>
+                      {activities.length === 0 ? (
+                        <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px', border: '1px dashed var(--border-subtle)', borderRadius: '6px' }}>
+                          No recorded communication activity for this student yet.
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {activities.slice(-3).reverse().map((act, i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)' }}>
+                              <div>
+                                <span className="cyber-badge badge-blue" style={{ fontSize: '9px', textTransform: 'uppercase', marginRight: '8px' }}>
+                                  {act.category}
+                                </span>
+                                <span style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 600 }}>{act.lessonId}</span>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                  {new Date(act.completedAt).toLocaleString()}
+                                </div>
+                              </div>
+                              <div style={{ textAlign: 'right' }}>
+                                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--cyber-emerald)', fontFamily: 'var(--font-mono)' }}>
+                                  {act.score}% Score
+                                </span>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{act.accuracy}% Accuracy</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             )}
 

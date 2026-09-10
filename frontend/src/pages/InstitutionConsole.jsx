@@ -43,6 +43,8 @@ import InstitutionSetupWizard from '../components/institution/InstitutionSetupWi
 import InstitutionAssessmentTests from '../components/institution/InstitutionAssessmentTests';
 import InstitutionIndustryRequests from '../components/institution/InstitutionIndustryRequests';
 import InstitutionCourseCertificates from '../components/institution/InstitutionCourseCertificates';
+import InstitutionCertificateVerification from '../components/institution/InstitutionCertificateVerification';
+import InstitutionProjectVerification from '../components/institution/InstitutionProjectVerification';
 import { academicService } from '../services/academicService';
 
 export default function InstitutionConsole({ setActivePage, activePage, user, onShowToast, onLogout }) {
@@ -65,9 +67,12 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
       case 'institution-skill-mapping':
       case 'institution-skill-gap':
         return 'skill-gap';
+      case 'institution-projects':
+        return 'project-verification';
+      case 'institution-certificates':
+        return 'certificate-verification';
       case 'institution-course-certificates':
         return 'course-certificates';
-      case 'institution-certificates':
       case 'institution-proofs':
         return 'proofs';
       case 'institution-company-directory':
@@ -233,12 +238,17 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
       ];
     }
     // 2. Learning Workspace
-    if (['institution-courses', 'institution-course-certificates', 'institution-skill-mapping', 'institution-certificates', 'institution-proofs'].includes(activePage)) {
+    if (['institution-courses', 'institution-skill-mapping'].includes(activePage)) {
       return [
         { id: 'institution-courses', label: 'Course Management', icon: BookOpen },
-        { id: 'institution-course-certificates', label: 'Certificate Verification', icon: Award },
-        { id: 'institution-skill-mapping', label: 'Skill Mapping', icon: Brain },
-        { id: 'institution-proofs', label: 'Verifiable Badges & Proofs', icon: ShieldCheck }
+        { id: 'institution-skill-mapping', label: 'Skill Mapping', icon: Brain }
+      ];
+    }
+    // 2b. Certificate Verification Workspace
+    if (['institution-certificates', 'institution-course-certificates', 'institution-proofs'].includes(activePage)) {
+      return [
+        { id: 'institution-certificates', label: 'Student Certificates', icon: Award },
+        { id: 'institution-course-certificates', label: 'Company Course Certificates', icon: ShieldCheck }
       ];
     }
     // 3. Companies Workspace
@@ -451,9 +461,19 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
         <InstitutionIndustryRequests onShowToast={onShowToast} />
       )}
 
-      {/* ── 14. COURSE CERTIFICATES VERIFICATION VIEW ── */}
+      {/* ── 14. STUDENT CERTIFICATE VERIFICATION VIEW ── */}
+      {currentView === 'certificate-verification' && (
+        <InstitutionCertificateVerification onShowToast={onShowToast} />
+      )}
+
+      {/* ── 15. COURSE CERTIFICATES VERIFICATION VIEW ── */}
       {currentView === 'course-certificates' && (
         <InstitutionCourseCertificates onShowToast={onShowToast} />
+      )}
+
+      {/* ── 16. STUDENT PROJECT VERIFICATION VIEW ── */}
+      {currentView === 'project-verification' && (
+        <InstitutionProjectVerification onShowToast={onShowToast} />
       )}
 
       {/* Master Directory Inspector Modal */}

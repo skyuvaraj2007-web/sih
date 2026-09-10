@@ -135,12 +135,11 @@ router.post('/:id/apply', requireAuth, async (req, res) => {
     const oppId = opp.oppId || opp.id || req.params.id;
 
     // Prevent duplicate applications: UNIQUE(student_id, opportunity_id)
-    const data = relationalManager._read();
-    const existing = (data.applications || []).find(a =>
-      (a.studentId === studentId || (student && a.studentId === student.studentId)) &&
-      (a.opportunityId === oppId || a.opportunityId === req.params.id)
-    );
-    if (existing) {
+    const existingApps = await relationalManager.getApplications({
+      studentId: student?.id || studentId,
+      opportunityId: oppId
+    });
+    if (existingApps && existingApps.length > 0) {
       return res.status(409).json({
         success: false,
         message: 'Conflict: You have already applied for this opportunity.'

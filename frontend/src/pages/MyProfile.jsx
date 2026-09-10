@@ -36,7 +36,9 @@ import {
   Hash,
   Target,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  MessageSquare,
+  Flame
 } from 'lucide-react';
 import { loadStudentProfile, saveStudentProfile, calculateProfileCompletion } from '../services/profileStore';
 import { normalizeRole } from '../services/notificationStore';
@@ -95,6 +97,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
   const [applications, setApplications] = useState([]);
   const [certificates, setCertificates] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [commProfile, setCommProfile] = useState(null);
 
   const currentRole = normalizeRole(user?.role);
   const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
@@ -106,11 +109,12 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
     const opts = { headers, credentials: 'include' };
 
     try {
-      const [profRes, docRes, statsRes, appRes] = await Promise.allSettled([
+      const [profRes, docRes, statsRes, appRes, commRes] = await Promise.allSettled([
         fetch(`${apiBase}/students/profile`, opts),
         fetch(`${apiBase}/students/documents`, opts),
         fetch(`${apiBase}/students/dashboard`, opts),
-        fetch(`${apiBase}/students/applications`, opts)
+        fetch(`${apiBase}/students/applications`, opts),
+        fetch(`${apiBase}/communication/profile`, opts)
       ]);
 
       // Profile
@@ -158,6 +162,12 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
       if (docRes.status === 'fulfilled' && docRes.value.ok) {
         const json = await docRes.value.json();
         if (json.data) setDocuments(json.data);
+      }
+
+      // Communication Telemetry
+      if (commRes && commRes.status === 'fulfilled' && commRes.value.ok) {
+        const json = await commRes.value.json();
+        if (json.success && json.data) setCommProfile(json.data);
       }
 
       // Dashboard stats (projects, enrollments, etc.)
@@ -780,6 +790,92 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
               )}
             </SectionCard>
           </div>
+
+          {/* Row 3.5: Communication & Verbal Intelligence */}
+          <SectionCard
+            icon={MessageSquare}
+            iconColor="#8B5CF6"
+            title="Communication & Verbal Intelligence"
+            rightAction={
+              <button
+                onClick={() => setActivePage('communication')}
+                style={{ background: 'none', border: 'none', color: '#8B5CF6', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                Launch Communication Module →
+              </button>
+            }
+          >
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', alignItems: 'center' }}>
+
+              {/* Overall Score + Level */}
+              <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(139, 92, 246, 0.06)', border: '1px solid rgba(139, 92, 246, 0.2)', textAlign: 'center' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OVERALL PROFICIENCY</div>
+                <div style={{ fontSize: '32px', fontWeight: 800, color: '#8B5CF6', fontFamily: 'var(--font-mono)', margin: '4px 0' }}>
+                  {commProfile?.overallScore || 0}%
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '6px' }}>
+                  <span className="cyber-badge badge-purple" style={{ fontSize: '10px' }}>
+                    LEVEL {commProfile?.level || 1}
+                  </span>
+                  <span className="cyber-badge badge-amber" style={{ fontSize: '10px' }}>
+                    🔥 {commProfile?.streak || 0}d Streak
+                  </span>
+                  <span className="cyber-badge badge-blue" style={{ fontSize: '10px' }}>
+                    ⚡ {commProfile?.xp || 0} XP
+                  </span>
+                </div>
+              </div>
+
+              {/* 6 Category Bars */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                {[
+                  { key: 'vocabulary', label: 'Vocabulary', color: 'var(--cyber-cyan)' },
+                  { key: 'grammar', label: 'Grammar', color: '#8B5CF6' },
+                  { key: 'reading', label: 'Reading', color: '#3B82F6' },
+                  { key: 'listening', label: 'Listening', color: '#FF9D4D' },
+                  { key: 'speaking', label: 'Speaking', color: 'var(--cyber-emerald)' },
+                  { key: 'conversation', label: 'Conversation', color: '#EC4899' }
+                ].map(cat => {
+                  const val = commProfile?.categories?.[cat.key] || 0;
+                  return (
+                    <div key={cat.key} style={{ padding: '8px 10px', borderRadius: '6px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>{cat.label}</span>
+                        <span style={{ fontWeight: 700, color: cat.color, fontFamily: 'var(--font-mono)' }}>{val}%</span>
+                      </div>
+                      <div style={{ height: '5px', borderRadius: '3px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                        <div style={{ width: `${val}%`, height: '100%', background: cat.color, borderRadius: '3px', transition: 'width 0.3s ease' }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Strengths & Improvement Areas */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'var(--cyber-emerald)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+                    Validated Strengths:
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    {commProfile?.strengths?.length > 0 ? commProfile.strengths.join(', ') : 'None established yet (score ≥60% needed)'}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: '#FF9D4D', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+                    Focus Areas:
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    {commProfile?.areasToImprove?.length > 0 ? commProfile.areasToImprove.join(', ') : 'All categories baseline'}
+                  </div>
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  Completed Lessons: <strong style={{ color: '#fff' }}>{commProfile?.completedLessonsCount || 0}</strong>
+                </div>
+              </div>
+
+            </div>
+          </SectionCard>
 
           {/* Row 4: Projects + Certificates */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>

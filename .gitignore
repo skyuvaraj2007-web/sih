@@ -5,3 +5,7 @@ node_modules/
 *.log
 dist/
 .system_generated/
+
+backend/uploads/documents/
+
+backend/data/

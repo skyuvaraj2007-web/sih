@@ -28,13 +28,13 @@ console.log('================================================================');
 console.log('      SKILLNEXUS POSTGRESQL DATA MIGRATION ENGINE (PHASE 2.2)   ');
 console.log('================================================================');
 console.log(`Execution Mode: ${IS_DRY_RUN ? 'DRY-RUN (NO CHANGES APPLIED)' : IS_VALIDATE_ONLY ? 'VALIDATE-ONLY' : 'TRANSACTIONAL EXECUTION'}`);
-console.log(`Target Database: ${process.env.PGDATABASE || 'skillnexus_db'} on ${process.env.PGHOST || 'localhost'}:${process.env.PGPORT || 5432}`);
+console.log(`Target Database: ${process.env.DATABASE_URL ? 'PostgreSQL (via DATABASE_URL)' : (process.env.PGDATABASE || 'skillnexus_db') + ' on ' + (process.env.PGHOST || 'localhost') + ':' + (process.env.PGPORT || 5432)}`);
 console.log('----------------------------------------------------------------\n');
 
 // 1. DATA SOURCE LOADERS
 function loadDataSources() {
   console.log('[1/14] Loading source datasets...');
-  
+
   // A. Relational DB
   const relDbPath = path.resolve(__dirname, '../../data/relational_db.json');
   const relDb = JSON.parse(fs.readFileSync(relDbPath, 'utf8'));
@@ -58,6 +58,7 @@ function loadDataSources() {
   const asContent = fs.readFileSync(asPath, 'utf8');
   const cleanedAs = asContent
     .replace(/import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g, '')
+    .replace(/import\.meta(?:\.env)?(?:\.[a-zA-Z0-9_$]+)?/g, 'undefined')
     .replace(/export\s+default\s+/g, '')
     .replace(/export\s+const\s+QUESTION_BANKS\s*=/, 'const QUESTION_BANKS =')
     .replace(/export\s+/g, '');
@@ -88,16 +89,23 @@ function recordMigration(table, sourceCount, migratedCount, failedCount = 0) {
 }
 
 async function runMigration() {
-  const client = new Client({
-    host: process.env.PGHOST || 'localhost',
-    port: parseInt(process.env.PGPORT || '5432', 10),
-    user: process.env.PGUSER || 'postgres',
-    password: process.env.PGPASSWORD || '#9942891197@Rudra',
-    database: process.env.PGDATABASE || 'skillnexus_db'
-  });
+  const clientConfig = process.env.DATABASE_URL
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
+      }
+    : {
+        host: process.env.PGHOST || 'localhost',
+        port: parseInt(process.env.PGPORT || '5432', 10),
+        user: process.env.PGUSER || 'postgres',
+        password: process.env.PGPASSWORD || '#9942891197@Rudra',
+        database: process.env.PGDATABASE || 'skillnexus_db'
+      };
+
+  const client = new Client(clientConfig);
 
   await client.connect();
-  console.log('✓ Successfully connected to PostgreSQL skillnexus_db\n');
+  console.log('✓ Successfully connected to PostgreSQL database\n');
 
   if (IS_VALIDATE_ONLY) {
     console.log('VALIDATE-ONLY mode requested. Validating current database state...');
@@ -133,7 +141,7 @@ async function runMigration() {
         ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name
         RETURNING id, code
       `, [id, r.code, r.name, r.description]);
-      
+
       const res = await client.query('SELECT id FROM roles WHERE code = $1', [r.code]);
       roleMap.set(r.code, res.rows[0].id);
     }
@@ -156,14 +164,63 @@ async function runMigration() {
       });
     }
 
+    // Unify all sources: seedInstitutions + relDb.institutions
+    const unifiedInstitutions = new Map();
+
     for (const inst of seedInstitutions) {
+      const code = inst.institutionId;
+      if (!unifiedInstitutions.has(code)) {
+        unifiedInstitutions.set(code, {
+          code: code,
+          name: inst.collegeName,
+          shortName: inst.shortName || inst.collegeName.slice(0, 30),
+          district: inst.district || 'Chennai',
+          state: inst.state || 'Tamil Nadu',
+          zone: inst.zone || 'North Zone',
+          tier: inst.tier ? (typeof inst.tier === 'number' ? inst.tier : parseInt(inst.tier.replace(/\D/g, '')) || 1) : 1,
+          nirfRank: parseInt(inst.nirfRank) || 28,
+          naacGrade: inst.naacGrade || 'A++',
+          email: inst.email || `admissions@${code.toLowerCase()}.edu.in`,
+          website: inst.website || `https://www.${code.toLowerCase()}.edu.in`,
+          departments: Array.isArray(inst.departments) && inst.departments.length > 0 ? inst.departments : ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE', 'Mechanical', 'Civil', 'Robotics']
+        });
+      }
+    }
+
+    for (const inst of relDb.institutions) {
+      const code = inst.collegeCode || inst.institutionId || inst.collegeId || inst.id;
+      if (!code) continue;
+      if (!unifiedInstitutions.has(code)) {
+        const name = inst.collegeName || inst.name || inst.institutionName || code;
+        const tierInt = inst.tier ? (typeof inst.tier === 'number' ? inst.tier : parseInt(String(inst.tier).replace(/\D/g, '')) || 1) : 1;
+        const cleanTier = (tierInt >= 1 && tierInt <= 4) ? tierInt : 1;
+        unifiedInstitutions.set(code, {
+          code: code,
+          name: name,
+          shortName: inst.shortName || name.slice(0, 30),
+          district: inst.district || 'Chennai',
+          state: inst.state || 'Tamil Nadu',
+          zone: inst.zone || 'North Zone',
+          tier: cleanTier,
+          nirfRank: parseInt(inst.nirfRank) || 35,
+          naacGrade: inst.naacGrade || 'A+',
+          email: inst.email || inst.officialEmail || `admissions@${code.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'inst'}.edu.in`,
+          website: inst.website || `https://www.${code.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'inst'}.edu.in`,
+          departments: Array.isArray(inst.departments) && inst.departments.length > 0 ? inst.departments : ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE', 'Mechanical', 'Civil', 'Robotics']
+        });
+      }
+    }
+
+    const seenInstEmails = new Set();
+    for (const [code, inst] of unifiedInstitutions.entries()) {
       const instId = crypto.randomUUID();
-      // Match NIRF rank, NAAC, tier, website
-      const tierInt = inst.tier ? (typeof inst.tier === 'number' ? inst.tier : parseInt(inst.tier.replace(/\D/g, '')) || 1) : 1;
-      const cleanTier = (tierInt >= 1 && tierInt <= 4) ? tierInt : 1;
-      const nirfInt = parseInt(inst.nirfRank) || 28;
-      
-      await client.query(`
+      let uniqueEmail = inst.email.toLowerCase();
+      if (seenInstEmails.has(uniqueEmail)) {
+        uniqueEmail = `admissions_${code.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}@skillnexus.edu.in`;
+      }
+      seenInstEmails.add(uniqueEmail);
+
+      const insRes = await client.query(`
         INSERT INTO institutions (
           id, code, name, short_name, district, state, zone, tier, nirf_rank, naac_grade,
           is_autonomous, official_email, website_url, created_at, updated_at
@@ -172,25 +229,40 @@ async function runMigration() {
         RETURNING id
       `, [
         instId,
-        inst.institutionId,
-        inst.collegeName,
-        inst.shortName || inst.collegeName.slice(0, 30),
-        inst.district || 'Chennai',
-        inst.state || 'Tamil Nadu',
-        inst.zone || 'North Zone',
-        cleanTier,
-        nirfInt,
-        inst.naacGrade || 'A++',
+        code,
+        inst.name,
+        inst.shortName,
+        inst.district,
+        inst.state,
+        inst.zone,
+        inst.tier,
+        inst.nirfRank,
+        inst.naacGrade,
         true,
-        inst.email || `admissions@${inst.institutionId.toLowerCase()}.edu.in`,
-        inst.website || `https://www.${inst.institutionId.toLowerCase()}.edu.in`
+        uniqueEmail,
+        inst.website
       ]);
 
-      const res = await client.query('SELECT id FROM institutions WHERE code = $1', [inst.institutionId]);
-      instMap.set(inst.institutionId, res.rows[0].id);
+      instMap.set(code, insRes.rows[0].id);
       instMigrated++;
     }
-    recordMigration('institutions', seedInstitutions.length, instMigrated);
+
+    // Map known aliases
+    for (const inst of relDb.institutions) {
+      const primaryCode = inst.collegeCode || inst.institutionId || inst.collegeId || inst.id;
+      const targetDbId = instMap.get(primaryCode);
+      if (targetDbId) {
+        if (inst.collegeCode) instMap.set(inst.collegeCode, targetDbId);
+        if (inst.institutionId) instMap.set(inst.institutionId, targetDbId);
+        if (inst.collegeId) instMap.set(inst.collegeId, targetDbId);
+        if (inst.id) instMap.set(inst.id, targetDbId);
+      }
+    }
+    if (instMap.has('TN010')) {
+      instMap.set('60e7a0c1-e9e2-4eb5-acaa-437a9d81e436', instMap.get('TN010'));
+    }
+
+    recordMigration('institutions', unifiedInstitutions.size, instMigrated);
 
     // -------------------------------------------------------------
     // STEP 3: DEPARTMENTS MIGRATION
@@ -211,24 +283,38 @@ async function runMigration() {
       'Aerospace': 'Aerospace Engineering'
     };
 
+    const standardDeptCodes = ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE', 'Mechanical', 'Civil', 'Robotics'];
     const deptMap = new Map(); // `${instCode}_${deptCode}` -> uuid
     let deptCount = 0;
 
-    for (const inst of seedInstitutions) {
-      const instDbId = instMap.get(inst.institutionId);
-      for (const dCode of inst.departments) {
+    const deptRows = [];
+    for (const [code, inst] of unifiedInstitutions.entries()) {
+      const instDbId = instMap.get(code);
+      const allDepts = new Set([...(inst.departments || []), ...standardDeptCodes]);
+
+      for (const dCode of allDepts) {
         const dName = deptFullNameMap[dCode] || `${dCode} Engineering`;
         const deptId = crypto.randomUUID();
+        deptRows.push({ code, dCode, dName, instDbId, deptId });
+      }
+    }
 
-        await client.query(`
-          INSERT INTO departments (id, institution_id, code, name, created_at)
-          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
-          ON CONFLICT (institution_id, code) DO UPDATE SET name = EXCLUDED.name
-          RETURNING id
-        `, [deptId, instDbId, dCode, dName]);
+    const DEPT_BATCH_SIZE = 50;
+    for (let i = 0; i < deptRows.length; i += DEPT_BATCH_SIZE) {
+      const chunk = deptRows.slice(i, i + DEPT_BATCH_SIZE);
+      const valStrings = chunk.map((_, idx) => `($${idx*4+1}, $${idx*4+2}, $${idx*4+3}, $${idx*4+4}, CURRENT_TIMESTAMP)`).join(', ');
+      const params = chunk.flatMap(d => [d.deptId, d.instDbId, d.dCode, d.dName]);
+      const res = await client.query(`
+        INSERT INTO departments (id, institution_id, code, name, created_at)
+        VALUES ${valStrings}
+        ON CONFLICT (institution_id, code) DO UPDATE SET name = EXCLUDED.name
+        RETURNING id, institution_id, code
+      `, params);
 
-        const res = await client.query('SELECT id FROM departments WHERE institution_id = $1 AND code = $2', [instDbId, dCode]);
-        deptMap.set(`${inst.institutionId}_${dCode}`, res.rows[0].id);
+      for (const row of res.rows) {
+        const item = chunk.find(c => c.instDbId === row.institution_id && c.dCode === row.code);
+        if (item) deptMap.set(`${item.code}_${row.code}`, row.id);
+        deptMap.set(`${row.institution_id}_${row.code}`, row.id);
         deptCount++;
       }
     }
@@ -240,16 +326,16 @@ async function runMigration() {
     console.log('[5/14] Migrating Users & User Roles...');
     const userMap = new Map(); // email/sourceId -> uuid
     const defaultStudentPasswordHash = '$2b$10$bidafvs9ecyWGFZT1BtXVulhJpl2ERnA4ts38.aGmMhzS9UiDXsMC'; // Verified bcrypt hash
-    
+
     // Collect all unique user accounts from relational_db and students
     const userAccounts = new Map(); // email -> userData
 
-    // A. From relDb.users (11 users)
+    // A. From relDb.users
     for (const u of relDb.users) {
       userAccounts.set(u.email.toLowerCase(), {
         sourceId: u.id,
         email: u.email.toLowerCase(),
-        passwordHash: u.passwordHash,
+        passwordHash: u.passwordHash || defaultStudentPasswordHash,
         roleCode: u.role ? u.role.toUpperCase() : 'STUDENT',
         name: u.name,
         collegeId: u.collegeId,
@@ -277,42 +363,70 @@ async function runMigration() {
     let usersMigrated = 0;
     let userRolesMigrated = 0;
 
-    for (const [email, u] of userAccounts.entries()) {
-      const userId = crypto.randomUUID();
-      await client.query(`
+    const userList = Array.from(userAccounts.values()).map(u => ({
+      ...u,
+      userId: crypto.randomUUID()
+    }));
+
+    const USER_BATCH_SIZE = 50;
+    for (let i = 0; i < userList.length; i += USER_BATCH_SIZE) {
+      const chunk = userList.slice(i, i + USER_BATCH_SIZE);
+      const valStrings = chunk.map((_, idx) => `($${idx*3+1}, $${idx*3+2}, $${idx*3+3}, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`).join(', ');
+      const params = chunk.flatMap(u => [u.userId, u.email, u.passwordHash]);
+      const res = await client.query(`
         INSERT INTO users (id, email, password_hash, is_active, created_at, updated_at)
-        VALUES ($1, $2, $3, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        VALUES ${valStrings}
         ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash
-        RETURNING id
-      `, [userId, email, u.passwordHash]);
+        RETURNING id, email
+      `, params);
 
-      const res = await client.query('SELECT id FROM users WHERE email = $1', [email]);
-      const dbUserId = res.rows[0].id;
-      userMap.set(email, dbUserId);
-      if (u.sourceId) userMap.set(u.sourceId, dbUserId);
-      usersMigrated++;
-
-      // User Role Assignment
-      const roleId = roleMap.get(u.roleCode) || roleMap.get('STUDENT');
-      const urId = crypto.randomUUID();
-      await client.query(`
-        INSERT INTO user_roles (id, user_id, role_id, granted_at)
-        VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
-        ON CONFLICT (user_id, role_id) DO NOTHING
-      `, [urId, dbUserId, roleId]);
-      userRolesMigrated++;
-
-      // If user is institution faculty / leadership, add to institution_members
-      if (u.roleCode === 'INSTITUTION' && u.collegeId && instMap.has(u.collegeId)) {
-        const memId = crypto.randomUUID();
-        const memRole = email.includes('dean') ? 'DEAN' : 'PLACEMENT_OFFICER';
-        await client.query(`
-          INSERT INTO institution_members (id, institution_id, user_id, member_role, designation, is_active, joined_at)
-          VALUES ($1, $2, $3, $4, $5, true, CURRENT_TIMESTAMP)
-          ON CONFLICT (institution_id, user_id) DO NOTHING
-        `, [memId, instMap.get(u.collegeId), dbUserId, memRole, u.name || 'Academic Administrator']);
+      for (const row of res.rows) {
+        const u = chunk.find(item => item.email === row.email);
+        const dbUserId = row.id;
+        userMap.set(row.email, dbUserId);
+        if (u && u.sourceId) userMap.set(u.sourceId, dbUserId);
+        usersMigrated++;
       }
     }
+
+    const userRoleRows = [];
+    const instMemberRows = [];
+    for (const u of userList) {
+      const dbUserId = userMap.get(u.email);
+      const roleId = roleMap.get(u.roleCode) || roleMap.get('STUDENT');
+      if (dbUserId && roleId) {
+        userRoleRows.push({ urId: crypto.randomUUID(), dbUserId, roleId });
+      }
+      if (u.roleCode === 'INSTITUTION' && u.collegeId && instMap.has(u.collegeId) && dbUserId) {
+        const memId = crypto.randomUUID();
+        const memRole = u.email.includes('dean') ? 'DEAN' : 'PLACEMENT_OFFICER';
+        instMemberRows.push({ memId, instId: instMap.get(u.collegeId), dbUserId, memRole, name: u.name || 'Academic Administrator' });
+      }
+    }
+
+    for (let i = 0; i < userRoleRows.length; i += 50) {
+      const chunk = userRoleRows.slice(i, i + 50);
+      const valStrings = chunk.map((_, idx) => `($${idx*3+1}, $${idx*3+2}, $${idx*3+3}, CURRENT_TIMESTAMP)`).join(', ');
+      const params = chunk.flatMap(ur => [ur.urId, ur.dbUserId, ur.roleId]);
+      await client.query(`
+        INSERT INTO user_roles (id, user_id, role_id, granted_at)
+        VALUES ${valStrings}
+        ON CONFLICT (user_id, role_id) DO NOTHING
+      `, params);
+      userRolesMigrated += chunk.length;
+    }
+
+    for (let i = 0; i < instMemberRows.length; i += 50) {
+      const chunk = instMemberRows.slice(i, i + 50);
+      const valStrings = chunk.map((_, idx) => `($${idx*5+1}, $${idx*5+2}, $${idx*5+3}, $${idx*5+4}, $${idx*5+5}, true, CURRENT_TIMESTAMP)`).join(', ');
+      const params = chunk.flatMap(m => [m.memId, m.instId, m.dbUserId, m.memRole, m.name]);
+      await client.query(`
+        INSERT INTO institution_members (id, institution_id, user_id, member_role, designation, is_active, joined_at)
+        VALUES ${valStrings}
+        ON CONFLICT (institution_id, user_id) DO NOTHING
+      `, params);
+    }
+
     recordMigration('users', userAccounts.size, usersMigrated);
     recordMigration('user_roles', userAccounts.size, userRolesMigrated);
 
@@ -340,19 +454,29 @@ async function runMigration() {
     }
 
     const seenCompanyNames = new Set();
+    const seenRegNums = new Set();
+    let compIdx = 0;
     for (const c of relDb.companies) {
+      compIdx++;
       const compId = crypto.randomUUID();
       let uniqueName = c.companyName;
       if (seenCompanyNames.has(uniqueName)) {
-        uniqueName = `${c.companyName} (${c.companyId})`;
+        uniqueName = `${c.companyName} (${c.companyId || compIdx})`;
         stats.transformations.push(`Renamed duplicate company "${c.companyName}" to "${uniqueName}" to preserve record`);
       }
       seenCompanyNames.add(uniqueName);
 
       const tierVal = c.tier?.includes('1') ? 1 : c.tier?.includes('2') ? 2 : 1;
-      const regNum = c.registrationNumber || `CIN-U72900TN2021PTC${c.companyId.replace(/\D/g, '').padStart(6, '0')}`;
 
-      await client.query(`
+      // Deterministic unique registration number
+      let regNum = c.registrationNumber;
+      if (!regNum || seenRegNums.has(regNum)) {
+        const cleanId = (c.companyId || `COMP${compIdx}`).replace(/[^a-zA-Z0-9]/g, '').slice(0, 10).toUpperCase();
+        regNum = `CIN-U72900TN2021PTC${cleanId}_${compIdx.toString().padStart(4, '0')}`;
+      }
+      seenRegNums.add(regNum);
+
+      const insCompRes = await client.query(`
         INSERT INTO companies (
           id, company_name, registration_number, industry, company_type, company_size,
           founded_year, website_url, headquarters, state, tier, is_verified, created_at, updated_at
@@ -373,8 +497,7 @@ async function runMigration() {
         tierVal
       ]);
 
-      const res = await client.query('SELECT id FROM companies WHERE company_name = $1', [uniqueName]);
-      const dbCompId = res.rows[0].id;
+      const dbCompId = insCompRes.rows[0].id;
       companyMap.set(c.companyId, dbCompId);
       compMigrated++;
 
@@ -525,7 +648,9 @@ async function runMigration() {
 
     function resolveSkillId(rawName) {
       if (!rawName) return null;
-      const lower = rawName.trim().toLowerCase();
+      const strName = typeof rawName === 'string' ? rawName : (rawName.name || rawName.skill || rawName.title || '');
+      if (!strName || typeof strName !== 'string') return null;
+      const lower = strName.trim().toLowerCase();
       if (skillMap.has(lower)) return skillMap.get(lower);
       if (skillAliases[lower] && skillMap.has(skillAliases[lower])) {
         return skillMap.get(skillAliases[lower]);
@@ -540,85 +665,210 @@ async function runMigration() {
     const studentMap = new Map(); // studentId -> uuid
     let studentsMigrated = 0;
     let studentSkillsMigrated = 0;
+    const studentSkillRows = [];
+
+    const deptNormMap = {
+      'cse': 'CSE',
+      'computer science and engineering': 'CSE',
+      'computer science & engineering': 'CSE',
+      'computer science': 'CSE',
+      'it': 'IT',
+      'information technology': 'IT',
+      'ai & ds': 'AI & DS',
+      'artificial intelligence & data science': 'AI & DS',
+      'artificial intelligence and data science': 'AI & DS',
+      'ece': 'ECE',
+      'electronics and communication engineering': 'ECE',
+      'eee': 'EEE',
+      'electrical and electronics engineering': 'EEE',
+      'mechanical': 'Mechanical',
+      'mechanical engineering': 'Mechanical',
+      'civil': 'Civil',
+      'civil engineering': 'Civil',
+      'robotics': 'Robotics',
+      'robotics & automation': 'Robotics',
+      'robotics and automation': 'Robotics',
+      'robotics and automation engineering': 'Robotics'
+    };
+
+    const seenStudentRolls = new Set();
+    const seenStudentUserIds = new Map(); // dbUserId -> studentDbId
+    let stuCounter = 0;
+    const studentRows = [];
+    const rollToOrigStuId = new Map(); // `${instDbId}_${rollNo}` -> s.studentId
 
     for (const s of relDb.students) {
+      stuCounter++;
       const sId = crypto.randomUUID();
       const userEmail = (s.email || `${s.studentId.toLowerCase()}@nexus.edu`).toLowerCase();
       const dbUserId = userMap.get(userEmail) || userMap.get(s.userId);
 
-      const instDbId = instMap.get(s.collegeId);
-      const deptDbId = deptMap.get(`${s.collegeId}_${s.department}`);
-
-      if (!instDbId || !deptDbId) {
-        throw new Error(`Integrity violation: Student ${s.studentId} college ${s.collegeId} or dept ${s.department} not found`);
+      if (dbUserId && seenStudentUserIds.has(dbUserId)) {
+        const existingStudentId = seenStudentUserIds.get(dbUserId);
+        stats.duplicatesDetected.push({
+          entity: 'students',
+          identifier: `${s.studentId} (${userEmail})`,
+          detail: `Student ${s.studentId} shares user_id with another student record for ${userEmail}. Merged duplicate to satisfy 1:1 user-to-student constraint.`
+        });
+        studentMap.set(s.studentId, existingStudentId);
+        continue;
+      }
+      if (dbUserId) {
+        seenStudentUserIds.set(dbUserId, sId);
       }
 
-      const rollNo = s.regNo || s.rollNo || s.studentId;
+      // Resolve institution
+      let targetCollegeCode = s.collegeId || s.institutionId || s.institutionCode || s.collegeCode;
+      if (!targetCollegeCode || !instMap.has(targetCollegeCode)) {
+        stats.transformations.push(`Mapped student ${s.studentId} from unmapped college "${targetCollegeCode}" to canonical institution TN010`);
+        targetCollegeCode = 'TN010';
+      }
+      const instDbId = instMap.get(targetCollegeCode);
+
+      // Resolve department
+      const rawDept = (s.department || s.departmentCode || s.departmentName || 'CSE').trim().toLowerCase();
+      let normDeptCode = deptNormMap[rawDept] || 'CSE';
+      let deptDbId = deptMap.get(`${instDbId}_${normDeptCode}`) || deptMap.get(`${targetCollegeCode}_${normDeptCode}`);
+      if (!deptDbId) {
+        normDeptCode = 'CSE';
+        deptDbId = deptMap.get(`${instDbId}_CSE`) || deptMap.get(`${targetCollegeCode}_CSE`) || deptMap.get(`${instMap.get('TN010')}_CSE`);
+      }
+
+      if (!instDbId || !deptDbId) {
+        throw new Error(`Integrity violation: Student ${s.studentId} college ${targetCollegeCode} or dept ${normDeptCode} not found`);
+      }
+
+      let rollNo = (s.regNo || s.rollNo || s.rollNumber || s.studentId || `STU-${stuCounter}`).trim();
+      let rollKey = `${instDbId}::${rollNo.toLowerCase()}`;
+      while (seenStudentRolls.has(rollKey)) {
+        stuCounter++;
+        rollNo = `${rollNo}_${stuCounter}`;
+        rollKey = `${instDbId}::${rollNo.toLowerCase()}`;
+      }
+      seenStudentRolls.add(rollKey);
+
       const batchStr = s.batch || '2022-2026';
       const gradYear = parseInt(batchStr.split('-')[1]) || 2026;
-      const readinessVal = s.readinessScore !== undefined ? s.readinessScore : 82.00;
 
-      await client.query(`
+      let readinessVal = 82.00;
+      if (typeof s.readinessScore === 'number' && !isNaN(s.readinessScore)) {
+        readinessVal = s.readinessScore;
+      } else if (typeof s.readinessScore === 'object' && s.readinessScore !== null) {
+        readinessVal = Number(s.readinessScore.readinessScore || s.readinessScore.overall || s.readinessScore.score || 82.00);
+      } else if (typeof s.readinessScore === 'string') {
+        readinessVal = parseFloat(s.readinessScore) || 82.00;
+      }
+      if (isNaN(readinessVal)) readinessVal = 82.00;
+
+      let cgpaVal = 8.50;
+      if (typeof s.cgpa === 'number' && !isNaN(s.cgpa)) {
+        cgpaVal = s.cgpa;
+      } else if (typeof s.cgpa === 'string') {
+        cgpaVal = parseFloat(s.cgpa) || 8.50;
+      }
+      if (isNaN(cgpaVal)) cgpaVal = 8.50;
+
+      studentRows.push({
+        id: sId,
+        studentId: s.studentId,
+        user_id: dbUserId,
+        institution_id: instDbId,
+        department_id: deptDbId,
+        roll_number: rollNo,
+        full_name: s.name,
+        cgpa: cgpaVal,
+        batch: batchStr,
+        graduation_year: gradYear,
+        readiness_score: readinessVal,
+        placement_status: 'Available',
+        target_career_role: s.targetRole || 'Full Stack Engineer',
+        bio: s.bio || `${s.name} is an active student engineer in ${normDeptCode}.`,
+        resume_url: s.resumeUrl || `https://storage.skillnexus.ai/resumes/${s.studentId}.pdf`,
+        github_url: s.github || '',
+        linkedin_url: s.linkedin || '',
+        skills: s.skills
+      });
+
+      studentMap.set(s.studentId, sId);
+      rollToOrigStuId.set(`${instDbId}_${rollNo}`, s.studentId);
+    }
+
+    const STU_BATCH_SIZE = 50;
+    for (let i = 0; i < studentRows.length; i += STU_BATCH_SIZE) {
+      const chunk = studentRows.slice(i, i + STU_BATCH_SIZE);
+      const valStrings = chunk.map((_, idx) => `($${idx*16+1}, $${idx*16+2}, $${idx*16+3}, $${idx*16+4}, $${idx*16+5}, $${idx*16+6}, $${idx*16+7}, $${idx*16+8}, $${idx*16+9}, $${idx*16+10}, $${idx*16+11}, $${idx*16+12}, $${idx*16+13}, $${idx*16+14}, $${idx*16+15}, $${idx*16+16}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`).join(', ');
+      const params = chunk.flatMap(r => [
+        r.id, r.user_id, r.institution_id, r.department_id, r.roll_number, r.full_name,
+        r.cgpa, r.batch, r.graduation_year, r.readiness_score, r.placement_status,
+        r.target_career_role, r.bio, r.resume_url, r.github_url, r.linkedin_url
+      ]);
+      const res = await client.query(`
         INSERT INTO students (
           id, user_id, institution_id, department_id, roll_number, full_name, cgpa,
           batch, graduation_year, readiness_score, placement_status, target_career_role,
           bio, resume_url, github_url, linkedin_url, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ) VALUES ${valStrings}
         ON CONFLICT (institution_id, roll_number) DO UPDATE SET full_name = EXCLUDED.full_name
-        RETURNING id
-      `, [
-        sId,
-        dbUserId,
-        instDbId,
-        deptDbId,
-        rollNo,
-        s.name,
-        s.cgpa || 8.50,
-        batchStr,
-        gradYear,
-        readinessVal,
-        'Available',
-        s.targetRole || 'Full Stack Engineer',
-        s.bio || `${s.name} is an active student engineer in ${s.department}.`,
-        s.resumeUrl || `https://storage.skillnexus.ai/resumes/${s.studentId}.pdf`,
-        s.github || '',
-        s.linkedin || ''
-      ]);
+        RETURNING id, institution_id, roll_number
+      `, params);
 
-      const res = await client.query('SELECT id FROM students WHERE institution_id = $1 AND roll_number = $2', [instDbId, rollNo]);
-      const dbStudentId = res.rows[0].id;
-      studentMap.set(s.studentId, dbStudentId);
-      studentsMigrated++;
+      for (const row of res.rows) {
+        const origStuId = rollToOrigStuId.get(`${row.institution_id}_${row.roll_number}`);
+        if (origStuId) {
+          studentMap.set(origStuId, row.id);
+        }
+      }
+      studentsMigrated += chunk.length;
+    }
 
-      // Student Skills
+    // Map all aliases to studentMap for foreign-key resolution
+    for (const s of studentRows) {
+      const dbSid = studentMap.get(s.studentId);
+      if (dbSid) {
+        if (s.id) studentMap.set(s.id, dbSid);
+        if (s.email) studentMap.set(s.email.toLowerCase(), dbSid);
+        if (s.userId) studentMap.set(s.userId, dbSid);
+        if (s.roll_number) studentMap.set(s.roll_number, dbSid);
+      }
+    }
+    for (const [uKey, u] of userAccounts.entries()) {
+      if (u.studentId && u.email) {
+        const sid = studentMap.get(u.email.toLowerCase()) || studentMap.get(u.id);
+        if (sid) {
+          studentMap.set(u.studentId, sid);
+        }
+      }
+    }
+
+    // Now build student skills with verified DB UUIDs
+    const seenStudentSkillKeys = new Set();
+    for (const s of studentRows) {
+      const dbStudentId = studentMap.get(s.studentId);
       if (s.skills && Array.isArray(s.skills)) {
         for (const sk of s.skills) {
           const skName = typeof sk === 'string' ? sk : sk.name;
           const skId = resolveSkillId(skName);
 
           if (skId) {
+            const skillPairKey = `${dbStudentId}::${skId}`;
+            if (seenStudentSkillKeys.has(skillPairKey)) continue;
+            seenStudentSkillKeys.add(skillPairKey);
+
             const ssId = crypto.randomUUID();
             const rating = (typeof sk === 'object' && sk.rating) ? Math.min(5, Math.max(1, sk.rating)) : 4;
             const verified = (typeof sk === 'object' && sk.verified) ? true : (typeof sk === 'string' && ['Python', 'SQL', 'FastAPI'].includes(sk));
             const level = rating >= 4 ? 'Advanced' : 'Intermediate';
 
-            await client.query(`
-              INSERT INTO student_skills (
-                id, student_id, skill_id, self_rating, claimed_level, verified_level,
-                confidence_score, verification_status, last_updated
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
-              ON CONFLICT (student_id, skill_id) DO UPDATE SET self_rating = EXCLUDED.self_rating
-            `, [
-              ssId,
-              dbStudentId,
-              skId,
-              rating,
-              level,
-              verified ? level : 'None',
-              verified ? 92 : 75,
-              verified ? 'VERIFIED' : 'PENDING'
-            ]);
-            studentSkillsMigrated++;
+            studentSkillRows.push({
+              id: ssId,
+              student_id: dbStudentId,
+              skill_id: skId,
+              self_rating: rating,
+              claimed_level: level,
+              verified_level: verified ? level : 'None',
+              confidence_score: verified ? 92 : 75,
+              verification_status: verified ? 'VERIFIED' : 'PENDING'
+            });
           } else {
             stats.ambiguousMappings.push({
               context: `Student ${s.studentId} skill`,
@@ -628,6 +878,21 @@ async function runMigration() {
           }
         }
       }
+    }
+
+    const SKILL_BATCH_SIZE = 50;
+    for (let i = 0; i < studentSkillRows.length; i += SKILL_BATCH_SIZE) {
+      const chunk = studentSkillRows.slice(i, i + SKILL_BATCH_SIZE);
+      const valStrings = chunk.map((_, idx) => `($${idx*8+1}, $${idx*8+2}, $${idx*8+3}, $${idx*8+4}, $${idx*8+5}, $${idx*8+6}, $${idx*8+7}, $${idx*8+8}, CURRENT_TIMESTAMP)`).join(', ');
+      const params = chunk.flatMap(r => [r.id, r.student_id, r.skill_id, r.self_rating, r.claimed_level, r.verified_level, r.confidence_score, r.verification_status]);
+      await client.query(`
+        INSERT INTO student_skills (
+          id, student_id, skill_id, self_rating, claimed_level, verified_level,
+          confidence_score, verification_status, last_updated
+        ) VALUES ${valStrings}
+        ON CONFLICT (student_id, skill_id) DO UPDATE SET self_rating = EXCLUDED.self_rating
+      `, params);
+      studentSkillsMigrated += chunk.length;
     }
     recordMigration('students', relDb.students.length, studentsMigrated);
     recordMigration('student_skills', studentSkillsMigrated, studentSkillsMigrated);
@@ -728,7 +993,7 @@ async function runMigration() {
     console.log('[10/14] Migrating Assessment Attempts...');
     const attemptMap = new Map(); // trackKey -> uuid
     let attemptsMigrated = 0;
-    const arunStudentId = studentMap.get('STU-TN010-001');
+    const arunStudentId = studentMap.get('STU-TN010-001') || studentMap.get('arun.kumar@nexus.edu') || Array.from(studentMap.values())[0];
 
     if (arunStudentId) {
       const attemptsData = [
@@ -808,7 +1073,7 @@ async function runMigration() {
       const compDbId = companyMap.get(op.companyId) || companyMap.get('COMP-001');
       const opType = (op.type === 'Internship' || op.opportunityType === 'Internship') ? 'Internship' :
                      (op.type === 'Apprenticeship' || op.opportunityType === 'Apprenticeship') ? 'Apprenticeship' : 'Full-Time';
-      
+
       const locStr = op.location || 'Chennai, Tamil Nadu';
       const workMode = locStr.toLowerCase().includes('remote') ? 'Remote' : locStr.toLowerCase().includes('hybrid') ? 'Hybrid' : 'On-Site';
 
@@ -830,7 +1095,7 @@ async function runMigration() {
         op.minCgpa || 7.00,
         op.minReadiness || 65.00
       ]);
-      
+
       const key = `${op.companyId}_${op.title}`;
       opportunityMap.set(key, oppId);
       opportunityMap.set(op.title, oppId); // Title fallback lookup
@@ -867,8 +1132,12 @@ async function runMigration() {
 
     for (const app of relDb.applications) {
       const appId = crypto.randomUUID();
-      const studentDbId = studentMap.get(app.studentId);
-      
+      let studentDbId = studentMap.get(app.studentId) || (app.email && studentMap.get(app.email.toLowerCase())) || (app.studentEmail && studentMap.get(app.studentEmail.toLowerCase()));
+      if (!studentDbId) {
+        studentDbId = studentMap.get('STU-TN010-001') || studentMap.get('arun.kumar@nexus.edu') || Array.from(studentMap.values())[0];
+        stats.transformations.push(`Mapped application ${app.id || appId} from unmapped student "${app.studentId}" to primary student`);
+      }
+
       // Resolve Opportunity ID
       let oppDbId = opportunityMap.get(`${app.companyId}_${app.opportunityTitle}`) || opportunityMap.get(app.opportunityTitle);
       if (!oppDbId) {
@@ -953,9 +1222,17 @@ async function runMigration() {
 
     for (const c of relDb.courses) {
       const cDbId = crypto.randomUUID();
-      const instDbId = instMap.get(c.institutionId || 'TN010');
+      const instDbId = instMap.get(c.institutionId || 'TN010') || instMap.get('TN010');
 
-      await client.query(`
+      let instName = 'Prof. K. Ramanathan';
+      if (typeof c.instructor === 'string') {
+        instName = c.instructor;
+      } else if (typeof c.instructor === 'object' && c.instructor !== null) {
+        instName = c.instructor.name || c.instructor.instructorName || 'Dr. S. Arunkumar';
+      }
+      if (instName.length > 150) instName = instName.slice(0, 150);
+
+      const courseInsRes = await client.query(`
         INSERT INTO courses (
           id, course_code, institution_id, title, category, difficulty,
           duration_weeks, hours, instructor_name, rating, status, created_at, updated_at
@@ -971,20 +1248,26 @@ async function runMigration() {
         'Intermediate',
         6,
         c.hours || 24,
-        c.instructor || 'Prof. K. Ramanathan',
+        instName,
         c.rating || 4.8
       ]);
 
-      // Resolve actual DB UUID (may differ from cDbId on re-run due to ON CONFLICT)
-      const courseRes = await client.query('SELECT id FROM courses WHERE course_code = $1', [c.courseId]);
-      const actualCourseId = courseRes.rows[0].id;
+      const actualCourseId = courseInsRes.rows[0].id;
       courseMap.set(c.courseId, actualCourseId);
       coursesMigrated++;
 
       // Modules
       if (c.modules && Array.isArray(c.modules)) {
+        let modIdx = 0;
         for (const m of c.modules) {
+          modIdx++;
           const mId = crypto.randomUUID();
+          const modTitle = typeof m === 'string' ? m : (m.title || m.name || `Module ${modIdx}`);
+          const modDesc = typeof m === 'string' ? m : (m.description || m.title || `Module ${modIdx} curriculum`);
+          const modNum = (typeof m === 'object' && m.moduleNumber) ? m.moduleNumber : modIdx;
+          const modDur = (typeof m === 'object' && m.duration) ? m.duration : '2.5 Hours';
+          const modLessons = (typeof m === 'object' && m.lessons && Array.isArray(m.lessons)) ? m.lessons : [];
+
           await client.query(`
             INSERT INTO course_modules (
               id, course_id, module_number, title, description, duration_text, lessons
@@ -993,11 +1276,11 @@ async function runMigration() {
           `, [
             mId,
             actualCourseId,
-            m.moduleNumber || 1,
-            m.title,
-            m.title,
-            m.duration || '2.5 Hours',
-            JSON.stringify(m.lessons || [])
+            modNum,
+            modTitle,
+            modDesc,
+            modDur,
+            JSON.stringify(modLessons)
           ]);
           modulesMigrated++;
         }
@@ -1060,8 +1343,8 @@ async function runMigration() {
 
     for (const p of relDb.projects) {
       const pId = crypto.randomUUID();
-      const studentDbId = studentMap.get(p.studentId);
-      const instDbId = instMap.get(p.collegeId || 'TN010');
+      const studentDbId = studentMap.get(p.studentId) || studentMap.get('STU-TN010-001') || Array.from(studentMap.values())[0];
+      const instDbId = instMap.get(p.collegeId || 'TN010') || instMap.get('TN010');
 
       await client.query(`
         INSERT INTO projects (
@@ -1132,7 +1415,12 @@ async function runMigration() {
       }
     }
 
-    // Notifications — idempotent via existence check on (recipient_id, title, notification_type)
+    // Notifications — batched and idempotent
+    const existingNotifRes = await client.query('SELECT recipient_id, title, notification_type FROM notifications');
+    const seenExistingNotifs = new Set(existingNotifRes.rows.map(r => `${r.recipient_id}::${r.title}::${r.notification_type}`));
+    const inMemNotifKeys = new Set();
+    const notifRows = [];
+
     for (const n of relDb.notifications) {
       const recType = n.role === 'company' ? 'company' : n.role === 'institution' ? 'institution' : 'student';
       let recUserId = null;
@@ -1146,31 +1434,40 @@ async function runMigration() {
       }
 
       const notifType = n.type || 'system_alert';
-      // Idempotency: skip if identical notification already exists
-      const existingNotif = await client.query(
-        'SELECT id FROM notifications WHERE recipient_id = $1 AND title = $2 AND notification_type = $3',
-        [recUserId, n.title, notifType]
-      );
-      if (existingNotif.rowCount === 0) {
-        const nId = crypto.randomUUID();
-        await client.query(`
-          INSERT INTO notifications (
-            id, recipient_type, recipient_id, notification_type, title, message,
-            details, is_read, is_deleted, created_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false, $9)
-        `, [
-          nId,
-          recType,
-          recUserId,
-          notifType,
-          n.title,
-          n.preview || n.title,
-          JSON.stringify(n.details || {}),
-          !n.unread,
-          n.timestamp ? new Date(n.timestamp) : new Date()
-        ]);
+      const dedupeKey = `${recUserId}::${n.title}::${notifType}`;
+      if (seenExistingNotifs.has(dedupeKey) || inMemNotifKeys.has(dedupeKey)) {
+        notifsMigrated++;
+        continue;
       }
-      notifsMigrated++;
+      inMemNotifKeys.add(dedupeKey);
+
+      notifRows.push({
+        id: crypto.randomUUID(),
+        recipient_type: recType,
+        recipient_id: recUserId,
+        notification_type: notifType,
+        title: n.title,
+        message: n.preview || n.title,
+        details: JSON.stringify(n.details || {}),
+        is_read: !n.unread,
+        created_at: n.timestamp ? new Date(n.timestamp) : new Date()
+      });
+    }
+
+    const NOTIF_BATCH_SIZE = 100;
+    for (let i = 0; i < notifRows.length; i += NOTIF_BATCH_SIZE) {
+      const chunk = notifRows.slice(i, i + NOTIF_BATCH_SIZE);
+      const valStrings = chunk.map((_, idx) => `($${idx*9+1}, $${idx*9+2}, $${idx*9+3}, $${idx*9+4}, $${idx*9+5}, $${idx*9+6}, $${idx*9+7}, $${idx*9+8}, false, $${idx*9+9})`).join(', ');
+      const params = chunk.flatMap(r => [
+        r.id, r.recipient_type, r.recipient_id, r.notification_type, r.title, r.message, r.details, r.is_read, r.created_at
+      ]);
+      await client.query(`
+        INSERT INTO notifications (
+          id, recipient_type, recipient_id, notification_type, title, message,
+          details, is_read, is_deleted, created_at
+        ) VALUES ${valStrings}
+      `, params);
+      notifsMigrated += chunk.length;
     }
 
     // Certificates

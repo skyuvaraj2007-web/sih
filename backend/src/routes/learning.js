@@ -140,6 +140,89 @@ router.post('/skills/:id/assess', requireAuth, async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// POST /api/learning/skills/:id/lessons/complete — complete a module lesson
+// ─────────────────────────────────────────────────────────────────────────────
+router.post('/skills/:id/lessons/complete', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const result = await relationalManager.completeSkillLesson(studentId, req.params.id, req.body);
+    res.json({
+      success: true,
+      message: 'Lesson completed successfully',
+      data: result
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/learning/skills/:id/practice — record practice attempt telemetry
+// ─────────────────────────────────────────────────────────────────────────────
+router.post('/skills/:id/practice', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const result = await relationalManager.recordSkillPractice(studentId, req.params.id, req.body);
+    res.json({
+      success: true,
+      message: 'Practice activity recorded successfully',
+      data: result
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/learning/skills/:id/project — submit practical capstone project
+// ─────────────────────────────────────────────────────────────────────────────
+router.post('/skills/:id/project', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const result = await relationalManager.submitSkillProject(studentId, req.params.id, req.body);
+    res.json({
+      success: true,
+      message: 'Project submitted successfully and evidence recorded',
+      data: result
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/learning/skills/:id/progress — get student progress & evidence
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/skills/:id/progress', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const result = await relationalManager.getStudentSkillIntelligence(studentId, req.params.id);
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/learning/my-skill-intelligence — get all enrolled skills intelligence
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/my-skill-intelligence', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const result = await relationalManager.getAllStudentSkillIntelligence(studentId);
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // GET /api/learning/my-skills — student enrolled / in-progress / completed / certified skills
 // ─────────────────────────────────────────────────────────────────────────────
 router.get('/my-skills', requireAuth, async (req, res) => {
@@ -348,5 +431,131 @@ const handleProgressUpdate = async (req, res) => {
 
 router.put('/:id/progress', requireAuth, handleProgressUpdate);
 router.post('/:id/progress', requireAuth, handleProgressUpdate);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SELF-ASSESSED SKILLS API
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/self-assessments', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const list = await relationalManager.getStudentSelfAssessments(studentId);
+    res.json({ success: true, data: list, count: list.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/self-assessments', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const saved = await relationalManager.saveStudentSelfAssessment(studentId, req.body);
+    res.status(201).json({ success: true, message: 'Self-assessment recorded successfully.', data: saved });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+router.put('/self-assessments/:id', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const saved = await relationalManager.saveStudentSelfAssessment(studentId, { ...req.body, id: req.params.id });
+    res.json({ success: true, message: 'Self-assessment updated successfully.', data: saved });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+router.delete('/self-assessments/:id', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const result = await relationalManager.deleteStudentSelfAssessment(studentId, req.params.id);
+    res.json({ success: true, message: 'Self-assessment deleted successfully.', data: result });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LEARNING OVERVIEW, QUIZZES, PROJECTS, CERTIFICATIONS, ACTIVITY & INTELLIGENCE
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/overview', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const data = await relationalManager.getStudentLearningOverview(studentId);
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/quizzes', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const data = await relationalManager.getStudentQuizzes(studentId);
+    res.json({ success: true, data, count: data.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/quizzes/submit', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const data = await relationalManager.submitStudentQuiz(studentId, req.body);
+    res.status(201).json({ success: true, message: 'Quiz submitted successfully.', data });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/projects', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const data = await relationalManager.getStudentProjects(studentId);
+    res.json({ success: true, data, count: data.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/certifications', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const data = await relationalManager.getStudentCertifications(studentId);
+    res.json({ success: true, data, count: data.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/activity', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const data = await relationalManager.getStudentLearningActivities(studentId);
+    res.json({ success: true, data, count: data.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/intelligence', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const data = await relationalManager.getStudentLearningIntelligence(studentId);
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/skill-gap', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const data = await relationalManager.getStudentSkillGapIntelligence(studentId);
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 module.exports = router;

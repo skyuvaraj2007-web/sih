@@ -37,7 +37,7 @@ const requireAuth = async (req, res, next) => {
     if (!user && decoded.email) {
       user = await relationalManager.getUserByEmail(decoded.email);
     }
-    if (!user && db && typeof db.getUserById === 'function') {
+    if (!user && !relationalManager.isPgRequired && db && typeof db.getUserById === 'function') {
       user = db.getUserById(decoded.id);
     }
 

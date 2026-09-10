@@ -18,7 +18,19 @@ import {
   Sparkles,
   CheckCircle2,
   Award,
-  BookOpen
+  BookOpen,
+  Compass,
+  Layers,
+  Play,
+  Zap,
+  Check,
+  Brain,
+  Download,
+  Trash2,
+  Eye,
+  Send,
+  FileText,
+  RotateCcw
 } from 'lucide-react';
 import { loadAssessmentStore } from '../services/assessmentStore';
 import {
@@ -27,6 +39,11 @@ import {
   getStudentProjects,
   getStudentEnrollments
 } from '../services/nexusDataStore';
+import SkillDetailsModal from '../components/student/SkillDetailsModal';
+import SkillLearningPathModal from '../components/student/SkillLearningPathModal';
+import CertificateViewerModal from '../components/common/CertificateViewerModal';
+import CertificateUploadModal from '../components/student/CertificateUploadModal';
+import { certificateService } from '../services/certificateService';
 
 const getApiBase = () => {
   if (typeof window !== 'undefined' && window.__NEXUS_API_BASE__) {
@@ -74,6 +91,20 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
   const [newSkillCategory, setNewSkillCategory] = useState('Programming');
   const [newSkillLevel, setNewSkillLevel] = useState('Beginner');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Complete Skill Intelligence Lifecyle States
+  const [enrolledSkills, setEnrolledSkills] = useState([]);
+  const [publishedSkills, setPublishedSkills] = useState([]);
+  const [mainTab, setMainTab] = useState('enrolled'); // 'enrolled' | 'discover' | 'competencies' | 'certificates' | 'skill-gap'
+  const [selectedSkillDetailsId, setSelectedSkillDetailsId] = useState(null);
+  const [learningModalSkillId, setLearningModalSkillId] = useState(null);
+
+  // Certificates & AI Skill Gap Ecosystem States
+  const [certificates, setCertificates] = useState([]);
+  const [skillGapData, setSkillGapData] = useState(null);
+  const [showCertificateUpload, setShowCertificateUpload] = useState(false);
+  const [activeViewingCertificate, setActiveViewingCertificate] = useState(null);
+  const [certFilter, setCertFilter] = useState('ALL');
 
   // Resolve current student from props or authenticated session
   const currentStudent = useMemo(() => {
@@ -243,13 +274,63 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
         backendReadiness = Math.round((verified / total) * 100);
       }
 
+      // 6. Fetch enrolled skills intelligence
+      try {
+        const intelRes = await fetch(`${apiBase}/learning/my-skill-intelligence`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (intelRes.ok) {
+          const intelJson = await intelRes.json();
+          if (intelJson.success && Array.isArray(intelJson.data)) {
+            setEnrolledSkills(intelJson.data);
+          }
+        }
+      } catch (err) {
+        console.debug('Enrolled skills fetch note:', err.message);
+      }
+
+      // 7. Fetch published institutional skills
+      try {
+        const pubRes = await fetch(`${apiBase}/learning/skills`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (pubRes.ok) {
+          const pubJson = await pubRes.json();
+          if (pubJson.success && Array.isArray(pubJson.data)) {
+            setPublishedSkills(pubJson.data);
+          }
+        }
+      } catch (err) {
+        console.debug('Published skills fetch note:', err.message);
+      }
+
+      // Fetch Real Certificates & AI Skill Gap Intelligence
+      let realGapReadiness = backendReadiness;
+      try {
+        const [certsRes, gapRes] = await Promise.all([
+          certificateService.getMyCertificates().catch(() => ({ success: false, data: [] })),
+          certificateService.getSkillGapIntelligence().catch(() => ({ success: false, data: null }))
+        ]);
+        if (certsRes && certsRes.success && Array.isArray(certsRes.data)) {
+          setCertificates(certsRes.data);
+        }
+        if (gapRes && gapRes.success && gapRes.data) {
+          setSkillGapData(gapRes.data);
+          if (gapRes.data.readinessLevel !== undefined) {
+            realGapReadiness = gapRes.data.readinessLevel;
+          }
+        }
+      } catch (cErr) {
+        console.debug('Certificate & Skill Gap fetch note:', cErr.message);
+      }
+
       setSkills(enrichedSkills);
       setCounts({
         total,
         enrolled,
         verified,
         gaps,
-        readinessIndex: typeof backendReadiness === 'number' && !isNaN(backendReadiness) ? backendReadiness : 0
+        readinessIndex: typeof realGapReadiness === 'number' && !isNaN(realGapReadiness) ? realGapReadiness : 0
       });
     } catch (err) {
       console.error('Error loading skills data:', err);
@@ -398,6 +479,35 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
     }
   };
 
+  const handleSendCertToCollege = async (certId) => {
+    try {
+      const res = await certificateService.sendToInstitution(certId);
+      if (res && res.success) {
+        if (onShowToast) onShowToast({ title: 'Submitted to College', message: 'Certificate routed to your institution review board.', type: 'success' });
+        await loadSkillsData();
+      } else {
+        if (onShowToast) onShowToast({ title: 'Submission Failed', message: res?.message || 'Could not send certificate.', type: 'error' });
+      }
+    } catch (err) {
+      if (onShowToast) onShowToast({ title: 'Error', message: err.message, type: 'error' });
+    }
+  };
+
+  const handleDeleteCert = async (certId) => {
+    if (!window.confirm('Are you sure you want to withdraw/delete this certificate?')) return;
+    try {
+      const res = await certificateService.deleteCertificate(certId);
+      if (res && res.success) {
+        if (onShowToast) onShowToast({ title: 'Certificate Removed', message: 'Certificate withdrawn from your portfolio.', type: 'info' });
+        await loadSkillsData();
+      } else {
+        if (onShowToast) onShowToast({ title: 'Delete Failed', message: res?.message || 'Could not delete certificate.', type: 'error' });
+      }
+    } catch (err) {
+      if (onShowToast) onShowToast({ title: 'Error', message: err.message, type: 'error' });
+    }
+  };
+
   const getCategoryIcon = (category) => {
     switch (category?.toLowerCase()) {
       case 'programming': return Code;
@@ -408,6 +518,29 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
       default: return Cpu;
     }
   };
+
+  // Dynamic domain averages based on real student skills
+  const domainAverages = useMemo(() => {
+    const domains = [
+      { label: 'Frontend & UI', category: 'Web Development', icon: Code, color: 'var(--cyber-blue)' },
+      { label: 'Backend Architecture', category: 'Programming', icon: Cpu, color: 'var(--cyber-purple)' },
+      { label: 'Cloud Infrastructure', category: 'Cloud & Distributed', icon: Globe, color: 'var(--cyber-cyan)' },
+      { label: 'Database & Storage', category: 'Database', icon: Database, color: 'var(--cyber-emerald)' }
+    ];
+
+    return domains.map(d => {
+      const match = skills.filter(s => (s.category || '').toLowerCase() === d.category.toLowerCase() || (s.name || '').toLowerCase().includes(d.label.toLowerCase()));
+      const verifiedCount = match.filter(s => s.verified).length;
+      const avgScore = match.length > 0 ? Math.round(match.reduce((acc, s) => acc + (s.masteryScore || 0), 0) / match.length) : 0;
+      return {
+        label: d.label,
+        score: avgScore,
+        color: d.color,
+        icon: d.icon,
+        count: `${verifiedCount} Verified`
+      };
+    });
+  }, [skills]);
 
   return (
     <div>
@@ -444,12 +577,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
         gap: '16px',
         marginBottom: '24px'
       }}>
-        {[
-          { label: 'Frontend & UI', score: 86, color: 'var(--cyber-blue)', icon: Code, count: '12 Verified' },
-          { label: 'Backend Architecture', score: 81, color: 'var(--cyber-purple)', icon: Cpu, count: '9 Verified' },
-          { label: 'Cloud Infrastructure', score: 74, color: 'var(--cyber-cyan)', icon: Globe, count: '6 Verified' },
-          { label: 'Database & Storage', score: 68, color: 'var(--cyber-emerald)', icon: Database, count: '5 Verified' }
-        ].map((item, idx) => {
+        {domainAverages.map((item, idx) => {
           const Icon = item.icon;
           return (
             <div key={idx} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -531,7 +659,522 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
         </div>
       </div>
 
-      {/* Filter Tabs & Search Bar */}
+      {/* Primary Skill Intelligence Ecosystem Tabs */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        borderBottom: '1px solid var(--border-subtle)',
+        marginBottom: '24px',
+        paddingBottom: '2px'
+      }}>
+        <button
+          onClick={() => setMainTab('enrolled')}
+          style={{
+            padding: '12px 24px',
+            background: mainTab === 'enrolled' ? 'rgba(0, 242, 254, 0.12)' : 'transparent',
+            color: mainTab === 'enrolled' ? 'var(--cyber-cyan)' : 'var(--text-secondary)',
+            border: 'none',
+            borderBottom: mainTab === 'enrolled' ? '2px solid var(--cyber-cyan)' : '2px solid transparent',
+            fontWeight: 700,
+            fontSize: '13.5px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <BookOpen size={16} />
+          <span>My Enrolled Skills</span>
+          <span style={{
+            fontSize: '10px',
+            background: 'rgba(0, 242, 254, 0.2)',
+            color: 'var(--cyber-cyan)',
+            padding: '2px 8px',
+            borderRadius: '10px',
+            fontWeight: 800
+          }}>
+            {enrolledSkills.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setMainTab('discover')}
+          style={{
+            padding: '12px 24px',
+            background: mainTab === 'discover' ? 'rgba(168, 85, 247, 0.12)' : 'transparent',
+            color: mainTab === 'discover' ? 'var(--cyber-purple)' : 'var(--text-secondary)',
+            border: 'none',
+            borderBottom: mainTab === 'discover' ? '2px solid var(--cyber-purple)' : '2px solid transparent',
+            fontWeight: 700,
+            fontSize: '13.5px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <Sparkles size={16} />
+          <span>Discover Institutional Skills</span>
+          <span style={{
+            fontSize: '10px',
+            background: 'rgba(168, 85, 247, 0.2)',
+            color: 'var(--cyber-purple)',
+            padding: '2px 8px',
+            borderRadius: '10px',
+            fontWeight: 800
+          }}>
+            {publishedSkills.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setMainTab('competencies')}
+          style={{
+            padding: '12px 24px',
+            background: mainTab === 'competencies' ? 'rgba(16, 185, 129, 0.12)' : 'transparent',
+            color: mainTab === 'competencies' ? 'var(--cyber-emerald)' : 'var(--text-secondary)',
+            border: 'none',
+            borderBottom: mainTab === 'competencies' ? '2px solid var(--cyber-emerald)' : '2px solid transparent',
+            fontWeight: 700,
+            fontSize: '13.5px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <ShieldCheck size={16} />
+          <span>Competency Ledger & Proofs</span>
+          <span style={{
+            fontSize: '10px',
+            background: 'rgba(16, 185, 129, 0.2)',
+            color: 'var(--cyber-emerald)',
+            padding: '2px 8px',
+            borderRadius: '10px',
+            fontWeight: 800
+          }}>
+            {skills.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setMainTab('certificates')}
+          style={{
+            padding: '12px 24px',
+            background: mainTab === 'certificates' ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
+            color: mainTab === 'certificates' ? 'var(--cyber-purple, #818cf8)' : 'var(--text-secondary)',
+            border: 'none',
+            borderBottom: mainTab === 'certificates' ? '2px solid var(--cyber-purple, #818cf8)' : '2px solid transparent',
+            fontWeight: 700,
+            fontSize: '13.5px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <Award size={16} />
+          <span>Certificates & Verification</span>
+          <span style={{
+            fontSize: '10px',
+            background: 'rgba(99, 102, 241, 0.2)',
+            color: 'var(--cyber-purple, #818cf8)',
+            padding: '2px 8px',
+            borderRadius: '10px',
+            fontWeight: 800
+          }}>
+            {certificates.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setMainTab('skill-gap')}
+          style={{
+            padding: '12px 24px',
+            background: mainTab === 'skill-gap' ? 'rgba(234, 179, 8, 0.12)' : 'transparent',
+            color: mainTab === 'skill-gap' ? 'var(--cyber-amber, #f59e0b)' : 'var(--text-secondary)',
+            border: 'none',
+            borderBottom: mainTab === 'skill-gap' ? '2px solid var(--cyber-amber, #f59e0b)' : '2px solid transparent',
+            fontWeight: 700,
+            fontSize: '13.5px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <Brain size={16} />
+          <span>AI Skill Gap Intelligence</span>
+          <span style={{
+            fontSize: '10px',
+            background: 'rgba(234, 179, 8, 0.2)',
+            color: 'var(--cyber-amber, #f59e0b)',
+            padding: '2px 8px',
+            borderRadius: '10px',
+            fontWeight: 800
+          }}>
+            {skillGapData?.skillGaps?.length || 0}
+          </span>
+        </button>
+      </div>
+
+      {/* ── TAB 1: MY ENROLLED SKILLS (Continuous Learning Lifecycle) ── */}
+      {mainTab === 'enrolled' && (
+        <div>
+          {enrolledSkills.length === 0 ? (
+            <div className="glass-panel" style={{ padding: '64px 24px', textAlign: 'center', margin: '24px 0' }}>
+              <div style={{
+                width: '56px', height: '56px', borderRadius: '16px',
+                background: 'rgba(0, 242, 254, 0.08)', border: '1px solid rgba(0, 242, 254, 0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px',
+                color: 'var(--cyber-cyan)'
+              }}>
+                <BookOpen size={28} />
+              </div>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                No skills enrolled yet
+              </h3>
+              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto 24px', lineHeight: 1.5 }}>
+                Enroll in an institutional skill to start your learning path. Your progress and proficiency will strictly reflect your real completed activity and evidence.
+              </p>
+              <button
+                onClick={() => setMainTab('discover')}
+                className="btn-cyber-primary"
+                style={{ padding: '10px 22px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                <Sparkles size={14} />
+                <span>Discover Institutional Skills →</span>
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+              {enrolledSkills.map((item) => {
+                const skill = item.skill || item;
+                const enrollment = item.enrollment || item;
+                const skillId = enrollment.skillId || skill.id || skill.courseId;
+                const skillName = skill.skillName || skill.name || skill.courseTitle || 'Skill';
+                const instName = skill.institutionName || enrollment.institutionName || 'Affiliated Campus';
+                const progress = enrollment.learningProgress !== undefined ? enrollment.learningProgress : 0;
+                const proficiency = enrollment.proficiency !== undefined ? enrollment.proficiency : 0;
+                const completedModules = enrollment.completedModules || 0;
+                const totalModules = enrollment.totalModules || (skill.modules ? skill.modules.length : 4);
+                const completedLessons = enrollment.completedLessons || 0;
+                const totalLessons = enrollment.totalLessons || 4;
+                const practiceAttempts = enrollment.practiceStats?.totalAttempts || 0;
+                const practiceAccuracy = enrollment.practiceStats?.accuracy || 0;
+                const isAssessed = Boolean(enrollment.assessmentResult?.score !== undefined || enrollment.score !== undefined);
+                const assessScore = enrollment.assessmentResult?.score !== undefined ? enrollment.assessmentResult.score : enrollment.score;
+                const isProjectSubmitted = Boolean(enrollment.projectSubmission?.submitted);
+                const bestAction = enrollment.bestNextAction || {
+                  action: completedLessons === 0 ? 'Start Module 1 Lesson 1' : 'Continue Next Module',
+                  reason: 'Advance your structured curriculum to build verified demonstrated proficiency.'
+                };
+
+                return (
+                  <div
+                    key={skillId}
+                    className="glass-panel"
+                    style={{
+                      padding: '24px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      border: '1px solid var(--border-subtle)',
+                      background: 'linear-gradient(135deg, rgba(16, 26, 48, 0.7), rgba(11, 15, 25, 0.85))',
+                      position: 'relative'
+                    }}
+                  >
+                    <div>
+                      {/* Header Badges */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          <span className="cyber-badge badge-purple" style={{ fontSize: '10px' }}>
+                            {instName}
+                          </span>
+                          <span className="cyber-badge badge-cyan" style={{ fontSize: '10px' }}>
+                            {skill.category || 'Technical'}
+                          </span>
+                        </div>
+                        <span className="cyber-badge" style={{
+                          background: progress === 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(0, 242, 254, 0.15)',
+                          color: progress === 100 ? 'var(--cyber-emerald)' : 'var(--cyber-cyan)',
+                          borderColor: progress === 100 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(0, 242, 254, 0.3)',
+                          fontSize: '10px'
+                        }}>
+                          {progress === 100 ? 'COMPLETED' : progress > 0 ? 'IN PROGRESS' : 'ENROLLED (ZERO STATE)'}
+                        </span>
+                      </div>
+
+                      {/* Title */}
+                      <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>
+                        {skillName}
+                      </h3>
+
+                      {/* Dual Metric Engine Displays */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '12px',
+                        padding: '14px',
+                        background: 'rgba(0, 0, 0, 0.25)',
+                        borderRadius: '10px',
+                        border: '1px solid var(--border-subtle)',
+                        marginBottom: '16px'
+                      }}>
+                        {/* Metric A: Learning Progress */}
+                        <div>
+                          <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                            LEARNING PROGRESS
+                          </div>
+                          <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)', margin: '2px 0' }}>
+                            {progress}%
+                          </div>
+                          <div style={{ width: '100%', height: '5px', background: 'var(--bg-input)', borderRadius: '3px', overflow: 'hidden', margin: '4px 0' }}>
+                            <div style={{ width: `${progress}%`, height: '100%', background: 'var(--cyber-cyan)', borderRadius: '3px' }} />
+                          </div>
+                          <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)' }}>
+                            {completedModules} / {totalModules} Modules
+                          </div>
+                        </div>
+
+                        {/* Metric B: Skill Proficiency */}
+                        <div>
+                          <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                            SKILL PROFICIENCY
+                          </div>
+                          <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--cyber-emerald)', fontFamily: 'var(--font-mono)', margin: '2px 0' }}>
+                            {proficiency}%
+                          </div>
+                          <div style={{ width: '100%', height: '5px', background: 'var(--bg-input)', borderRadius: '3px', overflow: 'hidden', margin: '4px 0' }}>
+                            <div style={{ width: `${proficiency}%`, height: '100%', background: 'var(--cyber-emerald)', borderRadius: '3px' }} />
+                          </div>
+                          <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)' }}>
+                            Pure Telemetry Evidence
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Real Telemetry Activity Breakdown */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: '14px' }}>
+                        <div style={{ padding: '8px 10px', background: 'var(--bg-input)', borderRadius: '6px', fontSize: '11px' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Lessons: </span>
+                          <strong style={{ color: 'var(--text-primary)' }}>{completedLessons} / {totalLessons}</strong>
+                        </div>
+                        <div style={{ padding: '8px 10px', background: 'var(--bg-input)', borderRadius: '6px', fontSize: '11px' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Practice: </span>
+                          <strong style={{ color: 'var(--text-primary)' }}>{practiceAttempts} ({practiceAccuracy}%)</strong>
+                        </div>
+                        <div style={{ padding: '8px 10px', background: 'var(--bg-input)', borderRadius: '6px', fontSize: '11px' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Assessment: </span>
+                          <strong style={{ color: isAssessed ? 'var(--cyber-emerald)' : 'var(--text-muted)' }}>
+                            {isAssessed ? `${assessScore}%` : 'Not Taken'}
+                          </strong>
+                        </div>
+                        <div style={{ padding: '8px 10px', background: 'var(--bg-input)', borderRadius: '6px', fontSize: '11px' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Capstone: </span>
+                          <strong style={{ color: isProjectSubmitted ? 'var(--cyber-emerald)' : 'var(--text-muted)' }}>
+                            {isProjectSubmitted ? 'Submitted' : 'Not Started'}
+                          </strong>
+                        </div>
+                      </div>
+
+                      {/* Evidence Behind Proficiency */}
+                      <div style={{
+                        padding: '12px 14px',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border-subtle)',
+                        marginBottom: '14px'
+                      }}>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 700, marginBottom: '6px', textTransform: 'uppercase' }}>
+                          EVIDENCE BEHIND {proficiency}% PROFICIENCY
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11.5px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: completedModules > 0 ? 'var(--cyber-emerald)' : 'var(--text-muted)' }}>
+                            {completedModules > 0 ? <Check size={12} /> : <X size={12} />}
+                            <span>{completedModules} modules completed</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: completedLessons > 0 ? 'var(--cyber-emerald)' : 'var(--text-muted)' }}>
+                            {completedLessons > 0 ? <Check size={12} /> : <X size={12} />}
+                            <span>{completedLessons} lessons completed</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: practiceAttempts > 0 ? 'var(--cyber-emerald)' : 'var(--text-muted)' }}>
+                            {practiceAttempts > 0 ? <Check size={12} /> : <X size={12} />}
+                            <span>{practiceAttempts} practice attempts ({practiceAccuracy}% accuracy)</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: isAssessed ? 'var(--cyber-emerald)' : 'var(--text-muted)' }}>
+                            {isAssessed ? <Check size={12} /> : <X size={12} />}
+                            <span>{isAssessed ? `Assessment benchmark passed (${assessScore}%)` : 'Assessment not completed'}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: isProjectSubmitted ? 'var(--cyber-emerald)' : 'var(--text-muted)' }}>
+                            {isProjectSubmitted ? <Check size={12} /> : <X size={12} />}
+                            <span>{isProjectSubmitted ? 'Practical capstone project completed & verified' : 'Capstone project not submitted'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Best Next Action Banner */}
+                      <div style={{
+                        padding: '12px 14px',
+                        background: 'rgba(139, 92, 246, 0.08)',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(139, 92, 246, 0.25)',
+                        marginBottom: '18px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--cyber-purple)', fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase' }}>
+                          <Sparkles size={13} /> YOUR BEST NEXT ACTION
+                        </div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
+                          {bestAction.action}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px', lineHeight: 1.4 }}>
+                          {bestAction.reason}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button
+                        onClick={() => setLearningModalSkillId(skillId)}
+                        className="btn-cyber-primary"
+                        style={{ flex: 1, padding: '10px', fontSize: '12.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                      >
+                        <Play size={14} />
+                        <span>Continue Learning</span>
+                      </button>
+                      <button
+                        onClick={() => setSelectedSkillDetailsId(skillId)}
+                        className="btn-cyber-outline"
+                        style={{ padding: '10px 14px', fontSize: '12.5px' }}
+                      >
+                        Curriculum
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB 2: DISCOVER INSTITUTIONAL SKILLS (Catalog) ── */}
+      {mainTab === 'discover' && (
+        <div>
+          {publishedSkills.length === 0 ? (
+            <div className="glass-panel" style={{ padding: '64px 24px', textAlign: 'center', margin: '24px 0' }}>
+              <div style={{
+                width: '56px', height: '56px', borderRadius: '16px',
+                background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px',
+                color: 'var(--cyber-purple)'
+              }}>
+                <Sparkles size={28} />
+              </div>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                No published skills currently available
+              </h3>
+              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto', lineHeight: 1.5 }}>
+                Your institution has not published active course offerings yet. Check back soon.
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '18px', marginBottom: '32px' }}>
+              {publishedSkills.map((pubSkill) => {
+                const isEnrolled = enrolledSkills.some(e =>
+                  (e.skillId === pubSkill.id) || (e.skill?.id === pubSkill.id) || (e.courseId === pubSkill.id)
+                );
+                const modulesCount = pubSkill.modules?.length || 4;
+                let totalLessons = 0;
+                (pubSkill.modules || []).forEach(m => {
+                  totalLessons += (m.lessons?.length || 2);
+                });
+                if (totalLessons === 0) totalLessons = 4;
+
+                return (
+                  <div
+                    key={pubSkill.id}
+                    className="glass-panel"
+                    style={{
+                      padding: '22px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      border: '1px solid var(--border-subtle)',
+                      background: 'rgba(15, 23, 42, 0.7)'
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                        <span className="cyber-badge badge-purple" style={{ fontSize: '10px' }}>
+                          {pubSkill.institutionName || 'Campus Course'}
+                        </span>
+                        <span className="cyber-badge badge-cyan" style={{ fontSize: '10px' }}>
+                          {pubSkill.level || 'Beginner'}
+                        </span>
+                      </div>
+
+                      <h3 style={{ fontSize: '16.5px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                        {pubSkill.name}
+                      </h3>
+
+                      <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.45, marginBottom: '14px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {pubSkill.shortDescription || pubSkill.description || 'Institutional skill curriculum with verified proficiency engine.'}
+                      </p>
+
+                      <div style={{ display: 'flex', gap: '12px', fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '14px' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <BookOpen size={13} color="var(--cyber-cyan)" /> {modulesCount} Modules
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Layers size={13} color="var(--cyber-purple)" /> {totalLessons} Lessons
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Award size={13} color="var(--cyber-emerald)" /> {pubSkill.duration || '6 Weeks'}
+                        </span>
+                      </div>
+
+                      {pubSkill.technologies?.length > 0 && (
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                          {pubSkill.technologies.slice(0, 4).map((tech, tIdx) => (
+                            <span key={tIdx} style={{ fontSize: '10px', padding: '2px 8px', background: 'var(--bg-input)', borderRadius: '4px', color: 'var(--cyber-cyan)' }}>
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)' }}>
+                      <span style={{ fontSize: '11px', color: isEnrolled ? 'var(--cyber-emerald)' : 'var(--text-muted)', fontWeight: 600 }}>
+                        {isEnrolled ? '✓ Already Enrolled' : 'Open for Enrollment'}
+                      </span>
+                      <button
+                        onClick={() => setSelectedSkillDetailsId(pubSkill.id)}
+                        className={isEnrolled ? 'btn-cyber-outline' : 'btn-cyber-primary'}
+                        style={{ padding: '8px 16px', fontSize: '12px' }}
+                      >
+                        {isEnrolled ? 'View Curriculum' : 'View Skill Details →'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB 3: COMPETENCY LEDGER & PROOFS (Existing Self-Assessed/Verified Skills) ── */}
+      {mainTab === 'competencies' && (
+        <>
+          {/* Filter Tabs & Search Bar */}
       <div className="filter-tabs-row">
         <div className="filter-pills-group">
           <button
@@ -902,7 +1545,501 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* Bottom Quick Action Dock */}
+      {/* ── TAB 4: CERTIFICATES & CREDENTIAL EVIDENCE ── */}
+      {mainTab === 'certificates' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Header Action Bar */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '16px',
+            padding: '20px 24px'
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--cyber-purple)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <Award size={16} />
+                <span>Credential Evidence Registry</span>
+              </div>
+              <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0 2px 0' }}>
+                My Submitted Certificates
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                Certificates reviewed and verified by your mapped institution directly elevate your Verified Skill Intelligence.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowCertificateUpload(true)}
+              className="btn-cyber-primary"
+              style={{ padding: '10px 20px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <Plus size={16} /> Upload Certificate
+            </button>
+          </div>
+
+          {/* Real Metrics Row */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gap: '12px'
+          }}>
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}>TOTAL</div>
+              <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '2px' }}>{certificates.length}</div>
+            </div>
+            <div style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.25)', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--cyber-amber)' }}>PENDING</div>
+              <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--cyber-amber)', marginTop: '2px' }}>
+                {certificates.filter(c => c.status === 'PENDING').length}
+              </div>
+            </div>
+            <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--cyber-emerald)' }}>VERIFIED</div>
+              <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--cyber-emerald)', marginTop: '2px' }}>
+                {certificates.filter(c => c.status === 'VERIFIED').length}
+              </div>
+            </div>
+            <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#ef4444' }}>REJECTED</div>
+              <div style={{ fontSize: '22px', fontWeight: 800, color: '#ef4444', marginTop: '2px' }}>
+                {certificates.filter(c => c.status === 'REJECTED').length}
+              </div>
+            </div>
+            <div style={{ background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b' }}>NEEDS CORRECTION</div>
+              <div style={{ fontSize: '22px', fontWeight: 800, color: '#f59e0b', marginTop: '2px' }}>
+                {certificates.filter(c => c.status === 'NEEDS_CORRECTION').length}
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Chips */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {['ALL', 'PENDING', 'VERIFIED', 'REJECTED', 'NEEDS_CORRECTION'].map(st => (
+              <button
+                key={st}
+                onClick={() => setCertFilter(st)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  border: certFilter === st ? '1px solid var(--cyber-cyan)' : '1px solid var(--border-subtle)',
+                  background: certFilter === st ? 'rgba(0, 242, 254, 0.12)' : 'transparent',
+                  color: certFilter === st ? 'var(--cyber-cyan)' : 'var(--text-secondary)',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                {st.replace('_', ' ')}
+              </button>
+            ))}
+          </div>
+
+          {/* Certificate Cards */}
+          {certificates.filter(c => certFilter === 'ALL' || c.status === certFilter).length === 0 ? (
+            <div className="glass-panel" style={{ padding: '64px 24px', textAlign: 'center' }}>
+              <Award size={48} style={{ color: 'var(--text-muted)', margin: '0 auto 12px' }} />
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>
+                No certificates submitted yet
+              </h3>
+              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto 20px', lineHeight: 1.5 }}>
+                Submit accredited certifications, online course diplomas, or competition awards to provide verifiable evidence for your skills.
+              </p>
+              <button
+                onClick={() => setShowCertificateUpload(true)}
+                className="btn-cyber-primary"
+                style={{ padding: '10px 22px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                <Plus size={15} /> Submit Your First Certificate
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
+              {certificates
+                .filter(c => certFilter === 'ALL' || c.status === certFilter)
+                .map(cert => (
+                  <div
+                    key={cert.id}
+                    className="glass-panel"
+                    style={{
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      borderRadius: '16px',
+                      gap: '14px',
+                      border: cert.status === 'VERIFIED' ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border-subtle)'
+                    }}
+                  >
+                    <div>
+                      {/* Top Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                        <div>
+                          <span style={{
+                            fontSize: '10.5px',
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: '10px',
+                            background: 'var(--bg-secondary)',
+                            color: 'var(--text-secondary)',
+                            textTransform: 'uppercase'
+                          }}>
+                            {cert.fileType?.toUpperCase() || 'DOCUMENT'}
+                          </span>
+                          <h4 style={{ margin: '8px 0 4px 0', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                            {cert.title}
+                          </h4>
+                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            {cert.issuer || 'External Organization'}
+                          </div>
+                        </div>
+
+                        {/* Status Badge */}
+                        {cert.status === 'VERIFIED' && (
+                          <span className="cyber-badge" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', whiteSpace: 'nowrap' }}>
+                            <ShieldCheck size={12} style={{ marginRight: '4px' }} /> VERIFIED
+                          </span>
+                        )}
+                        {cert.status === 'PENDING' && (
+                          <span className="cyber-badge" style={{ background: 'rgba(234, 179, 8, 0.15)', color: '#eab308', border: '1px solid rgba(234, 179, 8, 0.3)', whiteSpace: 'nowrap' }}>
+                            <Clock size={12} style={{ marginRight: '4px' }} /> PENDING
+                          </span>
+                        )}
+                        {cert.status === 'UNDER_REVIEW' && (
+                          <span className="cyber-badge" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.3)', whiteSpace: 'nowrap' }}>
+                            <Clock size={12} style={{ marginRight: '4px' }} /> UNDER REVIEW
+                          </span>
+                        )}
+                        {cert.status === 'REJECTED' && (
+                          <span className="cyber-badge" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', whiteSpace: 'nowrap' }}>
+                            <AlertTriangle size={12} style={{ marginRight: '4px' }} /> REJECTED
+                          </span>
+                        )}
+                        {cert.status === 'NEEDS_CORRECTION' && (
+                          <span className="cyber-badge" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.3)', whiteSpace: 'nowrap' }}>
+                            <AlertTriangle size={12} style={{ marginRight: '4px' }} /> CORRECTION
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Related Skills */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '12px' }}>
+                        {(cert.relatedSkills || []).map((sk, idx) => (
+                          <span
+                            key={idx}
+                            style={{
+                              fontSize: '11px',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              background: 'rgba(99, 102, 241, 0.08)',
+                              color: 'var(--cyber-purple)',
+                              border: '1px solid rgba(99, 102, 241, 0.25)',
+                              fontWeight: 600
+                            }}
+                          >
+                            {sk}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Institution Verification Feedback */}
+                      {cert.status === 'VERIFIED' && cert.verifiedBy && (
+                        <div style={{ marginTop: '12px', padding: '8px 10px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', fontSize: '11.5px', color: '#059669' }}>
+                          ✓ Verified by <strong>{cert.verifiedBy}</strong> on {new Date(cert.verifiedAt).toLocaleDateString()}
+                        </div>
+                      )}
+                      {cert.status === 'REJECTED' && cert.rejectionReason && (
+                        <div style={{ marginTop: '12px', padding: '8px 10px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', fontSize: '11.5px', color: '#dc2626' }}>
+                          <strong>Reason:</strong> {cert.rejectionReason}
+                        </div>
+                      )}
+                      {cert.status === 'NEEDS_CORRECTION' && cert.correctionReason && (
+                        <div style={{ marginTop: '12px', padding: '8px 10px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.2)', fontSize: '11.5px', color: '#b45309' }}>
+                          <strong>Correction Required:</strong> {cert.correctionReason}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card Actions */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)' }}>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          onClick={() => setActiveViewingCertificate(cert)}
+                          className="btn-cyber-outline"
+                          style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <Eye size={13} /> View
+                        </button>
+                        <button
+                          onClick={() => {
+                            const url = certificateService.getDownloadUrl(cert.id);
+                            window.open(url, '_blank');
+                          }}
+                          className="btn-cyber-outline"
+                          style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                          title="Download File"
+                        >
+                          <Download size={13} /> Download
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {(!cert.institutionId || cert.status === 'DRAFT') && (
+                          <button
+                            onClick={() => handleSendCertToCollege(cert.id)}
+                            className="btn-cyber-primary"
+                            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                          >
+                            <Send size={12} /> Send to College
+                          </button>
+                        )}
+                        {cert.status !== 'VERIFIED' && (
+                          <button
+                            onClick={() => handleDeleteCert(cert.id)}
+                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px' }}
+                            title="Withdraw Certificate"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB 5: AI SKILL GAP INTELLIGENCE & RECOMMENDATIONS ── */}
+      {mainTab === 'skill-gap' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Top Readiness & Target Banner */}
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '16px',
+            padding: '24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '20px'
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--cyber-amber)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <Brain size={16} />
+                <span>NEXUS AI Evaluated Skill Readiness</span>
+              </div>
+              <h3 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0 6px 0' }}>
+                Career Target: {skillGapData?.targetRole || currentStudent?.preferredRoles?.[0] || 'Software Engineer'}
+              </h3>
+              <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: 1.5 }}>
+                Real-time competency analysis calculated against active industry opportunity requirements, verified certificates, and academic coursework.
+              </p>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              padding: '16px 24px',
+              background: 'var(--bg-secondary)',
+              borderRadius: '14px',
+              border: '1px solid var(--border-subtle)'
+            }}>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>ROLE READINESS</div>
+                <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)' }}>
+                  {skillGapData?.readinessLevel !== undefined ? skillGapData.readinessLevel : counts.readinessIndex}%
+                </div>
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', maxWidth: '140px' }}>
+                Based on verified credentials & project evidence
+              </div>
+            </div>
+          </div>
+
+          {/* Current Verified Strengths */}
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '16px', padding: '20px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--cyber-emerald)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <ShieldCheck size={18} />
+              <span>Demonstrated Strengths & Verified Competencies ({skillGapData?.strengths?.length || 0})</span>
+            </div>
+
+            {skillGapData?.strengths?.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+                {skillGapData.strengths.map((st, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid rgba(16, 185, 129, 0.25)',
+                      borderRadius: '10px',
+                      padding: '14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '14px' }}>{st.skill}</span>
+                      <span style={{ color: '#059669', fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{st.proficiency}%</span>
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+                      Industry Demand: {st.industryDemand}
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '2px' }}>
+                      {(st.evidence || []).map((ev, i) => (
+                        <span key={i} style={{ fontSize: '10.5px', padding: '2px 6px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', color: '#059669' }}>
+                          ✓ {ev}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic', padding: '12px 0' }}>
+                No accredited strengths verified yet. Complete course benchmarks or upload a certificate.
+              </div>
+            )}
+          </div>
+
+          {/* Priority Skill Gaps with Full Explainability */}
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '16px', padding: '20px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--cyber-amber)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <AlertTriangle size={18} />
+              <span>Classified Skill Gaps & Explainable AI Remediation ({skillGapData?.skillGaps?.length || 0})</span>
+            </div>
+
+            {skillGapData?.skillGaps?.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {skillGapData.skillGaps.map((gap, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '14px'
+                    }}
+                  >
+                    {/* Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          padding: '3px 10px',
+                          borderRadius: '12px',
+                          background: gap.priority === 'HIGH' ? 'rgba(239, 68, 68, 0.12)' : (gap.priority === 'MEDIUM' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(59, 130, 246, 0.12)'),
+                          color: gap.priority === 'HIGH' ? '#dc2626' : (gap.priority === 'MEDIUM' ? '#d97706' : '#2563eb'),
+                          border: `1px solid ${gap.priority === 'HIGH' ? 'rgba(239, 68, 68, 0.3)' : (gap.priority === 'MEDIUM' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(59, 130, 246, 0.3)')}`
+                        }}>
+                          {gap.priority} PRIORITY GAP
+                        </span>
+                        <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {gap.skill}
+                        </h4>
+                      </div>
+                      <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+                        {gap.industryDemand}
+                      </div>
+                    </div>
+
+                    {/* 4-Part NEXUS AI Explainability Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+                      <div style={{ background: 'var(--bg-card)', padding: '12px 14px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                          WHY THIS GAP EXISTS
+                        </div>
+                        <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                          {gap.whyGapExists}
+                        </div>
+                      </div>
+
+                      <div style={{ background: 'var(--bg-card)', padding: '12px 14px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                          WHAT EVIDENCE EXISTS
+                        </div>
+                        <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                          {Array.isArray(gap.whatEvidenceExists) ? gap.whatEvidenceExists.join(' • ') : gap.whatEvidenceExists}
+                        </div>
+                      </div>
+
+                      <div style={{ background: 'var(--bg-card)', padding: '12px 14px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                          WHAT IS MISSING
+                        </div>
+                        <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                          {gap.whatIsMissing}
+                        </div>
+                      </div>
+
+                      <div style={{ background: 'var(--bg-card)', padding: '12px 14px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--cyber-cyan)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                          WHY THIS ACTION IS RECOMMENDED
+                        </div>
+                        <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                          {gap.whyRecommended}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Call to Action */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                      background: 'rgba(99, 102, 241, 0.06)',
+                      border: '1px solid rgba(99, 102, 241, 0.25)',
+                      borderRadius: '10px',
+                      padding: '12px 16px'
+                    }}>
+                      <div style={{ fontSize: '13px', color: 'var(--cyber-purple)', fontWeight: 600 }}>
+                        <strong>Next Action:</strong> {gap.whatToDoNext}
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {gap.recommendedLearning ? (
+                          <button
+                            onClick={() => setActivePage && setActivePage('learning')}
+                            className="btn-cyber-primary"
+                            style={{ padding: '7px 14px', fontSize: '12px' }}
+                          >
+                            Go to Course Track →
+                          </button>
+                        ) : null}
+                        <button
+                          onClick={() => setShowCertificateUpload(true)}
+                          className="btn-cyber-outline"
+                          style={{ padding: '7px 14px', fontSize: '12px' }}
+                        >
+                          Upload Certificate Evidence
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic', padding: '12px 0' }}>
+                Zero skill gaps detected for this role.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -1048,6 +2185,51 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                 </div>
               )}
 
+              {/* Verified Certificates Evidence */}
+              {(() => {
+                const matchingCerts = certificates.filter(c =>
+                  c.status === 'VERIFIED' &&
+                  (c.relatedSkills || []).some(s => s.toLowerCase() === selectedEvidence.name?.toLowerCase())
+                );
+                if (matchingCerts.length === 0) return null;
+                return (
+                  <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                    <div style={{ color: 'var(--cyber-emerald)', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <ShieldCheck size={14} />
+                      <span>VERIFIED CERTIFICATE EVIDENCE ({matchingCerts.length})</span>
+                    </div>
+                    <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {matchingCerts.map((vc, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setSelectedEvidence(null);
+                            setActiveViewingCertificate(vc);
+                          }}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '8px 10px',
+                            background: 'rgba(16, 185, 129, 0.08)',
+                            borderRadius: '6px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-primary)' }}>{vc.title}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{vc.issuer} • Verified by College</div>
+                          </div>
+                          <span style={{ fontSize: '11px', color: 'var(--cyber-cyan)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Eye size={12} /> View Certificate
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div style={{ padding: '10px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ color: 'var(--text-muted)', fontSize: '10.5px', fontFamily: 'var(--font-mono)' }}>PROFICIENCY TIER</div>
@@ -1078,6 +2260,8 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {/* Add Skill Modal */}
@@ -1164,6 +2348,58 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
             </form>
           </div>
         </div>
+      )}
+      {/* Complete Skill Details & Enrollment Modal */}
+      {selectedSkillDetailsId && (
+        <SkillDetailsModal
+          isOpen={Boolean(selectedSkillDetailsId)}
+          onClose={() => setSelectedSkillDetailsId(null)}
+          skillId={selectedSkillDetailsId}
+          onShowToast={onShowToast}
+          onEnrollSuccess={(enrollmentData) => {
+            loadSkillsData();
+            setMainTab('enrolled');
+            if (onShowToast) {
+              onShowToast({
+                title: 'Enrolled Successfully',
+                message: 'You have enrolled in this skill offering. Your progress starts at 0%.',
+                type: 'success'
+              });
+            }
+          }}
+        />
+      )}
+
+      {/* Interactive Learning Path Workspace Modal */}
+      {learningModalSkillId && (
+        <SkillLearningPathModal
+          isOpen={Boolean(learningModalSkillId)}
+          onClose={() => {
+            setLearningModalSkillId(null);
+            loadSkillsData();
+          }}
+          skillId={learningModalSkillId}
+          onShowToast={onShowToast}
+          onProgressUpdate={() => {
+            loadSkillsData();
+          }}
+        />
+      )}
+
+      {/* Student Certificate Upload Modal */}
+      <CertificateUploadModal
+        isOpen={showCertificateUpload}
+        onClose={() => setShowCertificateUpload(false)}
+        onSuccess={() => loadSkillsData()}
+        onShowToast={onShowToast}
+      />
+
+      {/* Reusable In-App Certificate Document Viewer Modal */}
+      {activeViewingCertificate && (
+        <CertificateViewerModal
+          certificate={activeViewingCertificate}
+          onClose={() => setActiveViewingCertificate(null)}
+        />
       )}
     </div>
   );

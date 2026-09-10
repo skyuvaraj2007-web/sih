@@ -63,6 +63,7 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
     if (id === 'skills') return activePage === 'skills';
     if (id === 'assessment') return activePage === 'assessment';
     if (id === 'learning') return activePage === 'learning' || activePage === 'learning-progress' || activePage === 'enroll';
+    if (id === 'communication') return activePage === 'communication';
     if (id === 'advanced-tech') return activePage === 'advanced-tech' || activePage === 'advanced-tech-deepdive';
     if (id === 'projects') return activePage === 'projects';
     if (id === 'opportunities') return activePage === 'opportunities';
@@ -75,7 +76,8 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
     // Institution Top-Level Route Matching
     if (id === 'institution-console') return activePage === 'institution-console' || activePage === 'institution-academic-workspace';
     if (id === 'institution-students') return ['institution-readiness', 'institution-students', 'institution-assessments', 'institution-skill-analytics'].includes(activePage);
-    if (id === 'institution-courses') return ['institution-courses', 'institution-course-certificates', 'institution-skill-mapping', 'institution-certificates', 'institution-proofs'].includes(activePage);
+    if (id === 'institution-courses') return ['institution-courses', 'institution-skill-mapping'].includes(activePage);
+    if (id === 'institution-certificates') return ['institution-certificates', 'institution-course-certificates', 'institution-proofs'].includes(activePage);
     if (id === 'institution-company-directory') return ['institution-company-directory', 'institution-companies', 'institution-company-intelligence', 'institution-company-opportunities', 'institution-industry-requests'].includes(activePage);
     if (id === 'institution-matching') return ['institution-matching', 'institution-skill-gap'].includes(activePage);
     if (id === 'institution-placement') return ['institution-placement', 'institution-recruitment-drives'].includes(activePage);
@@ -91,6 +93,7 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
     { id: 'skills', label: 'Skill Intelligence', icon: CheckSquare },
     { id: 'assessment', label: 'Skill Assessment', icon: Award },
     { id: 'learning', label: 'Learning Paths', icon: BookOpen },
+    { id: 'communication', label: 'Communication', icon: MessageSquare, badge: 'Drills' },
     { id: 'advanced-tech', label: 'Emerging Tech', icon: Cpu, badge: 'AI 2.0' },
     { id: 'projects', label: 'Build Projects', icon: FolderGit2 },
     { id: 'opportunities', label: 'Opportunities', icon: Briefcase, count: 12 },
@@ -101,6 +104,8 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
     { id: 'institution-console', label: 'Cohort Telemetry', icon: Building2 },
     { id: 'institution-students', label: 'Students', icon: Users },
     { id: 'institution-courses', label: 'Learning', icon: BookOpen },
+    { id: 'institution-projects', label: 'Project Verification', icon: FolderGit2 },
+    { id: 'institution-certificates', label: 'Certificate Verification', icon: Award },
     { id: 'institution-company-directory', label: 'Companies', icon: Building },
     { id: 'institution-matching', label: 'Talent Matching', icon: Brain },
     { id: 'institution-placement', label: 'Placement Pipeline', icon: GraduationCap },

@@ -1,9 +1,11 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 
-dotenv.config();
+const envPath = path.resolve(__dirname, '../.env');
+dotenv.config({ path: envPath });
 
 const authRoutes = require('./routes/auth');
 const skillsRoutes = require('./routes/skills');
@@ -53,11 +55,16 @@ const academicRoutes = require('./routes/academic');
 const companyRoutes = require('./routes/company');
 const studentRoutes = require('./routes/studentRoutes');
 const internshipRoutes = require('./routes/internshipRoutes');
+const communicationRoutes = require('./routes/communicationRoutes');
+const certificateRoutes = require('./routes/certificateRoutes');
 app.use('/api/college-master', collegeMasterRoutes);
 app.use('/api/academic', academicRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/student', studentRoutes);
 app.use('/api/internships', internshipRoutes);
+app.use('/api/communication', communicationRoutes);
+app.use('/api/certificates', certificateRoutes);
 
 const relationalManager = require('./db/relationalManager');
 const notificationRouter = express.Router();

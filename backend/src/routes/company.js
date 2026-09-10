@@ -6,10 +6,10 @@ const { requireAuth } = require('../middleware/auth');
 // Middleware to enforce tenant (company) isolation
 function verifyCompany(req, res, next) {
   const userRole = (req.user?.role || '').toLowerCase();
-  if (!['company', 'admin'].includes(userRole)) {
+  if (!['company', 'industry', 'corporate', 'admin'].includes(userRole)) {
     return res.status(403).json({ success: false, message: 'Forbidden: Company role required' });
   }
-  const companyId = req.user?.companyId;
+  const companyId = req.user?.companyId || req.user?.id;
   if (!companyId && userRole !== 'admin') {
     return res.status(403).json({ success: false, message: 'Company context missing' });
   }
@@ -27,10 +27,22 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
-// ---------- Opportunities (Scoped to Company) ----------
-router.get('/opportunities', requireAuth, verifyCompany, async (req, res) => {
+// ---------- Opportunities (Scoped to Company or Public) ----------
+router.get('/opportunities', async (req, res) => {
+  if (req.headers.authorization) {
+    return requireAuth(req, res, () => {
+      verifyCompany(req, res, async () => {
+        try {
+          const opps = await relationalManager.getOpportunitiesByCompany(req.companyId);
+          res.json({ success: true, data: opps });
+        } catch (err) {
+          res.status(500).json({ success: false, message: err.message });
+        }
+      });
+    });
+  }
   try {
-    const opps = await relationalManager.getOpportunitiesByCompany(req.companyId);
+    const opps = await relationalManager.getOpportunities();
     res.json({ success: true, data: opps });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -301,26 +313,38 @@ router.get('/partnerships', requireAuth, verifyCompany, async (req, res) => {
 router.put('/partnerships/:id/accept', requireAuth, verifyCompany, async (req, res) => {
   try {
     const result = await relationalManager.respondToStudentAccessRequest(req.params.id, req.companyId, 'ACCEPTED', req.user?.id);
-    const data = relationalManager._read();
-    const reqRecord = (data.accessRequests || []).find(r => r.id === req.params.id || r.requestId === req.params.id);
-    const instId = reqRecord?.institutionId || 'INST-001';
-    let part = (data.partnerships || []).find(p => p.id === req.params.id || (p.companyId === req.companyId && p.institutionId === instId));
-    if (!part) {
-      part = {
-        id: req.params.id,
-        institutionId: instId,
-        companyId: req.companyId,
-        status: 'ACCEPTED',
-        createdAt: new Date().toISOString()
-      };
-      data.partnerships = data.partnerships || [];
-      data.partnerships.unshift(part);
-      relationalManager._write(data);
-    } else {
-      part.status = 'ACCEPTED';
-      relationalManager._write(data);
+    let part = null;
+    if (relationalManager.pg) {
+      try {
+        const pUp = await relationalManager.pg.query(
+          `UPDATE company_institution_partnerships SET status = 'ACCEPTED' WHERE id::text = $1 RETURNING *`,
+          [String(req.params.id)]
+        );
+        if (pUp.rows.length > 0) part = pUp.rows[0];
+      } catch (e) {}
     }
-    res.json({ success: true, data: { ...result, status: 'ACCEPTED', partnership: part } });
+    if (!part && !relationalManager.isPgRequired) {
+      const data = relationalManager._read();
+      const reqRecord = (data.accessRequests || []).find(r => r.id === req.params.id || r.requestId === req.params.id);
+      const instId = reqRecord?.institutionId || 'INST-001';
+      part = (data.partnerships || []).find(p => p.id === req.params.id || (p.companyId === req.companyId && p.institutionId === instId));
+      if (!part) {
+        part = {
+          id: req.params.id,
+          institutionId: instId,
+          companyId: req.companyId,
+          status: 'ACCEPTED',
+          createdAt: new Date().toISOString()
+        };
+        data.partnerships = data.partnerships || [];
+        data.partnerships.unshift(part);
+        relationalManager._write(data);
+      } else {
+        part.status = 'ACCEPTED';
+        relationalManager._write(data);
+      }
+    }
+    res.json({ success: true, data: { ...result, status: 'ACCEPTED', partnership: part || { id: req.params.id, status: 'ACCEPTED' } } });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -338,27 +362,48 @@ router.post('/partnerships', requireAuth, verifyCompany, async (req, res) => {
 router.get('/institutions/:institutionId/students', requireAuth, verifyCompany, async (req, res) => {
   try {
     const { institutionId } = req.params;
-    const data = relationalManager._read();
-    const isPartnered = (data.partnerships || []).some(p => 
-      (p.companyId === req.companyId || p.company_id === req.companyId) &&
-      (p.institutionId === institutionId || p.institution_id === institutionId) &&
-      (p.status === 'ACCEPTED' || p.status === 'ACTIVE')
-    ) || (data.accessRequests || []).some(r =>
-      (r.companyId === req.companyId || r.company_id === req.companyId) &&
-      (r.institutionId === institutionId || r.institution_id === institutionId) &&
-      r.status === 'ACCEPTED'
-    );
+    let isPartnered = false;
+    if (relationalManager.pg) {
+      try {
+        const pRes = await relationalManager.pg.query(
+          `SELECT 1 FROM company_institution_partnerships
+           WHERE (company_id::text = $1 OR company_id IN (SELECT id FROM companies WHERE registration_number = $1 OR company_name ILIKE $1))
+             AND (institution_id::text = $2 OR institution_id IN (SELECT id FROM institutions WHERE code = $2))
+             AND status IN ('ACTIVE', 'ACCEPTED')
+           LIMIT 1`,
+          [String(req.companyId), String(institutionId)]
+        );
+        isPartnered = pRes.rows.length > 0;
+      } catch (e) {}
+    }
+
+    if (!isPartnered && !relationalManager.isPgRequired) {
+      const data = relationalManager._read();
+      isPartnered = (data.partnerships || []).some(p =>
+        (p.companyId === req.companyId || p.company_id === req.companyId) &&
+        (p.institutionId === institutionId || p.institution_id === institutionId) &&
+        (p.status === 'ACCEPTED' || p.status === 'ACTIVE')
+      ) || (data.accessRequests || []).some(r =>
+        (r.companyId === req.companyId || r.company_id === req.companyId) &&
+        (r.institutionId === institutionId || r.institution_id === institutionId) &&
+        r.status === 'ACCEPTED'
+      );
+    }
 
     if (!isPartnered) {
       return res.status(403).json({ success: false, message: 'Forbidden: No active partnership with this institution' });
     }
 
     const instStudents = await relationalManager.getStudents(institutionId);
-    const sharedStudentIds = new Set(
-      (data.sharedStudents || [])
-        .filter(s => (s.companyId === req.companyId || s.company_id === req.companyId) && s.accessStatus === 'ACTIVE')
-        .map(s => s.studentId || s.student_id)
-    );
+    let sharedStudentIds = new Set();
+    if (!relationalManager.isPgRequired) {
+      const data = relationalManager._read();
+      sharedStudentIds = new Set(
+        (data.sharedStudents || [])
+          .filter(s => (s.companyId === req.companyId || s.company_id === req.companyId) && s.accessStatus === 'ACTIVE')
+          .map(s => s.studentId || s.student_id)
+      );
+    }
     const authorized = instStudents.filter(s => sharedStudentIds.has(s.studentId || s.id) || sharedStudentIds.size === 0);
     res.json({ success: true, data: authorized });
   } catch (err) {
@@ -504,6 +549,25 @@ router.post('/talent-discovery', requireAuth, verifyCompany, async (req, res) =>
     const searchParams = req.body || {};
     const result = await relationalManager.searchTalentEcosystem(req.companyId, searchParams);
     res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ---------- Targeted Student Search with Benchmark & Verified Evidence ----------
+router.post('/targeted-students', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const result = await relationalManager.getTargetedStudents(req.companyId, req.body || {});
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/targeted-students', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const result = await relationalManager.getTargetedStudents(req.companyId, req.query || {});
+    res.json(result);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

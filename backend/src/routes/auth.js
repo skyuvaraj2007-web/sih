@@ -291,7 +291,25 @@ router.post('/verify-otp', async (req, res) => {
     if (!result.success) {
       return res.status(result.code || 400).json(result);
     }
-    if (result.token) {
+    if (result.user) {
+      const u = result.user;
+      const realToken = jwt.sign(
+        {
+          id: u.id || u.studentId || u.institutionId || u.collegeId || u.companyId,
+          studentId: u.studentId,
+          institutionId: u.institutionId || u.collegeId,
+          collegeId: u.collegeId || u.institutionId,
+          email: u.email,
+          role: u.role,
+          name: u.name,
+          companyId: u.companyId
+        },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+      result.token = realToken;
+      res.cookie('nexus_session', realToken, COOKIE_OPTIONS);
+    } else if (result.token) {
       res.cookie('nexus_session', result.token, COOKIE_OPTIONS);
     }
     return res.json(result);

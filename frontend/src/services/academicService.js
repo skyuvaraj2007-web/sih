@@ -320,5 +320,87 @@ export const academicService = {
       body: JSON.stringify({ reason })
     });
     return await res.json();
+  },
+
+  // ── INSTITUTION CERTIFICATE VERIFICATION PIPELINE ──
+  async getInstitutionCertificates(params = {}) {
+    const query = new URLSearchParams();
+    if (params.status && params.status !== 'ALL') query.append('status', params.status);
+    if (params.student) query.append('student', params.student);
+    if (params.skill) query.append('skill', params.skill);
+    if (params.category) query.append('category', params.category);
+    if (params.issuer) query.append('issuer', params.issuer);
+    if (params.fileType) query.append('fileType', params.fileType);
+    if (params.search) query.append('search', params.search);
+
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    const res = await fetch(`${API_BASE}/academic/certificates${qs}`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async getInstitutionCertificateAnalytics() {
+    const res = await fetch(`${API_BASE}/academic/certificates/analytics`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async getInstitutionCertificateById(certificateId) {
+    const res = await fetch(`${API_BASE}/academic/certificates/${encodeURIComponent(certificateId)}`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async verifyCertificate(certificateId, notes = '') {
+    const res = await fetch(`${API_BASE}/academic/certificates/${encodeURIComponent(certificateId)}/verify`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ notes })
+    });
+    return await res.json();
+  },
+
+  async rejectCertificate(certificateId, reason) {
+    const res = await fetch(`${API_BASE}/academic/certificates/${encodeURIComponent(certificateId)}/reject`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ reason })
+    });
+    return await res.json();
+  },
+
+  async requestCertificateCorrection(certificateId, reason) {
+    const res = await fetch(`${API_BASE}/academic/certificates/${encodeURIComponent(certificateId)}/request-correction`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ reason })
+    });
+    return await res.json();
+  },
+
+  async reviewCertificate(certificateId) {
+    const res = await fetch(`${API_BASE}/academic/certificates/${encodeURIComponent(certificateId)}/review`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async getInstitutionSkillGaps() {
+    const res = await fetch(`${API_BASE}/academic/skill-gaps`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
   }
 };

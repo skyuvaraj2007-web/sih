@@ -15,6 +15,8 @@ async function matchStudentToOpportunity(studentId, opportunityId) {
   if (!student || !opportunity) throw new Error('Student or Opportunity not found');
 
   const studentSkillNames = (student.skills || []).map(s => (s.name || s.skill || '').trim().toLowerCase());
+  const commScore = Number(student.communication?.overallScore ?? student.capabilities?.communication ?? 0);
+  const COMM_KEYWORDS = ['communication', 'presentation', 'soft skills', 'workplace communication', 'english', 'dialogue'];
   
   const rawReq = opportunity.requiredSkills || opportunity.skillsMatrix || opportunity.skills || [];
   const requiredSkills = rawReq.map(s => {
@@ -22,13 +24,23 @@ async function matchStudentToOpportunity(studentId, opportunityId) {
     return (s.name || s.skill || s.title || '').trim().toLowerCase();
   }).filter(Boolean);
 
-  const matched = requiredSkills.filter(s => studentSkillNames.includes(s));
-  const missing = requiredSkills.filter(s => !studentSkillNames.includes(s));
+  const matched = requiredSkills.filter(s => {
+    if (COMM_KEYWORDS.some(kw => s.includes(kw))) {
+      return commScore >= 50 || studentSkillNames.includes(s);
+    }
+    return studentSkillNames.includes(s);
+  });
+  const missing = requiredSkills.filter(s => !matched.includes(s));
   const matchScore = requiredSkills.length > 0
     ? Math.round((matched.length / requiredSkills.length) * 100)
     : 0;
 
-  const reasons = matched.map(s => `✓ You have ${s} skill`);
+  const reasons = matched.map(s => {
+    if (COMM_KEYWORDS.some(kw => s.includes(kw)) && commScore >= 50 && !studentSkillNames.includes(s)) {
+      return `✓ Verified Communication capability (${commScore}%)`;
+    }
+    return `✓ You have ${s} skill`;
+  });
   const improvements = missing.map(s => `• Learn/improve ${s}`);
 
   const result = {
@@ -104,14 +116,27 @@ function calculateMatch(candidate, opportunity) {
     return (s.name || s.skill || s.title || '').trim().toLowerCase();
   }).filter(Boolean);
 
-  const matched = requiredSkills.filter(s => candidateSkills.some(cs => cs.includes(s) || s.includes(cs)));
-  const missing = requiredSkills.filter(s => !candidateSkills.some(cs => cs.includes(s) || s.includes(cs)));
+  const commScore = Number(candidate?.communication?.overallScore ?? candidate?.capabilities?.communication ?? 0);
+  const COMM_KEYWORDS = ['communication', 'presentation', 'soft skills', 'workplace communication', 'english', 'dialogue'];
+
+  const matched = requiredSkills.filter(s => {
+    if (COMM_KEYWORDS.some(kw => s.includes(kw))) {
+      return commScore >= 50 || candidateSkills.some(cs => cs.includes(s) || s.includes(cs));
+    }
+    return candidateSkills.some(cs => cs.includes(s) || s.includes(cs));
+  });
+  const missing = requiredSkills.filter(s => !matched.includes(s));
 
   const matchScore = requiredSkills.length > 0
     ? Math.round((matched.length / requiredSkills.length) * 100)
     : 0;
 
-  const reasons = matched.map(s => `✓ Candidate possesses ${s}`);
+  const reasons = matched.map(s => {
+    if (COMM_KEYWORDS.some(kw => s.includes(kw)) && commScore >= 50 && !candidateSkills.some(cs => cs.includes(s) || s.includes(cs))) {
+      return `✓ Verified Communication capability (${commScore}%)`;
+    }
+    return `✓ Candidate possesses ${s}`;
+  });
   if (reasons.length === 0 && requiredSkills.length > 0) {
     reasons.push(`Matched 0 of ${requiredSkills.length} required skills`);
   }

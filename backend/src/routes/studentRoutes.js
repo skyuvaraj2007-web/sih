@@ -633,7 +633,7 @@ router.get('/documents/:docId/download', requireAuth, async (req, res) => {
       }
     }
 
-    if (!foundDoc) {
+    if (!foundDoc && !relationalManager.isPgRequired) {
       const data = relationalManager._read();
       for (const s of (data.students || [])) {
         if (Array.isArray(s.documents)) {
@@ -805,10 +805,16 @@ router.get(['/dashboard', '/dashboard-data'], requireAuth, async (req, res) => {
       return Math.round(Math.min(100, totalPoints / activityWeights));
     }
 
+    let commScore = calculateActivityCapability(SKILL_CATEGORIES.communication, 'communication');
+    const commModuleScore = Number(student.communication?.overallScore) || 0;
+    if (commModuleScore > 0) {
+      commScore = commScore > 0 ? Math.round(commScore * 0.3 + commModuleScore * 0.7) : commModuleScore;
+    }
+
     const capabilities = {
       technicalSkills: calculateActivityCapability(SKILL_CATEGORIES.technicalSkills, 'technical'),
       problemSolving: calculateActivityCapability(SKILL_CATEGORIES.problemSolving, 'problemSolving'),
-      communication: calculateActivityCapability(SKILL_CATEGORIES.communication, 'communication'),
+      communication: commScore,
       systemDesign: calculateActivityCapability(SKILL_CATEGORIES.systemDesign, 'systemDesign'),
       cloud: calculateActivityCapability(SKILL_CATEGORIES.cloud, 'cloud'),
       cloudDistributed: calculateActivityCapability(SKILL_CATEGORIES.cloud, 'cloud')
@@ -898,6 +904,12 @@ router.get(['/dashboard', '/dashboard-data'], requireAuth, async (req, res) => {
       if (ts) rawActivities.push({ type: 'assessment', text: `Completed ${a.domain || 'an'} assessment (Score: ${a.score || 0}%)`, time: ts, color: '#28D7FF' });
     });
 
+    const commActs = student.communication?.activities || [];
+    commActs.slice(-2).reverse().forEach(ca => {
+      const ts = ca.completedAt;
+      if (ts) rawActivities.push({ type: 'communication', text: `Completed ${ca.category || 'communication'} practice (Score: ${ca.score || 0}%)`, time: ts, color: '#A855F7' });
+    });
+
     rawActivities.sort((a, b) => new Date(b.time) - new Date(a.time));
     const recentActivities = rawActivities.slice(0, 5).map(act => {
       const d = new Date(act.time);
@@ -915,10 +927,12 @@ router.get(['/dashboard', '/dashboard-data'], requireAuth, async (req, res) => {
     if (coursesCompleted >= 1) achievements.push({ id: 'first_course', title: 'Course Completer', desc: 'Finished your first course' });
     if (opportunitiesApplied >= 1) achievements.push({ id: 'first_application', title: 'Opportunity Seeker', desc: 'Applied for your first opportunity' });
     if (careerReadiness >= 50) achievements.push({ id: 'placement_ready', title: 'Placement Ready', desc: `Achieved ${careerReadiness}% career readiness` });
+    if (commActs.length >= 1) achievements.push({ id: 'first_comm', title: 'Articulate Communicator', desc: 'Completed your first communication lesson' });
+    if (commScore >= 70) achievements.push({ id: 'comm_master', title: 'Executive Voice', desc: 'Reached 70% communication proficiency' });
 
     // ── Dynamic "Your Best Action" Generated from Student's Real Current State ──
     const sp = student.skillProfile;
-    const totalActivityEvents = skills.length + assessments.length + projects.length + enrollArr.length;
+    const totalActivityEvents = skills.length + assessments.length + projects.length + enrollArr.length + commActs.length;
     let nextBestAction;
 
     if (totalActivityEvents === 0) {
@@ -1182,6 +1196,109 @@ router.get('/:studentId', requireAuth, async (req, res) => {
         readinessBreakdown
       }
     });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STUDENT SELF-ASSESSMENT & LEARNING INTELLIGENCE ROUTES
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/self-assessments', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const list = await relationalManager.getStudentSelfAssessments(studentId);
+    res.json({ success: true, data: list, count: list.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/self-assessments', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const saved = await relationalManager.saveStudentSelfAssessment(studentId, req.body);
+    res.status(201).json({ success: true, message: 'Self-assessment recorded successfully.', data: saved });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+router.put('/self-assessments/:id', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const saved = await relationalManager.saveStudentSelfAssessment(studentId, { ...req.body, id: req.params.id });
+    res.json({ success: true, message: 'Self-assessment updated successfully.', data: saved });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+router.delete('/self-assessments/:id', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const result = await relationalManager.deleteStudentSelfAssessment(studentId, req.params.id);
+    res.json({ success: true, message: 'Self-assessment deleted successfully.', data: result });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/learning-progress', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const data = await relationalManager.getStudentLearningOverview(studentId);
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/quiz-results', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const data = await relationalManager.getStudentQuizzes(studentId);
+    res.json({ success: true, data, count: data.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/projects', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const data = await relationalManager.getStudentProjects(studentId);
+    res.json({ success: true, data, count: data.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/certifications', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const data = await relationalManager.getStudentCertifications(studentId);
+    res.json({ success: true, data, count: data.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/learning-activity', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const data = await relationalManager.getStudentLearningActivities(studentId);
+    res.json({ success: true, data, count: data.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/learning-intelligence', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const data = await relationalManager.getStudentLearningIntelligence(studentId);
+    res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
