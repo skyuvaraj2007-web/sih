@@ -13,7 +13,7 @@ function verifyCompany(req, res, next) {
   if (!companyId && userRole !== 'admin') {
     return res.status(403).json({ success: false, message: 'Company context missing' });
   }
-  req.companyId = companyId || req.query.companyId || 'COMP-001';
+  req.companyId = companyId || req.query.companyId || null;
   next();
 }
 
@@ -129,7 +129,7 @@ router.delete('/opportunities/:id', requireAuth, verifyCompany, async (req, res)
 router.get('/talent-pools', requireAuth, verifyCompany, async (req, res) => {
   try {
     const pools = await relationalManager.getTalentPoolsByCompany(req.companyId);
-    res.json({ success: true, data: pools });
+    res.json({ success: true, data: pools || [] });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -180,19 +180,20 @@ router.get('/opportunities/:id/matches', requireAuth, verifyCompany, async (req,
   try {
     const matchingService = require('../services/matchingService');
     const opp = await relationalManager.getOpportunityById(req.params.id);
-    if (!opp || (opp.companyId && opp.companyId !== req.companyId && opp.company_id !== req.companyId)) {
+    const oppCompanyId = opp ? (opp.companyId || opp.company_id) : null;
+    if (!opp || !oppCompanyId || (String(oppCompanyId) !== String(req.companyId) && req.user?.role !== 'admin')) {
       return res.status(404).json({ success: false, message: 'Opportunity not found' });
     }
     const students = await relationalManager.getStudents(); // all students
     const matches = [];
     for (const student of students) {
-      if (!student.studentId) continue;
+      if (!student.studentId && !student.id) continue;
       try {
-        const result = await matchingService.matchStudentToOpportunity(student.studentId, opp.oppId || opp.opp_id);
+        const result = matchingService.calculateMatch(student, opp);
         if (result) {
           matches.push({
-            studentId: student.studentId,
-            name: student.name,
+            studentId: student.studentId || student.id,
+            name: student.name || student.fullName,
             matchScore: result.matchScore,
             matchedSkills: result.matchedSkills,
             missingSkills: result.missingSkills,
