@@ -9,7 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { Pool } = require('pg');
+// const { Pool } = require('pg'); // Removed pg pool
 const bcrypt = require('bcryptjs');
 const emailService = require('../services/emailService');
 const { getMasterCollegeByCodeOrId, TAMIL_NADU_ENGINEERING_COLLEGES } = require('./tamilNaduEngineeringColleges');
@@ -24,41 +24,12 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// PostgreSQL Connection Pool (Active if DATABASE_URL or PGHOST is present)
+// PostgreSQL Connection Pool removed. Supabase client will be used for all DB operations.
+const { supabase } = require('../config/supabase');
+// Retain legacy flags for compatibility (will always be false after migration)
 let pgPool = null;
 let isPgActive = false;
-const isPgConfigured = Boolean(process.env.DATABASE_URL || (process.env.PGHOST && process.env.PGDATABASE));
-
-if (isPgConfigured) {
-  try {
-    const poolConfig = process.env.DATABASE_URL
-      ? { connectionString: process.env.DATABASE_URL }
-      : {
-          host: process.env.PGHOST || 'localhost',
-          port: parseInt(process.env.PGPORT || '5432', 10),
-          user: process.env.PGUSER || 'postgres',
-          password: process.env.PGPASSWORD,
-          database: process.env.PGDATABASE || 'skillnexus_db'
-        };
-    if (process.env.NODE_ENV === 'production' || (process.env.DATABASE_URL && (process.env.DATABASE_URL.includes('supabase.com') || process.env.DATABASE_URL.includes('sslmode') || process.env.DATABASE_URL.includes('pooler')))) {
-      poolConfig.ssl = { rejectUnauthorized: false };
-    }
-    pgPool = new Pool(poolConfig);
-    pgPool.on('error', (err) => {
-      console.warn('⚠️ [pgPool] Idle client error (recovering):', err.message);
-    });
-    pgPool.query('SELECT 1').then(() => {
-      isPgActive = true;
-      console.log('✅ PostgreSQL connection verified & active');
-    }).catch(err => {
-      console.warn('⚠️ PostgreSQL unreachable, running in synchronized local JSON mode:', err.message);
-      isPgActive = false;
-    });
-  } catch (err) {
-    console.warn('⚠️ PostgreSQL connection failed, falling back to local relational store:', err.message);
-    pgPool = null;
-  }
-}
+const isPgConfigured = false; // Supabase only
 
 // ══════════════════════════════════════════════════════════════════════════
 // DEFAULT RELATIONAL SEED STATE (Aligned with 25 Normalized Tables)
