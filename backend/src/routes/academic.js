@@ -34,8 +34,8 @@ router.get('/profile', requireAuth, verifyInstitution, async (req, res) => {
 router.put('/profile', requireAuth, verifyInstitution, async (req, res) => {
   try {
     const { name, website, email, district, state } = req.body;
-    if (relationalManager.pg) {
-      await relationalManager.pg.query(
+    if (relationalManager.supabase) {
+      await relationalManager.query(
         `UPDATE institutions
          SET name = COALESCE($1, name),
              website_url = COALESCE($2, website_url),
@@ -202,7 +202,7 @@ const handleGetSkillGrowth = async (req, res) => {
     const instId = req.institutionId;
     const { department, classId, skill, semester, academicYear } = req.query;
 
-    if (!relationalManager.pg) {
+    if (!relationalManager.supabase) {
       return res.json({
         success: true,
         hasData: false,
@@ -219,14 +219,14 @@ const handleGetSkillGrowth = async (req, res) => {
       });
     }
 
-    const instRes = await relationalManager.pg.query(
+    const instRes = await relationalManager.query(
       `SELECT id, name, code FROM institutions WHERE id::text = $1 OR code = $1 LIMIT 1`,
       [String(instId)]
     );
     const instUuid = instRes.rows[0]?.id;
 
     // Fetch list of departments
-    const deptsRes = await relationalManager.pg.query(
+    const deptsRes = await relationalManager.query(
       `SELECT id, name, code FROM departments WHERE institution_id = $1 OR institution_id IS NULL ORDER BY name ASC`,
       [instUuid]
     );
@@ -265,12 +265,12 @@ const handleGetSkillGrowth = async (req, res) => {
     }
 
     deptGrowthQuery += ` GROUP BY d.id, d.name, d.code ORDER BY d.name ASC`;
-    const deptGrowthRes = await relationalManager.pg.query(deptGrowthQuery, params);
+    const deptGrowthRes = await relationalManager.query(deptGrowthQuery, params);
 
     const hasData = deptGrowthRes.rows.some(r => r.student_count > 0 && (r.average_growth > 0 || r.current_skill_score > 0));
 
     // Skill Distribution across categories
-    const distRes = await relationalManager.pg.query(
+    const distRes = await relationalManager.query(
       `SELECT 
          ROUND(AVG(CASE WHEN sk.name ILIKE ANY(ARRAY['%python%', '%java%', '%c++', '%programming%', '%coding%', '%javascript%']) THEN ss.confidence_score ELSE NULL END)) as programming,
          ROUND(AVG(CASE WHEN sk.name ILIKE ANY(ARRAY['%aptitude%', '%quantitative%', '%math%', '%numerical%']) THEN ss.confidence_score ELSE NULL END)) as aptitude,
@@ -295,7 +295,7 @@ const handleGetSkillGrowth = async (req, res) => {
     ];
 
     // Skill Growth Over Time
-    const timeRes = await relationalManager.pg.query(
+    const timeRes = await relationalManager.query(
       `SELECT TO_CHAR(recorded_at, 'Mon') as month,
               DATE_TRUNC('month', recorded_at) as m_order,
               ROUND(AVG(new_score)) as avg_score
@@ -309,7 +309,7 @@ const handleGetSkillGrowth = async (req, res) => {
     const timeSeries = timeRes.rows.map(r => ({ month: r.month, score: Number(r.avg_score) || 0 }));
 
     // Class Comparison
-    const classRes = await relationalManager.pg.query(
+    const classRes = await relationalManager.query(
       `SELECT c.id, c.name, c.section,
               COUNT(DISTINCT s.id)::int as student_count,
               COALESCE(ROUND(AVG(ss.confidence_score)), 0)::int as avg_skill_score
@@ -328,7 +328,7 @@ const handleGetSkillGrowth = async (req, res) => {
     }));
 
     // Assessment Improvement
-    const impRes = await relationalManager.pg.query(
+    const impRes = await relationalManager.query(
       `WITH ranked AS (
          SELECT aa.student_id, aa.score,
                 ROW_NUMBER() OVER (PARTITION BY aa.student_id ORDER BY aa.completed_at ASC) as rn_first,
@@ -391,11 +391,11 @@ router.get('/student-performance', requireAuth, verifyInstitution, async (req, r
     const instId = req.institutionId;
     const { department, classId, year, semester, academicianId, search } = req.query;
 
-    if (!relationalManager.pg) {
+    if (!relationalManager.supabase) {
       return res.json({ success: true, data: [] });
     }
 
-    const instRes = await relationalManager.pg.query(
+    const instRes = await relationalManager.query(
       `SELECT id FROM institutions WHERE id::text = $1 OR code = $1 LIMIT 1`,
       [String(instId)]
     );
@@ -447,7 +447,7 @@ router.get('/student-performance', requireAuth, verifyInstitution, async (req, r
     }
 
     query += ` ORDER BY s.full_name ASC`;
-    const resDb = await relationalManager.pg.query(query, params);
+    const resDb = await relationalManager.query(query, params);
 
     return res.json({
       success: true,

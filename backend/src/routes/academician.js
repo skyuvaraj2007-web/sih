@@ -14,13 +14,13 @@ const { getClassProgressAnalytics } = require('../services/staffMappingEngine');
 
 // Helper to resolve string code or UUID to actual UUID in institutions table
 async function resolveInstitutionUuid(instValue) {
-  if (!instValue || !relationalManager.pg) return null;
+  if (!instValue || !relationalManager.supabase) return null;
   const str = String(instValue).trim();
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
     return str;
   }
   try {
-    const res = await relationalManager.pg.query(
+    const res = await relationalManager.query(
       'SELECT id FROM institutions WHERE code = $1 OR id::text = $1 OR lower(code) = lower($1) LIMIT 1',
       [str]
     );
@@ -42,8 +42,8 @@ async function verifyAcademician(req, res, next) {
     }
 
     let institutionId = req.user?.institutionId || req.user?.collegeId;
-    if (!institutionId && relationalManager.pg && req.user?.id) {
-      const apRes = await relationalManager.pg.query(
+    if (!institutionId && relationalManager.supabase && req.user?.id) {
+      const apRes = await relationalManager.query(
         'SELECT institution_id FROM academician_profiles WHERE user_id = $1 LIMIT 1',
         [req.user.id]
       );
@@ -73,7 +73,7 @@ router.get('/dashboard', requireAuth, verifyAcademician, async (req, res) => {
     const instId = req.institutionId;
     const userId = req.user.id || req.user.userId;
 
-    if (!relationalManager.pg) {
+    if (!relationalManager.supabase) {
       return res.json({
         success: true,
         data: {
@@ -86,7 +86,7 @@ router.get('/dashboard', requireAuth, verifyAcademician, async (req, res) => {
     }
 
     // 1. Academician Profile
-    const apRes = await relationalManager.pg.query(
+    const apRes = await relationalManager.query(
       `SELECT ap.*, i.name as institution_name, i.code as institution_code,
               d.name as department_name, d.code as department_code,
               c.id as class_id, c.name as class_name, c.section as class_section, c.year_semester as class_year_semester
@@ -110,7 +110,7 @@ router.get('/dashboard', requireAuth, verifyAcademician, async (req, res) => {
     const userRole = (req.user?.role || '').toLowerCase();
     let stuRes;
     if (['faculty', 'academician'].includes(userRole)) {
-      stuRes = await relationalManager.pg.query(
+      stuRes = await relationalManager.query(
         `SELECT s.id, s.full_name, s.roll_number, s.cgpa, s.batch, s.year_semester,
                 d.name as department_name,
                 c.name as class_name, c.section as class_section,
@@ -126,7 +126,7 @@ router.get('/dashboard', requireAuth, verifyAcademician, async (req, res) => {
         [userId]
       );
     } else {
-      stuRes = await relationalManager.pg.query(
+      stuRes = await relationalManager.query(
         `SELECT s.id, s.full_name, s.roll_number, s.cgpa, s.batch, s.year_semester,
                 d.name as department_name,
                 c.name as class_name, c.section as class_section,
@@ -183,7 +183,7 @@ router.get('/dashboard', requireAuth, verifyAcademician, async (req, res) => {
     }
 
     // 3. Courses created by or associated with this academician / institution
-    const courseRes = await relationalManager.pg.query(
+    const courseRes = await relationalManager.query(
       `SELECT c.id, c.title, c.course_code, c.category, c.status,
               (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.id) as enrolled_count,
               (SELECT COALESCE(AVG(e.progress_percentage), 0)::int FROM enrollments e WHERE e.course_id = c.id) as avg_progress
@@ -197,7 +197,7 @@ router.get('/dashboard', requireAuth, verifyAcademician, async (req, res) => {
     const myCourses = courseRes.rows.length;
 
     // 4. Active assessments
-    const asmtRes = await relationalManager.pg.query(
+    const asmtRes = await relationalManager.query(
       `SELECT a.id, a.title, a.domain, a.duration_minutes, a.passing_score,
               (SELECT COUNT(*) FROM assessment_attempts aa WHERE aa.assessment_id = a.id) as attempts_count,
               (SELECT COALESCE(AVG(aa.score), 0)::int FROM assessment_attempts aa WHERE aa.assessment_id = a.id) as avg_score
@@ -211,7 +211,7 @@ router.get('/dashboard', requireAuth, verifyAcademician, async (req, res) => {
     // 5. Six Skill Development Domains
     let domainScoresRes;
     if (['faculty', 'academician'].includes(userRole)) {
-      domainScoresRes = await relationalManager.pg.query(
+      domainScoresRes = await relationalManager.query(
         `SELECT 
            ROUND(AVG(CASE WHEN sk.name ILIKE ANY(ARRAY['%python%', '%java%', '%c++', '%programming%', '%coding%', '%javascript%']) THEN ss.confidence_score ELSE NULL END)) as programming,
            ROUND(AVG(CASE WHEN sk.name ILIKE ANY(ARRAY['%aptitude%', '%quantitative%', '%math%', '%numerical%']) THEN ss.confidence_score ELSE NULL END)) as aptitude,
@@ -226,7 +226,7 @@ router.get('/dashboard', requireAuth, verifyAcademician, async (req, res) => {
         [userId]
       );
     } else {
-      domainScoresRes = await relationalManager.pg.query(
+      domainScoresRes = await relationalManager.query(
         `SELECT 
            ROUND(AVG(CASE WHEN sk.name ILIKE ANY(ARRAY['%python%', '%java%', '%c++', '%programming%', '%coding%', '%javascript%']) THEN ss.confidence_score ELSE NULL END)) as programming,
            ROUND(AVG(CASE WHEN sk.name ILIKE ANY(ARRAY['%aptitude%', '%quantitative%', '%math%', '%numerical%']) THEN ss.confidence_score ELSE NULL END)) as aptitude,
@@ -319,7 +319,7 @@ const handleGetStudentRoster = async (req, res) => {
       limit = 50
     } = req.query;
 
-    if (!relationalManager.pg) {
+    if (!relationalManager.supabase) {
       return res.json({ success: true, data: { students: [], total: 0 } });
     }
 
@@ -397,7 +397,7 @@ const handleGetStudentRoster = async (req, res) => {
     const offset = (Math.max(1, parseInt(page, 10)) - 1) * parseInt(limit, 10);
     query += ` LIMIT ${parseInt(limit, 10)} OFFSET ${offset}`;
 
-    const resDb = await relationalManager.pg.query(query, params);
+    const resDb = await relationalManager.query(query, params);
 
     // Compute readiness, attention flags, and metadata
     const students = resDb.rows.map(r => {
@@ -472,12 +472,12 @@ const handleGetStudentDossier = async (req, res) => {
     const { studentId } = req.params;
     const instId = req.institutionId;
 
-    if (!relationalManager.pg) {
+    if (!relationalManager.supabase) {
       return res.status(404).json({ success: false, message: 'Database unreachable' });
     }
 
     // 1. Fetch Student Core Information
-    const stuRes = await relationalManager.pg.query(
+    const stuRes = await relationalManager.query(
       `SELECT s.*, d.name as department_name, d.code as department_code,
               c.name as class_name, c.section as class_section,
               i.name as institution_name, i.code as institution_code,
@@ -499,7 +499,7 @@ const handleGetStudentDossier = async (req, res) => {
     const student = stuRes.rows[0];
 
     // 2. Enrolled Courses
-    const courseRes = await relationalManager.pg.query(
+    const courseRes = await relationalManager.query(
       `SELECT c.id, c.title, c.course_code, c.category, c.difficulty,
               e.status as enrollment_status, e.progress_percentage, e.enrolled_at, e.completed_at
        FROM enrollments e
@@ -510,7 +510,7 @@ const handleGetStudentDossier = async (req, res) => {
     );
 
     // 3. Student Skills (with categories and growth history)
-    const skillRes = await relationalManager.pg.query(
+    const skillRes = await relationalManager.query(
       `SELECT sk.name, sc.name as category, ss.confidence_score, ss.verification_status, ss.claimed_level
        FROM student_skills ss
        JOIN skills sk ON sk.id = ss.skill_id
@@ -521,7 +521,7 @@ const handleGetStudentDossier = async (req, res) => {
     );
 
     // Skill category domain averages
-    const domRes = await relationalManager.pg.query(
+    const domRes = await relationalManager.query(
       `SELECT 
          ROUND(AVG(CASE WHEN sk.name ILIKE ANY(ARRAY['%python%', '%java%', '%c++', '%programming%', '%coding%', '%javascript%']) THEN ss.confidence_score ELSE NULL END)) as programming,
          ROUND(AVG(CASE WHEN sk.name ILIKE ANY(ARRAY['%aptitude%', '%quantitative%', '%math%', '%numerical%']) THEN ss.confidence_score ELSE NULL END)) as aptitude,
@@ -537,7 +537,7 @@ const handleGetStudentDossier = async (req, res) => {
     const dom = domRes.rows[0] || {};
 
     // 4. Assessment History
-    const asmtRes = await relationalManager.pg.query(
+    const asmtRes = await relationalManager.query(
       `SELECT a.title, a.domain, a.duration_minutes, a.passing_score,
               aa.id as attempt_id, aa.score, aa.accuracy, aa.time_taken_seconds, aa.completed_at, aa.started_at, aa.status
        FROM assessment_attempts aa
@@ -548,19 +548,19 @@ const handleGetStudentDossier = async (req, res) => {
     );
 
     // 5. Certificates & Projects & Internships
-    const certRes = await relationalManager.pg.query(
+    const certRes = await relationalManager.query(
       `SELECT title, certificate_number, certificate_url, issued_at
        FROM certificates WHERE student_id = $1 ORDER BY issued_at DESC`,
       [student.id]
     );
 
-    const projRes = await relationalManager.pg.query(
+    const projRes = await relationalManager.query(
       `SELECT title, description, github_url as repo_url, live_url, tech_stack, status as verification_status, submitted_at
        FROM projects WHERE student_id = $1 ORDER BY submitted_at DESC`,
       [student.id]
     );
 
-    const internRes = await relationalManager.pg.query(
+    const internRes = await relationalManager.query(
       `SELECT a.id, a.current_stage as status, a.applied_at, o.title as role_title, c.company_name, o.opportunity_type
        FROM applications a
        JOIN opportunities o ON o.id = a.opportunity_id
@@ -570,7 +570,7 @@ const handleGetStudentDossier = async (req, res) => {
     );
 
     // 6. Active Skill Gaps
-    const gapsRes = await relationalManager.pg.query(
+    const gapsRes = await relationalManager.query(
       `SELECT sg.*, c.title as recommended_course_title, a.title as recommended_assessment_title
        FROM skill_gap_records sg
        LEFT JOIN courses c ON c.id = sg.recommended_course_id
@@ -581,7 +581,7 @@ const handleGetStudentDossier = async (req, res) => {
     );
 
     // 7. Faculty Remarks
-    const remarksRes = await relationalManager.pg.query(
+    const remarksRes = await relationalManager.query(
       `SELECT sfr.*, u.email as faculty_email, ap.full_name as faculty_name, ap.designation as faculty_designation
        FROM student_faculty_remarks sfr
        JOIN users u ON u.id = sfr.academician_id
@@ -592,7 +592,7 @@ const handleGetStudentDossier = async (req, res) => {
     );
 
     // 8. Mentorship History
-    const mentorRes = await relationalManager.pg.query(
+    const mentorRes = await relationalManager.query(
       `SELECT m.id, m.status, m.goals, m.faculty_notes, m.created_at,
               ap.full_name as mentor_name, ap.designation as mentor_designation
        FROM mentorships m
@@ -603,7 +603,7 @@ const handleGetStudentDossier = async (req, res) => {
     );
 
     // 9. Skill History Records
-    const histRes = await relationalManager.pg.query(
+    const histRes = await relationalManager.query(
       `SELECT ssh.*, a.title as assessment_title
        FROM student_skill_history ssh
        LEFT JOIN assessments a ON a.id = ssh.assessment_id
@@ -744,7 +744,7 @@ router.post('/students/:studentId/remarks', requireAuth, verifyAcademician, asyn
       return res.status(400).json({ success: false, message: 'Remarks text cannot be empty' });
     }
 
-    const inserted = await relationalManager.pg.query(
+    const inserted = await relationalManager.query(
       `INSERT INTO student_faculty_remarks (student_id, academician_id, remarks, category, created_at)
        VALUES ($1, $2, $3, $4, NOW())
        RETURNING *`,
@@ -785,7 +785,7 @@ router.get('/courses', requireAuth, verifyAcademician, async (req, res) => {
          OR c.institution_id IN (SELECT id FROM institutions WHERE code = $2 OR id::text = $2)
       ORDER BY c.created_at DESC
     `;
-    const resDb = await relationalManager.pg.query(query, [userId, String(instId)]);
+    const resDb = await relationalManager.query(query, [userId, String(instId)]);
 
     const courses = resDb.rows.map(r => ({
       id: r.id,
@@ -820,7 +820,7 @@ router.get('/courses', requireAuth, verifyAcademician, async (req, res) => {
 // 6. POST /api/academician/courses — Functional Course Creation
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/courses', requireAuth, verifyAcademician, async (req, res) => {
-  const client = await relationalManager.pg.connect();
+  const client = await relationalManager.connect();
   try {
     await client.query('BEGIN');
     const instUuid = req.institutionUuid;
@@ -925,7 +925,7 @@ router.put('/courses/:id', requireAuth, verifyAcademician, async (req, res) => {
     const { id } = req.params;
     const { title, description, category, skillCategory, difficulty, durationWeeks, status } = req.body;
 
-    const updated = await relationalManager.pg.query(
+    const updated = await relationalManager.query(
       `UPDATE courses
        SET title = COALESCE($1, title),
            description = COALESCE($2, description),
@@ -956,7 +956,7 @@ router.put('/courses/:id', requireAuth, verifyAcademician, async (req, res) => {
 router.delete('/courses/:id', requireAuth, verifyAcademician, async (req, res) => {
   try {
     const { id } = req.params;
-    await relationalManager.pg.query(
+    await relationalManager.query(
       `DELETE FROM courses WHERE id = $1 AND (academician_id = $2 OR institution_id::text = $3)`,
       [id, req.user.id, String(req.institutionId)]
     );
@@ -988,7 +988,7 @@ router.get('/assessments', requireAuth, verifyAcademician, async (req, res) => {
          OR a.is_active = true
       ORDER BY a.created_at DESC
     `;
-    const resDb = await relationalManager.pg.query(query, [userId, String(instId)]);
+    const resDb = await relationalManager.query(query, [userId, String(instId)]);
 
     const assessments = resDb.rows.map(r => ({
       id: r.id,
@@ -1017,7 +1017,7 @@ router.get('/assessments', requireAuth, verifyAcademician, async (req, res) => {
 // 10. POST /api/academician/assessments & /skill-assessments — Create Functional Assessment
 // ─────────────────────────────────────────────────────────────────────────────
 const handleCreateAssessment = async (req, res) => {
-  const client = await relationalManager.pg.connect();
+  const client = await relationalManager.connect();
   try {
     await client.query('BEGIN');
     const instUuid = req.institutionUuid;
@@ -1203,7 +1203,7 @@ const handleGetAssessmentDetail = async (req, res) => {
     const { assessmentId } = req.params;
 
     // 1. Fetch Assessment Header
-    const asmtRes = await relationalManager.pg.query(
+    const asmtRes = await relationalManager.query(
       `SELECT a.*, c.title as course_title,
               (SELECT COUNT(*) FROM assessment_questions aq WHERE aq.assessment_id = a.id)::int as question_count,
               (SELECT COUNT(*) FROM assessment_targets at WHERE at.assessment_id = a.id)::int as target_count,
@@ -1221,7 +1221,7 @@ const handleGetAssessmentDetail = async (req, res) => {
     const assessment = asmtRes.rows[0];
 
     // 2. Fetch Questions with Options & Test Cases
-    const questionsRes = await relationalManager.pg.query(
+    const questionsRes = await relationalManager.query(
       `SELECT aq.*,
               COALESCE((
                 SELECT json_agg(json_build_object('id', qo.id, 'text', qo.option_text, 'isCorrect', qo.is_correct, 'order', qo.option_order))
@@ -1234,7 +1234,7 @@ const handleGetAssessmentDetail = async (req, res) => {
     );
 
     // 3. Fetch Target Student Roster & Submission Status
-    const targetsRes = await relationalManager.pg.query(
+    const targetsRes = await relationalManager.query(
       `SELECT at.*, s.full_name as student_name, s.roll_number, d.name as department_name, c.name as class_name, c.section as class_section
        FROM assessment_targets at
        JOIN students s ON s.id = at.student_id
@@ -1279,7 +1279,7 @@ router.get('/skill-analytics', requireAuth, verifyAcademician, async (req, res) 
   try {
     const userId = req.user.id;
 
-    if (!relationalManager.pg) {
+    if (!relationalManager.supabase) {
       return res.json({
         success: true,
         data: {
@@ -1293,7 +1293,7 @@ router.get('/skill-analytics', requireAuth, verifyAcademician, async (req, res) 
     }
 
     // 1. Skill-wise performance for mapped cohort
-    const skillPerfRes = await relationalManager.pg.query(
+    const skillPerfRes = await relationalManager.query(
       `SELECT 
          COALESCE(ROUND(AVG(CASE WHEN sk.name ILIKE ANY(ARRAY['%python%', '%java%', '%c++', '%programming%', '%coding%', '%javascript%']) THEN ss.confidence_score ELSE NULL END)), 0)::int as programming,
          COALESCE(ROUND(AVG(CASE WHEN sk.name ILIKE ANY(ARRAY['%aptitude%', '%quantitative%', '%math%', '%numerical%']) THEN ss.confidence_score ELSE NULL END)), 0)::int as aptitude,
@@ -1331,7 +1331,7 @@ router.get('/skill-analytics', requireAuth, verifyAcademician, async (req, res) 
       }));
 
     // 3. Class skill growth (comparison across assigned classes)
-    const classGrowthRes = await relationalManager.pg.query(
+    const classGrowthRes = await relationalManager.query(
       `SELECT c.id, c.name, c.section,
               COUNT(DISTINCT s.id)::int as student_count,
               COALESCE(ROUND(AVG(ss.confidence_score)), 0)::int as avg_skill_score,
@@ -1356,7 +1356,7 @@ router.get('/skill-analytics', requireAuth, verifyAcademician, async (req, res) 
     }));
 
     // 4. Student comparison table
-    const stuCompRes = await relationalManager.pg.query(
+    const stuCompRes = await relationalManager.query(
       `SELECT s.id, s.full_name, s.roll_number,
               COALESCE((SELECT AVG(ss.confidence_score) FROM student_skills ss WHERE ss.student_id = s.id), 0)::int as skill_score,
               COALESCE((SELECT AVG(aa.score) FROM assessment_attempts aa WHERE aa.student_id = s.id AND aa.status = 'Completed'), 0)::int as asmt_score,
@@ -1378,7 +1378,7 @@ router.get('/skill-analytics', requireAuth, verifyAcademician, async (req, res) 
     }));
 
     // 5. Growth over time
-    const timeRes = await relationalManager.pg.query(
+    const timeRes = await relationalManager.query(
       `SELECT TO_CHAR(recorded_at, 'Mon') as month,
               DATE_TRUNC('month', recorded_at) as m_order,
               ROUND(AVG(new_score)) as avg_score
@@ -1418,11 +1418,11 @@ router.get('/students-needing-attention', requireAuth, verifyAcademician, async 
   try {
     const userId = req.user.id;
 
-    if (!relationalManager.pg) {
+    if (!relationalManager.supabase) {
       return res.json({ success: true, data: [] });
     }
 
-    const resDb = await relationalManager.pg.query(
+    const resDb = await relationalManager.query(
       `SELECT s.id, s.full_name, s.roll_number,
               d.name as department_name, c.name as class_name, c.section as class_section,
               COALESCE(sp.course_progress, (SELECT AVG(e.progress_percentage) FROM enrollments e WHERE e.student_id = s.id), 0)::int as course_progress,
@@ -1489,7 +1489,7 @@ router.get('/assessments/:assessmentId/results', requireAuth, verifyAcademician,
     const { assessmentId } = req.params;
 
     // 1. Assessment Header
-    const asmtRes = await relationalManager.pg.query(
+    const asmtRes = await relationalManager.query(
       `SELECT a.*, c.title as course_title
        FROM assessments a
        LEFT JOIN courses c ON c.id = a.course_id
@@ -1502,7 +1502,7 @@ router.get('/assessments/:assessmentId/results', requireAuth, verifyAcademician,
     const assessment = asmtRes.rows[0];
 
     // 2. Individual Student Attempts
-    const attemptsRes = await relationalManager.pg.query(
+    const attemptsRes = await relationalManager.query(
       `SELECT aa.*, s.full_name as student_name, s.roll_number, d.name as department_name
        FROM assessment_attempts aa
        JOIN students s ON s.id = aa.student_id
@@ -1564,7 +1564,7 @@ router.get('/skill-gaps', requireAuth, verifyAcademician, async (req, res) => {
   try {
     const instId = req.institutionId;
 
-    if (!relationalManager.pg) {
+    if (!relationalManager.supabase) {
       return res.json({ success: true, data: { gaps: [], totalAffected: 0 } });
     }
 
@@ -1572,7 +1572,7 @@ router.get('/skill-gaps', requireAuth, verifyAcademician, async (req, res) => {
     const BENCHMARK_SCORE = 75;
 
     // Aggregate skills and find those with average confidence_score < BENCHMARK_SCORE
-    const skillAggRes = await relationalManager.pg.query(
+    const skillAggRes = await relationalManager.query(
       `SELECT sk.id as skill_id, sk.name as skill_name, COALESCE(sc.name, 'Technical') as skill_category,
               COUNT(DISTINCT ss.student_id)::int as tested_students,
               ROUND(AVG(ss.confidence_score))::int as avg_score,
@@ -1591,7 +1591,7 @@ router.get('/skill-gaps', requireAuth, verifyAcademician, async (req, res) => {
     );
 
     // Also get courses to recommend
-    const courseRes = await relationalManager.pg.query(
+    const courseRes = await relationalManager.query(
       `SELECT id, title, category FROM courses LIMIT 5`
     );
     const availableCourses = courseRes.rows;
@@ -1678,7 +1678,7 @@ router.get('/skill-gaps', requireAuth, verifyAcademician, async (req, res) => {
 // 13. POST /api/academician/assign-course — Remediation Course Assignment
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/assign-course', requireAuth, verifyAcademician, async (req, res) => {
-  const client = await relationalManager.pg.connect();
+  const client = await relationalManager.connect();
   try {
     await client.query('BEGIN');
     const { courseId, studentIds = [], notes = 'Skill gap remediation assignment.' } = req.body;
@@ -1725,12 +1725,12 @@ router.get('/industry-requirements', requireAuth, verifyAcademician, async (req,
   try {
     const instId = req.institutionId;
 
-    if (!relationalManager.pg) {
+    if (!relationalManager.supabase) {
       return res.json({ success: true, data: [] });
     }
 
     // Benchmark comparison: industry demand from opportunities vs student cohort skill scores
-    const reqRes = await relationalManager.pg.query(
+    const reqRes = await relationalManager.query(
       `WITH industry_demand AS (
          SELECT sk.name as skill_name,
                 ROUND(AVG(CASE WHEN os.required_level = 'Expert' THEN 90 WHEN os.required_level = 'Advanced' THEN 85 WHEN os.required_level = 'Intermediate' THEN 75 ELSE 60 END)) as demand_percentage
@@ -1796,7 +1796,7 @@ router.get('/recommendations', requireAuth, verifyAcademician, async (req, res) 
     const instId = req.institutionId;
 
     // Pull real counts to form realistic rule-based suggestions
-    const stuCountRes = await relationalManager.pg.query(
+    const stuCountRes = await relationalManager.query(
       `SELECT 
          COUNT(CASE WHEN ss.confidence_score < 65 AND sk.name ILIKE '%python%' THEN 1 END) as python_gap_count,
          COUNT(CASE WHEN ss.confidence_score < 60 AND sk.name ILIKE '%aptitude%' THEN 1 END) as aptitude_gap_count,
@@ -1869,7 +1869,7 @@ router.get('/mentorship', requireAuth, verifyAcademician, async (req, res) => {
     const userId = req.user.id;
 
     // 1. Mentees list
-    const menteeRes = await relationalManager.pg.query(
+    const menteeRes = await relationalManager.query(
       `SELECT m.id as mentorship_id, m.status, m.goals, m.faculty_notes, m.created_at as start_date,
               s.id as student_id, s.full_name as student_name, s.roll_number,
               d.name as department_name,
@@ -1883,7 +1883,7 @@ router.get('/mentorship', requireAuth, verifyAcademician, async (req, res) => {
     );
 
     // 2. Upcoming & Completed Sessions
-    const sessionRes = await relationalManager.pg.query(
+    const sessionRes = await relationalManager.query(
       `SELECT ms.*, s.full_name as student_name, s.roll_number
        FROM mentorship_sessions ms
        JOIN students s ON s.id = ms.student_id
@@ -1921,7 +1921,7 @@ router.post('/mentorship', requireAuth, verifyAcademician, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Student ID is required' });
     }
 
-    const inserted = await relationalManager.pg.query(
+    const inserted = await relationalManager.query(
       `INSERT INTO mentorships (academician_id, student_id, status, goals, faculty_notes, created_at, updated_at)
        VALUES ($1, $2, 'ACTIVE', $3, $4, NOW(), NOW())
        ON CONFLICT (academician_id, student_id) DO UPDATE
@@ -1952,7 +1952,7 @@ router.post('/mentorship/sessions', requireAuth, verifyAcademician, async (req, 
       return res.status(400).json({ success: false, message: 'Student ID, session title, and scheduled time are required.' });
     }
 
-    const inserted = await relationalManager.pg.query(
+    const inserted = await relationalManager.query(
       `INSERT INTO mentorship_sessions (
          academician_id, student_id, title, topic, scheduled_at, duration_minutes,
          meeting_link, status, notes, created_at
@@ -1980,7 +1980,7 @@ router.get('/opportunities', requireAuth, verifyAcademician, async (req, res) =>
     const instId = req.institutionId;
 
     // 1. Fetch Opportunities
-    const oppRes = await relationalManager.pg.query(
+    const oppRes = await relationalManager.query(
       `SELECT o.*, c.company_name, c.logo_url,
               COALESCE((
                 SELECT json_agg(sk.name)
@@ -1995,7 +1995,7 @@ router.get('/opportunities', requireAuth, verifyAcademician, async (req, res) =>
     );
 
     // 2. Fetch Students from Academician's Institution with their skills
-    const stuRes = await relationalManager.pg.query(
+    const stuRes = await relationalManager.query(
       `SELECT s.id, s.full_name, s.roll_number,
               COALESCE((SELECT json_agg(json_build_object('name', sk.name, 'score', ss.confidence_score))
                         FROM student_skills ss
@@ -2074,7 +2074,7 @@ router.get('/analytics', requireAuth, verifyAcademician, async (req, res) => {
     const instId = req.institutionId;
 
     // Student performance tiers
-    const stuRes = await relationalManager.pg.query(
+    const stuRes = await relationalManager.query(
       `SELECT s.id, s.cgpa,
               COALESCE((SELECT AVG(ss.confidence_score) FROM student_skills ss WHERE ss.student_id = s.id), 0)::int as skill_score,
               COALESCE((SELECT AVG(aa.score) FROM assessment_attempts aa WHERE aa.student_id = s.id), 0)::int as asmt_score
@@ -2122,8 +2122,8 @@ router.get('/analytics', requireAuth, verifyAcademician, async (req, res) => {
 router.get('/notifications', requireAuth, verifyAcademician, async (req, res) => {
   try {
     const userId = req.user.id;
-    if (!relationalManager.pg) return res.json({ success: true, data: [] });
-    const resDb = await relationalManager.pg.query(
+    if (!relationalManager.supabase) return res.json({ success: true, data: [] });
+    const resDb = await relationalManager.query(
       `SELECT * FROM notifications WHERE recipient_id = $1 AND is_deleted = false ORDER BY created_at DESC LIMIT 30`,
       [userId]
     );
@@ -2147,8 +2147,8 @@ router.get('/notifications', requireAuth, verifyAcademician, async (req, res) =>
 router.get('/my-classes', requireAuth, verifyAcademician, async (req, res) => {
   try {
     const userId = req.user.id;
-    if (!relationalManager.pg) return res.json({ success: true, data: [] });
-    const classRes = await relationalManager.pg.query(
+    if (!relationalManager.supabase) return res.json({ success: true, data: [] });
+    const classRes = await relationalManager.query(
       `SELECT DISTINCT c.id, c.name, c.section, c.year_semester,
               d.name as department_name,
               COUNT(s.id)::int as student_count
@@ -2180,7 +2180,7 @@ router.get('/my-classes', requireAuth, verifyAcademician, async (req, res) => {
 // 23. POST /api/academician/courses/:id/assign — Assign Course to Students/Class
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/courses/:id/assign', requireAuth, verifyAcademician, async (req, res) => {
-  const client = await relationalManager.pg.connect();
+  const client = await relationalManager.connect();
   try {
     await client.query('BEGIN');
     const courseId = req.params.id;
@@ -2285,8 +2285,8 @@ router.post('/courses/:id/assign', requireAuth, verifyAcademician, async (req, r
 router.get('/courses/assigned', requireAuth, verifyAcademician, async (req, res) => {
   try {
     const userId = req.user.id;
-    if (!relationalManager.pg) return res.json({ success: true, data: [] });
-    const resDb = await relationalManager.pg.query(
+    if (!relationalManager.supabase) return res.json({ success: true, data: [] });
+    const resDb = await relationalManager.query(
       `SELECT c.*,
               COUNT(DISTINCT e.student_id)::int as total_assigned,
               COUNT(DISTINCT CASE WHEN e.status = 'Completed' THEN e.student_id END)::int as total_completed,
@@ -2326,10 +2326,10 @@ router.get('/courses/:courseId/progress', requireAuth, verifyAcademician, async 
   try {
     const { courseId } = req.params;
     const userId = req.user.id;
-    if (!relationalManager.pg) return res.json({ success: true, data: null });
+    if (!relationalManager.supabase) return res.json({ success: true, data: null });
 
     // Get course info
-    const courseRes = await relationalManager.pg.query(
+    const courseRes = await relationalManager.query(
       `SELECT c.*, 
               COALESCE(SUM(jsonb_array_length(cm.lessons)), 0)::int as total_lessons
        FROM courses c
@@ -2345,7 +2345,7 @@ router.get('/courses/:courseId/progress', requireAuth, verifyAcademician, async 
     const totalLessons = course.total_lessons || 1;
 
     // Get student enrollment + progress
-    const stuRes = await relationalManager.pg.query(
+    const stuRes = await relationalManager.query(
       `SELECT s.id, s.full_name, s.roll_number, c2.name as class_name, c2.section as class_section,
               e.status, e.progress_percentage, e.enrolled_at, e.completed_at,
               COUNT(slp.id)::int as completed_lessons
@@ -2412,10 +2412,10 @@ router.get('/courses/:courseId/progress', requireAuth, verifyAcademician, async 
 router.get('/overall-progress', requireAuth, verifyAcademician, async (req, res) => {
   try {
     const userId = req.user.id;
-    if (!relationalManager.pg) return res.json({ success: true, data: {} });
+    if (!relationalManager.supabase) return res.json({ success: true, data: {} });
 
     // Total mapped students
-    const stuRes = await relationalManager.pg.query(
+    const stuRes = await relationalManager.query(
       `SELECT COUNT(DISTINCT s.id)::int as total_students,
               COALESCE(ROUND(AVG(e.progress_percentage)), 0)::int as avg_course_progress,
               COALESCE(ROUND(AVG(ss.confidence_score)), 0)::int as avg_skill_score,
@@ -2431,7 +2431,7 @@ router.get('/overall-progress', requireAuth, verifyAcademician, async (req, res)
     const stats = stuRes.rows[0] || {};
 
     // Completion rates
-    const rateRes = await relationalManager.pg.query(
+    const rateRes = await relationalManager.query(
       `SELECT 
          COALESCE(ROUND(100.0 * COUNT(CASE WHEN e.status = 'Completed' THEN 1 END) / NULLIF(COUNT(e.id), 0)), 0)::int as course_completion_rate,
          COALESCE(ROUND(100.0 * COUNT(CASE WHEN aa.status = 'Completed' THEN 1 END) / NULLIF(COUNT(DISTINCT at2.student_id), 0)), 0)::int as assessment_completion_rate
@@ -2446,7 +2446,7 @@ router.get('/overall-progress', requireAuth, verifyAcademician, async (req, res)
     const rates = rateRes.rows[0] || {};
 
     // Attention count
-    const attnRes = await relationalManager.pg.query(
+    const attnRes = await relationalManager.query(
       `SELECT COUNT(DISTINCT s.id)::int as attention_count
        FROM student_staff_mapping m
        JOIN students s ON s.id = m.student_id
@@ -2458,7 +2458,7 @@ router.get('/overall-progress', requireAuth, verifyAcademician, async (req, res)
     );
 
     // Industry ready count
-    const readyRes = await relationalManager.pg.query(
+    const readyRes = await relationalManager.query(
       `SELECT COUNT(DISTINCT s.id)::int as ready_count
        FROM student_staff_mapping m
        JOIN students s ON s.id = m.student_id
@@ -2468,7 +2468,7 @@ router.get('/overall-progress', requireAuth, verifyAcademician, async (req, res)
     );
 
     // Class breakdown
-    const classRes = await relationalManager.pg.query(
+    const classRes = await relationalManager.query(
       `SELECT c.name, c.section,
               COUNT(DISTINCT s.id)::int as student_count,
               COALESCE(ROUND(AVG(e.progress_percentage)), 0)::int as avg_progress,
@@ -2515,7 +2515,7 @@ router.get('/overall-progress', requireAuth, verifyAcademician, async (req, res)
 router.delete('/courses/:id/soft', requireAuth, verifyAcademician, async (req, res) => {
   try {
     const { id } = req.params;
-    await relationalManager.pg.query(
+    await relationalManager.query(
       `UPDATE courses SET is_deleted = true, deleted_at = NOW(), deleted_by = $1, status = 'ARCHIVED'
        WHERE id = $2 AND academician_id = $1`,
       [req.user.id, id]
@@ -2532,7 +2532,7 @@ router.delete('/courses/:id/soft', requireAuth, verifyAcademician, async (req, r
 router.delete('/assessments/:id/soft', requireAuth, verifyAcademician, async (req, res) => {
   try {
     const { id } = req.params;
-    await relationalManager.pg.query(
+    await relationalManager.query(
       `UPDATE assessments SET is_deleted = true, deleted_at = NOW(), deleted_by = $1, is_active = false
        WHERE id = $2 AND academician_id = $1`,
       [req.user.id, id]
@@ -2549,16 +2549,16 @@ router.delete('/assessments/:id/soft', requireAuth, verifyAcademician, async (re
 router.get('/trash', requireAuth, verifyAcademician, async (req, res) => {
   try {
     const userId = req.user.id;
-    if (!relationalManager.pg) return res.json({ success: true, data: { courses: [], assessments: [] } });
+    if (!relationalManager.supabase) return res.json({ success: true, data: { courses: [], assessments: [] } });
 
-    const coursesRes = await relationalManager.pg.query(
+    const coursesRes = await relationalManager.query(
       `SELECT id, title, category, deleted_at, 'course' as item_type FROM courses
        WHERE academician_id = $1 AND is_deleted = true
        ORDER BY deleted_at DESC`,
       [userId]
     );
 
-    const asmtsRes = await relationalManager.pg.query(
+    const asmtsRes = await relationalManager.query(
       `SELECT id, title, domain, deleted_at, 'assessment' as item_type FROM assessments
        WHERE academician_id = $1 AND is_deleted = true
        ORDER BY deleted_at DESC`,
@@ -2587,13 +2587,13 @@ router.post('/trash/restore', requireAuth, verifyAcademician, async (req, res) =
     if (!id || !itemType) return res.status(400).json({ success: false, message: 'id and itemType required' });
 
     if (itemType === 'course') {
-      await relationalManager.pg.query(
+      await relationalManager.query(
         `UPDATE courses SET is_deleted = false, deleted_at = NULL, deleted_by = NULL, status = 'ACTIVE'
          WHERE id = $1 AND academician_id = $2`,
         [id, userId]
       );
     } else if (itemType === 'assessment') {
-      await relationalManager.pg.query(
+      await relationalManager.query(
         `UPDATE assessments SET is_deleted = false, deleted_at = NULL, deleted_by = NULL, is_active = true
          WHERE id = $1 AND academician_id = $2`,
         [id, userId]
@@ -2615,12 +2615,12 @@ router.delete('/trash/permanent', requireAuth, verifyAcademician, async (req, re
     if (!id || !itemType) return res.status(400).json({ success: false, message: 'id and itemType required' });
 
     if (itemType === 'course') {
-      await relationalManager.pg.query(
+      await relationalManager.query(
         `DELETE FROM courses WHERE id = $1 AND academician_id = $2 AND is_deleted = true`,
         [id, userId]
       );
     } else if (itemType === 'assessment') {
-      await relationalManager.pg.query(
+      await relationalManager.query(
         `DELETE FROM assessments WHERE id = $1 AND academician_id = $2 AND is_deleted = true`,
         [id, userId]
       );
@@ -2637,9 +2637,9 @@ router.delete('/trash/permanent', requireAuth, verifyAcademician, async (req, re
 router.get('/achievements/pending', requireAuth, verifyAcademician, async (req, res) => {
   try {
     const userId = req.user.id;
-    if (!relationalManager.pg) return res.json({ success: true, data: { certificates: [], projects: [] } });
+    if (!relationalManager.supabase) return res.json({ success: true, data: { certificates: [], projects: [] } });
 
-    const certRes = await relationalManager.pg.query(
+    const certRes = await relationalManager.query(
       `SELECT sc.*, s.full_name as student_name, s.roll_number
        FROM student_certificates sc
        JOIN students s ON s.id = sc.student_id
@@ -2650,7 +2650,7 @@ router.get('/achievements/pending', requireAuth, verifyAcademician, async (req, 
       [userId]
     );
 
-    const projRes = await relationalManager.pg.query(
+    const projRes = await relationalManager.query(
       `SELECT sp2.*, s.full_name as student_name, s.roll_number
        FROM student_projects sp2
        JOIN students s ON s.id = sp2.student_id
@@ -2683,14 +2683,14 @@ router.post('/achievements/:id/verify', requireAuth, verifyAcademician, async (r
     const userId = req.user.id;
 
     if (achievementType === 'certificate') {
-      await relationalManager.pg.query(
+      await relationalManager.query(
         `UPDATE student_certificates SET status = 'ACADEMICIAN_VERIFIED',
          academician_verified_at = NOW(), academician_verified_by = $1
          WHERE id = $2`,
         [userId, id]
       );
     } else if (achievementType === 'project') {
-      await relationalManager.pg.query(
+      await relationalManager.query(
         `UPDATE student_projects SET status = 'ACADEMICIAN_VERIFIED',
          academician_verified_at = NOW(), academician_verified_by = $1
          WHERE id = $2`,
@@ -2699,7 +2699,7 @@ router.post('/achievements/:id/verify', requireAuth, verifyAcademician, async (r
     }
 
     // Record verification history
-    await relationalManager.pg.query(
+    await relationalManager.query(
       `INSERT INTO achievement_verifications (achievement_type, achievement_id, reviewer_id, reviewer_role, action, comment)
        VALUES ($1, $2, $3, 'academician', 'ACADEMICIAN_APPROVED', $4)`,
       [achievementType, id, userId, comment]
@@ -2721,18 +2721,18 @@ router.post('/achievements/:id/reject', requireAuth, verifyAcademician, async (r
     const userId = req.user.id;
 
     if (achievementType === 'certificate') {
-      await relationalManager.pg.query(
+      await relationalManager.query(
         `UPDATE student_certificates SET status = 'ACADEMICIAN_REJECTED' WHERE id = $1`,
         [id]
       );
     } else if (achievementType === 'project') {
-      await relationalManager.pg.query(
+      await relationalManager.query(
         `UPDATE student_projects SET status = 'ACADEMICIAN_REJECTED' WHERE id = $1`,
         [id]
       );
     }
 
-    await relationalManager.pg.query(
+    await relationalManager.query(
       `INSERT INTO achievement_verifications (achievement_type, achievement_id, reviewer_id, reviewer_role, action, comment)
        VALUES ($1, $2, $3, 'academician', 'ACADEMICIAN_REJECTED', $4)`,
       [achievementType, id, userId, comment]
@@ -2748,7 +2748,7 @@ router.post('/achievements/:id/reject', requireAuth, verifyAcademician, async (r
 // 35. POST /api/academician/skills/:id/assign — Assign Skill to Students
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/skills/:id/assign', requireAuth, verifyAcademician, async (req, res) => {
-  const client = await relationalManager.pg.connect();
+  const client = await relationalManager.connect();
   try {
     await client.query('BEGIN');
     const skillId = req.params.id;
@@ -2803,9 +2803,9 @@ router.post('/skills/:id/assign', requireAuth, verifyAcademician, async (req, re
 router.get('/settings', requireAuth, verifyAcademician, async (req, res) => {
   try {
     const userId = req.user.id;
-    if (!relationalManager.pg) return res.json({ success: true, data: {} });
+    if (!relationalManager.supabase) return res.json({ success: true, data: {} });
 
-    const profileRes = await relationalManager.pg.query(
+    const profileRes = await relationalManager.query(
       `SELECT ap.*, u.email, u.name as full_name, u.phone,
               i.name as institution_name, d.name as department_name, c.name as class_name
        FROM academician_profiles ap

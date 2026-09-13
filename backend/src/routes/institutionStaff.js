@@ -48,7 +48,7 @@ router.get('/staff', requireAuth, verifyInstitutionAdmin, async (req, res) => {
   try {
     const instId = req.institutionId;
 
-    if (!relationalManager.pg) {
+    if (!relationalManager.supabase) {
       return res.json({ success: true, data: [], grouped: {} });
     }
 
@@ -77,7 +77,7 @@ router.get('/staff', requireAuth, verifyInstitutionAdmin, async (req, res) => {
       ORDER BY d.name ASC NULLS LAST, c.name ASC NULLS LAST, ap.full_name ASC
     `;
 
-    const result = await relationalManager.pg.query(query, [String(instId)]);
+    const result = await relationalManager.query(query, [String(instId)]);
     const staffList = result.rows;
 
     // Build hierarchical grouping: Institution -> Department -> Class -> Staff
@@ -136,12 +136,12 @@ router.post('/staff', requireAuth, verifyInstitutionAdmin, async (req, res) => {
       });
     }
 
-    if (!relationalManager.pg) {
+    if (!relationalManager.supabase) {
       return res.status(500).json({ success: false, message: 'Database connection offline' });
     }
 
     // Check duplicate email
-    const dupEmail = await relationalManager.pg.query(
+    const dupEmail = await relationalManager.query(
       'SELECT id FROM users WHERE email = $1 LIMIT 1',
       [email.trim().toLowerCase()]
     );
@@ -150,7 +150,7 @@ router.post('/staff', requireAuth, verifyInstitutionAdmin, async (req, res) => {
     }
 
     // Resolve Institution UUID
-    const instQuery = await relationalManager.pg.query(
+    const instQuery = await relationalManager.query(
       'SELECT id FROM institutions WHERE id::text = $1 OR code = $1 LIMIT 1',
       [String(instId)]
     );
@@ -159,7 +159,7 @@ router.post('/staff', requireAuth, verifyInstitutionAdmin, async (req, res) => {
     // Resolve Department UUID
     let resolvedDeptUuid = null;
     if (departmentId) {
-      const deptQuery = await relationalManager.pg.query(
+      const deptQuery = await relationalManager.query(
         'SELECT id FROM departments WHERE (id::text = $1 OR code = $1 OR name ILIKE $1) AND (institution_id = $2 OR institution_id IS NULL) LIMIT 1',
         [String(departmentId), resolvedInstUuid]
       );
@@ -169,7 +169,7 @@ router.post('/staff', requireAuth, verifyInstitutionAdmin, async (req, res) => {
     // Resolve Class UUID
     let resolvedClassUuid = null;
     if (classId) {
-      const classQuery = await relationalManager.pg.query(
+      const classQuery = await relationalManager.query(
         'SELECT id FROM classes WHERE id::text = $1 OR name ILIKE $1 LIMIT 1',
         [String(classId)]
       );
@@ -181,7 +181,7 @@ router.post('/staff', requireAuth, verifyInstitutionAdmin, async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // 1. Insert into users
-    const userRes = await relationalManager.pg.query(
+    const userRes = await relationalManager.query(
       `INSERT INTO users (email, password_hash, is_active, created_at, updated_at)
        VALUES ($1, $2, true, NOW(), NOW())
        RETURNING id, email`,
@@ -190,18 +190,18 @@ router.post('/staff', requireAuth, verifyInstitutionAdmin, async (req, res) => {
     const newUser = userRes.rows[0];
 
     // Assign ACADEMICIAN / FACULTY role in user_roles
-    const roleRes = await relationalManager.pg.query(
+    const roleRes = await relationalManager.query(
       "SELECT id FROM roles WHERE code IN ('ACADEMICIAN', 'FACULTY') ORDER BY CASE WHEN code = 'ACADEMICIAN' THEN 1 ELSE 2 END LIMIT 1"
     );
     if (roleRes.rows.length > 0) {
-      await relationalManager.pg.query(
+      await relationalManager.query(
         "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT (user_id, role_id) DO NOTHING",
         [newUser.id, roleRes.rows[0].id]
       );
     }
 
     // 2. Insert into academician_profiles
-    const apRes = await relationalManager.pg.query(
+    const apRes = await relationalManager.query(
       `INSERT INTO academician_profiles (
         user_id, institution_id, department_id, class_id, full_name, faculty_id,
         designation, phone, official_email, age, qualification, specialization,
@@ -235,7 +235,7 @@ router.post('/staff', requireAuth, verifyInstitutionAdmin, async (req, res) => {
     // 3. Create staff assignment if class is selected
     let assignment = null;
     if (resolvedClassUuid) {
-      const saRes = await relationalManager.pg.query(
+      const saRes = await relationalManager.query(
         `INSERT INTO staff_assignments (
           staff_id, institution_id, department_id, class_id, assignment_type, is_primary, status, created_at, updated_at
         ) VALUES (
@@ -286,7 +286,7 @@ router.post('/staff/:id/assign', requireAuth, verifyInstitutionAdmin, async (req
     }
 
     // Resolve Institution UUID
-    const instQuery = await relationalManager.pg.query(
+    const instQuery = await relationalManager.query(
       'SELECT id FROM institutions WHERE id::text = $1 OR code = $1 LIMIT 1',
       [String(instId)]
     );
@@ -295,7 +295,7 @@ router.post('/staff/:id/assign', requireAuth, verifyInstitutionAdmin, async (req
     // Resolve Department UUID
     let resolvedDeptUuid = null;
     if (departmentId) {
-      const deptQuery = await relationalManager.pg.query(
+      const deptQuery = await relationalManager.query(
         'SELECT id FROM departments WHERE (id::text = $1 OR code = $1 OR name ILIKE $1) LIMIT 1',
         [String(departmentId)]
       );
@@ -303,7 +303,7 @@ router.post('/staff/:id/assign', requireAuth, verifyInstitutionAdmin, async (req
     }
 
     // Resolve Class UUID
-    const classQuery = await relationalManager.pg.query(
+    const classQuery = await relationalManager.query(
       'SELECT id, department_id FROM classes WHERE id::text = $1 OR name ILIKE $1 LIMIT 1',
       [String(classId)]
     );
@@ -316,7 +316,7 @@ router.post('/staff/:id/assign', requireAuth, verifyInstitutionAdmin, async (req
     }
 
     // Update academician profile class and department
-    await relationalManager.pg.query(
+    await relationalManager.query(
       `UPDATE academician_profiles 
        SET department_id = COALESCE($1, department_id), class_id = $2, updated_at = NOW() 
        WHERE user_id = $3`,
@@ -325,7 +325,7 @@ router.post('/staff/:id/assign', requireAuth, verifyInstitutionAdmin, async (req
 
     // Insert staff assignment
     const isPrimary = assignmentType === 'Class Advisor';
-    const saRes = await relationalManager.pg.query(
+    const saRes = await relationalManager.query(
       `INSERT INTO staff_assignments (
         staff_id, institution_id, department_id, class_id, assignment_type, is_primary, status, created_at, updated_at
       ) VALUES (
@@ -366,7 +366,7 @@ router.put('/staff/:id/status', requireAuth, verifyInstitutionAdmin, async (req,
     const { id } = req.params;
     const { isActive } = req.body;
 
-    const result = await relationalManager.pg.query(
+    const result = await relationalManager.query(
       `UPDATE users SET is_active = $1, updated_at = NOW() WHERE id = $2 RETURNING id, email, is_active`,
       [Boolean(isActive), id]
     );
@@ -400,7 +400,7 @@ router.post('/staff/:id/reset-password', requireAuth, verifyInstitutionAdmin, as
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(newPassword, salt);
 
-    const result = await relationalManager.pg.query(
+    const result = await relationalManager.query(
       `UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2 RETURNING id, email`,
       [passwordHash, id]
     );
@@ -444,7 +444,7 @@ router.get('/staff/:id/students', requireAuth, verifyInstitutionAdmin, async (re
       ORDER BY s.full_name ASC
     `;
 
-    const result = await relationalManager.pg.query(query, [id]);
+    const result = await relationalManager.query(query, [id]);
     return res.json({
       success: true,
       count: result.rows.length,
@@ -471,7 +471,7 @@ router.get('/classes', requireAuth, verifyInstitutionAdmin, async (req, res) => 
          OR c.institution_id IN (SELECT id FROM institutions WHERE code = $1 OR id::text = $1)
       ORDER BY d.name ASC, c.name ASC, c.section ASC
     `;
-    const result = await relationalManager.pg.query(query, [String(instId)]);
+    const result = await relationalManager.query(query, [String(instId)]);
     return res.json({ success: true, data: result.rows });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
@@ -487,13 +487,13 @@ router.post('/classes', requireAuth, verifyInstitutionAdmin, async (req, res) =>
       return res.status(400).json({ success: false, message: 'Class name and department ID are required.' });
     }
 
-    const instQuery = await relationalManager.pg.query(
+    const instQuery = await relationalManager.query(
       'SELECT id FROM institutions WHERE id::text = $1 OR code = $1 LIMIT 1',
       [String(instId)]
     );
     const resolvedInstUuid = instQuery.rows[0]?.id || null;
 
-    const result = await relationalManager.pg.query(
+    const result = await relationalManager.query(
       `INSERT INTO classes (institution_id, department_id, name, section, year_semester, batch, is_active, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
        RETURNING *`,

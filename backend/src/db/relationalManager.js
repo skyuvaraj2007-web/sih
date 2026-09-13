@@ -9,7 +9,6 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-// const { Pool } = require('pg'); // Removed pg pool
 const bcrypt = require('bcryptjs');
 const emailService = require('../services/emailService');
 const { getMasterCollegeByCodeOrId, TAMIL_NADU_ENGINEERING_COLLEGES } = require('./tamilNaduEngineeringColleges');
@@ -24,12 +23,9 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// PostgreSQL Connection Pool removed. Supabase client will be used for all DB operations.
+// Supabase client and query adapter
 const { supabase } = require('../config/supabase');
-// Retain legacy flags for compatibility (will always be false after migration)
-let pgPool = null;
-let isPgActive = false;
-const isPgConfigured = false; // Supabase only
+const { supabaseQueryAdapter } = require('./supabaseQueryAdapter');
 
 // ══════════════════════════════════════════════════════════════════════════
 // DEFAULT RELATIONAL SEED STATE (Aligned with 25 Normalized Tables)
@@ -64,20 +60,85 @@ class RelationalManager {
   constructor() {
     this.filePath = RELATIONAL_DB_FILE;
     this.otpStore = new Map();
+    this.supabase = supabase;
+    this.adapter = supabaseQueryAdapter;
   }
 
   get isPgRequired() {
-    return isPostgresRequired();
+    return false; // Fully Supabase-backed runtime
   }
 
   get pg() {
-    if (pgPool) return pgPool;
-    if (this.isPgRequired) {
-      const err = new Error('DATABASE ERROR: PostgreSQL is mandatory (POSTGRESQL_REQUIRED=true) but database pool is uninitialized.');
-      err.code = 'POSTGRESQL_REQUIRED';
-      throw err;
+    return this.adapter;
+  }
+
+  get queryAdapter() {
+    return this.adapter;
+  }
+
+  async query(sql, params = []) {
+    return this.adapter.query(sql, params);
+  }
+
+  async connect() {
+    return this.adapter.connect();
+  }
+
+  from(table) {
+    return this.supabase.from(table);
+  }
+
+  async select(table, columns = '*', filters = {}, options = {}) {
+    let q = this.supabase.from(table).select(columns, { count: options.count });
+    for (const [k, v] of Object.entries(filters || {})) {
+      if (v === null) q = q.is(k, null);
+      else if (Array.isArray(v)) q = q.in(k, v);
+      else q = q.eq(k, v);
     }
-    return null;
+    if (options.order) q = q.order(options.order.column || options.order, { ascending: options.order.ascending !== false });
+    if (options.limit) q = q.limit(options.limit);
+    if (options.offset) q = q.range(options.offset, options.offset + options.limit - 1);
+    const { data, error, count } = await q;
+    if (error) throw error;
+    return options.count ? { data, count } : data;
+  }
+
+  async insert(table, records, options = {}) {
+    let q = this.supabase.from(table).insert(records);
+    if (options.onConflict) q = this.supabase.from(table).upsert(records, { onConflict: options.onConflict });
+    const { data, error } = await q.select();
+    if (error) throw error;
+    return data;
+  }
+
+  async update(table, updates, filters = {}) {
+    let q = this.supabase.from(table).update(updates);
+    for (const [k, v] of Object.entries(filters || {})) {
+      if (v === null) q = q.is(k, null);
+      else if (Array.isArray(v)) q = q.in(k, v);
+      else q = q.eq(k, v);
+    }
+    const { data, error } = await q.select();
+    if (error) throw error;
+    return data;
+  }
+
+  async delete(table, filters = {}) {
+    let q = this.supabase.from(table).delete();
+    for (const [k, v] of Object.entries(filters || {})) {
+      if (v === null) q = q.is(k, null);
+      else if (Array.isArray(v)) q = q.in(k, v);
+      else q = q.eq(k, v);
+    }
+    const { data, error } = await q;
+    if (error) throw error;
+    return data;
+  }
+
+  async rpc(fnName, params = {}) {
+    const { data, error } = await this.supabase.rpc(fnName, params);
+    if (error) throw error;
+    return data;
   }
 
   _ensurePgRuntime(action = 'access') {
@@ -2162,37 +2223,42 @@ class RelationalManager {
           Rejected: apps.filter(a => (a.current_stage || '').toLowerCase() === 'rejected').length
         };
 
-        const partRes = await this.pg.query(
-          `SELECT count(DISTINCT institution_id) as count FROM company_institution_partnerships 
-           WHERE company_id::text = $1 AND status IN ('ACTIVE', 'APPROVED', 'ACCEPTED')`,
-          [String(comp.id)]
-        );
-        const partnerInstitutionsCount = parseInt(partRes.rows[0]?.count || 0, 10);
+        let partnerInstitutionsCount = 0;
+        let partnerInstIds = [];
+        try {
+          const partRes = await this.pg.query(
+            `SELECT institution_id FROM company_institution_partnerships 
+             WHERE company_id::text = $1 AND status IN ('ACTIVE', 'APPROVED', 'ACCEPTED')`,
+            [String(comp.id)]
+          );
+          partnerInstIds = [...new Set((partRes.rows || []).map(r => r.institution_id).filter(Boolean))];
+          partnerInstitutionsCount = partnerInstIds.length;
+        } catch (e) {}
 
-        const authTalentRes = await this.pg.query(
-          `SELECT count(DISTINCT s.id) as count FROM students s
-           WHERE s.institution_id IN (
-             SELECT institution_id FROM company_institution_partnerships WHERE company_id::text = $1 AND status IN ('ACTIVE', 'APPROVED', 'ACCEPTED')
-           ) OR s.id IN (
-             SELECT student_id FROM applications a JOIN opportunities o ON o.id = a.opportunity_id WHERE o.company_id::text = $1
-           )`,
-          [String(comp.id)]
-        );
-        const authorizedTalentCount = parseInt(authTalentRes.rows[0]?.count || 0, 10);
+        const applicantStudentIds = [...new Set((apps || []).map(a => a.student_id).filter(Boolean))];
+        const authorizedStudentIds = new Set(applicantStudentIds);
 
-        const readyRes = await this.pg.query(
-          `SELECT count(DISTINCT s.id) as count FROM students s
-           WHERE (s.readiness_score >= 70 OR s.placement_readiness_score >= 70)
-           AND (
-             s.institution_id IN (
-               SELECT institution_id FROM company_institution_partnerships WHERE company_id::text = $1 AND status IN ('ACTIVE', 'APPROVED', 'ACCEPTED')
-             ) OR s.id IN (
-               SELECT student_id FROM applications a JOIN opportunities o ON o.id = a.opportunity_id WHERE o.company_id::text = $1
-             )
-           )`,
-          [String(comp.id)]
-        );
-        const jobReadyTalent = parseInt(readyRes.rows[0]?.count || 0, 10);
+        if (partnerInstIds.length > 0) {
+          try {
+            const instStudentsRes = await this.pg.query(
+              `SELECT id FROM students WHERE institution_id IN ($1)`,
+              [partnerInstIds]
+            );
+            (instStudentsRes.rows || []).forEach(r => authorizedStudentIds.add(r.id));
+          } catch (e) {}
+        }
+
+        const authorizedTalentCount = authorizedStudentIds.size;
+        let jobReadyTalent = 0;
+        if (authorizedStudentIds.size > 0) {
+          try {
+            const readyRes = await this.pg.query(
+              `SELECT id, readiness_score, placement_readiness_score FROM students WHERE id IN ($1)`,
+              [[...authorizedStudentIds]]
+            );
+            jobReadyTalent = (readyRes.rows || []).filter(s => (s.readiness_score >= 70 || s.placement_readiness_score >= 70)).length;
+          } catch (e) {}
+        }
 
         const poolCountRes = await this.pg.query(
           `SELECT count(*) as count FROM talent_pools WHERE company_id::text = $1`,
@@ -6416,22 +6482,29 @@ class RelationalManager {
   async getApplicationsByCompany(companyId) {
     if (this.pg) {
       try {
-        let compName = null;
+        let compId = null;
         try {
           const compRes = await this.pg.query(
-            `SELECT company_name FROM companies WHERE id::text = $1 OR registration_number = $1 OR company_name ILIKE $1 LIMIT 1`,
-            [String(companyId)]
+            `SELECT id FROM companies WHERE id::text = $1 OR registration_number = $1 OR company_name ILIKE $1 LIMIT 1`,
+            [String(companyId).trim()]
           );
-          if (compRes.rows.length > 0) compName = compRes.rows[0].company_name;
+          if (compRes.rows.length > 0) compId = compRes.rows[0].id;
         } catch (e) {}
 
-        let cWhere = `(c.id::text = $1 OR c.registration_number = $1 OR c.company_name ILIKE $1 OR o.company_id::text = $1`;
-        let params = [String(companyId)];
-        if (compName) {
-          cWhere += ` OR c.company_name ILIKE $2)`;
-          params.push(compName);
-        } else {
-          cWhere += `)`;
+        if (!compId) compId = companyId;
+
+        // Resolve company's opportunities
+        let oppIds = [];
+        try {
+          const oppRes = await this.pg.query(
+            `SELECT id FROM opportunities WHERE company_id::text = $1`,
+            [String(compId)]
+          );
+          oppIds = (oppRes.rows || []).map(r => r.id);
+        } catch (e) {}
+
+        if (!oppIds || oppIds.length === 0) {
+          return [];
         }
 
         const query = `
@@ -6462,29 +6535,17 @@ class RelationalManager {
             a.cover_note AS "coverNote",
             s.institution_id AS "institutionId",
             inst.name AS "studentCollegeName",
-            inst.name AS "college",
-            (
-              SELECT json_build_object(
-                'id', iv.id,
-                'status', iv.status,
-                'round_type', iv.round_type,
-                'scheduled_at', iv.scheduled_at
-              )
-              FROM interviews iv
-              WHERE iv.application_id = a.id
-              ORDER BY iv.scheduled_at DESC
-              LIMIT 1
-            ) AS "interviewInfo"
+            inst.name AS "college"
           FROM applications a
           JOIN students s ON s.id = a.student_id
           LEFT JOIN departments d ON d.id = s.department_id
           LEFT JOIN institutions inst ON inst.id = s.institution_id
           JOIN opportunities o ON o.id = a.opportunity_id
           JOIN companies c ON c.id = o.company_id
-          WHERE ${cWhere}
+          WHERE a.opportunity_id IN ($1)
           ORDER BY a.applied_at DESC
         `;
-        const res = await this.pg.query(query, params);
+        const res = await this.pg.query(query, [oppIds]);
         return res.rows;
       } catch (err) {
         console.error('[getApplicationsByCompany] PG error:', err.message);

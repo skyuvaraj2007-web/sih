@@ -372,15 +372,14 @@ router.put('/partnerships/:id/accept', requireAuth, verifyCompany, async (req, r
   try {
     const result = await relationalManager.respondToStudentAccessRequest(req.params.id, req.companyId, 'ACCEPTED', req.user?.id);
     let part = null;
-    if (relationalManager.pg) {
-      try {
-        const pUp = await relationalManager.pg.query(
-          `UPDATE company_institution_partnerships SET status = 'ACCEPTED' WHERE id::text = $1 RETURNING *`,
-          [String(req.params.id)]
-        );
-        if (pUp.rows.length > 0) part = pUp.rows[0];
-      } catch (e) {}
-    }
+    try {
+      const { data: pUp } = await supabase
+        .from('company_institution_partnerships')
+        .update({ status: 'ACCEPTED' })
+        .eq('id', req.params.id)
+        .select();
+      if (pUp && pUp.length > 0) part = pUp[0];
+    } catch (e) {}
     if (!part && !relationalManager.isPgRequired) {
       const data = relationalManager._read();
       const reqRecord = (data.accessRequests || []).find(r => r.id === req.params.id || r.requestId === req.params.id);
@@ -421,19 +420,15 @@ router.get('/institutions/:institutionId/students', requireAuth, verifyCompany, 
   try {
     const { institutionId } = req.params;
     let isPartnered = false;
-    if (relationalManager.pg) {
-      try {
-        const pRes = await relationalManager.pg.query(
-          `SELECT 1 FROM company_institution_partnerships
-           WHERE (company_id::text = $1 OR company_id IN (SELECT id FROM companies WHERE registration_number = $1 OR company_name ILIKE $1))
-             AND (institution_id::text = $2 OR institution_id IN (SELECT id FROM institutions WHERE code = $2))
-             AND status IN ('ACTIVE', 'ACCEPTED')
-           LIMIT 1`,
-          [String(req.companyId), String(institutionId)]
-        );
-        isPartnered = pRes.rows.length > 0;
-      } catch (e) {}
-    }
+    try {
+      const { data: pRes } = await supabase
+        .from('company_institution_partnerships')
+        .select('id')
+        .or(`company_id.eq.${req.companyId}`)
+        .in('status', ['ACTIVE', 'ACCEPTED'])
+        .limit(1);
+      isPartnered = Boolean(pRes && pRes.length > 0);
+    } catch (e) {}
 
     if (!isPartnered && !relationalManager.isPgRequired) {
       const data = relationalManager._read();

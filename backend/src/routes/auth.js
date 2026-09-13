@@ -510,8 +510,8 @@ router.post('/google', async (req, res) => {
       if (isInvitedOrUnverified) {
         // Automatically activate and link Google account without requiring password
         await relationalManager.linkGoogleAccount(existingEmailUser.id, googleId);
-        if (relationalManager.pg) {
-          await relationalManager.pg.query(
+        if (relationalManager.supabase) {
+          await relationalManager.query(
             "UPDATE users SET account_status = 'ACTIVE', email_verified = true, google_id = $1, invitation_token = NULL, invitation_expires_at = NULL, updated_at = NOW() WHERE id = $2",
             [googleId, existingEmailUser.id]
           );
@@ -799,8 +799,8 @@ router.post('/academician/login', async (req, res) => {
     let passwordHash = null;
     let isActive = true;
 
-    if (relationalManager.pg) {
-      const userRes = await relationalManager.pg.query(
+    if (relationalManager.supabase) {
+      const userRes = await relationalManager.query(
         `SELECT u.id, u.email, u.password_hash, u.is_active,
                 r.code AS role_code
          FROM users u
@@ -884,8 +884,8 @@ router.post('/academician/login', async (req, res) => {
     let mappedStudentsCount = 0;
     let assignedClasses = [];
 
-    if (relationalManager.pg) {
-      const apRes = await relationalManager.pg.query(
+    if (relationalManager.supabase) {
+      const apRes = await relationalManager.query(
         `SELECT ap.*, i.name as institution_name, i.code as institution_code,
                 d.name as department_name, d.code as department_code,
                 c.name as class_name, c.section as class_section, c.year_semester as class_year_semester
@@ -901,7 +901,7 @@ router.post('/academician/login', async (req, res) => {
       }
 
       // Count actively mapped students
-      const cntRes = await relationalManager.pg.query(
+      const cntRes = await relationalManager.query(
         `SELECT COUNT(DISTINCT m.student_id)::int as count 
          FROM student_staff_mapping m
          JOIN students s ON s.id = m.student_id
@@ -911,7 +911,7 @@ router.post('/academician/login', async (req, res) => {
       mappedStudentsCount = cntRes.rows[0]?.count || 0;
 
       // Load active class assignments
-      const assignRes = await relationalManager.pg.query(
+      const assignRes = await relationalManager.query(
         `SELECT sa.*, c.name as class_name, c.section as class_section, d.name as department_name
          FROM staff_assignments sa
          LEFT JOIN classes c ON c.id = sa.class_id
@@ -975,8 +975,8 @@ router.post('/academician/login', async (req, res) => {
 // GET /api/auth/institutions
 router.get('/institutions', async (req, res) => {
   try {
-    if (relationalManager.pg) {
-      const instRes = await relationalManager.pg.query(
+    if (relationalManager.supabase) {
+      const instRes = await relationalManager.query(
         `SELECT id, name, code, type, city, state FROM institutions ORDER BY name ASC`
       );
       return res.json({ success: true, data: instRes.rows });
@@ -992,8 +992,8 @@ router.get('/institutions', async (req, res) => {
 router.get('/institutions/:institutionId/departments', async (req, res) => {
   try {
     const { institutionId } = req.params;
-    if (relationalManager.pg) {
-      const deptRes = await relationalManager.pg.query(
+    if (relationalManager.supabase) {
+      const deptRes = await relationalManager.query(
         `SELECT d.id, d.institution_id, d.name, d.code, d.hod_name 
          FROM departments d
          WHERE d.institution_id::text = $1 
@@ -1013,8 +1013,8 @@ router.get('/institutions/:institutionId/departments', async (req, res) => {
 router.get('/departments/:departmentId/classes', async (req, res) => {
   try {
     const { departmentId } = req.params;
-    if (relationalManager.pg) {
-      const classRes = await relationalManager.pg.query(
+    if (relationalManager.supabase) {
+      const classRes = await relationalManager.query(
         `SELECT c.id, c.institution_id, c.department_id, c.name, c.section, c.year_semester, c.batch, c.is_active
          FROM classes c
          WHERE c.department_id::text = $1

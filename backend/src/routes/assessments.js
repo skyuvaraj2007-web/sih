@@ -8,25 +8,28 @@ const { requireAuth } = require('../middleware/auth');
 
 
 
+const { supabase } = require('../config/supabase');
+
 // GET /api/assessments
 router.get('/', requireAuth, async (req, res) => {
   const studentId = req.user?.studentId || req.user?.id;
   let tracks = [];
   let questions = [];
 
-  if (relationalManager.pg) {
-    try {
-      const asRes = await relationalManager.pg.query(
-        `SELECT a.id, a.track_code, a.title, a.domain, a.duration_minutes, 
-                a.passing_score, a.difficulty, a.description, a.instructions,
-                a.categories, a.status, a.company_id, c.company_name
-         FROM assessments a
-         LEFT JOIN companies c ON c.id = a.company_id
-         WHERE a.is_active = true
-         ORDER BY a.created_at DESC`
-      );
+  try {
+    const { data: asData, error: asErr } = await supabase
+      .from('assessments')
+      .select(`
+        id, track_code, title, domain, duration_minutes, 
+        passing_score, difficulty, description, instructions,
+        categories, status, company_id,
+        companies (company_name)
+      `)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
 
-      tracks = asRes.rows.map(r => ({
+    if (asData && asData.length > 0) {
+      tracks = asData.map(r => ({
         id: r.id,
         trackCode: r.track_code || `ASMT-${String(r.id).slice(0, 6).toUpperCase()}`,
         title: r.title,
@@ -36,20 +39,18 @@ router.get('/', requireAuth, async (req, res) => {
         totalQuestions: 0,
         status: r.status === 'PUBLISHED' ? 'Ready' : (r.status || 'Ready'),
         passingScore: r.passing_score || 70,
-        companyName: r.company_name || null
+        companyName: r.companies?.company_name || null
       }));
 
-      if (asRes.rows.length > 0) {
-        const firstAsmtId = asRes.rows[0].id;
-        const qRes = await relationalManager.pg.query(
-          `SELECT id, topic, question_text, category, question_type, options, marks, difficulty, programming_language, starter_code
-           FROM assessment_questions
-           WHERE assessment_id = $1
-           ORDER BY created_at ASC`,
-          [firstAsmtId]
-        );
+      const firstAsmtId = asData[0].id;
+      const { data: qData } = await supabase
+        .from('assessment_questions')
+        .select('id, topic, question_text, category, question_type, options, marks, difficulty, programming_language, starter_code')
+        .eq('assessment_id', firstAsmtId)
+        .order('created_at', { ascending: true });
 
-        questions = qRes.rows.map((q, idx) => ({
+      if (qData && qData.length > 0) {
+        questions = qData.map((q, idx) => ({
           id: q.id,
           track: q.category || q.topic || 'Logical Reasoning',
           question: q.question_text,
@@ -63,9 +64,9 @@ router.get('/', requireAuth, async (req, res) => {
         }));
         tracks[0].totalQuestions = questions.length;
       }
-    } catch (err) {
-      console.warn('[GET /api/assessments] PG query note:', err.message);
     }
+  } catch (err) {
+    console.warn('[GET /api/assessments] Supabase query note:', err.message);
   }
 
   if (tracks.length === 0) {
@@ -127,21 +128,29 @@ router.post('/submit', requireAuth, async (req, res) => {
   const breakdown = [];
   let totalQuestions = 0;
 
-  // Attempt server-side evaluation against real questions from PostgreSQL
-  if (relationalManager.pg) {
-    try {
-      const qRes = await relationalManager.pg.query(
-        `SELECT q.*, a.id as asmt_id, a.passing_score
-         FROM assessment_questions q
-         JOIN assessments a ON a.id = q.assessment_id
-         WHERE a.track_code = $1 OR a.id::text = $1 OR a.id::text = $2
-         ORDER BY q.created_at ASC`,
-        [trackCode, assessmentId || '']
-      );
+  // Attempt server-side evaluation against real questions from Supabase
+  try {
+    let resolvedAsmtId = assessmentId || null;
+    if (!resolvedAsmtId && trackCode) {
+      const { data: asmtRec } = await supabase
+        .from('assessments')
+        .select('id, passing_score')
+        .or(`track_code.eq.${trackCode},id.eq.${trackCode}`)
+        .limit(1)
+        .maybeSingle();
+      if (asmtRec) resolvedAsmtId = asmtRec.id;
+    }
 
-      if (qRes.rows.length > 0) {
-        totalQuestions = qRes.rows.length;
-        qRes.rows.forEach((q, idx) => {
+    if (resolvedAsmtId) {
+      const { data: qRows } = await supabase
+        .from('assessment_questions')
+        .select('id, assessment_id, topic, question_text, category, question_type, options, marks, difficulty, correct_answer, explanation')
+        .eq('assessment_id', resolvedAsmtId)
+        .order('created_at', { ascending: true });
+
+      if (qRows && qRows.length > 0) {
+        totalQuestions = qRows.length;
+        qRows.forEach((q, idx) => {
           let userAnswer = null;
           if (Array.isArray(answers)) {
             userAnswer = answers[idx];
@@ -160,9 +169,9 @@ router.post('/submit', requireAuth, async (req, res) => {
           });
         });
       }
-    } catch (err) {
-      console.warn('[POST /submit] PG question lookup note:', err.message);
     }
+  } catch (err) {
+    console.warn('[POST /submit] Supabase question lookup note:', err.message);
   }
 
   if (totalQuestions === 0) {
