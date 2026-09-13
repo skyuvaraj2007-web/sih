@@ -23,12 +23,13 @@ import {
 export default function CompanySidebar({ activeTab, onTabSelect, user, onLogout }) {
   const navItems = [
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
-    { id: 'students', label: 'Talent', icon: Users, count: 245 },
+    { id: 'students', label: 'Talent', icon: Users },
     { id: 'colleges', label: 'Institutions', icon: Building },
+    { id: 'assessments', label: 'Assessments', icon: Award },
     { id: 'opportunities', label: 'Opportunities', icon: Briefcase },
     { id: 'courses', label: 'Learning', icon: BookOpen },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'messages', label: 'Messages', icon: MessageSquare, badge: '2' },
+    { id: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
@@ -36,6 +37,7 @@ export default function CompanySidebar({ activeTab, onTabSelect, user, onLogout 
     if (id === 'dashboard') return activeTab === 'dashboard' || activeTab === 'overview';
     if (id === 'students') return ['students', 'talent-search', 'student-profile', 'ai-matching', 'authorized-students', 'talent-pools'].includes(activeTab);
     if (id === 'colleges') return ['colleges', 'access-requests', 'requests'].includes(activeTab);
+    if (id === 'assessments') return activeTab === 'assessments';
     if (id === 'opportunities') return ['opportunities', 'jobs', 'internships', 'apprenticeships', 'applications', 'shortlisted'].includes(activeTab);
     if (id === 'courses') return ['courses', 'certificates'].includes(activeTab);
     if (id === 'analytics') return activeTab === 'analytics';
@@ -44,8 +46,8 @@ export default function CompanySidebar({ activeTab, onTabSelect, user, onLogout 
     return activeTab === id;
   };
 
-  const companyName = user?.companyName || user?.company || 'ABC Technologies';
-  const recruiterName = user?.name || user?.recruiterName || 'Sarah Jenkins';
+  const companyName = user?.companyName || user?.company || 'Corporate Partner';
+  const recruiterName = user?.name || user?.recruiterName || 'Talent Lead';
 
   return (
     <aside className="company-sidebar" aria-label="Company Navigation">

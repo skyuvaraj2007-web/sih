@@ -3,7 +3,7 @@ import {
   BookOpen, Play, CheckCircle2, Clock, Sparkles, ShieldCheck, Award,
   Flame, BarChart3, TrendingUp, Activity, Download, ExternalLink, Search,
   Plus, Edit3, Trash2, AlertCircle, FileText, Check, ArrowRight, ShieldAlert,
-  HelpCircle, Target, Compass
+  HelpCircle, Target, Compass, UserCheck
 } from "lucide-react";
 import { learningService } from "../services/learningService";
 import { certificateService } from "../services/certificateService";
@@ -12,6 +12,7 @@ import SkillLearningPathModal from "../components/student/SkillLearningPathModal
 import SkillDetailsModal from "../components/student/SkillDetailsModal";
 import CertificateViewerModal from "../components/common/CertificateViewerModal";
 import CertificateUploadModal from "../components/student/CertificateUploadModal";
+import CourseViewerModal from "../components/student/CourseViewerModal";
 
 const CAT_COLORS = {
   "DATA & AI": "#28D7FF", "BY NEXUS AI": "#8B5CF6", "DATABASE": "#2FE0A1",
@@ -34,6 +35,7 @@ const TABS = [
   "Overview",
   "Self-Assessed Skills",
   "My Courses",
+  "Assigned Courses",
   "Quizzes & Tests",
   "Projects",
   "Certifications",
@@ -67,9 +69,17 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
   const [isSelfModalOpen, setIsSelfModalOpen] = useState(false);
   const [editingSelfAssessment, setEditingSelfAssessment] = useState(null);
   const [activeLearningSkillId, setActiveLearningSkillId] = useState(null);
+  const [activeCourseViewerId, setActiveCourseViewerId] = useState(null);
   const [modalSkillId, setModalSkillId] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [viewingCertId, setViewingCertId] = useState(null);
+  const [assignedCourses, setAssignedCourses] = useState([]);
+
+  // Discontinue Course state
+  const [discontinueTarget, setDiscontinueTarget] = useState(null);
+  const [discontinueReason, setDiscontinueReason] = useState("Academic workload");
+  const [discontinueNotes, setDiscontinueNotes] = useState("");
+  const [isDiscontinuing, setIsDiscontinuing] = useState(false);
 
   // Search & Filters
   const [courseSearch, setCourseSearch] = useState("");
@@ -82,7 +92,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
   const refreshAllData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [ovRes, enrRes, saRes, qzRes, prRes, crRes, actRes, intRes, ucRes] = await Promise.all([
+      const [ovRes, enrRes, saRes, qzRes, prRes, crRes, actRes, intRes, ucRes, mcRes] = await Promise.all([
         learningService.getOverview().catch(() => ({ success: false, data: null })),
         learningService.getMySkills().catch(() => ({ success: false, data: [] })),
         learningService.getSelfAssessments().catch(() => ({ success: false, data: [] })),
@@ -91,11 +101,11 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         learningService.getCertifications().catch(() => ({ success: false, data: [] })),
         learningService.getActivity().catch(() => ({ success: false, data: [] })),
         learningService.getIntelligence().catch(() => ({ success: false, data: null })),
-        certificateService.getMyCertificates().catch(() => ({ success: false, data: [] }))
+        certificateService.getMyCertificates().catch(() => ({ success: false, data: [] })),
+        learningService.getMyCourses().catch(() => ({ success: false, data: [] }))
       ]);
 
       if (ovRes.success && ovRes.data) setOverview(ovRes.data);
-      if (enrRes.success && Array.isArray(enrRes.data)) setEnrollments(enrRes.data);
       if (saRes.success && Array.isArray(saRes.data)) setSelfAssessments(saRes.data);
       if (qzRes.success && Array.isArray(qzRes.data)) setQuizzes(qzRes.data);
       if (prRes.success && Array.isArray(prRes.data)) setProjects(prRes.data);
@@ -103,6 +113,18 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
       if (actRes.success && Array.isArray(actRes.data)) setActivities(actRes.data);
       if (intRes.success && intRes.data) setIntelligence(intRes.data);
       if (ucRes.success && Array.isArray(ucRes.data)) setUploadedCertificates(ucRes.data);
+
+      const realCourses = (mcRes.success && Array.isArray(mcRes.data)) ? mcRes.data : [];
+      setAssignedCourses(realCourses.filter(c => c.isAssigned || c.assignedBy));
+
+      const skillsList = (enrRes.success && Array.isArray(enrRes.data)) ? enrRes.data : [];
+      // Combine skills and enrolled courses seamlessly
+      const existingIds = new Set(skillsList.map(s => s.courseId || s.skillId || s.id));
+      const combinedCourses = [
+        ...skillsList,
+        ...realCourses.filter(c => !existingIds.has(c.courseId))
+      ];
+      setEnrollments(combinedCourses);
     } catch (err) {
       console.error("Error refreshing learning workspace:", err);
     } finally {
@@ -150,12 +172,64 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
     }
   };
 
+  const handleConfirmDiscontinue = async () => {
+    if (!discontinueTarget) return;
+    setIsDiscontinuing(true);
+    try {
+      const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
+      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+      const enrId = discontinueTarget.id || discontinueTarget.enrollmentId || discontinueTarget.courseId;
+      const res = await fetch(`${apiBase}/learning/${enrId}/discontinue`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          reason: `${discontinueReason}${discontinueNotes ? ' - ' + discontinueNotes : ''}`
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Failed to discontinue course');
+      }
+
+      setEnrollments(prev => prev.map(e => {
+        if (e.id === enrId || e.courseId === discontinueTarget.courseId || e.enrollmentId === enrId) {
+          return { ...e, status: 'Discontinued' };
+        }
+        return e;
+      }));
+
+      if (onShowToast) {
+        onShowToast({
+          title: 'Course Discontinued',
+          message: 'Course discontinued successfully. Institution and partner notifications dispatched.',
+          type: 'info'
+        });
+      }
+      setDiscontinueTarget(null);
+      setDiscontinueNotes('');
+    } catch (err) {
+      if (onShowToast) {
+        onShowToast({
+          title: 'Discontinuation Failed',
+          message: err.message,
+          type: 'error'
+        });
+      }
+    } finally {
+      setIsDiscontinuing(false);
+    }
+  };
+
   const filteredCourses = enrollments.filter(e => {
     const title = (e.courseTitle || e.skillName || e.title || "").toLowerCase();
     const matchesSearch = title.includes(courseSearch.toLowerCase());
     if (!matchesSearch) return false;
-    if (courseFilter === "IN_PROGRESS") return (e.progress > 0 && e.progress < 100) || (e.learningProgress > 0 && e.learningProgress < 100);
+    if (courseFilter === "IN_PROGRESS") return (e.progress > 0 && e.progress < 100 && e.status !== "Discontinued") || (e.learningProgress > 0 && e.learningProgress < 100 && e.status !== "Discontinued");
     if (courseFilter === "COMPLETED") return (e.progress >= 100 || e.learningProgress >= 100 || e.status === "COMPLETED" || e.status === "CERTIFIED");
+    if (courseFilter === "DISCONTINUED") return e.status === "Discontinued" || e.status === "Dropped";
     return true;
   });
 
@@ -662,7 +736,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
               />
             </div>
             <div style={{ display: "flex", gap: "6px" }}>
-              {["ALL", "IN_PROGRESS", "COMPLETED"].map(f => (
+              {["ALL", "IN_PROGRESS", "COMPLETED", "DISCONTINUED"].map(f => (
                 <button
                   key={f}
                   onClick={() => setCourseFilter(f)}
@@ -704,6 +778,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                 const totalLes = course.totalLessons || 4;
                 const hasProject = Boolean(course.projectSubmission?.submitted);
                 const hasQuiz = Boolean(course.assessmentResult?.score !== undefined);
+                const isDiscontinued = course.status === "Discontinued" || course.status === "Dropped";
 
                 return (
                   <div
@@ -712,11 +787,12 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                     style={{
                       padding: "20px",
                       borderRadius: "14px",
-                      border: "1px solid rgba(255, 255, 255, 0.08)",
+                      border: isDiscontinued ? "1px solid rgba(239, 68, 68, 0.25)" : "1px solid rgba(255, 255, 255, 0.08)",
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "space-between",
-                      gap: "16px"
+                      gap: "16px",
+                      background: isDiscontinued ? "rgba(239, 68, 68, 0.03)" : undefined
                     }}
                   >
                     <div>
@@ -735,9 +811,13 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                         <span style={{
                           fontSize: "10.5px",
                           fontWeight: 700,
-                          color: prog >= 100 ? "#10b981" : (prog > 0 ? "var(--cyber-cyan, #00f2fe)" : "var(--text-muted, #64748b)")
+                          color: isDiscontinued
+                            ? "#ef4444"
+                            : (prog >= 100 ? "#10b981" : (prog > 0 ? "var(--cyber-cyan, #00f2fe)" : "var(--text-muted, #64748b)"))
                         }}>
-                          {prog >= 100 ? "COMPLETED" : (prog > 0 ? "IN PROGRESS" : "ENROLLED")}
+                          {isDiscontinued
+                            ? "DISCONTINUED"
+                            : (prog >= 100 ? "COMPLETED" : (prog > 0 ? "IN PROGRESS" : "ENROLLED"))}
                         </span>
                       </div>
 
@@ -747,6 +827,24 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                       <div style={{ fontSize: "11.5px", color: "var(--text-muted, #64748b)" }}>
                         Provider: {course.institutionName || "Institution Partner"}
                       </div>
+                      {course.assignedBy && (
+                        <div style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          background: 'rgba(99, 102, 241, 0.12)',
+                          border: '1px solid rgba(99, 102, 241, 0.3)',
+                          color: '#818cf8',
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          marginTop: '6px'
+                        }}>
+                          <UserCheck size={12} />
+                          Assigned by Prof. {course.assignedBy.name} ({course.assignedBy.designation || 'Faculty'})
+                        </div>
+                      )}
 
                       {/* Progress Bar */}
                       <div style={{ margin: "16px 0 12px" }}>
@@ -758,7 +856,9 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                           <div style={{
                             height: "100%",
                             width: `${prog}%`,
-                            background: "linear-gradient(90deg, #00f2fe 0%, #4facfe 100%)",
+                            background: isDiscontinued
+                              ? "linear-gradient(90deg, #ef4444 0%, #f97316 100%)"
+                              : "linear-gradient(90deg, #00f2fe 0%, #4facfe 100%)",
                             borderRadius: "3px",
                             transition: "width 0.3s ease"
                           }} />
@@ -775,14 +875,26 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                     </div>
 
                     {/* Actions */}
-                    <div style={{ display: "flex", gap: "10px", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}>
+                    <div style={{ display: "flex", gap: "8px", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "14px", flexWrap: "wrap" }}>
                       <button
-                        onClick={() => setActiveLearningSkillId(course.courseId || course.skillId || course.id)}
+                        onClick={() => {
+                          if (course.courseId) {
+                            setActiveCourseViewerId(course.courseId);
+                          } else {
+                            setActiveLearningSkillId(course.courseId || course.skillId || course.id);
+                          }
+                        }}
+                        disabled={isDiscontinued}
                         className="btn-cyber-primary"
-                        style={{ flex: 1, padding: "8px 14px", fontSize: "12.5px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                        style={{
+                          flex: 1, padding: "8px 12px", fontSize: "12px",
+                          display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                          opacity: isDiscontinued ? 0.4 : 1,
+                          cursor: isDiscontinued ? "not-allowed" : "pointer"
+                        }}
                       >
                         <Play size={13} />
-                        <span>Continue Learning</span>
+                        <span>{isDiscontinued ? "Discontinued" : "Continue"}</span>
                       </button>
                       <button
                         onClick={() => setModalSkillId(course.courseId || course.skillId || course.id)}
@@ -791,6 +903,209 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                         title="View Course Syllabus"
                       >
                         Details
+                      </button>
+                      {!isDiscontinued && (
+                        <button
+                          onClick={() => setDiscontinueTarget(course)}
+                          className="btn-cyber-outline"
+                          style={{
+                            padding: "8px 12px", fontSize: "12px",
+                            borderColor: "rgba(239, 68, 68, 0.35)",
+                            color: "#f87171"
+                          }}
+                          title="Discontinue this course"
+                        >
+                          Discontinue
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB: ASSIGNED COURSES ── */}
+      {activeTab === "Assigned Courses" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          {/* Information Card */}
+          <div className="glass-panel" style={{
+            padding: '16px 20px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.04) 100%)',
+            border: '1px solid rgba(99, 102, 241, 0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                background: 'rgba(99, 102, 241, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#818cf8'
+              }}>
+                <UserCheck size={20} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>
+                  Faculty-Assigned Learning Tracks
+                </h3>
+                <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--text-secondary, #94a3b8)' }}>
+                  Mandatory and recommended coursework assigned directly by your academic professors and institution mentors.
+                </p>
+              </div>
+            </div>
+            <span style={{
+              fontSize: '12px',
+              fontWeight: 700,
+              color: '#818cf8',
+              background: 'rgba(99, 102, 241, 0.15)',
+              padding: '4px 12px',
+              borderRadius: '999px'
+            }}>
+              {assignedCourses.length} Assigned {assignedCourses.length === 1 ? 'Course' : 'Courses'}
+            </span>
+          </div>
+
+          {assignedCourses.length === 0 ? (
+            <div className="glass-panel" style={{ padding: "48px 20px", textAlign: "center", color: "var(--text-muted, #64748b)" }}>
+              <BookOpen size={40} style={{ opacity: 0.3, margin: "0 auto 12px" }} />
+              <h3 style={{ margin: "0 0 6px", fontSize: "16px", fontWeight: 700, color: "#ffffff" }}>
+                No Assigned Courses Pending
+              </h3>
+              <p style={{ margin: 0, fontSize: "13px" }}>
+                You currently have no direct faculty assignments. Explore open enrollments in "My Courses" or your college directory.
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "20px" }}>
+              {assignedCourses.map((course, idx) => {
+                const prog = course.progress !== undefined ? course.progress : (course.learningProgress || 0);
+                const completedLes = course.completedLessons || 0;
+                const totalLes = course.totalLessons || 4;
+
+                return (
+                  <div
+                    key={course.courseId || course.id || idx}
+                    className="glass-panel"
+                    style={{
+                      padding: "20px",
+                      borderRadius: "14px",
+                      border: "1px solid rgba(99, 102, 241, 0.25)",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      gap: "16px",
+                      background: "rgba(99, 102, 241, 0.03)"
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                        <span style={{
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          padding: "3px 8px",
+                          borderRadius: "4px",
+                          background: "rgba(255, 255, 255, 0.06)",
+                          color: catColor(course.category)
+                        }}>
+                          {course.category || "Programming"}
+                        </span>
+                        <span style={{
+                          fontSize: "10.5px",
+                          fontWeight: 700,
+                          color: prog >= 100 ? "#10b981" : (prog > 0 ? "var(--cyber-cyan, #00f2fe)" : "var(--text-muted, #64748b)")
+                        }}>
+                          {prog >= 100 ? "COMPLETED" : (prog > 0 ? "IN PROGRESS" : "NOT STARTED")}
+                        </span>
+                      </div>
+
+                      <h3 style={{ margin: "0 0 6px", fontSize: "17px", fontWeight: 700, color: "#ffffff" }}>
+                        {course.title || course.courseTitle || course.skillName}
+                      </h3>
+
+                      {course.description && (
+                        <p style={{ fontSize: "12px", color: "var(--text-muted, #64748b)", margin: "0 0 10px", lineHeight: "1.4" }}>
+                          {course.description}
+                        </p>
+                      )}
+
+                      {course.assignedBy && (
+                        <div style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: 'rgba(99, 102, 241, 0.12)',
+                          border: '1px solid rgba(99, 102, 241, 0.3)',
+                          color: '#818cf8',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          marginBottom: '12px'
+                        }}>
+                          <UserCheck size={13} />
+                          Assigned by Prof. {course.assignedBy.name} ({course.assignedBy.designation || 'Faculty'})
+                        </div>
+                      )}
+
+                      {/* Progress Bar */}
+                      <div style={{ margin: "10px 0 12px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11.5px", marginBottom: "6px" }}>
+                          <span style={{ color: "var(--text-secondary, #94a3b8)" }}>Curriculum Progress</span>
+                          <span style={{ fontWeight: 700, color: "#ffffff" }}>{prog}%</span>
+                        </div>
+                        <div style={{ height: "6px", background: "rgba(255, 255, 255, 0.08)", borderRadius: "3px", overflow: "hidden" }}>
+                          <div style={{
+                            height: "100%",
+                            width: `${prog}%`,
+                            background: "linear-gradient(90deg, #6366f1 0%, #00f2fe 100%)",
+                            borderRadius: "3px",
+                            transition: "width 0.3s ease"
+                          }} />
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-secondary, #94a3b8)" }}>
+                        <span>Completed Lessons: <strong>{completedLes} / {totalLes}</strong></span>
+                        <span>Level: <strong>{course.difficulty || 'Intermediate'}</strong></span>
+                      </div>
+                    </div>
+
+                    {/* Action */}
+                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}>
+                      <button
+                        onClick={() => {
+                          if (course.courseId) {
+                            setActiveCourseViewerId(course.courseId);
+                          } else {
+                            setActiveLearningSkillId(course.courseId || course.skillId || course.id);
+                          }
+                        }}
+                        className="btn-cyber-primary"
+                        style={{
+                          width: "100%",
+                          padding: "9px 14px",
+                          fontSize: "12.5px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "8px",
+                          background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
+                          cursor: "pointer"
+                        }}
+                      >
+                        <Play size={14} />
+                        <span>{prog > 0 ? "Continue Course" : "Start Course"}</span>
                       </button>
                     </div>
                   </div>
@@ -1271,6 +1586,17 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         />
       )}
 
+      {/* 2b. Course Viewer & Real Lesson Completion Modal */}
+      {activeCourseViewerId && (
+        <CourseViewerModal
+          isOpen={Boolean(activeCourseViewerId)}
+          courseId={activeCourseViewerId}
+          onClose={() => setActiveCourseViewerId(null)}
+          onProgressUpdated={() => refreshAllData()}
+          onShowToast={onShowToast}
+        />
+      )}
+
       {/* 3. Skill Details Modal */}
       {modalSkillId && (
         <SkillDetailsModal
@@ -1307,6 +1633,149 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
           onClose={() => setViewingCertId(null)}
           onShowToast={onShowToast}
         />
+      )}
+
+      {/* 6. Discontinue Course Confirmation Modal */}
+      {discontinueTarget && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(6, 26, 51, 0.85)",
+          backdropFilter: "blur(10px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          padding: "20px"
+        }}>
+          <div className="glass-card" style={{
+            maxWidth: "480px",
+            width: "100%",
+            padding: "28px",
+            borderRadius: "16px",
+            background: "rgba(10, 37, 64, 0.95)",
+            border: "1px solid rgba(255, 100, 100, 0.3)",
+            boxShadow: "0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(239, 68, 68, 0.15)"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+              <div style={{
+                width: "42px", height: "42px", borderRadius: "10px",
+                background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)",
+                display: "flex", alignItems: "center", justifyContent: "center"
+              }}>
+                <AlertCircle size={22} color="#ef4444" />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "#ffffff" }}>
+                  Discontinue Course?
+                </h3>
+                <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8" }}>
+                  Enrollment state change advisory
+                </p>
+              </div>
+            </div>
+
+            <p style={{ fontSize: "13.5px", color: "#cbd5e1", lineHeight: "1.5", margin: "0 0 16px" }}>
+              You are about to discontinue:
+            </p>
+
+            <div style={{
+              background: "rgba(255, 255, 255, 0.04)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: "10px",
+              padding: "14px 16px",
+              marginBottom: "18px"
+            }}>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff", marginBottom: "6px" }}>
+                {discontinueTarget.courseTitle || discontinueTarget.skillName || discontinueTarget.title}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#94a3b8" }}>
+                <span>Your Current Progress:</span>
+                <span style={{ fontWeight: 700, color: "var(--cyber-cyan, #00f2fe)" }}>
+                  {discontinueTarget.learningProgress !== undefined ? discontinueTarget.learningProgress : (discontinueTarget.progress || 0)}%
+                </span>
+              </div>
+            </div>
+
+            <div style={{
+              background: "rgba(239, 68, 68, 0.08)",
+              border: "1px solid rgba(239, 68, 68, 0.2)",
+              borderRadius: "8px",
+              padding: "10px 14px",
+              fontSize: "12px",
+              color: "#fca5a5",
+              lineHeight: "1.4",
+              marginBottom: "18px"
+            }}>
+              ⚠️ If you discontinue this course, your enrollment status will be updated to <strong>Discontinued</strong> and the relevant institution and collaborating industry may be notified. Historical progress is safely preserved.
+            </div>
+
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#94a3b8", marginBottom: "6px" }}>
+                Reason for Discontinuation (Optional):
+              </label>
+              <select
+                value={discontinueReason}
+                onChange={(e) => setDiscontinueReason(e.target.value)}
+                style={{
+                  width: "100%", padding: "9px 12px", borderRadius: "8px",
+                  background: "rgba(6, 26, 51, 0.8)", border: "1px solid rgba(255, 255, 255, 0.15)",
+                  color: "#ffffff", fontSize: "13px", marginBottom: "10px"
+                }}
+              >
+                <option value="Academic workload">Academic workload</option>
+                <option value="Personal reason">Personal reason</option>
+                <option value="Course no longer relevant">Course no longer relevant</option>
+                <option value="Schedule conflict">Schedule conflict</option>
+                <option value="Difficulty">Difficulty</option>
+                <option value="Other">Other</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Additional notes (optional)..."
+                value={discontinueNotes}
+                onChange={(e) => setDiscontinueNotes(e.target.value)}
+                style={{
+                  width: "100%", padding: "9px 12px", borderRadius: "8px",
+                  background: "rgba(6, 26, 51, 0.8)", border: "1px solid rgba(255, 255, 255, 0.15)",
+                  color: "#ffffff", fontSize: "13px"
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                disabled={isDiscontinuing}
+                onClick={() => setDiscontinueTarget(null)}
+                className="btn-cyber-outline"
+                style={{ padding: "9px 18px", fontSize: "13px", borderRadius: "8px" }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDiscontinuing}
+                onClick={handleConfirmDiscontinue}
+                style={{
+                  padding: "9px 20px", fontSize: "13px", fontWeight: 700, borderRadius: "8px",
+                  background: "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)",
+                  border: "none", color: "#ffffff", cursor: isDiscontinuing ? "not-allowed" : "pointer",
+                  opacity: isDiscontinuing ? 0.7 : 1, display: "flex", alignItems: "center", gap: "8px"
+                }}
+              >
+                {isDiscontinuing ? (
+                  <>
+                    <Clock size={14} className="animate-spin" />
+                    <span>Discontinuing...</span>
+                  </>
+                ) : (
+                  <span>Confirm Discontinuation</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

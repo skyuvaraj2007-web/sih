@@ -17,7 +17,9 @@ export default function Navbar({ onOpenAIModal, activePage, setActivePage, user,
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const currentRole = (user?.role === 'industry' || user?.role === 'company')
     ? 'company'
-    : (user?.role === 'institution' ? 'institution' : 'student');
+    : (user?.role === 'institution'
+      ? 'institution'
+      : (user?.role === 'faculty' || user?.role === 'academician' ? 'academician' : 'student'));
 
   const [unreadCount, setUnreadCount] = useState(() => getUnreadCount(currentRole));
   const [currentTheme, setCurrentTheme] = useState(() => getTheme());
@@ -50,9 +52,9 @@ export default function Navbar({ onOpenAIModal, activePage, setActivePage, user,
   }, [showProfileDropdown]);
 
   const currentUser = user || {
-    name: 'Arun Kumar',
-    headline: 'Student',
-    role: 'student',
+    name: 'Authenticated User',
+    headline: 'User',
+    role: 'user',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
   };
 
@@ -90,7 +92,9 @@ export default function Navbar({ onOpenAIModal, activePage, setActivePage, user,
           <input
             type="text"
             placeholder={
-              currentRole === 'company'
+              currentRole === 'academician'
+                ? "Search students, courses, assessments, skill gaps, mentees..."
+                : currentRole === 'company'
                 ? "Search candidate pools, skills, colleges, opportunities..."
                 : currentRole === 'institution'
                 ? "Search student roster, courses, companies, skill telemetry..."
@@ -232,8 +236,10 @@ export default function Navbar({ onOpenAIModal, activePage, setActivePage, user,
               {currentUser.name}
             </div>
             <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
-              {currentRole === 'company'
-                ? `Recruiter • ${currentUser.companyName || 'ABC Technologies'}`
+              {currentRole === 'academician'
+                ? `Faculty • ${currentUser.department || 'Academician'}`
+                : currentRole === 'company'
+                ? `Recruiter • ${currentUser.companyName || currentUser.institutionName || 'Enterprise Partner'}`
                 : currentRole === 'institution'
                 ? (currentUser.headline || 'Institution Admin')
                 : (currentUser.role === 'student' ? 'Student' : currentUser.headline || 'Student')}
@@ -250,7 +256,15 @@ export default function Navbar({ onOpenAIModal, activePage, setActivePage, user,
               boxShadow: 'var(--shadow-dropdown)', zIndex: 100,
               padding: '6px', animation: 'fadeIn 0.15s ease-out'
             }}>
-              {(currentRole === 'student' ? [
+              {(currentRole === 'academician' ? [
+                { label: 'Faculty Dashboard', page: 'academician-dashboard' },
+                { label: 'Student Directory', page: 'academician-students' },
+                { label: 'My Courses', page: 'academician-courses' },
+                { label: 'Skill Gap Radar', page: 'academician-skill-gaps' },
+                { label: 'Mentorship Hub', page: 'academician-mentorship' },
+                { label: 'Notifications', page: 'academician-notifications' },
+                { label: 'Logout', page: 'logout', isLogout: true }
+              ] : currentRole === 'student' ? [
                 { label: 'My Profile', page: 'profile' },
                 { label: 'Settings', page: 'settings' },
                 { label: 'Notifications', page: 'notifications' },

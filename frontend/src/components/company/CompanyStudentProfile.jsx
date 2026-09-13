@@ -47,91 +47,22 @@ export default function CompanyStudentProfile({
   }
 
   // Profile data resolution
-  const matchScore = student.aiMatchScore || 94;
-  const courseProgressItems = student.courseProgressList || [
-    { name: 'Full Stack Development', progress: 85, status: 'Active' },
-    { name: 'Python Programming', progress: 100, status: 'Completed' },
-    { name: 'Cloud Computing', progress: 65, status: 'Active' },
-    { name: 'AI/ML Fundamentals', progress: 48, status: 'Active' }
-  ];
+  const matchScore = student.aiMatchScore || student.matchScore || 0;
+  const courseProgressItems = student.courseProgressList || student.courses || [];
 
   const readinessBreakdown = student.readinessBreakdown || {
-    technicalSkills: 85,
-    projects: 90,
-    certificates: 82,
-    communication: 80,
-    interviewReadiness: 75
+    technicalSkills: student.technicalScore || student.readiness || 0,
+    projects: student.projectsScore || 0,
+    certificates: student.certificatesScore || 0,
+    communication: student.communicationScore || 0,
+    interviewReadiness: student.interviewScore || 0
   };
 
-  const skillsList = student.skills || [
-    { name: 'React', level: 'Advanced', confidence: 95, verified: true, evidence: 'Verified 4 pull requests & Redux architecture' },
-    { name: 'Next.js', level: 'Advanced', confidence: 90, verified: true, evidence: 'SSR deployment with Vercel edge runtime' },
-    { name: 'Python', level: 'Advanced', confidence: 92, verified: true, evidence: 'FastAPI async pipeline & PyTorch' },
-    { name: 'Java', level: 'Intermediate', confidence: 84, verified: true, evidence: 'Spring Boot microservices diagnostics' },
-    { name: 'SQL', level: 'Advanced', confidence: 90, verified: true, evidence: 'Complex PostgreSQL indexing & schema tuning' },
-    { name: 'MongoDB', level: 'Intermediate', confidence: 82, verified: true, evidence: 'Aggregation pipeline optimizations' },
-    { name: 'Git', level: 'Advanced', confidence: 96, verified: true, evidence: '180+ verified git commits on ledger' },
-    { name: 'AWS', level: 'Intermediate', confidence: 75, verified: true, evidence: 'S3, Lambda, CloudFront deployments' }
-  ];
-
-  const projects = student.projectsList || [
-    {
-      id: 'PRJ-01',
-      title: 'E-Commerce Web Application',
-      technologies: ['React', 'Next.js', 'Node.js', 'PostgreSQL', 'Stripe'],
-      description: 'Scalable multi-tenant e-commerce platform with SSR, automated cart synchronization, and Stripe checkout.',
-      github: 'https://github.com/arunkumar/nexus-ecommerce',
-      liveDemo: 'https://ecommerce-nexus.vercel.app',
-      verified: true,
-      verificationStatus: 'Verified'
-    },
-    {
-      id: 'PRJ-02',
-      title: 'AI Career Assistant',
-      technologies: ['React', 'FastAPI', 'Python', 'LangChain', 'ChromaDB'],
-      description: 'RAG-driven resume and career guidance agent synthesizing student portfolio artifacts with enterprise job descriptions.',
-      github: 'https://github.com/arunkumar/ai-career-assistant',
-      liveDemo: 'https://ai-career-nexus.io',
-      verified: true,
-      verificationStatus: 'Verified'
-    },
-    {
-      id: 'PRJ-03',
-      title: 'Predictive Maintenance ML',
-      technologies: ['Python', 'Scikit-Learn', 'FastAPI', 'Docker'],
-      description: 'Industrial IoT predictive maintenance pipeline monitoring sensor vibrational anomalies in real time.',
-      github: 'https://github.com/arunkumar/predictive-maintenance-ml',
-      liveDemo: '',
-      verified: true,
-      verificationStatus: 'Verified'
-    },
-    {
-      id: 'PRJ-04',
-      title: 'Campus Management System',
-      technologies: ['React', 'Tailwind', 'Node.js', 'MongoDB'],
-      description: 'Automated campus attendance, timetable scheduling, and hall-ticket distribution portal used by 2,000+ students.',
-      github: 'https://github.com/arunkumar/campus-management',
-      liveDemo: 'https://campus-vcet.edu.in',
-      verified: true,
-      verificationStatus: 'Verified'
-    }
-  ];
-
-  const certs = student.certifications || [
-    { title: 'Full Stack Web Architecture', issuer: 'Nexus AI Academy', date: '2026-07-20', credentialId: 'NX-9102-REACT', verified: true },
-    { title: 'Python for Data Science & ML', issuer: 'Coursera & VCET CoE', date: '2026-05-14', credentialId: 'CR-PY-8841', verified: true },
-    { title: 'AWS Cloud Practitioner Essentials', issuer: 'Amazon Web Services', date: '2026-04-10', credentialId: 'AWS-CP-7719', verified: true },
-    { title: 'Algorithmic Problem Solving in Java', issuer: 'HackerRank Gold', date: '2026-03-02', credentialId: 'HK-JAVA-3021', verified: true }
-  ];
-
-  const timelineItems = student.timeline || [
-    { type: 'Internship', title: 'Frontend Developer Intern @ TechWave', date: 'Jun 2026 - Aug 2026', details: 'Built React component system with 100% test coverage.' },
-    { type: 'Hackathon', title: '1st Place — Smart India Hackathon Regional', date: 'Apr 2026', details: 'Developed AI talent matching algorithm for universities.' },
-    { type: 'Certificate', title: 'Full Stack Web Architecture Certification', date: 'Jul 2026', details: 'Credential ID NX-9102-REACT cryptographically verified.' },
-    { type: 'Project', title: 'Deployed E-Commerce Web Application', date: 'May 2026', details: 'Completed production deployment with Stripe and PostgreSQL.' },
-    { type: 'Assessment', title: 'NEXUS Proctored Code Diagnostic (Score: 94%)', date: 'Mar 2026', details: 'Ranked in top 6th percentile in algorithms and system design.' },
-    { type: 'Course', title: 'Python Programming Masterclass Completed', date: 'Jan 2026', details: '100% curriculum completion and faculty verification.' }
-  ];
+  const skillsList = student.skills || [];
+  const projects = student.projectsList || student.projects || [];
+  const certs = student.certifications || student.certificates || [];
+  const timelineItems = student.timeline || [];
+  const assessments = student.assessments || [];
 
   const handleDownloadResume = () => {
     if (onShowToast) {
@@ -184,7 +115,7 @@ export default function CompanyStudentProfile({
                 {student.department || 'CSE'} • {student.year || '3rd Year'}
               </p>
               <p className="text-xs text-slate-400 mt-0.5">
-                {student.collegeName || 'Velalar College of Engineering & Technology'}
+                {student.collegeName || student.institutionName || 'Affiliated Campus'}
               </p>
             </div>
           </div>
@@ -329,20 +260,24 @@ export default function CompanyStudentProfile({
             <div className="company-card">
               <h2 className="company-card-title text-sm font-semibold mb-4">Course Progress</h2>
               <div className="space-y-4">
-                {courseProgressItems.map(item => (
-                  <div key={item.name} className="space-y-1.5">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="font-medium text-slate-200">{item.name}</span>
-                      <span className="font-mono text-cyan-400 font-semibold">{item.progress}%</span>
+                {courseProgressItems.length === 0 ? (
+                  <p className="text-xs text-slate-400">No course progress records yet.</p>
+                ) : (
+                  courseProgressItems.map(item => (
+                    <div key={item.name} className="space-y-1.5">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-medium text-slate-200">{item.name}</span>
+                        <span className="font-mono text-cyan-400 font-semibold">{item.progress}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
+                          style={{ width: `${item.progress}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
-                        style={{ width: `${item.progress}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -390,123 +325,141 @@ export default function CompanyStudentProfile({
       {/* TAB 2: SKILLS */}
       {activeTab === 'skills' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {skillsList.map(skill => (
-            <div key={skill.name} className="company-card p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-white text-sm">{skill.name}</span>
-                  {skill.verified ? (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center gap-1 font-mono">
-                      <ShieldCheck className="w-3 h-3" /> Verified
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-slate-500 font-mono">In Progress</span>
-                  )}
-                </div>
-                <div className="flex justify-between items-center text-xs text-slate-400 mb-1.5">
-                  <span>Confidence:</span>
-                  <span className="font-mono text-cyan-400 font-semibold">{skill.confidence || 85}%</span>
-                </div>
-                <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mb-3">
-                  <div
-                    className="h-full bg-cyan-400 rounded-full"
-                    style={{ width: `${skill.confidence || 85}%` }}
-                  />
-                </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  {skill.evidence || 'Verified proctored diagnostic assessment & repository proofs.'}
-                </p>
-              </div>
+          {skillsList.length === 0 ? (
+            <div className="col-span-full py-12 text-center text-slate-400">
+              No verified skills recorded yet.
             </div>
-          ))}
+          ) : (
+            skillsList.map(skill => (
+              <div key={skill.name} className="company-card p-4 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-white text-sm">{skill.name}</span>
+                    {skill.verified ? (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center gap-1 font-mono">
+                        <ShieldCheck className="w-3 h-3" /> Verified
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate-500 font-mono">In Progress</span>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center text-xs text-slate-400 mb-1.5">
+                    <span>Confidence:</span>
+                    <span className="font-mono text-cyan-400 font-semibold">{skill.confidence || 0}%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mb-3">
+                    <div
+                      className="h-full bg-cyan-400 rounded-full"
+                      style={{ width: `${skill.confidence || 0}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    {skill.evidence || 'Verified proctored diagnostic assessment & repository proofs.'}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
 
       {/* TAB 3: PROJECTS */}
       {activeTab === 'projects' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {projects.map(proj => (
-            <div key={proj.title} className="company-card flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-base font-bold text-white">{proj.title}</h3>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    <span>Verified Proof</span>
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap gap-1.5 my-3">
-                  {(proj.technologies || []).map(tech => (
-                    <span key={tech} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 font-mono">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-
-                <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                  {proj.description}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between pt-3 border-t border-white/5 text-xs">
-                <div className="flex items-center gap-3">
-                  {proj.github && (
-                    <a
-                      href={proj.github}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
-                    >
-                      <FolderGit2 className="w-3.5 h-3.5" />
-                      <span>Code</span>
-                    </a>
-                  )}
-                  {proj.liveDemo && (
-                    <a
-                      href={proj.liveDemo}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-cyan-400 hover:underline flex items-center gap-1"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                      <span>Live Demo</span>
-                    </a>
-                  )}
-                </div>
-                <span className="text-[10px] text-slate-500 font-mono">Ledger Sealed</span>
-              </div>
+          {projects.length === 0 ? (
+            <div className="col-span-full py-12 text-center text-slate-400">
+              No projects published yet.
             </div>
-          ))}
+          ) : (
+            projects.map(proj => (
+              <div key={proj.title || proj.id} className="company-card flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-base font-bold text-white">{proj.title}</h3>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Verified Proof</span>
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5 my-3">
+                    {(proj.technologies || []).map(tech => (
+                      <span key={tech} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 font-mono">
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+
+                  <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                    {proj.description || 'Project details verified.'}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-white/5 text-xs">
+                  <div className="flex items-center gap-3">
+                    {proj.github && (
+                      <a
+                        href={proj.github}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
+                      >
+                        <FolderGit2 className="w-3.5 h-3.5" />
+                        <span>Code</span>
+                      </a>
+                    )}
+                    {proj.liveDemo && (
+                      <a
+                        href={proj.liveDemo}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-cyan-400 hover:underline flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Live Demo</span>
+                      </a>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-slate-500 font-mono">Ledger Sealed</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
 
       {/* TAB 4: CERTIFICATES */}
       {activeTab === 'certificates' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {certs.map(cert => (
-            <div key={cert.title} className="company-card p-4 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 flex-shrink-0">
-                <Award className="w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-bold text-white text-sm">{cert.title}</h4>
-                    <p className="text-xs text-slate-400 mt-0.5">{cert.issuer}</p>
-                  </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 font-mono">
-                    Verified
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between text-[11px] text-slate-400 mt-3 pt-2 border-t border-white/5">
-                  <span>Issued: {cert.date}</span>
-                  <span className="font-mono text-cyan-400">{cert.credentialId}</span>
-                </div>
-              </div>
+          {certs.length === 0 ? (
+            <div className="col-span-full py-12 text-center text-slate-400">
+              No verified certificates yet.
             </div>
-          ))}
+          ) : (
+            certs.map(cert => (
+              <div key={cert.title || cert.credentialId} className="company-card p-4 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 flex-shrink-0">
+                  <Award className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-bold text-white text-sm">{cert.title}</h4>
+                      <p className="text-xs text-slate-400 mt-0.5">{cert.issuer}</p>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 font-mono">
+                      Verified
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-3 pt-2 border-t border-white/5">
+                    <span>Issued: {cert.date || 'Verified'}</span>
+                    <span className="font-mono text-cyan-400">{cert.credentialId || ''}</span>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
 
@@ -515,24 +468,24 @@ export default function CompanyStudentProfile({
         <div className="company-card">
           <h2 className="company-card-title text-sm font-semibold mb-4">Proctored Code Diagnostics</h2>
           <div className="space-y-3">
-            {[
-              { domain: 'Algorithms & Data Structures', score: 94, percentile: '96th Percentile', status: 'Proctored Verified' },
-              { domain: 'Full Stack & Database Architecture', score: 90, percentile: '92nd Percentile', status: 'Proctored Verified' },
-              { domain: 'System Design & Distributed Patterns', score: 86, percentile: '88th Percentile', status: 'Proctored Verified' }
-            ].map(as => (
-              <div key={as.domain} className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
-                <div>
-                  <h4 className="font-semibold text-white text-xs">{as.domain}</h4>
-                  <span className="text-[11px] text-slate-400">{as.percentile}</span>
+            {assessments.length === 0 ? (
+              <p className="text-xs text-slate-400 py-4 text-center">No proctored code diagnostics recorded yet.</p>
+            ) : (
+              assessments.map(as => (
+                <div key={as.domain || as.title} className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-white text-xs">{as.domain || as.title}</h4>
+                    <span className="text-[11px] text-slate-400">{as.percentile || 'Proctored'}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-cyan-400 font-mono">{as.score}%</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+                      {as.status || 'Verified'}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-cyan-400 font-mono">{as.score}%</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
-                    {as.status}
-                  </span>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       )}
@@ -541,23 +494,27 @@ export default function CompanyStudentProfile({
       {activeTab === 'timeline' && (
         <div className="company-card">
           <h2 className="company-card-title text-sm font-semibold mb-6">Attested Academic & Project Timeline</h2>
-          <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-cyan-500/30">
-            {timelineItems.map((item, idx) => (
-              <div key={idx} className="relative">
-                <div className="absolute -left-6 top-1.5 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#28D7FF]" />
-                <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] px-2 py-0.5 rounded font-mono font-semibold bg-purple-500/15 text-purple-300">
-                      {item.type}
-                    </span>
-                    <span className="text-[11px] text-slate-400">{item.date}</span>
+          {timelineItems.length === 0 ? (
+            <p className="text-xs text-slate-400 py-4 text-center">No timeline events recorded yet.</p>
+          ) : (
+            <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-cyan-500/30">
+              {timelineItems.map((item, idx) => (
+                <div key={idx} className="relative">
+                  <div className="absolute -left-6 top-1.5 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#28D7FF]" />
+                  <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] px-2 py-0.5 rounded font-mono font-semibold bg-purple-500/15 text-purple-300">
+                        {item.type}
+                      </span>
+                      <span className="text-[11px] text-slate-400">{item.date}</span>
+                    </div>
+                    <h4 className="text-xs font-bold text-white">{item.title}</h4>
+                    <p className="text-[11px] text-slate-300 mt-1">{item.details}</p>
                   </div>
-                  <h4 className="text-xs font-bold text-white">{item.title}</h4>
-                  <p className="text-[11px] text-slate-300 mt-1">{item.details}</p>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

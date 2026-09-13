@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const relationalManager = require('../db/relationalManager');
+const { supabase } = require('../config/supabase');
 const { requireAuth } = require('../middleware/auth');
 
 // Middleware to enforce tenant (company) isolation
@@ -16,6 +17,40 @@ function verifyCompany(req, res, next) {
   req.companyId = companyId || req.query.companyId || null;
   next();
 }
+
+// ---------- Company Profile ----------
+router.get('/profile', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const profile = await relationalManager.getCompanyProfile(req.companyId);
+    if (!profile) {
+      return res.status(404).json({ success: false, message: 'Company profile not found' });
+    }
+    res.json({ success: true, data: profile });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put('/profile', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const { companyName, industry, website, headquarters, state } = req.body;
+    try {
+      const updateData = { updated_at: new Date().toISOString() };
+      if (companyName) updateData.company_name = companyName;
+      if (industry) updateData.industry = industry;
+      if (website) updateData.website_url = website;
+      if (headquarters) updateData.headquarters = headquarters;
+      if (state) updateData.state = state;
+      await supabase.from('companies').update(updateData).eq('id', req.companyId);
+    } catch (err) {
+      console.warn('[company] Supabase profile update note:', err.message);
+    }
+    const updated = await relationalManager.getCompanyProfile(req.companyId);
+    res.json({ success: true, message: 'Company profile updated successfully', data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 // ---------- Companies ----------
 router.get('/', requireAuth, async (req, res) => {
@@ -254,6 +289,28 @@ router.put('/applications/:id/stage', requireAuth, verifyCompany, async (req, re
     const updated = await relationalManager.updateApplicationStage(req.params.id, stage, req.user?.id);
     if (!updated) return res.status(404).json({ success: false, message: 'Application not found' });
     res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/applications/:id/select', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const selected = await relationalManager.selectStudentForTesting(req.params.id, {
+      userId: req.user?.id,
+      role: 'company'
+    });
+    res.json({ success: true, message: 'Student selected for company testing.', data: selected });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ---------- Certificates ----------
+router.get('/certificates', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const certs = await relationalManager.getCompanyCertificates(req.companyId);
+    res.json({ success: true, data: certs });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -587,6 +644,250 @@ router.get('/courses-catalog', requireAuth, async (req, res) => {
   try {
     const catalog = await relationalManager.getCourseCatalog();
     res.json({ success: true, data: catalog });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/courses', requireAuth, async (req, res) => {
+  try {
+    const catalog = await relationalManager.getCourseCatalog();
+    res.json({ success: true, data: catalog });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/courses', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const {
+      title,
+      code,
+      courseCode,
+      category,
+      level,
+      difficulty,
+      durationWeeks,
+      duration_weeks,
+      duration,
+      hours,
+      instructor,
+      institutionId,
+      institution_id,
+      skillsDeveloped,
+      skillsTaught,
+      skills,
+      modules,
+      description
+    } = req.body;
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({ success: false, message: 'Course title is required' });
+    }
+
+    const created = await relationalManager.createCourse({
+      title: title.trim(),
+      code: code || courseCode,
+      category: category || 'Cloud Computing',
+      level: level || difficulty || 'Intermediate',
+      difficulty: level || difficulty || 'Intermediate',
+      durationWeeks: durationWeeks || duration_weeks || 8,
+      hours: hours || 24,
+      instructor: instructor || 'Campus Faculty / Industry Lead',
+      companyId: req.companyId,
+      companyName: req.user?.companyName || req.user?.company || 'Enterprise Partner',
+      institutionId: institutionId || institution_id || null,
+      skillsTaught: skillsDeveloped || skillsTaught || skills || [],
+      modules: modules || [],
+      description: description || ''
+    });
+
+    res.status(201).json({
+      success: true,
+      data: created,
+      message: 'Course published successfully! Collaboration institution and students have been notified.'
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ════════════════════════════════════════════════════════════════
+// COMPANY TARGETED ASSESSMENTS & NEXUS AI QUESTION GENERATION
+// ════════════════════════════════════════════════════════════════
+
+router.get('/assessments', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const list = await relationalManager.getCompanyAssessments(req.companyId);
+    res.json({ success: true, data: list });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/assessments', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const assessment = await relationalManager.createCompanyAssessment(req.companyId, req.body);
+    res.status(201).json({ success: true, data: assessment });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/assessments/ai-drafts', requireAuth, verifyCompany, async (req, res) => {
+  const { category = 'Logical Reasoning', topic = 'Algorithms', difficulty = 'Intermediate', count = 3, targetRole = 'Software Engineer' } = req.body;
+
+  const AIProvider = require('../services/ai/aiProvider');
+  const ai = new AIProvider();
+
+  if (!ai.isAvailable()) {
+    return res.status(503).json({
+      success: false,
+      code: 'AI_UNAVAILABLE',
+      message: 'NEXUS AI service is currently unavailable or offline. Manual question creation is available.'
+    });
+  }
+
+  try {
+    const prompt = `Generate ${count} assessment questions for role "${targetRole}" in category "${category}" on topic "${topic}" at "${difficulty}" difficulty.
+Respond ONLY with a valid JSON array of objects with the following format:
+For MCQ (Logical Reasoning or Aptitude):
+[
+  {
+    "category": "${category}",
+    "questionType": "MCQ",
+    "questionText": "Question description",
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "correctAnswer": "Option A",
+    "explanation": "Brief explanation",
+    "marks": 2,
+    "difficulty": "${difficulty}"
+  }
+]
+For Programming:
+[
+  {
+    "category": "Programming",
+    "questionType": "CODE",
+    "questionText": "Problem description",
+    "programmingLanguage": "JavaScript",
+    "starterCode": "function solution(input) {\\n  // Return answer\\n}",
+    "inputDescription": "Input format",
+    "outputDescription": "Return value",
+    "constraints": "Constraints",
+    "testCases": [
+      { "input": "test1", "expectedOutput": "out1", "isHidden": false },
+      { "input": "test2", "expectedOutput": "out2", "isHidden": true }
+    ],
+    "marks": 10,
+    "difficulty": "${difficulty}"
+  }
+]`;
+
+    const aiRes = await ai.generateCompletion({
+      prompt,
+      systemPrompt: 'You are NEXUS AI, an assessment creator for SkillNexus enterprise hiring. Output pure JSON without markdown.',
+      temperature: 0.3
+    });
+
+    if (!aiRes.success || !aiRes.text) {
+      return res.status(503).json({
+        success: false,
+        code: 'AI_UNAVAILABLE',
+        message: aiRes.message || 'AI question generation failed.'
+      });
+    }
+
+    let cleanJson = aiRes.text.trim();
+    if (cleanJson.startsWith('```')) {
+      cleanJson = cleanJson.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```$/, '').trim();
+    }
+
+    let drafts = JSON.parse(cleanJson);
+    if (!Array.isArray(drafts)) drafts = [drafts];
+
+    const validatedDrafts = drafts.map((d, i) => ({
+      id: `draft_${Date.now()}_${i}`,
+      category: d.category || category,
+      questionType: d.questionType || (category === 'Programming' ? 'CODE' : 'MCQ'),
+      questionText: d.questionText || d.question || 'Technical Problem',
+      options: Array.isArray(d.options) ? d.options : [],
+      correctAnswer: d.correctAnswer !== undefined ? String(d.correctAnswer) : '',
+      explanation: d.explanation || '',
+      marks: Number(d.marks || (category === 'Programming' ? 10 : 2)),
+      difficulty: d.difficulty || difficulty,
+      programmingLanguage: d.programmingLanguage || 'JavaScript',
+      starterCode: d.starterCode || '',
+      inputDescription: d.inputDescription || '',
+      outputDescription: d.outputDescription || '',
+      constraints: d.constraints || '',
+      testCases: Array.isArray(d.testCases) ? d.testCases : [],
+      status: 'AI_DRAFT_REVIEW_REQUIRED'
+    }));
+
+    res.json({
+      success: true,
+      code: 'AI_DRAFTS_GENERATED',
+      message: 'NEXUS AI drafted questions. Review and approve before publishing.',
+      data: validatedDrafts
+    });
+  } catch (err) {
+    console.error('[ai-drafts] Error:', err.message);
+    res.status(500).json({ success: false, code: 'AI_PARSE_ERROR', message: 'Failed to parse AI questions. Try manual question creation.' });
+  }
+});
+
+router.get('/assessments/:id', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const assessment = await relationalManager.getCompanyAssessmentById(req.params.id, req.companyId);
+    if (!assessment) return res.status(404).json({ success: false, message: 'Assessment not found or unauthorized' });
+    res.json({ success: true, data: assessment });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/assessments/:id/questions', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const question = await relationalManager.addAssessmentQuestion(req.params.id, req.companyId, req.body);
+    res.status(201).json({ success: true, data: question });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete('/assessments/:id/questions/:qId', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const result = await relationalManager.deleteAssessmentQuestion(req.params.qId, req.params.id, req.companyId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/assessments/:id/targets', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const { studentIds = [] } = req.body;
+    const result = await relationalManager.assignAssessmentTargets(req.params.id, req.companyId, studentIds);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/assessments/:id/publish', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const result = await relationalManager.publishAssessment(req.params.id, req.companyId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/assessments/:id/results', requireAuth, verifyCompany, async (req, res) => {
+  try {
+    const results = await relationalManager.getCompanyAssessmentResults(req.params.id, req.companyId);
+    res.json({ success: true, data: results });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

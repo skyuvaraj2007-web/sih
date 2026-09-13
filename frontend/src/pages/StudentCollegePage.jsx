@@ -20,39 +20,42 @@ import {
 import { authService } from '../services/authService';
 
 export default function StudentCollegePage({ setActivePage, onShowToast, user }) {
+  const [studentProfile, setStudentProfile] = useState(null);
   const [collegeDetails, setCollegeDetails] = useState(null);
-  const [loadingCollege, setLoadingCollege] = useState(false);
-
-  // Fallbacks from current student user object
-  const collegeName = user?.collegeName || user?.institution || 'SRM Institute of Science and Technology';
-  const collegeId = user?.collegeId || user?.institutionId || 'TN010';
-  const department = user?.department || 'Computer Science and Engineering';
-  const degree = user?.degree || user?.course || 'B.Tech';
-  const specialization = user?.specialization || 'Artificial Intelligence & Machine Learning';
-  const semester = user?.semester || 'Sem 5';
-  const year = user?.year || 'III Year';
-  const batch = user?.batch || '2023 - 2027';
-  const regNo = user?.regNo || 'RA2311003010482';
-  const cgpa = user?.cgpa || '8.85';
-  const creditsCompleted = user?.creditsCompleted || 112;
-  const totalCredits = user?.totalCredits || 160;
-  const backlogs = user?.activeBacklogs || 0;
+  const [loadingCollege, setLoadingCollege] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
     const fetchCollegeInfo = async () => {
       setLoadingCollege(true);
       try {
-        // Try searching by ID or code
-        const res = await fetch(`/api/college-master/${encodeURIComponent(collegeId)}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.data && isMounted) {
-            setCollegeDetails(data.data);
+        const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
+        const headers = { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+
+        let prof = null;
+        try {
+          const profRes = await fetch('/api/students/profile', { headers, credentials: 'include' });
+          if (profRes.ok) {
+            const pJson = await profRes.json();
+            if (pJson.success && pJson.data && isMounted) {
+              prof = pJson.data;
+              setStudentProfile(prof);
+            }
+          }
+        } catch (e) {}
+
+        const activeCollegeId = prof?.institutionId || prof?.collegeId || user?.collegeId || user?.institutionId;
+        if (activeCollegeId) {
+          const res = await fetch(`/api/college-master/${encodeURIComponent(activeCollegeId)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && (data.college || data.data) && isMounted) {
+              setCollegeDetails(data.college || data.data);
+            }
           }
         }
       } catch (err) {
-        console.warn('Could not fetch additional college master metadata:', err);
+        console.warn('Could not fetch college details:', err);
       } finally {
         if (isMounted) setLoadingCollege(false);
       }
@@ -60,13 +63,86 @@ export default function StudentCollegePage({ setActivePage, onShowToast, user })
 
     fetchCollegeInfo();
     return () => { isMounted = false; };
-  }, [collegeId]);
+  }, [user]);
 
-  const district = collegeDetails?.district || user?.district || 'Chengalpattu';
-  const code = collegeDetails?.code || collegeId;
-  const university = collegeDetails?.university || user?.university || 'Anna University Affiliated';
-  const naacGrade = collegeDetails?.naacGrade || 'A++';
-  const nirfRank = collegeDetails?.nirfRank || 'Top 50';
+  // Purely dynamic values from authenticated student database record
+  const collegeName = studentProfile?.institutionName || studentProfile?.collegeName || studentProfile?.college || user?.collegeName || user?.institution || user?.college || '';
+  const collegeId = studentProfile?.institutionId || studentProfile?.collegeId || user?.collegeId || user?.institutionId || '';
+  const department = studentProfile?.department || user?.department || 'Department Not Specified';
+  const degree = studentProfile?.degree || user?.degree || user?.course || 'Degree Not Specified';
+  const specialization = studentProfile?.specialization || user?.specialization || 'General Curriculum';
+  const semester = (studentProfile?.semester || user?.semester) ? `Sem ${studentProfile?.semester || user?.semester}` : '';
+  const year = studentProfile?.year || user?.year || 'Undergraduate';
+  const batch = studentProfile?.batch || user?.batch || '';
+  const regNo = studentProfile?.regNo || user?.regNo || user?.registerNumber || user?.studentId || 'Not Assigned';
+  const cgpa = studentProfile?.cgpa ? String(studentProfile.cgpa) : (user?.cgpa ? String(user.cgpa) : '0.00');
+  const creditsCompleted = Number(studentProfile?.creditsCompleted ?? user?.creditsCompleted) || 0;
+  const totalCredits = Number(studentProfile?.totalCredits ?? user?.totalCredits) || 160;
+  const backlogs = Number(studentProfile?.activeBacklogs ?? user?.activeBacklogs) || 0;
+
+  const district = collegeDetails?.district || studentProfile?.institutionLocation || user?.district || 'Tamil Nadu';
+  const code = collegeDetails?.code || collegeId || 'CAMPUS-ID';
+  const university = collegeDetails?.university || studentProfile?.university || user?.university || 'Affiliated University';
+  const naacGrade = collegeDetails?.naacGrade || 'Accredited';
+  const nirfRank = collegeDetails?.nirfRank || 'Recognized';
+
+  if (!loadingCollege && !collegeName) {
+    return (
+      <div style={{ padding: '40px 32px', maxWidth: '1000px', margin: '0 auto' }}>
+        <div
+          className="glass-panel"
+          style={{
+            borderRadius: '20px',
+            padding: '48px 36px',
+            textAlign: 'center',
+            border: '1px solid rgba(0, 217, 255, 0.2)',
+            background: 'linear-gradient(135deg, rgba(6, 26, 51, 0.8) 0%, rgba(10, 16, 30, 0.9) 100%)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+          }}
+        >
+          <div
+            style={{
+              width: '72px',
+              height: '72px',
+              borderRadius: '20px',
+              background: 'rgba(0, 83, 156, 0.25)',
+              border: '1px solid rgba(0, 217, 255, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              color: 'var(--cyber-cyan)'
+            }}
+          >
+            <GraduationCap size={36} />
+          </div>
+          <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>
+            No Institution Linked Yet
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '560px', margin: '0 auto 28px', lineHeight: 1.6 }}>
+            You are not currently associated with an academic college or institution in the database. When you register with an institution or update your profile, your verified curriculum, campus placement drives, and official credentials will appear here.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '14px' }}>
+            <button
+              onClick={() => setActivePage('profile')}
+              className="btn-cyber-primary"
+              style={{ padding: '12px 24px', fontSize: '13.5px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+            >
+              Update Student Profile
+              <ArrowRight size={16} />
+            </button>
+            <button
+              onClick={() => setActivePage('home')}
+              className="btn-cyber-outline"
+              style={{ padding: '12px 24px', fontSize: '13.5px' }}
+            >
+              Return to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '24px 32px', maxWidth: '1400px', margin: '0 auto' }}>

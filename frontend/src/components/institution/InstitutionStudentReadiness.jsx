@@ -27,8 +27,8 @@ import {
 } from '../../services/nexusDataStore';
 
 export default function InstitutionStudentReadiness({ onShowToast, institution }) {
-  const instCollegeId = institution?.collegeId || 'TN010';
-  const collegeName = institution?.institutionName || institution?.collegeName || 'SRM Institute of Science and Technology';
+  const instCollegeId = institution?.collegeId || institution?.id || '';
+  const collegeName = institution?.institutionName || institution?.collegeName || institution?.name || 'Institution';
 
   const [students, setStudents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');

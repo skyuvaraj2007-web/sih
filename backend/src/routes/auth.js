@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const { OAuth2Client } = require('google-auth-library');
 const relationalManager = require('../db/relationalManager');
 const { requireAuth, JWT_SECRET } = require('../middleware/auth');
@@ -275,6 +276,29 @@ router.post('/register/industry', async (req, res) => {
     });
   } catch (err) {
     console.error('Industry registration error:', err);
+    return res.status(500).json({ success: false, message: 'Internal registration error' });
+  }
+});
+
+// POST /api/auth/register/faculty (and /academician)
+router.post(['/register/faculty', '/register/academician'], async (req, res) => {
+  try {
+    const regResult = await relationalManager.registerUser({ ...req.body, role: 'faculty' });
+    if (!regResult.success) {
+      return res.status(regResult.code || 400).json({ success: false, message: regResult.message });
+    }
+    const token = generateAuthToken(regResult.user);
+    return res.status(201).json({
+      success: true,
+      message: regResult.message || 'Academician account created successfully. Please verify OTP to activate your account.',
+      demoOtp: regResult.demoOtp,
+      email: regResult.email,
+      role: 'academician',
+      token,
+      user: regResult.user
+    });
+  } catch (err) {
+    console.error('Faculty registration error:', err);
     return res.status(500).json({ success: false, message: 'Internal registration error' });
   }
 });
@@ -742,6 +766,266 @@ router.post('/activate', async (req, res) => {
     });
   } catch (err) {
     console.error('Activation error:', err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dedicated Academician / Faculty Login
+// POST /api/auth/academician/login
+// ─────────────────────────────────────────────────────────────────────────────
+router.post('/academician/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !String(email).trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please enter your email address.'
+    });
+  }
+
+  if (!password || !String(password).trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please enter your password.'
+    });
+  }
+
+  const normEmail = String(email).trim().toLowerCase();
+
+  try {
+    let user = null;
+    let userRole = null;
+    let passwordHash = null;
+    let isActive = true;
+
+    if (relationalManager.pg) {
+      const userRes = await relationalManager.pg.query(
+        `SELECT u.id, u.email, u.password_hash, u.is_active,
+                r.code AS role_code
+         FROM users u
+         LEFT JOIN user_roles ur ON ur.user_id = u.id
+         LEFT JOIN roles r ON r.id = ur.role_id
+         WHERE lower(u.email) = lower($1)
+         LIMIT 1`,
+        [normEmail]
+      );
+
+      if (userRes.rows.length === 0) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password.'
+        });
+      }
+
+      user = userRes.rows[0];
+      userRole = (user.role_code || '').toLowerCase();
+      passwordHash = user.password_hash;
+      isActive = user.is_active !== false;
+    } else {
+      const authResult = await relationalManager.authenticateUser(normEmail, password, 'faculty');
+      if (!authResult.success) {
+        return res.status(authResult.code || 401).json({
+          success: false,
+          message: authResult.message || 'Invalid email or password.'
+        });
+      }
+      user = authResult.user;
+      userRole = (user.role || '').toLowerCase();
+    }
+
+    // Check account status before or alongside password check
+    if (!isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is inactive. Please contact your institution administrator.'
+      });
+    }
+
+    // Role validation
+    if (userRole === 'student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Please use Student Login.'
+      });
+    }
+    if (userRole === 'company' || userRole === 'industry') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Please use Industry Login.'
+      });
+    }
+    if (userRole === 'institution' || userRole === 'college') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Please use Institution Login.'
+      });
+    }
+    if (!['faculty', 'academician', 'staff', 'admin'].includes(userRole)) {
+      return res.status(403).json({
+        success: false,
+        message: 'This account does not have Academician access.'
+      });
+    }
+
+    // Verify password with bcrypt
+    if (passwordHash) {
+      const passwordValid = bcrypt.compareSync(password, passwordHash);
+      if (!passwordValid) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password.'
+        });
+      }
+    }
+
+    // Load full academician profile, institution, department, class, and mapped student count
+    let academicianProfile = null;
+    let mappedStudentsCount = 0;
+    let assignedClasses = [];
+
+    if (relationalManager.pg) {
+      const apRes = await relationalManager.pg.query(
+        `SELECT ap.*, i.name as institution_name, i.code as institution_code,
+                d.name as department_name, d.code as department_code,
+                c.name as class_name, c.section as class_section, c.year_semester as class_year_semester
+         FROM academician_profiles ap
+         LEFT JOIN institutions i ON i.id = ap.institution_id
+         LEFT JOIN departments d ON d.id = ap.department_id
+         LEFT JOIN classes c ON c.id = ap.class_id
+         WHERE ap.user_id = $1 LIMIT 1`,
+        [user.id]
+      );
+      if (apRes.rows.length > 0) {
+        academicianProfile = apRes.rows[0];
+      }
+
+      // Count actively mapped students
+      const cntRes = await relationalManager.pg.query(
+        `SELECT COUNT(DISTINCT m.student_id)::int as count 
+         FROM student_staff_mapping m
+         JOIN students s ON s.id = m.student_id
+         WHERE m.staff_id = $1 AND m.is_active = true`,
+        [user.id]
+      );
+      mappedStudentsCount = cntRes.rows[0]?.count || 0;
+
+      // Load active class assignments
+      const assignRes = await relationalManager.pg.query(
+        `SELECT sa.*, c.name as class_name, c.section as class_section, d.name as department_name
+         FROM staff_assignments sa
+         LEFT JOIN classes c ON c.id = sa.class_id
+         LEFT JOIN departments d ON d.id = sa.department_id
+         WHERE sa.staff_id = $1 AND sa.status = 'active'`,
+        [user.id]
+      );
+      assignedClasses = assignRes.rows;
+    }
+
+    const staffDisplayName = academicianProfile?.full_name || user.name || 'Faculty Member';
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        facultyId: academicianProfile?.faculty_id || user.facultyId,
+        institutionId: user.institutionId || academicianProfile?.institution_id,
+        collegeId: user.collegeId || user.institutionId || academicianProfile?.institution_id,
+        email: user.email,
+        role: 'academician',
+        name: staffDisplayName,
+        departmentId: academicianProfile?.department_id,
+        classId: academicianProfile?.class_id
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('nexus_session', token, COOKIE_OPTIONS);
+
+    return res.json({
+      success: true,
+      message: 'Academician authentication successful',
+      token,
+      academicianProfile,
+      mappedStudentsCount,
+      user: {
+        id: user.id,
+        userId: user.id,
+        email: user.email,
+        name: staffDisplayName,
+        role: 'academician',
+        profile: academicianProfile,
+        mappedStudentsCount,
+        assignedClasses,
+        department: academicianProfile?.department_name || '',
+        institution: academicianProfile?.institution_name || '',
+        className: academicianProfile?.class_name ? `${academicianProfile.class_name} ${academicianProfile.class_section || ''}`.trim() : null
+      }
+    });
+  } catch (err) {
+    console.error('Academician login error:', err);
+    return res.status(500).json({ success: false, message: 'Unable to login right now. Please try again.' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dynamic Institution → Department → Class Discovery APIs
+// ─────────────────────────────────────────────────────────────────────────────
+
+// GET /api/auth/institutions
+router.get('/institutions', async (req, res) => {
+  try {
+    if (relationalManager.pg) {
+      const instRes = await relationalManager.pg.query(
+        `SELECT id, name, code, type, city, state FROM institutions ORDER BY name ASC`
+      );
+      return res.json({ success: true, data: instRes.rows });
+    }
+    const mem = relationalManager.getRegisteredInstitutions();
+    return res.json({ success: true, data: mem });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/auth/institutions/:institutionId/departments
+router.get('/institutions/:institutionId/departments', async (req, res) => {
+  try {
+    const { institutionId } = req.params;
+    if (relationalManager.pg) {
+      const deptRes = await relationalManager.pg.query(
+        `SELECT d.id, d.institution_id, d.name, d.code, d.hod_name 
+         FROM departments d
+         WHERE d.institution_id::text = $1 
+            OR d.institution_id IN (SELECT id FROM institutions WHERE code = $1 OR id::text = $1)
+         ORDER BY d.name ASC`,
+        [String(institutionId)]
+      );
+      return res.json({ success: true, data: deptRes.rows });
+    }
+    return res.json({ success: true, data: [] });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/auth/departments/:departmentId/classes
+router.get('/departments/:departmentId/classes', async (req, res) => {
+  try {
+    const { departmentId } = req.params;
+    if (relationalManager.pg) {
+      const classRes = await relationalManager.pg.query(
+        `SELECT c.id, c.institution_id, c.department_id, c.name, c.section, c.year_semester, c.batch, c.is_active
+         FROM classes c
+         WHERE c.department_id::text = $1
+            OR c.department_id IN (SELECT id FROM departments WHERE code = $1 OR id::text = $1)
+         ORDER BY c.name ASC, c.section ASC`,
+        [String(departmentId)]
+      );
+      return res.json({ success: true, data: classRes.rows });
+    }
+    return res.json({ success: true, data: [] });
+  } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
 });

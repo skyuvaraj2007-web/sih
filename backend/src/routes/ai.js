@@ -1,142 +1,170 @@
+/**
+ * SKILLNEXUS AI — AI Intelligence Layer REST Routes
+ * Provides authenticated endpoints for:
+ * 1. AI Skill Gap Analysis
+ * 2. AI Course Recommendations
+ * 3. AI Learning Path
+ * 4. AI Career Recommendations
+ * 5. AI Student-Opportunity Matching
+ * 6. NEXUS AI Assistant (Role-Aware)
+ */
+
 const express = require('express');
 const router = express.Router();
-const relationalManager = require('../db/relationalManager');
 const { requireAuth } = require('../middleware/auth');
+const relationalManager = require('../db/relationalManager');
 
-// POST /api/ai/chat
-router.post('/chat', requireAuth, async (req, res) => {
+// AI Intelligence Services
+const skillGapService = require('../services/ai/skillGapService');
+const courseRecommendationService = require('../services/ai/courseRecommendationService');
+const learningPathService = require('../services/ai/learningPathService');
+const careerRecommendationService = require('../services/ai/careerRecommendationService');
+const aiMatchingService = require('../services/ai/aiMatchingService');
+const nexusAssistantService = require('../services/ai/nexusAssistantService');
+const aiContextService = require('../services/ai/aiContextService');
+
+// Helper to resolve student ID from user token
+function getStudentId(req) {
+  return req.user?.studentId || req.user?.id;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. GET /api/ai/skill-gap — AI Skill Gap Analysis
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/skill-gap', requireAuth, async (req, res) => {
   try {
-    const { message } = req.body;
-    const studentId = req.user?.studentId || req.user?.id;
-    let student = await relationalManager.getStudentById(studentId);
-    if (!student && req.user?.email) {
-      const all = await relationalManager.getStudents();
-      student = all.find(s => s.email?.toLowerCase() === req.user.email.toLowerCase());
+    const studentId = getStudentId(req);
+    if (!studentId && req.user?.role !== 'student') {
+      return res.status(403).json({ success: false, message: 'Student role required for personal skill gap analysis' });
     }
+    const targetRoleOverride = req.query.targetRole || null;
+    const result = await skillGapService.analyzeSkillGap(studentId, targetRoleOverride);
 
-    const query = (message || '').toLowerCase();
-    const studentName = student?.name || req.user?.name || 'Scholar';
-    const skills = Array.isArray(student?.skills) ? student.skills : [];
-    const enrollments = student ? await relationalManager.getEnrollments(student.studentId || student.id) : [];
-    const assessments = Array.isArray(student?.assessments) ? student.assessments : [];
-    const commActs = Array.isArray(student?.communication?.activities) ? student.communication.activities : [];
-    const readiness = Number(student?.readinessScore || student?.careerReadinessScore || 0);
-
-    let reply = '';
-    let suggestions = [];
-
-    const isCommQuery = query.includes('communication') || query.includes('speak') || query.includes('interview') || query.includes('english') || query.includes('soft skill') || query.includes('presentation') || query.includes('dialogue');
-    const hasNoActivity = skills.length === 0 && enrollments.length === 0 && assessments.length === 0 && commActs.length === 0;
-
-    if (isCommQuery) {
-      const comm = student?.communication || {};
-      const cats = comm.categories || {};
-      const overall = Number(comm.overallScore) || 0;
-
-      if (commActs.length === 0) {
-        reply = `You currently have **0% recorded Communication capability**. Daily communication practice, workplace dialogues, and speaking exercises will directly elevate your interview readiness and corporate collaboration scores.`;
-        suggestions = ['Start Daily Communication Drill', 'Practice Interview Speaking', 'Workplace Vocabulary'];
-      } else {
-        const catList = [
-          { name: 'Speaking', score: Number(cats.speaking?.score ?? cats.speaking ?? 0) },
-          { name: 'Vocabulary', score: Number(cats.vocabulary?.score ?? cats.vocabulary ?? 0) },
-          { name: 'Grammar', score: Number(cats.grammar?.score ?? cats.grammar ?? 0) },
-          { name: 'Conversation', score: Number(cats.conversation?.score ?? cats.conversation ?? 0) },
-          { name: 'Listening', score: Number(cats.listening?.score ?? cats.listening ?? 0) },
-          { name: 'Reading', score: Number(cats.reading?.score ?? cats.reading ?? 0) }
-        ].sort((a, b) => a.score - b.score);
-
-        const lowest = catList[0];
-        const highest = catList[catList.length - 1];
-
-        reply = `Your overall Communication index is **${overall}%** (${commActs.length} exercises completed). **${lowest.name} practice is the current communication priority** (${lowest.score}%). Your strongest area is **${highest.name}** (${highest.score}%). Focusing on ${lowest.name.toLowerCase()} drills will yield the highest interview ROI.`;
-        suggestions = [`Start ${lowest.name} Practice`, 'Complete Daily Communication Sprint', 'Practice Engineering Dialogue'];
+    // Dispatch telemetry event safely
+    try {
+      if (typeof relationalManager.addNotification === 'function') {
+        await relationalManager.addNotification('student', {
+          type: 'telemetry_ai_view',
+          title: 'Skill Gap Intelligence Generated',
+          message: `Evaluated ${result.masteredSkills.length} mastered competencies vs ${result.priorityGaps.length} priority gaps for ${result.targetRole}.`,
+          details: { targetRole: result.targetRole, readinessScore: result.readinessScore }
+        });
       }
-    } else if (hasNoActivity) {
-      reply = `Greetings ${studentName}! I am NEXUS AI. You currently have no recorded skill evidence, assessments, or course enrollments. Complete your first diagnostic assessment or add skills to baseline your capability index!`;
-      suggestions = ['Start Diagnostic Assessment', 'Explore Course Catalog', 'Add Verified Skills'];
-    } else if (query.includes('gap') || query.includes('skill') || query.includes('improve') || query.includes('next') || query.includes('action')) {
-      const skillIntel = student ? await relationalManager.getAllStudentSkillIntelligence(student.studentId || student.id) : [];
-      if (skillIntel.length > 0) {
-        const primary = skillIntel.find(s => s.proficiency < 85) || skillIntel[0];
-        const nextAction = primary.bestNextAction || { action: 'Continue Curriculum', reason: 'Advance your module lessons' };
-        reply = `In **${primary.skillName}**, your Learning Progress is **${primary.learningProgress}%** and demonstrated Skill Proficiency is **${primary.proficiency}%** (${primary.completedLessons}/${primary.totalLessons} lessons, ${primary.practiceStats?.totalAttempts || 0} practice attempts at ${primary.practiceStats?.accuracy || 0}% accuracy). **Best Next Action:** ${nextAction.action}. *Why this is recommended:* ${nextAction.reason}`;
-        suggestions = [nextAction.action, `Practice ${primary.skillName} Drills`, 'View Skill Intelligence'];
-      } else {
-        const sp = student?.skillProfile;
-        const missing = sp?.missingSkills || [];
-        if (missing.length > 0) {
-          reply = `Based on your target role (${sp?.targetRole || 'Full Stack Engineer'}), your primary skill gap is **${missing[0]}**${missing.length > 1 ? ` followed by **${missing.slice(1).join(', ')}**` : ''}. Closing these gaps will boost your opportunity match rates!`;
-          suggestions = [`Practice ${missing[0]}`, 'View Skill Intelligence', 'Review Capability Snapshot'];
-        } else {
-          reply = `Your skills profile matches current benchmarks. You have ${skills.length} skills recorded with an overall readiness of **${readiness}%**. Enroll in an institutional skill track to start building verified proficiency.`;
-          suggestions = ['Explore Institutional Skills', 'Find Matching Opportunities', 'Take Skill Assessment'];
-        }
-      }
-    } else if (query.includes('assessment') || query.includes('test') || query.includes('score')) {
-      if (assessments.length > 0) {
-        const lastA = assessments[assessments.length - 1];
-        reply = `You have completed ${assessments.length} assessment(s). Most recent: **${lastA.domain || 'Technical'}** with a score of **${lastA.score || 0}%**. Career readiness is currently **${readiness}%**.`;
-        suggestions = ['Retake Assessment', 'Take Another Domain Test', 'View Skill Ledger'];
-      } else {
-        reply = `You haven't completed any assessments yet. Completing an assessment provides cryptographically verifiable proof of your capabilities on your Digital Passport.`;
-        suggestions = ['Start First Assessment', 'Prepare with Course Modules'];
-      }
-    } else if (query.includes('course') || query.includes('learn') || query.includes('enroll')) {
-      if (enrollments.length > 0) {
-        const active = enrollments.find(e => e.status === 'active' || e.progress < 100) || enrollments[0];
-        reply = `You are enrolled in **${active.courseTitle || active.title || 'a course'}** (${active.progress || 0}% completed). Completing remaining modules unlocks institutional certification.`;
-        suggestions = ['Continue Current Course', 'Browse Course Catalog', 'View Certificates'];
-      } else {
-        reply = `You are not currently enrolled in any courses. Browse the Course Catalog to enroll in subsidized academic cohorts.`;
-        suggestions = ['Browse Course Catalog', 'Explore Advanced Tech'];
-      }
-    } else if (query.includes('communication') || query.includes('speak') || query.includes('interview') || query.includes('english') || query.includes('soft skill') || query.includes('presentation') || query.includes('dialogue')) {
-      const comm = student?.communication || {};
-      const cats = comm.categories || {};
-      const overall = Number(comm.overallScore) || 0;
-      const acts = comm.activities || [];
+    } catch (tErr) {}
 
-      if (acts.length === 0) {
-        reply = `You currently have **0% recorded Communication capability**. Daily communication practice, workplace dialogues, and speaking exercises will directly elevate your interview readiness and corporate collaboration scores.`;
-        suggestions = ['Start Daily Communication Drill', 'Practice Interview Speaking', 'Workplace Vocabulary'];
-      } else {
-        const catList = [
-          { name: 'Speaking', score: Number(cats.speaking?.score ?? cats.speaking ?? 0) },
-          { name: 'Vocabulary', score: Number(cats.vocabulary?.score ?? cats.vocabulary ?? 0) },
-          { name: 'Grammar', score: Number(cats.grammar?.score ?? cats.grammar ?? 0) },
-          { name: 'Conversation', score: Number(cats.conversation?.score ?? cats.conversation ?? 0) },
-          { name: 'Listening', score: Number(cats.listening?.score ?? cats.listening ?? 0) },
-          { name: 'Reading', score: Number(cats.reading?.score ?? cats.reading ?? 0) }
-        ].sort((a, b) => a.score - b.score);
-
-        const lowest = catList[0];
-        const highest = catList[catList.length - 1];
-
-        reply = `Your overall Communication index is **${overall}%** (${acts.length} exercises completed). **${lowest.name} practice is the current communication priority** (${lowest.score}%). Your strongest area is **${highest.name}** (${highest.score}%). Focusing on ${lowest.name.toLowerCase()} drills will yield the highest interview ROI.`;
-        suggestions = [`Start ${lowest.name} Practice`, 'Complete Daily Communication Sprint', 'Practice Engineering Dialogue'];
-      }
-    } else if (query.includes('job') || query.includes('internship') || query.includes('opportunity')) {
-      const allOpps = await relationalManager.getOpportunities();
-      const oppCount = (allOpps || []).length;
-      reply = `There are **${oppCount} active industry opportunities** available across partner employers. Your current profile readiness is **${readiness}%**.`;
-      suggestions = ['View Matching Opportunities', 'Filter by Skill Match', 'Update Resume Profile'];
-    } else {
-      reply = `Greetings ${studentName}! I am NEXUS AI. I'm actively tracking your skills (${skills.length} recorded), course progress (${enrollments.length} enrolled), and verified readiness (**${readiness}%**). How can I accelerate your roadmap today?`;
-      suggestions = ['How do I close my skill gaps?', 'Show my top opportunities', 'Review assessment progress', 'View Course Catalog'];
-    }
-
-    res.json({
-      success: true,
-      reply,
-      suggestions,
-      telemetry: {
-        readiness: `${readiness}%`,
-        integrity: '100%',
-        activeStreak: assessments.length > 0 || enrollments.length > 0 ? 'Active' : 'No activity yet'
-      }
-    });
+    res.json({ success: true, data: result });
   } catch (err) {
+    console.error('[/api/ai/skill-gap] Error:', err.message);
+    res.status(err.message.includes('not found') ? 404 : 500).json({ success: false, message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. GET /api/ai/course-recommendations — AI Course Recommendations
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/course-recommendations', requireAuth, async (req, res) => {
+  try {
+    const studentId = getStudentId(req);
+    if (!studentId && req.user?.role !== 'student') {
+      return res.status(403).json({ success: false, message: 'Student role required for course recommendations' });
+    }
+    const result = await courseRecommendationService.getRecommendations(studentId);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[/api/ai/course-recommendations] Error:', err.message);
+    res.status(err.message.includes('not found') ? 404 : 500).json({ success: false, message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. GET /api/ai/learning-path — AI Personalized Learning Path
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/learning-path', requireAuth, async (req, res) => {
+  try {
+    const studentId = getStudentId(req);
+    if (!studentId && req.user?.role !== 'student') {
+      return res.status(403).json({ success: false, message: 'Student role required for learning path generation' });
+    }
+    const result = await learningPathService.generateLearningPath(studentId);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[/api/ai/learning-path] Error:', err.message);
+    res.status(err.message.includes('not found') ? 404 : 500).json({ success: false, message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. GET /api/ai/career-recommendations — AI Career Recommendation
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/career-recommendations', requireAuth, async (req, res) => {
+  try {
+    const studentId = getStudentId(req);
+    if (!studentId && req.user?.role !== 'student') {
+      return res.status(403).json({ success: false, message: 'Student role required for career recommendations' });
+    }
+    const result = await careerRecommendationService.getCareerRecommendations(studentId);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[/api/ai/career-recommendations] Error:', err.message);
+    res.status(err.message.includes('not found') ? 404 : 500).json({ success: false, message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. GET /api/ai/match/:opportunityId — AI Student–Opportunity Matching
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/match/:opportunityId', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.query.studentId || getStudentId(req);
+    const opportunityId = req.params.opportunityId;
+
+    if (!studentId) {
+      return res.status(400).json({ success: false, message: 'Student ID is required to calculate AI match' });
+    }
+
+    const result = await aiMatchingService.matchStudentToOpportunity(studentId, opportunityId, req.user);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[/api/ai/match] Error:', err.message);
+    const isForbidden = err.message.includes('Forbidden');
+    const isNotFound = err.message.includes('not found');
+    res.status(isForbidden ? 403 : isNotFound ? 404 : 500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. POST /api/ai/chat & /api/ai/nexus/chat — NEXUS AI Assistant
+// ─────────────────────────────────────────────────────────────────────────────
+const handleChat = async (req, res) => {
+  try {
+    const message = req.body.message || req.body.prompt || '';
+    const result = await nexusAssistantService.chat(req.user, message);
+    res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('[/api/ai/chat] Error:', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+router.post('/chat', requireAuth, handleChat);
+router.post('/nexus/chat', requireAuth, handleChat);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7. GET /api/ai/institution/skill-intelligence — Institution Cohort Intelligence
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/institution/skill-intelligence', requireAuth, async (req, res) => {
+  try {
+    if (req.user?.role !== 'institution' && req.user?.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Institution access required' });
+    }
+    const instId = req.user.institutionId || req.user.collegeId;
+    const context = await aiContextService.getInstitutionAIContext(instId);
+    res.json({ success: true, data: context });
+  } catch (err) {
+    console.error('[/api/ai/institution/skill-intelligence] Error:', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });

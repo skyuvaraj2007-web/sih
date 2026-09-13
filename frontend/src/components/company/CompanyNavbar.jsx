@@ -139,18 +139,11 @@ export default function CompanyNavbar({
             <div className="absolute right-0 mt-2 w-80 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl shadow-2xl p-3 z-50">
               <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-2">
                 <span className="text-xs font-semibold text-[var(--text-heading)]">Recent Activity</span>
-                <span className="text-[10px] text-cyan-500 font-bold">3 New</span>
+                <span className="text-[10px] text-cyan-500 font-bold">Live</span>
               </div>
               <div className="space-y-2 text-xs">
-                <div className="p-2 rounded-lg bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:border-cyan-500/40 cursor-pointer">
-                  <p className="text-[var(--text-heading)] font-medium">New 94% Match: Arun Kumar</p>
-                  <p className="text-[var(--text-secondary)] text-[11px]">Applied for Frontend Developer Intern</p>
-                  <span className="text-[10px] text-[var(--text-muted)]">12 mins ago</span>
-                </div>
-                <div className="p-2 rounded-lg bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:border-cyan-500/40 cursor-pointer">
-                  <p className="text-[var(--text-heading)] font-medium">Interview Accepted: Priya Dhanushri</p>
-                  <p className="text-[var(--text-secondary)] text-[11px]">Confirmed technical round for tomorrow</p>
-                  <span className="text-[10px] text-[var(--text-muted)]">1 hour ago</span>
+                <div className="p-3 text-center text-slate-400 text-xs">
+                  No notifications yet.
                 </div>
               </div>
             </div>

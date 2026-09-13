@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Layers,
   Plus,
@@ -14,41 +14,81 @@ import {
 } from 'lucide-react';
 
 export default function CompanyTalentPools({ onSelectPool, onTabSelect, onShowToast }) {
-  const [pools, setPools] = useState([
-    { id: 'tp-1', name: 'Frontend Developers', count: 142, tags: ['React', 'Next.js', 'TypeScript', 'UI/UX'], color: '#28D7FF' },
-    { id: 'tp-2', name: 'Backend Developers', count: 98, tags: ['Python', 'Node.js', 'FastAPI', 'SQL'], color: '#3478FF' },
-    { id: 'tp-3', name: 'AI/ML Candidates', count: 76, tags: ['PyTorch', 'LangChain', 'RAG', 'Vector DBs'], color: '#8B5CF6' },
-    { id: 'tp-4', name: 'Cloud Candidates', count: 60, tags: ['AWS', 'Docker', 'Kubernetes', 'CI/CD'], color: '#2FE0A1' },
-    { id: 'tp-5', name: 'Top CSE Students', count: 180, tags: ['CGPA > 8.5', 'Proctor Verified', 'Top 10%'], color: '#FF9D4D' },
-    { id: 'tp-6', name: 'Internship Ready', count: 210, tags: ['3rd Year', 'Available Immediately', 'Assessed'], color: '#EC4899' }
-  ]);
-
+  const [pools, setPools] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newPoolName, setNewPoolName] = useState('');
   const [newPoolTags, setNewPoolTags] = useState('');
 
-  const handleCreatePool = (e) => {
+  const fetchPools = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
+      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+      const res = await fetch(`${apiBase}/company/talent-pools`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json.data)) {
+          const colors = ['#28D7FF', '#3478FF', '#8B5CF6', '#2FE0A1', '#FF9D4D', '#EC4899'];
+          setPools(json.data.map((p, idx) => ({
+            id: p.id,
+            name: p.name,
+            count: p.candidateCount || p.candidate_count || 0,
+            tags: Array.isArray(p.tags) ? p.tags : (p.description ? [p.description] : ['Talent Pool']),
+            color: colors[idx % colors.length]
+          })));
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load talent pools:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPools();
+  }, []);
+
+  const handleCreatePool = async (e) => {
     e.preventDefault();
     if (!newPoolName.trim()) return;
 
-    const newP = {
-      id: `tp-${Date.now()}`,
-      name: newPoolName,
-      count: 0,
-      tags: newPoolTags.split(',').map(s => s.trim()).filter(Boolean),
-      color: '#28D7FF'
-    };
-
-    setPools([...pools, newP]);
-    setNewPoolName('');
-    setNewPoolTags('');
-    setIsCreateModalOpen(false);
-    if (onShowToast) {
-      onShowToast({
-        title: 'Talent Pool Created',
-        message: `Talent Pool "${newP.name}" is now ready for candidate segmentation.`,
-        type: 'success'
+    try {
+      const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
+      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+      const tags = newPoolTags.split(',').map(s => s.trim()).filter(Boolean);
+      const res = await fetch(`${apiBase}/company/talent-pools`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include',
+        body: JSON.stringify({ name: newPoolName.trim(), description: tags.join(', ') })
       });
+
+      if (res.ok) {
+        setNewPoolName('');
+        setNewPoolTags('');
+        setIsCreateModalOpen(false);
+        fetchPools();
+        if (onShowToast) {
+          onShowToast({
+            title: 'Talent Pool Created',
+            message: `Talent Pool "${newPoolName.trim()}" is now ready.`,
+            type: 'success'
+          });
+        }
+      }
+    } catch (err) {
+      if (onShowToast) onShowToast({ title: 'Error', message: err.message, type: 'error' });
     }
   };
 
@@ -97,7 +137,15 @@ export default function CompanyTalentPools({ onSelectPool, onTabSelect, onShowTo
 
       {/* Grid of Pool Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {pools.map(pool => (
+        {pools.length === 0 ? (
+          <div className="col-span-full p-12 text-center border border-white/5 rounded-2xl bg-white/[0.01]">
+            <Layers className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+            <p className="text-sm text-slate-400">
+              No talent pools created yet. Click "Create Talent Pool" to segment candidates.
+            </p>
+          </div>
+        ) : (
+          pools.map(pool => (
           <div key={pool.id} className="company-card flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -166,7 +214,8 @@ export default function CompanyTalentPools({ onSelectPool, onTabSelect, onShowTo
               </button>
             </div>
           </div>
-        ))}
+        ))
+      )}
       </div>
 
       {/* CREATE TALENT POOL MODAL */}

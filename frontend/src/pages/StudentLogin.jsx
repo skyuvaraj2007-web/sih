@@ -78,6 +78,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
     password: '',
     confirmPassword: '',
     dob: '',
+    age: 20,
     gender: 'Male',
     regNo: '',
     city: '',
@@ -85,14 +86,22 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
     collegeId: '',
     institution: '',
     university: '',
+    departmentId: '',
     department: '',
-    degree: '',
+    classId: '',
+    className: '',
+    yearSemester: 'III Year / V Sem',
+    degree: 'B.Tech',
     specialization: '',
-    batch: '2025–2029',
-    semester: 'Semester 1'
+    batch: '2023–2027',
+    semester: 'Semester 5'
   });
   const [regError, setRegError] = useState('');
   const [regLoading, setRegLoading] = useState(false);
+
+  // Dynamic department and class options loaded from DB
+  const [dynamicDepartments, setDynamicDepartments] = useState([]);
+  const [dynamicClasses, setDynamicClasses] = useState([]);
 
   // Step 3 OTP state
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
@@ -166,15 +175,12 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
     setShowRegisterModal(true);
   };
 
-  const handleCollegeSelect = (cId) => {
+  const handleCollegeSelect = async (cId) => {
     const match = registeredColleges.find(c => (c.collegeId || c.id || c.code) === cId);
     if (match) {
       const struct = match.academicStructure || [];
       setSelectedCollegeStructure(struct);
-      const firstDept = struct[0]?.department || match.departments?.[0] || 'Computer Science and Engineering';
-      const deptConfig = struct.find(d => d.department === firstDept);
-      const firstDeg = deptConfig?.degrees?.[0] || 'B.Tech';
-      const firstSpec = deptConfig?.specializations?.[0] || 'General';
+
       setRegData(prev => ({
         ...prev,
         collegeId: match.collegeId || match.id || match.code,
@@ -182,34 +188,120 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
         university: match.university || 'Anna University',
         city: prev.city || match.district || '',
         state: prev.state || match.state || 'Tamil Nadu',
+        departmentId: '',
+        department: '',
+        classId: '',
+        className: ''
+      }));
+
+      // Dynamically fetch departments for this institution from database
+      try {
+        const dRes = await fetch(`http://localhost:5000/api/auth/institutions/${encodeURIComponent(cId)}/departments`);
+        const dData = await dRes.json();
+        if (dData.success && Array.isArray(dData.data) && dData.data.length > 0) {
+          setDynamicDepartments(dData.data);
+          const firstDept = dData.data[0];
+          setRegData(prev => ({
+            ...prev,
+            departmentId: firstDept.id,
+            department: firstDept.name
+          }));
+          // Fetch classes for this first department
+          loadClassesForDepartment(firstDept.id);
+          return;
+        }
+      } catch (e) {
+        console.warn('Dynamic departments fetch note:', e.message);
+      }
+
+      // Fallback to static structure if dynamic endpoint returns empty
+      const firstDept = struct[0]?.department || match.departments?.[0] || 'Computer Science and Engineering';
+      const deptConfig = struct.find(d => d.department === firstDept);
+      setRegData(prev => ({
+        ...prev,
         department: firstDept,
-        degree: firstDeg,
-        specialization: firstSpec
+        degree: deptConfig?.degrees?.[0] || 'B.Tech',
+        specialization: deptConfig?.specializations?.[0] || 'General'
       }));
     } else {
       setSelectedCollegeStructure(null);
+      setDynamicDepartments([]);
+      setDynamicClasses([]);
       setRegData(prev => ({
         ...prev,
         collegeId: '',
         institution: '',
         university: '',
+        departmentId: '',
         department: '',
+        classId: '',
+        className: '',
         degree: '',
         specialization: ''
       }));
     }
   };
 
-  const handleDepartmentChange = (newDept) => {
-    const deptConfig = (selectedCollegeStructure || []).find(d => d.department === newDept);
+  const loadClassesForDepartment = async (deptId) => {
+    try {
+      const cRes = await fetch(`http://localhost:5000/api/auth/departments/${encodeURIComponent(deptId)}/classes`);
+      const cData = await cRes.json();
+      if (cData.success && Array.isArray(cData.data)) {
+        setDynamicClasses(cData.data);
+        if (cData.data.length > 0) {
+          const firstClass = cData.data[0];
+          setRegData(prev => ({
+            ...prev,
+            classId: firstClass.id,
+            className: `${firstClass.name} ${firstClass.section || ''}`.trim(),
+            yearSemester: firstClass.year_semester || prev.yearSemester
+          }));
+        } else {
+          setRegData(prev => ({ ...prev, classId: '', className: '' }));
+        }
+      }
+    } catch (err) {
+      console.warn('Classes load note:', err.message);
+    }
+  };
+
+  const handleDepartmentChange = (newDeptIdOrName) => {
+    // Check if dynamic department matched
+    const matchedDynDept = dynamicDepartments.find(d => d.id === newDeptIdOrName || d.name === newDeptIdOrName);
+    if (matchedDynDept) {
+      setRegData(prev => ({
+        ...prev,
+        departmentId: matchedDynDept.id,
+        department: matchedDynDept.name,
+        classId: '',
+        className: ''
+      }));
+      loadClassesForDepartment(matchedDynDept.id);
+      return;
+    }
+
+    const deptConfig = (selectedCollegeStructure || []).find(d => d.department === newDeptIdOrName);
     const newDeg = deptConfig?.degrees?.[0] || 'B.Tech';
     const newSpec = deptConfig?.specializations?.[0] || 'General';
     setRegData(prev => ({
       ...prev,
-      department: newDept,
+      department: newDeptIdOrName,
       degree: newDeg,
       specialization: newSpec
     }));
+  };
+
+  const handleClassChange = (selectedClassId) => {
+    const matchedClass = dynamicClasses.find(c => c.id === selectedClassId);
+    if (matchedClass) {
+      setRegData(prev => ({
+        ...prev,
+        classId: matchedClass.id,
+        className: `${matchedClass.name} ${matchedClass.section || ''}`.trim(),
+        yearSemester: matchedClass.year_semester || prev.yearSemester,
+        batch: matchedClass.batch || prev.batch
+      }));
+    }
   };
 
   const handleStep1Next = (e) => {
@@ -278,12 +370,17 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
         role: 'student',
         gender: regData.gender,
         dob: regData.dob,
+        age: regData.age || 20,
         regNo: regData.regNo.trim(),
         collegeId: regData.collegeId,
         institutionId: regData.collegeId,
         collegeName: regData.institution,
         university: regData.university || 'Anna University',
+        departmentId: regData.departmentId || null,
         department: regData.department,
+        classId: regData.classId || null,
+        className: regData.className || null,
+        yearSemester: regData.yearSemester || regData.semester,
         degree: regData.degree,
         course: regData.degree,
         specialization: regData.specialization || regData.department,
@@ -869,7 +966,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Arun Kumar"
+                      placeholder="e.g. Full Name"
                       value={regData.fullName}
                       onChange={(e) => setRegData({ ...regData, fullName: e.target.value })}
                       style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
@@ -1063,25 +1160,77 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                   </p>
                 </div>
 
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginBottom: '4px' }}>UNIVERSITY / AFFILIATION</label>
+                  <input
+                    type="text"
+                    readOnly
+                    placeholder="Anna University"
+                    value={regData.university || 'Anna University'}
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-secondary)', fontSize: '13px' }}
+                  />
+                </div>
+                {/* AGE & REGISTER NUMBER */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginBottom: '4px' }}>UNIVERSITY / AFFILIATION</label>
+                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                      <span>AGE *</span>
+                    </label>
                     <input
-                      type="text"
-                      readOnly
-                      placeholder="Anna University"
-                      value={regData.university || 'Anna University'}
-                      style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-secondary)', fontSize: '13px' }}
+                      type="number"
+                      min="16"
+                      max="60"
+                      required
+                      placeholder="e.g. 20"
+                      value={regData.age || ''}
+                      onChange={(e) => setRegData({ ...regData, age: parseInt(e.target.value, 10) || '' })}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginBottom: '4px' }}>DEPARTMENT *</label>
-                    {selectedCollegeStructure && selectedCollegeStructure.length > 0 ? (
+                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                      <span>YEAR / SEMESTER *</span>
+                    </label>
+                    <select
+                      required
+                      value={regData.yearSemester}
+                      onChange={(e) => setRegData({ ...regData, yearSemester: e.target.value })}
+                      style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    >
+                      <option value="I Year / I Sem">I Year / I Sem</option>
+                      <option value="I Year / II Sem">I Year / II Sem</option>
+                      <option value="II Year / III Sem">II Year / III Sem</option>
+                      <option value="II Year / IV Sem">II Year / IV Sem</option>
+                      <option value="III Year / V Sem">III Year / V Sem</option>
+                      <option value="III Year / VI Sem">III Year / VI Sem</option>
+                      <option value="IV Year / VII Sem">IV Year / VII Sem</option>
+                      <option value="IV Year / VIII Sem">IV Year / VIII Sem</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                      <span>DEPARTMENT (DYNAMIC) *</span>
+                    </label>
+                    {dynamicDepartments.length > 0 ? (
+                      <select
+                        required
+                        value={regData.departmentId || regData.department}
+                        onChange={(e) => handleDepartmentChange(e.target.value)}
+                        style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      >
+                        {dynamicDepartments.map((dept, i) => (
+                          <option key={i} value={dept.id}>{dept.name} ({dept.code || 'Dept'})</option>
+                        ))}
+                      </select>
+                    ) : selectedCollegeStructure && selectedCollegeStructure.length > 0 ? (
                       <select
                         required
                         value={regData.department}
                         onChange={(e) => handleDepartmentChange(e.target.value)}
-                        style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                        style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                       >
                         {selectedCollegeStructure.map((dept, i) => (
                           <option key={i} value={dept.department}>{dept.department}</option>
@@ -1091,58 +1240,36 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       <input
                         type="text"
                         required
-                        placeholder="Select college first..."
+                        placeholder="Select institution first..."
                         value={regData.department}
                         onChange={(e) => setRegData({ ...regData, department: e.target.value })}
                         style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                       />
                     )}
                   </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginBottom: '4px' }}>DEGREE / PROGRAM *</label>
-                    {selectedCollegeStructure && selectedCollegeStructure.length > 0 ? (
+                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                      <span>CLASS / SECTION (DYNAMIC) *</span>
+                    </label>
+                    {dynamicClasses.length > 0 ? (
                       <select
                         required
-                        value={regData.degree}
-                        onChange={(e) => setRegData({ ...regData, degree: e.target.value })}
-                        style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                        value={regData.classId}
+                        onChange={(e) => handleClassChange(e.target.value)}
+                        style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                       >
-                        {(selectedCollegeStructure.find(d => d.department === regData.department)?.degrees || ['B.E.', 'B.Tech', 'M.Tech']).map((deg, i) => (
-                          <option key={i} value={deg}>{deg}</option>
+                        {dynamicClasses.map((cls, i) => (
+                          <option key={i} value={cls.id}>
+                            {cls.name} {cls.section || ''} {cls.year_semester ? `(${cls.year_semester})` : ''}
+                          </option>
                         ))}
                       </select>
                     ) : (
                       <input
                         type="text"
-                        required
-                        placeholder="e.g. B.Tech"
-                        value={regData.degree}
-                        onChange={(e) => setRegData({ ...regData, degree: e.target.value })}
-                        style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
-                      />
-                    )}
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', marginBottom: '4px' }}>SPECIALIZATION *</label>
-                    {selectedCollegeStructure && selectedCollegeStructure.length > 0 ? (
-                      <select
-                        value={regData.specialization}
-                        onChange={(e) => setRegData({ ...regData, specialization: e.target.value })}
-                        style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
-                      >
-                        {(selectedCollegeStructure.find(d => d.department === regData.department)?.specializations || [regData.department || 'General']).map((spec, i) => (
-                          <option key={i} value={spec}>{spec}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type="text"
-                        placeholder="e.g. AI & Data Science"
-                        value={regData.specialization}
-                        onChange={(e) => setRegData({ ...regData, specialization: e.target.value })}
+                        placeholder="e.g. III CSE A"
+                        value={regData.className}
+                        onChange={(e) => setRegData({ ...regData, className: e.target.value })}
                         style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                       />
                     )}

@@ -167,7 +167,7 @@ export default function InstitutionStudentDetails({ onShowToast, institution }) 
       <div className="glass-panel" style={{ overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>
-            Found <strong style={{ color: 'var(--cyber-cyan)' }}>{students.length}</strong> matching student records in <strong style={{ color: 'var(--text-primary)' }}>{institution?.institutionName || 'SRM Institute of Science and Technology'}</strong>
+            Found <strong style={{ color: 'var(--cyber-cyan)' }}>{students.length}</strong> matching student records in <strong style={{ color: 'var(--text-primary)' }}>{institution?.institutionName || institution?.name || 'Institution'}</strong>
           </span>
           <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
             Strict Data Isolation Active

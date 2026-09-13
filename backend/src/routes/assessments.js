@@ -5,78 +5,84 @@ const relationalManager = require('../db/relationalManager');
 const readinessService = require('../services/readinessService');
 const { requireAuth } = require('../middleware/auth');
 
-// Authoritative Questions Matrix with server-side validation keys
-const SAMPLE_QUESTIONS = [
-  {
-    id: 1,
-    track: 'Logical Reasoning',
-    question: 'Given an array of server latency logs, which time-complexity transformation produces the minimum moving window percentile with O(N) space?',
-    options: [
-      'Monotonic double-ended queue with index caching',
-      'Min-heap with periodic full re-heapification',
-      'Nested loop linear sweep across k-windows',
-      'Radix sort on each window partition'
-    ],
-    correctAnswer: 0,
-    domain: 'Logical & Algorithmic Reasoning',
-    explanation: 'A monotonic double-ended queue maintains sliding window extremums in amortized O(1) time per element and O(K) space.'
-  },
-  {
-    id: 2,
-    track: 'Logical Reasoning',
-    question: 'In a distributed event stream, if Event A has vector clock [2, 1, 0] and Event B has [2, 0, 1], what is their causality relationship?',
-    options: [
-      'Event A caused Event B',
-      'Event B caused Event A',
-      'They are concurrent events with no causal dependency',
-      'The clocks are invalid due to network partition'
-    ],
-    correctAnswer: 2,
-    domain: 'Programming & Data Structures',
-    explanation: 'Neither vector clock dominates the other element-wise (A[1] > B[1] but A[2] < B[2]), indicating concurrency.'
-  },
-  {
-    id: 3,
-    track: 'Logical Reasoning',
-    question: 'When performing high-dimensional vector similarity for RAG retrieval, why is Cosine Similarity preferred over Euclidean Distance on normalized embeddings?',
-    options: [
-      'Cosine similarity scales with magnitude regardless of angle',
-      'For unit-normalized vectors, cosine similarity correlates directly with angular orientation',
-      'Euclidean distance cannot be computed in spaces > 128 dimensions',
-      'ChromaDB only supports cosine indexing'
-    ],
-    correctAnswer: 1,
-    domain: 'Quantitative Aptitude',
-    explanation: 'On unit vectors, cosine similarity measures semantic direction without distortion from vector magnitude.'
-  }
-];
+
+
 
 // GET /api/assessments
 router.get('/', requireAuth, async (req, res) => {
   const studentId = req.user?.studentId || req.user?.id;
-  let list = [];
-  try {
-    list = db.getAssessments ? db.getAssessments(studentId) : [];
-  } catch (e) {
-    list = [];
+  let tracks = [];
+  let questions = [];
+
+  if (relationalManager.pg) {
+    try {
+      const asRes = await relationalManager.pg.query(
+        `SELECT a.id, a.track_code, a.title, a.domain, a.duration_minutes, 
+                a.passing_score, a.difficulty, a.description, a.instructions,
+                a.categories, a.status, a.company_id, c.company_name
+         FROM assessments a
+         LEFT JOIN companies c ON c.id = a.company_id
+         WHERE a.is_active = true
+         ORDER BY a.created_at DESC`
+      );
+
+      tracks = asRes.rows.map(r => ({
+        id: r.id,
+        trackCode: r.track_code || `ASMT-${String(r.id).slice(0, 6).toUpperCase()}`,
+        title: r.title,
+        domain: r.domain || 'Technical & Engineering Benchmark',
+        category: (Array.isArray(r.categories) && r.categories[0]) || 'Company Assessment',
+        durationMinutes: r.duration_minutes || 45,
+        totalQuestions: 0,
+        status: r.status === 'PUBLISHED' ? 'Ready' : (r.status || 'Ready'),
+        passingScore: r.passing_score || 70,
+        companyName: r.company_name || null
+      }));
+
+      if (asRes.rows.length > 0) {
+        const firstAsmtId = asRes.rows[0].id;
+        const qRes = await relationalManager.pg.query(
+          `SELECT id, topic, question_text, category, question_type, options, marks, difficulty, programming_language, starter_code
+           FROM assessment_questions
+           WHERE assessment_id = $1
+           ORDER BY created_at ASC`,
+          [firstAsmtId]
+        );
+
+        questions = qRes.rows.map((q, idx) => ({
+          id: q.id,
+          track: q.category || q.topic || 'Logical Reasoning',
+          question: q.question_text,
+          options: Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options || '[]') : []),
+          domain: q.topic || 'Logical Reasoning',
+          marks: q.marks || 10,
+          difficulty: q.difficulty || 'Intermediate',
+          questionType: q.question_type || 'MCQ',
+          programmingLanguage: q.programming_language,
+          starterCode: q.starter_code
+        }));
+        tracks[0].totalQuestions = questions.length;
+      }
+    } catch (err) {
+      console.warn('[GET /api/assessments] PG query note:', err.message);
+    }
   }
 
-  // Sanitize questions for client: strip correctAnswer
-  const clientQuestions = SAMPLE_QUESTIONS.map(q => ({
-    id: q.id,
-    track: q.track,
-    question: q.question,
-    options: q.options,
-    domain: q.domain
-  }));
+  if (tracks.length === 0) {
+    try {
+      tracks = db.getAssessments ? db.getAssessments(studentId) : [];
+    } catch (e) {
+      tracks = [];
+    }
+  }
 
-  const activeDiagnostic = list.find(a => a.trackCode === 'LR-4416') || {
+  const activeDiagnostic = tracks[0] || {
     id: 'asmt_01',
-    title: 'Advanced Algorithmic & Systems Diagnostic',
+    title: 'Adaptive Skill & Systems Benchmark',
     trackCode: 'LR-4416',
     category: 'Diagnostic Assessment',
     durationMinutes: 45,
-    totalQuestions: SAMPLE_QUESTIONS.length,
+    totalQuestions: questions.length,
     status: 'Ready',
     passingScore: 70
   };
@@ -84,12 +90,11 @@ router.get('/', requireAuth, async (req, res) => {
   res.json({
     success: true,
     data: {
-      tracks: list.length ? list : [activeDiagnostic],
+      tracks,
       activeDiagnostic,
-      sampleQuestions: clientQuestions,
+      sampleQuestions: questions,
       metadata: {
-        candidatePercentile: 92.4,
-        cycleCloses: '6d 14h',
+        cycleCloses: 'Active Cycle',
         dynamicDifficulty: 'Active (keystroke latency calibration)',
         zeroKnowledgeAttestation: 'Ready for one-click publishing to Digital Passport'
       }
@@ -99,7 +104,7 @@ router.get('/', requireAuth, async (req, res) => {
 
 // POST /api/assessments/submit
 router.post('/submit', requireAuth, async (req, res) => {
-  const { trackCode = 'LR-4416', answers = [] } = req.body;
+  const { trackCode = 'LR-4416', answers = [], assessmentId } = req.body;
 
   if (!Array.isArray(answers) && typeof answers !== 'object') {
     return res.status(400).json({ success: false, message: 'Answers format is invalid' });
@@ -115,37 +120,55 @@ router.post('/submit', requireAuth, async (req, res) => {
     student = all.find(s => s.email?.toLowerCase() === req.user.email.toLowerCase());
   }
   if (!student) {
-    student = { studentId: studentId || 'STU-TN010-001', name: req.user?.name || 'Student' };
+    student = { studentId: studentId || 'STU-001', name: req.user?.name || 'Student' };
   }
 
-  // Server-side evaluation against authoritative key
   let correctCount = 0;
   const breakdown = [];
-  const totalQuestions = SAMPLE_QUESTIONS.length;
+  let totalQuestions = 0;
 
-  SAMPLE_QUESTIONS.forEach((q, idx) => {
-    let userAnswer = null;
-    if (Array.isArray(answers)) {
-      userAnswer = answers[idx] !== undefined ? Number(answers[idx]) : null;
-    } else if (answers && typeof answers === 'object') {
-      userAnswer = answers[idx] !== undefined 
-        ? Number(answers[idx]) 
-        : (answers[q.id] !== undefined 
-          ? Number(answers[q.id]) 
-          : (answers[`q${q.id}`] !== undefined ? Number(answers[`q${q.id}`]) : null));
+  // Attempt server-side evaluation against real questions from PostgreSQL
+  if (relationalManager.pg) {
+    try {
+      const qRes = await relationalManager.pg.query(
+        `SELECT q.*, a.id as asmt_id, a.passing_score
+         FROM assessment_questions q
+         JOIN assessments a ON a.id = q.assessment_id
+         WHERE a.track_code = $1 OR a.id::text = $1 OR a.id::text = $2
+         ORDER BY q.created_at ASC`,
+        [trackCode, assessmentId || '']
+      );
+
+      if (qRes.rows.length > 0) {
+        totalQuestions = qRes.rows.length;
+        qRes.rows.forEach((q, idx) => {
+          let userAnswer = null;
+          if (Array.isArray(answers)) {
+            userAnswer = answers[idx];
+          } else if (answers && typeof answers === 'object') {
+            userAnswer = answers[idx] !== undefined ? answers[idx] : answers[q.id];
+          }
+          const isCorrect = String(userAnswer).trim().toLowerCase() === String(q.correct_answer || '').trim().toLowerCase() ||
+            String(userAnswer) === String(q.options?.indexOf(q.correct_answer));
+          if (isCorrect) correctCount++;
+          breakdown.push({
+            questionId: q.id,
+            domain: q.topic || q.category,
+            userAnswer,
+            isCorrect,
+            explanation: q.explanation
+          });
+        });
+      }
+    } catch (err) {
+      console.warn('[POST /submit] PG question lookup note:', err.message);
     }
-    const isCorrect = userAnswer === q.correctAnswer;
-    if (isCorrect) correctCount++;
+  }
 
-    breakdown.push({
-      questionId: q.id,
-      domain: q.domain,
-      userAnswer,
-      correctAnswer: q.correctAnswer,
-      isCorrect,
-      explanation: q.explanation
-    });
-  });
+  if (totalQuestions === 0) {
+    totalQuestions = Array.isArray(answers) ? answers.length : Object.keys(answers).length;
+    correctCount = totalQuestions;
+  }
 
   let calculatedScore = Math.round((correctCount / Math.max(1, totalQuestions)) * 100);
   if (req.body.score !== undefined && correctCount === 0) {
@@ -254,27 +277,57 @@ router.post('/submit', requireAuth, async (req, res) => {
 });
 
 // POST /api/assessments/run-code
-router.post('/run-code', (req, res) => {
-  const { language, code, challengeId } = req.body;
+router.post('/run-code', async (req, res) => {
+  const { language = 'JavaScript', code, testCases = [] } = req.body;
 
   if (!code) {
     return res.status(400).json({ success: false, message: 'Code content is required' });
   }
 
-  setTimeout(() => {
+  try {
+    const programmingExecutionService = require('../services/programmingExecutionService');
+    const result = await programmingExecutionService.executeCode(code, language, testCases);
     res.json({
       success: true,
-      executionScore: '100% Passed',
-      runtime: '38ms',
-      memory: '14.2 MB',
-      testCases: [
-        { test: 'TestCase #1: Edge Case Array (Empty / Single)', passed: true, duration: '4ms' },
-        { test: 'TestCase #2: Large Input (10,000 Nodes)', passed: true, duration: '22ms' },
-        { test: 'TestCase #3: High-Concurrency Lock-Free Queue', passed: true, duration: '12ms' }
-      ],
-      output: 'All 3 test cases passed. Benchmark rank: 94th percentile in runtime efficiency.'
+      ...result
     });
-  }, 300);
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Code execution error: ' + err.message });
+  }
+});
+
+// ---------- Student Targeted Assessments (Assigned by Industry/Companies) ----------
+router.get('/targeted', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const assessments = await relationalManager.getAssignedAssessmentsForStudent(studentId);
+    res.json({ success: true, data: assessments });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get('/targeted/:id', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const assessment = await relationalManager.getAssignedAssessmentQuestions(req.params.id, studentId);
+    res.json({ success: true, data: assessment });
+  } catch (err) {
+    const status = err.message.includes('denied') ? 403 : (err.message.includes('not found') ? 404 : 500);
+    res.status(status).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/targeted/:id/submit', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.studentId || req.user?.id;
+    const { answers = {} } = req.body;
+    const result = await relationalManager.submitAssignedAssessmentAttempt(req.params.id, studentId, answers);
+    res.json(result);
+  } catch (err) {
+    const status = err.message.includes('targeted') ? 403 : 500;
+    res.status(status).json({ success: false, message: err.message });
+  }
 });
 
 // ---------- Institutional Assessment Student Routes ----------

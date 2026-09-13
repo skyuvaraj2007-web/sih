@@ -5,12 +5,12 @@ import { getTheme, setTheme } from '../../services/themeStore';
 export default function CompanySettings({ user, onShowToast }) {
   const [themePref, setThemePrefState] = useState(() => getTheme());
   const [formData, setFormData] = useState({
-    companyName: user?.companyName || user?.company || 'ABC Technologies',
-    recruiterName: user?.name || user?.recruiterName || 'Sarah Jenkins',
-    email: user?.email || 'talent@abctech.com',
-    location: 'Chennai (OMR Corridor), Tamil Nadu',
-    industry: 'Information Technology & Cloud AI Solutions',
-    autoMatchThreshold: 85,
+    companyName: user?.companyName || user?.company || user?.name || '',
+    recruiterName: user?.name || user?.recruiterName || '',
+    email: user?.email || '',
+    location: user?.location || user?.headquarters || '',
+    industry: user?.industry || '',
+    autoMatchThreshold: 80,
     notificationsEnabled: true
   });
 

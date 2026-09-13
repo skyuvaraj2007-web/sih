@@ -17,25 +17,32 @@ import {
 export default function AccountSettings({ onShowToast }) {
   const [activeSubTab, setActiveSubTab] = useState('My Profile & Career Target');
 
+  const storedUser = (() => {
+    try {
+      const u = localStorage.getItem('nexus_user');
+      return u ? JSON.parse(u) : null;
+    } catch { return null; }
+  })();
+
   const [settings, setSettings] = useState({
-    name: 'Arun Kumar',
-    email: 'arun.kumar@nexus.edu',
-    phone: '+91 98765 43210',
-    college: 'SRM Institute of Science and Technology',
-    degree: 'B.Tech Computer Science & Engineering',
-    gradYear: '2026 (3rd Year)',
-    desiredRole: 'Aspiring Data Scientist / AI Engineer',
-    targetIndustry: 'Artificial Intelligence, Fintech, Cloud Enterprise',
-    compensation: '₹15L - ₹25L / annum',
+    name: storedUser?.name || storedUser?.fullName || '',
+    email: storedUser?.email || '',
+    phone: storedUser?.phone || '',
+    college: storedUser?.collegeName || storedUser?.institutionName || '',
+    degree: storedUser?.degree || '',
+    gradYear: storedUser?.gradYear || '',
+    desiredRole: storedUser?.targetRole || storedUser?.careerGoal || '',
+    targetIndustry: '',
+    compensation: '',
     modalities: {
       hybrid: true,
       remote: true,
       onsite: false
     },
-    bio: 'Passionate 3rd-year CS student specializing in Data Science, RAG systems, and predictive ML pipelines. Looking for high-impact internship opportunities starting Summer 2025.',
-    skills: ['Python', 'SQL', 'Machine Learning', 'Generative AI', 'LangChain', 'PostgreSQL'],
-    proactivityLevel: 75,
-    autoSyncGithub: true,
+    bio: storedUser?.bio || '',
+    skills: Array.isArray(storedUser?.skills) ? storedUser.skills.map(s => typeof s === 'string' ? s : (s.name || s.skill)) : [],
+    proactivityLevel: 50,
+    autoSyncGithub: false,
     alertHighMatch: true,
     enableSimulationBots: false
   });
@@ -201,21 +208,21 @@ export default function AccountSettings({ onShowToast }) {
           <div className="glass-panel" style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
-                alt="Arun Kumar"
+                src={storedUser?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
+                alt={settings.name || "Student"}
                 style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--cyber-cyan)' }}
               />
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Arun Kumar
+                    {settings.name || 'Student Profile'}
                   </h3>
                   <span className="cyber-badge badge-emerald" style={{ fontSize: '8.5px' }}>
                     Verified Student
                   </span>
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
-                  Candidate ID: NEX-DID-8941A • Verified Institutional ID: SRM-CSE-2022-8419
+                  Candidate ID: {storedUser?.studentId || storedUser?.id || 'NEX-STU'} • Verified Institution: {settings.college || 'Linked Academic Campus'}
                 </div>
               </div>
             </div>

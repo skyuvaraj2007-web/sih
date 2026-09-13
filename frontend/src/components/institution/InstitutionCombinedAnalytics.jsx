@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart2,
   TrendingUp,
@@ -10,17 +10,68 @@ import {
   PieChart,
   Sparkles,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
+import { academicService } from '../../services/academicService';
+import InstitutionSkillGrowth from './InstitutionSkillGrowth';
 
 export default function InstitutionCombinedAnalytics({ onShowToast }) {
-  const [activeTab, setActiveTab] = useState('ALIGNMENT'); // 'STUDENT' | 'COMPANY' | 'ALIGNMENT'
+  const [activeTab, setActiveTab] = useState('SKILL_GROWTH'); // 'SKILL_GROWTH' | 'ALIGNMENT' | 'STUDENT' | 'COMPANY'
+  const [loading, setLoading] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchAnalytics() {
+      try {
+        setLoading(true);
+        const res = await academicService.getCombinedAnalytics();
+        if (mounted) {
+          if (res?.success && res.data) {
+            setAnalyticsData(res.data);
+          } else {
+            setAnalyticsData(null);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load institution analytics:', err);
+        if (mounted) {
+          setError(err.message || 'Failed to load analytics');
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    fetchAnalytics();
+    return () => { mounted = false; };
+  }, []);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '320px', gap: '12px' }}>
+        <Loader2 size={32} className="spinning" color="var(--cyber-cyan)" />
+        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Loading live institution analytics...</span>
+      </div>
+    );
+  }
+
+  const data = analyticsData || {};
+  const hasActivity = Boolean(data.hasActivity);
+  const domains = Array.isArray(data.domains) ? data.domains : [];
+  const cohorts = Array.isArray(data.cohorts) ? data.cohorts : [];
+  const skillsInDemand = Array.isArray(data.skillsInDemand) ? data.skillsInDemand : [];
+  const studentMetrics = data.studentMetrics || {};
+  const corporateMetrics = data.corporateMetrics || {};
 
   return (
     <div>
       {/* ── TOP NAV TABS ── */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
         {[
+          { id: 'SKILL_GROWTH', label: 'Skill Growth', icon: TrendingUp },
           { id: 'ALIGNMENT', label: 'Institution vs Industry Alignment', icon: Target },
           { id: 'STUDENT', label: 'Student Cohort Analytics', icon: Users },
           { id: 'COMPANY', label: 'Corporate Demand Analytics', icon: Building }
@@ -53,6 +104,20 @@ export default function InstitutionCombinedAnalytics({ onShowToast }) {
         })}
       </div>
 
+      {/* ── TAB 0: SKILL GROWTH (Requirement 9, 10, 11) ── */}
+      {activeTab === 'SKILL_GROWTH' && (
+        <InstitutionSkillGrowth onShowToast={onShowToast} />
+      )}
+
+      {!hasActivity && (
+        <div className="glass-panel" style={{ padding: '16px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px', borderLeft: '4px solid var(--cyber-amber)' }}>
+          <AlertCircle size={18} color="var(--cyber-amber)" />
+          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+            No activity data available yet. Metrics will update dynamically as students enroll, take assessments, and corporate partnerships are activated.
+          </span>
+        </div>
+      )}
+
       {/* ── TAB 1: INSTITUTION VS INDUSTRY ALIGNMENT ── */}
       {activeTab === 'ALIGNMENT' && (
         <div>
@@ -64,19 +129,19 @@ export default function InstitutionCombinedAnalytics({ onShowToast }) {
                   CURRICULUM RELEVANCE INDEX
                 </span>
                 <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', margin: '6px 0 4px' }}>
-                  Campus Curriculum to Industry Demand Alignment: 74.2%
+                  Campus Curriculum to Industry Demand Alignment: {data.alignmentScore ?? 0}%
                 </h2>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, maxWidth: '680px' }}>
-                  "What our institution teaches vs what companies need." Target: Reach <strong>88.0%</strong> by Q3 with the recommended Cloud & GenAI curriculum additions.
+                  Measured alignment between institution course curriculum and active corporate job requirements.
                 </p>
               </div>
 
               <div style={{ textAlign: 'center', padding: '14px 22px', background: 'rgba(10,16,30,0.7)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>ALIGNMENT DELTA</div>
                 <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--cyber-emerald)', fontFamily: 'var(--font-mono)' }}>
-                  +11.8%
+                  +{data.alignmentDelta ?? 0}%
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>YoY Improvement</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>YoY Delta</div>
               </div>
             </div>
           </div>
@@ -87,37 +152,36 @@ export default function InstitutionCombinedAnalytics({ onShowToast }) {
               <BarChart2 size={16} color="var(--cyber-cyan)" /> Curricular Coverage vs Industry Market Demand
             </h3>
 
-            {[
-              { domain: 'Core Programming & Data Structures', campus: 88, industry: 92, status: 'Balanced' },
-              { domain: 'Full Stack & Web Technologies', campus: 82, industry: 85, status: 'Balanced' },
-              { domain: 'Cloud Architecture & DevOps', campus: 42, industry: 84, status: 'Critical Deficit (-42%)' },
-              { domain: 'Generative AI & LLM Systems', campus: 48, industry: 89, status: 'Critical Deficit (-41%)' },
-              { domain: 'Database & Data Modeling', campus: 78, industry: 82, status: 'Moderate' },
-              { domain: 'Cybersecurity & Secure Coding', campus: 58, industry: 72, status: 'Moderate Deficit (-14%)' }
-            ].map((d, i) => {
-              const isCrit = d.status.includes('Critical');
-              const barColor = isCrit ? 'var(--cyber-rose)' : 'var(--cyber-cyan)';
+            {domains.length === 0 ? (
+              <div style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                <p style={{ margin: 0 }}>No activity data available yet.</p>
+              </div>
+            ) : (
+              domains.map((d, i) => {
+                const isCrit = (d.status || '').includes('Critical');
+                const barColor = isCrit ? 'var(--cyber-rose)' : 'var(--cyber-cyan)';
 
-              return (
-                <div key={i} style={{ marginBottom: '18px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '12.5px' }}>
-                    <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{d.domain}</span>
-                    <span style={{ display: 'flex', gap: '14px', fontFamily: 'var(--font-mono)', fontSize: '11.5px' }}>
-                      <span style={{ color: 'var(--cyber-cyan)' }}>Campus: {d.campus}%</span>
-                      <span style={{ color: 'var(--cyber-purple)' }}>Industry: {d.industry}%</span>
-                      <span style={{ color: isCrit ? 'var(--cyber-rose)' : 'var(--cyber-emerald)', fontWeight: 700 }}>
-                        {d.status}
+                return (
+                  <div key={i} style={{ marginBottom: '18px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '12.5px' }}>
+                      <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{d.domain}</span>
+                      <span style={{ display: 'flex', gap: '14px', fontFamily: 'var(--font-mono)', fontSize: '11.5px' }}>
+                        <span style={{ color: 'var(--cyber-cyan)' }}>Campus: {d.campus}%</span>
+                        <span style={{ color: 'var(--cyber-purple)' }}>Industry: {d.industry}%</span>
+                        <span style={{ color: isCrit ? 'var(--cyber-rose)' : 'var(--cyber-emerald)', fontWeight: 700 }}>
+                          {d.status}
+                        </span>
                       </span>
-                    </span>
-                  </div>
+                    </div>
 
-                  <div style={{ height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
-                    <div style={{ position: 'absolute', left: `${d.industry}%`, top: 0, bottom: 0, width: '2px', background: 'var(--cyber-purple)', zIndex: 2 }} />
-                    <div style={{ width: `${d.campus}%`, height: '100%', background: barColor, borderRadius: '4px', opacity: 0.85 }} />
+                    <div style={{ height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
+                      <div style={{ position: 'absolute', left: `${d.industry}%`, top: 0, bottom: 0, width: '2px', background: 'var(--cyber-purple)', zIndex: 2 }} />
+                      <div style={{ width: `${d.campus}%`, height: '100%', background: barColor, borderRadius: '4px', opacity: 0.85 }} />
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       )}
@@ -128,23 +192,23 @@ export default function InstitutionCombinedAnalytics({ onShowToast }) {
           <div className="metrics-row" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '24px' }}>
             <div className="metric-stat-card accent-purple">
               <div className="metric-stat-header">COURSE COMPLETION RATE</div>
-              <div className="metric-stat-value">78.4%</div>
-              <div className="metric-stat-sub">+14% vs Last Semester</div>
+              <div className="metric-stat-value">{studentMetrics.courseCompletionRate ?? 0}%</div>
+              <div className="metric-stat-sub">Across All Programs</div>
             </div>
             <div className="metric-stat-card accent-cyan">
               <div className="metric-stat-header">CERTIFICATION ATTAINMENT</div>
-              <div className="metric-stat-value">62.8%</div>
+              <div className="metric-stat-value">{studentMetrics.certificationAttainment ?? 0}%</div>
               <div className="metric-stat-sub">Cryptographically Minted</div>
             </div>
             <div className="metric-stat-card accent-emerald">
               <div className="metric-stat-header">PLACEMENT READY AVG</div>
-              <div className="metric-stat-value">77.2%</div>
+              <div className="metric-stat-value">{studentMetrics.placementReadyAvg ?? 0}%</div>
               <div className="metric-stat-sub">Career Readiness Index</div>
             </div>
             <div className="metric-stat-card accent-amber">
               <div className="metric-stat-header">PROJECT ARTIFACT RATIO</div>
-              <div className="metric-stat-value">2.4 / student</div>
-              <div className="metric-stat-sub">Production Git Repos</div>
+              <div className="metric-stat-value">{studentMetrics.projectArtifactRatio ?? 0} / student</div>
+              <div className="metric-stat-sub">Verified Project Proofs</div>
             </div>
           </div>
 
@@ -152,24 +216,25 @@ export default function InstitutionCombinedAnalytics({ onShowToast }) {
             <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px' }}>
               Student Skill Growth Distribution Across Cohorts
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-              {[
-                { dept: 'B.Tech CSE', count: '420 Students', readiness: '76.4%', completion: '82%', growth: '+14%' },
-                { dept: 'B.Tech IT', count: '280 Students', readiness: '72.1%', completion: '76%', growth: '+11%' },
-                { dept: 'B.Tech AI & DS', count: '160 Students', readiness: '84.2%', completion: '89%', growth: '+22%' },
-                { dept: 'B.Tech ECE', count: '190 Students', readiness: '68.5%', completion: '64%', growth: '+8%' }
-              ].map((c, i) => (
-                <div key={i} style={{ padding: '16px', background: 'rgba(10,16,30,0.6)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{c.dept}</span>
-                    <span style={{ fontSize: '12px', color: 'var(--cyber-emerald)', fontWeight: 700 }}>{c.growth}</span>
+            {cohorts.length === 0 ? (
+              <div style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                <p style={{ margin: 0 }}>No activity data available yet.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+                {cohorts.map((c, i) => (
+                  <div key={i} style={{ padding: '16px', background: 'rgba(10,16,30,0.6)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{c.dept}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--cyber-emerald)', fontWeight: 700 }}>{c.growth}</span>
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '8px' }}>{c.count}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Readiness Average: <strong style={{ color: 'var(--cyber-cyan)' }}>{c.readiness}</strong></div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Curriculum Completion: <strong style={{ color: 'var(--cyber-purple)' }}>{c.completion}</strong></div>
                   </div>
-                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '8px' }}>{c.count}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Readiness Average: <strong style={{ color: 'var(--cyber-cyan)' }}>{c.readiness}</strong></div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Curriculum Completion: <strong style={{ color: 'var(--cyber-purple)' }}>{c.completion}</strong></div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -180,23 +245,23 @@ export default function InstitutionCombinedAnalytics({ onShowToast }) {
           <div className="metrics-row" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '24px' }}>
             <div className="metric-stat-card accent-cyan">
               <div className="metric-stat-header">ACTIVE RECRUITERS</div>
-              <div className="metric-stat-value">34</div>
+              <div className="metric-stat-value">{corporateMetrics.activeRecruiters ?? 0}</div>
               <div className="metric-stat-sub">Partner Companies</div>
             </div>
             <div className="metric-stat-card accent-purple">
               <div className="metric-stat-header">TOTAL CAMPUS OPENINGS</div>
-              <div className="metric-stat-value">182</div>
+              <div className="metric-stat-value">{corporateMetrics.totalCampusOpenings ?? 0}</div>
               <div className="metric-stat-sub">Jobs & Internships</div>
             </div>
             <div className="metric-stat-card accent-emerald">
               <div className="metric-stat-header">MOST SOUGHT SKILL</div>
-              <div className="metric-stat-value">Python / AI</div>
-              <div className="metric-stat-sub">94% Partner Demand</div>
+              <div className="metric-stat-value" style={{ fontSize: '18px' }}>{corporateMetrics.mostSoughtSkill || 'N/A'}</div>
+              <div className="metric-stat-sub">{corporateMetrics.partnerDemandPct ?? 0}% Partner Demand</div>
             </div>
             <div className="metric-stat-card accent-amber">
               <div className="metric-stat-header">PPO CONVERSION RATE</div>
-              <div className="metric-stat-value">71.5%</div>
-              <div className="metric-stat-sub">From 6-Month Internships</div>
+              <div className="metric-stat-value">{corporateMetrics.ppoConversionRate ?? 0}%</div>
+              <div className="metric-stat-sub">From Placed Cohorts</div>
             </div>
           </div>
 
@@ -204,24 +269,24 @@ export default function InstitutionCombinedAnalytics({ onShowToast }) {
             <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px' }}>
               Top Corporate Hiring Skills in Demand (2026 Academic Year)
             </h3>
-            {[
-              { skill: 'Python & Data Engineering', demand: 95, companies: 'Google, Microsoft, TechCorp, Zoho' },
-              { skill: 'Cloud Native & DevOps (AWS/Azure/Docker)', demand: 91, companies: 'AWS, Microsoft, Infosys' },
-              { skill: 'Generative AI & LLM Fine-Tuning', demand: 88, companies: 'Microsoft, Cognitive Nexus, InnovateAI' },
-              { skill: 'Enterprise Java & Spring Boot', demand: 84, companies: 'Zoho, Infosys, TCS, PhonePe' },
-              { skill: 'Embedded Firmware & RTOS', demand: 68, companies: 'Bosch, L&T, Qualcomm' }
-            ].map((sk, idx) => (
-              <div key={idx} style={{ marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12.5px' }}>
-                  <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{sk.skill}</span>
-                  <span style={{ color: 'var(--cyber-cyan)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{sk.demand}% Demand</span>
-                </div>
-                <div style={{ height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden', marginBottom: '4px' }}>
-                  <div style={{ width: `${sk.demand}%`, height: '100%', background: 'linear-gradient(90deg, var(--cyber-cyan), var(--cyber-purple))', borderRadius: '3px' }} />
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Hiring Partners: {sk.companies}</div>
+            {skillsInDemand.length === 0 ? (
+              <div style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                <p style={{ margin: 0 }}>No activity data available yet.</p>
               </div>
-            ))}
+            ) : (
+              skillsInDemand.map((sk, idx) => (
+                <div key={idx} style={{ marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12.5px' }}>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{sk.skill}</span>
+                    <span style={{ color: 'var(--cyber-cyan)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{sk.demand}% Demand</span>
+                  </div>
+                  <div style={{ height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden', marginBottom: '4px' }}>
+                    <div style={{ width: `${sk.demand}%`, height: '100%', background: 'linear-gradient(90deg, var(--cyber-cyan), var(--cyber-purple))', borderRadius: '3px' }} />
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Hiring Partners: {sk.companies}</div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

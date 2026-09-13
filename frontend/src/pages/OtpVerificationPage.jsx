@@ -1,31 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  ShieldCheck, 
-  Lock, 
-  KeyRound, 
-  RefreshCw, 
-  ArrowLeft, 
-  CheckCircle2, 
-  AlertCircle, 
-  Sparkles, 
-  Copy, 
-  Check, 
-  Eye, 
-  EyeOff 
+import {
+  ShieldCheck,
+  Lock,
+  KeyRound,
+  RefreshCw,
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle,
+  Sparkles,
+  Copy,
+  Check,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { authService } from '../services/authService';
 
-export default function OtpVerificationPage({ 
-  email = '', 
-  role = 'student', 
-  purpose = 'ACCOUNT_VERIFICATION', 
-  initialOtp = '', 
-  onNavigate 
+export default function OtpVerificationPage({
+  email = '',
+  role = 'student',
+  purpose = 'ACCOUNT_VERIFICATION',
+  initialOtp = '',
+  onNavigate
 }) {
   // Purpose normalization
   const isReset = purpose === 'PASSWORD_RESET' || purpose === 'FORGOT_PASSWORD';
   const effectivePurpose = isReset ? 'PASSWORD_RESET' : 'ACCOUNT_VERIFICATION';
+  const isDev = Boolean(import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')));
 
   // State
   const [digits, setDigits] = useState(['', '', '', '', '', '']);
@@ -325,7 +326,7 @@ export default function OtpVerificationPage({
     return 'student-login';
   };
 
-  const roleLabel = isReset 
+  const roleLabel = isReset
     ? 'PASSWORD RESET'
     : String(role).toLowerCase() === 'institution'
       ? 'INSTITUTION ACCOUNT'
@@ -379,7 +380,7 @@ export default function OtpVerificationPage({
       }} />
 
       {/* Main Glassmorphic Container Card */}
-      <div 
+      <div
         className="glass-card"
         style={{
           position: 'relative',
@@ -479,89 +480,78 @@ export default function OtpVerificationPage({
               )}
             </p>
 
-            {/* DEMO OTP BANNER (Real Backend OTP Display) */}
-            <div style={{
-              width: '100%',
-              background: isReset
-                ? 'linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(124, 58, 237, 0.12) 100%)'
-                : 'linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(16, 185, 129, 0.12) 100%)',
-              border: isReset
-                ? '1px solid rgba(236, 72, 153, 0.4)'
-                : '1px solid rgba(6, 182, 212, 0.4)',
-              borderRadius: '14px',
-              padding: '14px 18px',
-              marginBottom: '22px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: isReset
-                ? '0 0 16px rgba(236, 72, 153, 0.15)'
-                : '0 0 16px rgba(6, 182, 212, 0.15)'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Sparkles size={14} color={isReset ? '#EC4899' : 'var(--cyber-cyan, #06B6D4)'} />
-                  <span style={{
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    letterSpacing: '0.12em',
-                    fontFamily: 'var(--font-mono, monospace)',
-                    color: isReset ? '#EC4899' : 'var(--cyber-cyan, #06B6D4)'
-                  }}>
-                    {isReset ? 'DEMO OTP FOR FORGET PASSWORD (RESET)' : 'DEMO OTP FOR CREATING ACCOUNT (ACTIVATION)'}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleAutoFillDemo}
-                  style={{
-                    background: isReset ? 'rgba(236, 72, 153, 0.15)' : 'rgba(6, 182, 212, 0.15)',
-                    border: isReset ? '1px solid rgba(236, 72, 153, 0.4)' : '1px solid rgba(6, 182, 212, 0.4)',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    color: copied ? '#10B981' : (isReset ? '#F472B6' : '#38BDF8'),
-                    padding: '4px 10px'
-                  }}
-                  title="Auto-fill and copy demo code"
-                >
-                  {copied ? <Check size={12} /> : <Copy size={12} />}
-                  <span>{copied ? 'Auto-filled!' : 'Auto-fill OTP'}</span>
-                </button>
-              </div>
-
-              <div 
-                onClick={handleAutoFillDemo}
-                title="Click code to auto-fill"
+            {/* DEVELOPMENT OTP GLASSMORPHIC INFORMATION CARD (Development Mode Only) */}
+            {isDev && demoOtp && (
+              <div
                 style={{
-                  fontSize: '24px',
-                  fontWeight: 900,
-                  letterSpacing: '8px',
-                  fontFamily: 'var(--font-mono, monospace)',
-                  color: isReset ? '#F472B6' : 'var(--cyber-cyan, #06B6D4)',
-                  cursor: 'pointer',
-                  padding: '6px 14px',
-                  borderRadius: '8px',
-                  background: 'rgba(0, 0, 0, 0.25)',
-                  textShadow: isReset ? '0 0 12px rgba(236, 72, 153, 0.5)' : '0 0 12px rgba(6, 182, 212, 0.5)'
+                  width: '100%',
+                  background: 'rgba(6, 26, 51, 0.75)',
+                  border: '1px solid rgba(0, 217, 255, 0.35)',
+                  borderRadius: '16px',
+                  padding: '16px 20px',
+                  marginBottom: '22px',
+                  backdropFilter: 'blur(16px)',
+                  boxShadow: '0 8px 32px rgba(0, 83, 156, 0.25)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}
               >
-                [ {demoOtp ? demoOtp.split('').join(' ') : '• • • • • •'} ]
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Sparkles size={13} color="var(--cyber-cyan, #00D9FF)" />
+                    <span style={{ fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.12em', fontFamily: 'var(--font-mono, monospace)', color: 'var(--cyber-cyan, #00D9FF)' }}>
+                      DEVELOPMENT VERIFICATION
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAutoFillDemo}
+                    style={{
+                      background: 'rgba(0, 83, 156, 0.25)',
+                      border: '1px solid rgba(0, 217, 255, 0.4)',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: copied ? '#2FE0A1' : '#00D9FF',
+                      padding: '3px 10px'
+                    }}
+                    title="Auto-fill code"
+                  >
+                    {copied ? <Check size={11} /> : <Copy size={11} />}
+                    <span>{copied ? 'Filled' : 'Auto-fill'}</span>
+                  </button>
+                </div>
+
+                <div
+                  onClick={handleAutoFillDemo}
+                  title="Click to auto-fill code"
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: 800,
+                    letterSpacing: '10px',
+                    fontFamily: 'var(--font-mono, monospace)',
+                    color: '#FFD662',
+                    cursor: 'pointer',
+                    padding: '8px 24px',
+                    borderRadius: '8px',
+                    background: 'rgba(3, 15, 30, 0.6)',
+                    border: '1px solid rgba(255, 214, 98, 0.25)',
+                    textShadow: '0 0 16px rgba(255, 214, 98, 0.4)'
+                  }}
+                >
+                  {demoOtp.split('').join(' ')}
+                </div>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted, #94A3B8)' }}>
+                  For local testing only
+                </span>
               </div>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted, #94A3B8)' }}>
-                Active {isReset ? 'password recovery' : 'account registration'} test code. Click code to auto-fill.
-              </span>
-            </div>
+            )}
 
             {/* Error or Status Messages */}
             {errorMsg && (
@@ -619,7 +609,7 @@ export default function OtpVerificationPage({
                   ENTER 6-DIGIT CODE
                 </label>
 
-                <div 
+                <div
                   onPaste={handlePaste}
                   style={{
                     display: 'flex',
@@ -644,27 +634,32 @@ export default function OtpVerificationPage({
                       onChange={e => handleDigitChange(idx, e.target.value)}
                       onKeyDown={e => handleKeyDown(idx, e)}
                       style={{
-                        width: '46px',
+                        width: '48px',
                         minWidth: '0',
-                        maxWidth: '48px',
-                        height: '52px',
+                        maxWidth: '52px',
+                        height: '56px',
                         flex: '1 1 0',
                         padding: '0',
                         margin: '0',
                         boxSizing: 'border-box',
                         textAlign: 'center',
-                        fontSize: '22px',
+                        fontSize: '24px',
                         fontWeight: 800,
                         fontFamily: 'var(--font-mono, monospace)',
-                        color: 'var(--text-primary, #0F172A)',
-                        background: 'var(--bg-input, rgba(255, 255, 255, 0.8))',
-                        border: digit 
-                          ? '2px solid var(--brand-primary, #7C3AED)'
-                          : '1.5px solid var(--border-subtle, rgba(124, 58, 237, 0.2))',
+                        color: 'var(--text-primary, #F8FAFC)',
+                        background: 'rgba(6, 26, 51, 0.75)',
+                        backdropFilter: 'blur(12px)',
+                        border: errorMsg
+                          ? '2px solid rgba(239, 68, 68, 0.8)'
+                          : digit
+                            ? '2px solid #00D9FF'
+                            : '1.5px solid rgba(0, 217, 255, 0.25)',
                         borderRadius: '12px',
-                        boxShadow: digit 
-                          ? '0 0 14px rgba(124, 58, 237, 0.25)' 
-                          : 'none',
+                        boxShadow: errorMsg
+                          ? '0 0 16px rgba(239, 68, 68, 0.3)'
+                          : digit
+                            ? '0 0 16px rgba(0, 217, 255, 0.4)'
+                            : 'none',
                         outline: 'none',
                         transition: 'all 0.2s ease',
                         cursor: 'text'
@@ -692,8 +687,8 @@ export default function OtpVerificationPage({
                   letterSpacing: '0.02em',
                   border: 'none',
                   cursor: digits.join('').length === 6 ? 'pointer' : 'not-allowed',
-                  boxShadow: digits.join('').length === 6 
-                    ? '0 8px 24px rgba(124, 58, 237, 0.35)' 
+                  boxShadow: digits.join('').length === 6
+                    ? '0 8px 24px rgba(124, 58, 237, 0.35)'
                     : 'none',
                   display: 'flex',
                   alignItems: 'center',
@@ -729,8 +724,8 @@ export default function OtpVerificationPage({
               {!isExpired ? (
                 <div>
                   <span>OTP expires in </span>
-                  <strong style={{ 
-                    fontFamily: 'var(--font-mono, monospace)', 
+                  <strong style={{
+                    fontFamily: 'var(--font-mono, monospace)',
                     color: timeLeft <= 15 ? '#EF4444' : 'var(--brand-primary, #7C3AED)',
                     fontSize: '13px'
                   }}>

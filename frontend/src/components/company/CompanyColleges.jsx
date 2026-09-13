@@ -1,108 +1,64 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Building, MapPin, Users, Award, ExternalLink, Filter, X, ShieldCheck, Mail, Globe, CheckCircle2, ChevronRight, Eye } from 'lucide-react';
-import { getAllRelationalInstitutions } from '../../services/nexusDataStore';
 import '../common/CompactDataList.css';
 
 export default function CompanyColleges({ onFilterCollege, onTabSelect }) {
   const [selectedCollege, setSelectedCollege] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [partnerColleges, setPartnerColleges] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Dynamically load institutions from relational store
-  const colleges = useMemo(() => {
-    const list = getAllRelationalInstitutions();
-    return list && list.length > 0 ? list : [
-      {
-        institutionId: 'TN040',
-        collegeName: 'Velalar College of Engineering and Technology',
-        collegeCode: 'VCET-ERD-01',
-        city: 'Erode',
-        state: 'Tamil Nadu',
-        nirf: '#84 Ranked',
-        naac: 'A+ Grade',
-        studentCount: 3850,
-        placementRate: '94.2%',
-        departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE', 'Mechanical', 'Civil'],
-        tier: 'Strategic Campus Partner',
-        email: 'principal@velalarengg.ac.in',
-        website: 'https://velalarengg.ac.in'
-      },
-      {
-        institutionId: 'TN030',
-        collegeName: 'PSG College of Technology',
-        collegeCode: 'PSG-CBE-01',
-        city: 'Coimbatore',
-        state: 'Tamil Nadu',
-        nirf: '#53 Ranked',
-        naac: 'A++ Grade',
-        studentCount: 4200,
-        placementRate: '98.1%',
-        departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'Robotics'],
-        tier: 'Tier 1 Partner',
-        email: 'placement@psgtech.edu',
-        website: 'https://www.psgtech.edu'
-      },
-      {
-        institutionId: 'TN050',
-        collegeName: 'Sri Krishna College of Engineering and Technology',
-        collegeCode: 'SKCET-CBE-02',
-        city: 'Coimbatore',
-        state: 'Tamil Nadu',
-        nirf: '#77 Ranked',
-        naac: 'A Grade',
-        studentCount: 3600,
-        placementRate: '93.5%',
-        departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE'],
-        tier: 'Tier 1 Partner',
-        email: 'info@skcet.ac.in',
-        website: 'https://www.skcet.ac.in'
-      },
-      {
-        institutionId: 'TN060',
-        collegeName: 'Kongu Engineering College',
-        collegeCode: 'KEC-PER-01',
-        city: 'Perundurai',
-        state: 'Tamil Nadu',
-        nirf: '#99 Ranked',
-        naac: 'A++ Grade',
-        studentCount: 4100,
-        placementRate: '92.8%',
-        departments: ['CSE', 'IT', 'AI & DS', 'Mechanical', 'Chemical'],
-        tier: 'Strategic Partner',
-        email: 'principal@kongu.ac.in',
-        website: 'https://www.kongu.ac.in'
-      },
-      {
-        institutionId: 'TN070',
-        collegeName: 'KSG Institute of Technology',
-        collegeCode: 'KSG-CBE-03',
-        city: 'Coimbatore',
-        state: 'Tamil Nadu',
-        nirf: '#142 Ranked',
-        naac: 'A Grade',
-        studentCount: 2200,
-        placementRate: '88.4%',
-        departments: ['CSE', 'ECE', 'Civil'],
-        tier: 'Emerging Partner',
-        email: 'contact@ksg.edu.in',
-        website: 'https://www.ksg.edu.in'
-      },
-      {
-        institutionId: 'TN010',
-        collegeName: 'SRM Institute of Science and Technology',
-        collegeCode: 'SRM-KTR-01',
-        city: 'Kattankulathur',
-        state: 'Tamil Nadu',
-        nirf: '#28 Ranked',
-        naac: 'A++ Grade',
-        studentCount: 6400,
-        placementRate: '96.5%',
-        departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'BioTech'],
-        tier: 'Tier 1 Partner',
-        email: 'placements@srmist.edu.in',
-        website: 'https://www.srmist.edu.in'
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchPartners() {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
+        const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+        const res = await fetch(`${apiBase}/company/partnerships`, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          credentials: 'include'
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json.data) && isMounted) {
+            setPartnerColleges(json.data);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load company partnerships:', err);
+      } finally {
+        if (isMounted) setLoading(false);
       }
-    ];
+    }
+    fetchPartners();
+    return () => { isMounted = false; };
   }, []);
+
+  // Dynamically load partner institutions from live database
+  const colleges = useMemo(() => {
+    if (partnerColleges.length > 0) {
+      return partnerColleges.map(p => ({
+        institutionId: p.institutionId || p.institution_id || p.id,
+        collegeName: p.institutionName || p.institution_name || p.name,
+        collegeCode: p.institutionCode || p.institution_code || `INST-${String(p.id).slice(0, 4).toUpperCase()}`,
+        city: p.city || 'Tamil Nadu',
+        state: p.state || 'India',
+        nirf: p.nirf || 'Verified',
+        naac: p.naac || 'Accredited',
+        studentCount: p.studentCount || p.student_count || 0,
+        placementRate: p.placementRate || 'Active',
+        departments: p.departments || ['Engineering & Technology'],
+        tier: p.partnership_tier || p.tier || 'Campus Partner',
+        email: p.email || 'partner@institution.edu',
+        website: p.website_url || p.website || '#'
+      }));
+    }
+    return [];
+  }, [partnerColleges]);
 
   const filteredColleges = useMemo(() => {
     if (!searchQuery.trim()) return colleges;
@@ -160,7 +116,7 @@ export default function CompanyColleges({ onFilterCollege, onTabSelect }) {
               {filteredColleges.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)' }}>
-                    No institutions matched your search filter.
+                    {colleges.length === 0 ? 'No partner colleges yet' : 'No institutions matched your search filter.'}
                   </td>
                 </tr>
               ) : (
@@ -169,12 +125,12 @@ export default function CompanyColleges({ onFilterCollege, onTabSelect }) {
                   const colName = col.collegeName || col.name;
                   const colCode = col.collegeCode || col.code || colId;
                   const location = `${col.city || 'Tamil Nadu'}, ${col.state || 'India'}`;
-                  const studentCount = col.studentCount || col.students || 3200;
-                  const placement = col.placementRate || col.placement || '94%';
-                  const depts = col.departments || ['CSE', 'IT', 'ECE'];
-                  const tier = col.tier || 'Strategic Partner';
-                  const naac = col.naac || 'A+ Grade';
-                  const nirf = col.nirf || '#80 Ranked';
+                  const studentCount = col.studentCount || col.students || 0;
+                  const placement = col.placementRate || col.placement || 'N/A';
+                  const depts = col.departments || ['Engineering'];
+                  const tier = col.tier || 'Partner Campus';
+                  const naac = col.naac || 'Accredited';
+                  const nirf = col.nirf || 'Verified';
 
                   return (
                     <tr
@@ -311,25 +267,25 @@ export default function CompanyColleges({ onFilterCollege, onTabSelect }) {
                 <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
                   <span className="text-[10px] text-slate-400 block uppercase font-mono">Available Talent</span>
                   <span className="text-lg font-bold text-white font-mono">
-                    {(selectedCollege.studentCount || selectedCollege.students || 3200).toLocaleString()}
+                    {(selectedCollege.studentCount || selectedCollege.students || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                  <span className="text-[10px] text-slate-400 block uppercase font-mono">Placement Rate</span>
+                  <span className="text-[10px] text-slate-400 block uppercase font-mono">Placement Status</span>
                   <span className="text-lg font-bold text-emerald-400 font-mono">
-                    {selectedCollege.placementRate || selectedCollege.placement || '94.2%'}
+                    {selectedCollege.placementRate || selectedCollege.placement || 'Active'}
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
                   <span className="text-[10px] text-slate-400 block uppercase font-mono">Accreditation</span>
                   <span className="text-xs font-bold text-cyan-400 mt-1 block">
-                    {selectedCollege.naac || 'A+ Grade'} • {selectedCollege.nirf || '#84'}
+                    {selectedCollege.naac || 'Verified'} • {selectedCollege.nirf || 'Recognized'}
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
                   <span className="text-[10px] text-slate-400 block uppercase font-mono">Campus Standing</span>
                   <span className="text-xs font-bold text-purple-400 mt-1 block">
-                    {selectedCollege.tier || 'Strategic Partner'}
+                    {selectedCollege.tier || 'Partner Campus'}
                   </span>
                 </div>
               </div>

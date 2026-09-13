@@ -160,5 +160,41 @@ export const learningService = {
       credentials: 'include'
     });
     return await res.json();
+  },
+
+  // ── Courses with Real Progress & Academician Assignment ──
+  async getMyCourses() {
+    const res = await fetch(`${API_BASE}/learning/my-courses`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async getCourseDetails(courseId) {
+    const res = await fetch(`${API_BASE}/learning/my-courses/${encodeURIComponent(courseId)}`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async completeLesson(courseId, lessonId, payload = {}) {
+    const res = await fetch(`${API_BASE}/learning/my-courses/${encodeURIComponent(courseId)}/lessons/${encodeURIComponent(lessonId)}/complete`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  },
+
+  // ── Assigned Proctored Skill Tests ──
+  async getAssignedSkillTests() {
+    const res = await fetch(`${API_BASE}/learning/assigned-skill-tests`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
   }
 };

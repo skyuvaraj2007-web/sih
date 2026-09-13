@@ -29,11 +29,11 @@ export default function InstitutionSetupWizard({
 
   // Step 1 Form
   const [institutionForm, setInstitutionForm] = useState({
-    name: institution?.institutionName || institution?.name || 'SRM Institute of Science and Technology',
-    email: institution?.email || 'placements@srmist.edu.in',
-    code: institution?.collegeId || institution?.code || 'TN010',
-    address: institution?.address || 'Kattankulathur, Chennai, Tamil Nadu',
-    website: institution?.website || 'https://www.srmist.edu.in'
+    name: institution?.institutionName || institution?.name || '',
+    email: institution?.email || '',
+    code: institution?.collegeId || institution?.code || '',
+    address: institution?.address || '',
+    website: institution?.website || ''
   });
 
   // Step 2 Departments
@@ -240,7 +240,7 @@ export default function InstitutionSetupWizard({
                   value={institutionForm.name}
                   onChange={(e) => setInstitutionForm({ ...institutionForm, name: e.target.value })}
                   className="cyber-input"
-                  placeholder="e.g. SRM Institute of Science and Technology"
+                  placeholder="e.g. National Institute of Engineering & Technology"
                   required
                   style={{ width: '100%' }}
                 />

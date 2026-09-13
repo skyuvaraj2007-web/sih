@@ -37,7 +37,7 @@ export default function CompanyTalentSearch({
   shortlistedIds = new Set(),
   initialFilters = {},
   onOpenCompare,
-  companyId = 'COMP-001'
+  companyId = ''
 }) {
   // ── SEARCH MODES ──
   const [searchMode, setSearchMode] = useState('general'); // 'general' or 'company_course'
@@ -68,6 +68,20 @@ export default function CompanyTalentSearch({
   const [filterDepartment, setFilterDepartment] = useState('All');
   const [sortBy, setSortBy] = useState('highest_match');
   const [viewMode, setViewMode] = useState('ranked_list'); // 'ranked_list' or 'institution_grouping'
+
+  const dynamicInstitutions = useMemo(() => {
+    const map = new Map();
+    (students || []).forEach(s => {
+      const code = s.collegeId || s.institutionId || s.collegeCode;
+      const name = s.collegeName || s.institutionName || s.college;
+      if (code && name) {
+        map.set(code, name);
+      } else if (name) {
+        map.set(name, name);
+      }
+    });
+    return Array.from(map.entries()).map(([code, name]) => ({ code, name }));
+  }, [students]);
 
   // ── RESULTS & METRICS STATE ──
   const [discoveryData, setDiscoveryData] = useState(null);
@@ -583,9 +597,11 @@ export default function CompanyTalentSearch({
               style={{ width: '100%' }}
             >
               <option value="All">All Registered Institutions</option>
-              <option value="TN010">SRM Institute of Science &amp; Technology (TN010)</option>
-              <option value="TN001">Anna University (TN001)</option>
-              <option value="TN002">PSG College of Technology (TN002)</option>
+              {dynamicInstitutions.map(inst => (
+                <option key={inst.code} value={inst.code}>
+                  {inst.name} ({inst.code})
+                </option>
+              ))}
             </select>
           </div>
 
@@ -691,7 +707,7 @@ export default function CompanyTalentSearch({
               <button
                 type="button"
                 onClick={() => {
-                  setFilterInstitution(inst.institutionName.includes('SRM') ? 'TN010' : inst.institutionName);
+                  setFilterInstitution(inst.institutionId || inst.institutionName);
                   setViewMode('ranked_list');
                 }}
                 className="btn-cyber-outline"

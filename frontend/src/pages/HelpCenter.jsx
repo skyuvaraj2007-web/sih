@@ -216,7 +216,7 @@ export default function HelpCenter({ onShowToast, user }) {
     {
       category: "Interviews",
       q: "What is 1-Click Fast-Track Interview dispatch?",
-      a: "When you identify a high-match candidate (e.g., Arun Kumar at 92% match), clicking '1-Click Fast-Track Interview' automatically issues an official interview invitation through their verified campus institutional portal."
+      a: "When you identify a high-match candidate, clicking '1-Click Fast-Track Interview' automatically issues an official interview invitation through their verified campus institutional portal."
     },
     {
       category: "Company Settings",

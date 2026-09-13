@@ -27,7 +27,7 @@ export default function CompanyAIMatching({
   onShowToast
 }) {
   const [selectedOppId, setSelectedOppId] = useState(
-    opportunities[0]?.oppId || opportunities[0]?.id || 'OPP-001'
+    opportunities[0]?.oppId || opportunities[0]?.id || ''
   );
   const [isScanning, setIsScanning] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -48,7 +48,8 @@ export default function CompanyAIMatching({
       try {
         const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
         if (token) {
-          const res = await fetch(`http://localhost:5000/api/company/opportunities/${selectedOppId}/matches`, {
+          const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+          const res = await fetch(`${apiBase}/company/opportunities/${selectedOppId}/matches`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (res.ok) {
@@ -300,10 +301,7 @@ export default function CompanyAIMatching({
               <tbody>
                 {rankedCandidates.map((cand) => {
                   const isSelected = (currentMatch.studentId === cand.studentId);
-                  const collegeShort = cand.collegeName?.includes('Velalar') ? 'VCET'
-                    : cand.collegeName?.includes('PSG') ? 'PSG Tech'
-                    : cand.collegeName?.includes('SRM') ? 'SRM'
-                    : 'VCET';
+                  const collegeShort = cand.collegeName ? (cand.collegeName.length > 18 ? cand.collegeName.split(' ').map(w => w[0]).join('').slice(0, 8) : cand.collegeName) : 'Campus';
 
                   return (
                     <tr
@@ -385,7 +383,7 @@ export default function CompanyAIMatching({
                   <Sparkles size={11} />
                   EXPLAINABLE MATCH AUDIT
                 </span>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>{currentMatch.name || 'Arun Kumar'}</div>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>{currentMatch.name || 'Candidate'}</div>
               </div>
 
               <div style={{ textAlign: 'right' }}>

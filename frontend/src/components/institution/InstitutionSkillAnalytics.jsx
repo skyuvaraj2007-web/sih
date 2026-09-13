@@ -24,8 +24,8 @@ import { getStudentByCollege, getStudentProjects } from '../../services/nexusDat
 import AddSkillWizardModal from './AddSkillWizardModal';
 
 export default function InstitutionSkillAnalytics({ institution, onShowToast, setActivePage }) {
-  const collegeId = institution?.collegeId || 'TN010';
-  const collegeName = institution?.institutionName || institution?.collegeName || 'SRM Institute of Science and Technology';
+  const collegeId = institution?.collegeId || institution?.id || '';
+  const collegeName = institution?.institutionName || institution?.collegeName || institution?.name || 'Institution';
 
   const [students, setStudents] = useState([]);
   const [backendSkills, setBackendSkills] = useState(null);

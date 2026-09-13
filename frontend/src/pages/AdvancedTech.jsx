@@ -163,7 +163,7 @@ export default function AdvancedTech({ setActivePage }) {
           fontSize: '11.5px', fontFamily: 'var(--font-mono)'
         }}>
           <span style={{ color: 'var(--text-muted)' }}>TARGET PROFILE:</span>
-          <strong style={{ color: 'var(--cyber-cyan)' }}>Arun Kumar • Data Scientist Track</strong>
+          <strong style={{ color: 'var(--cyber-cyan)' }}>Active Learning Cohort</strong>
         </div>
       </div>
 

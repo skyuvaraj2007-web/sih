@@ -7,7 +7,7 @@ export default function NexusAIModal({ isOpen, onClose, setActivePage }) {
   const [messages, setMessages] = useState([
     {
       sender: 'ai',
-      text: "Greetings Arun! I am your Nexus AI Career Companion. I'm actively synthesizing your skill telemetry, diagnostic velocity, and corporate opportunities. How can I accelerate your roadmap today?"
+      text: "Greetings! I am your Nexus AI Career Companion. I'm actively synthesizing your skill telemetry, diagnostic velocity, and corporate opportunities. How can I accelerate your roadmap today?"
     }
   ]);
   const [loading, setLoading] = useState(false);
@@ -34,13 +34,23 @@ export default function NexusAIModal({ isOpen, onClose, setActivePage }) {
     const latest = store.assessments[0];
 
     try {
-      const res = await fetch('http://localhost:5000/api/ai/chat', {
+      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+      const token = localStorage.getItem('nexus_token') || localStorage.getItem('token') || localStorage.getItem('nexus_auth_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${apiBase}/ai/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
+        credentials: 'include',
         body: JSON.stringify({ message: query, latestAssessment: latest })
       });
       const data = await res.json();
-      setMessages([...newMsgs, { sender: 'ai', text: data.reply, suggestions: data.suggestions }]);
+      if (data.success && data.reply) {
+        setMessages([...newMsgs, { sender: 'ai', text: data.reply, suggestions: data.suggestions }]);
+      } else {
+        throw new Error(data.message || 'AI synthesis unavailable');
+      }
     } catch (err) {
       // Explainable AI synthesis from assessment store
       let reply = '';
@@ -63,14 +73,16 @@ export default function NexusAIModal({ isOpen, onClose, setActivePage }) {
 
   return (
     <div className="modal-backdrop" onClick={onClose} style={{ justifyContent: 'flex-end', padding: 0 }}>
-      <div 
+      <div
         style={{
           width: '100%',
           maxWidth: '480px',
           height: '100vh',
-          background: '#090D1A',
-          borderLeft: '1px solid var(--border-glow)',
-          boxShadow: '-10px 0 40px rgba(0,0,0,0.8)',
+          background: 'rgba(6, 26, 51, 0.96)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          borderLeft: '1px solid rgba(0, 217, 255, 0.35)',
+          boxShadow: '-12px 0 50px rgba(0, 0, 0, 0.75), 0 0 35px rgba(124, 58, 237, 0.25)',
           display: 'flex',
           flexDirection: 'column',
           zIndex: 101,
@@ -80,52 +92,55 @@ export default function NexusAIModal({ isOpen, onClose, setActivePage }) {
       >
         {/* Header */}
         <div style={{
-          padding: '16px 20px',
-          borderBottom: '1px solid var(--border-subtle)',
+          padding: '18px 22px',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: 'rgba(11, 17, 32, 0.9)'
+          background: 'rgba(8, 36, 71, 0.85)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
-              width: '32px', height: '32px', borderRadius: '8px',
-              background: 'linear-gradient(135deg, #8B5CF6, #00D4FF)',
+              width: '36px', height: '36px', borderRadius: '10px',
+              background: 'linear-gradient(135deg, #00D9FF 0%, #00539C 50%, #7C3AED 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.35)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#000'
+              boxShadow: '0 0 16px rgba(0, 217, 255, 0.45)',
+              color: '#FFFFFF'
             }}>
-              <Sparkles size={16} />
+              <Sparkles size={18} />
             </div>
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
                 Nexus AI Career Companion
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: '11px', color: '#00D9FF', fontFamily: 'var(--font-mono)' }}>
                 • Active Telemetry Model v4.2
               </div>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', cursor: 'pointer' }}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Real-time Candidate Calibration Banner */}
         <div style={{
-          padding: '10px 20px',
-          background: 'rgba(139, 92, 246, 0.08)',
-          borderBottom: '1px solid rgba(139, 92, 246, 0.2)',
+          padding: '10px 22px',
+          background: 'rgba(0, 217, 255, 0.08)',
+          borderBottom: '1px solid rgba(0, 217, 255, 0.18)',
           display: 'flex',
           justifyContent: 'space-between',
           fontSize: '11.5px',
-          fontFamily: 'var(--font-mono)'
+          fontFamily: 'var(--font-mono)',
+          color: '#D7E7FF'
         }}>
-          <span>READINESS: <strong style={{ color: 'var(--cyber-cyan)' }}>72%</strong></span>
-          <span>INTEGRITY: <strong style={{ color: 'var(--cyber-emerald)' }}>99.4%</strong></span>
-          <span>STREAK: <strong style={{ color: 'var(--cyber-purple)' }}>12 Days</strong></span>
+          <span>READINESS: <strong style={{ color: '#00D9FF' }}>72%</strong></span>
+          <span>INTEGRITY: <strong style={{ color: '#19D3AE' }}>99.4%</strong></span>
+          <span>STREAK: <strong style={{ color: '#FFD662' }}>12 Days</strong></span>
         </div>
 
         {/* Message Stream */}
@@ -136,17 +151,19 @@ export default function NexusAIModal({ isOpen, onClose, setActivePage }) {
               maxWidth: '85%'
             }}>
               <div style={{
-                padding: '12px 16px',
-                borderRadius: '12px',
-                fontSize: '13px',
-                lineHeight: 1.5,
-                background: m.sender === 'user' 
-                  ? 'linear-gradient(135deg, #00D4FF 0%, #2563EB 100%)' 
-                  : 'rgba(17, 26, 48, 0.9)',
-                color: m.sender === 'user' ? '#060B14' : 'var(--text-primary)',
+                padding: '13px 18px',
+                borderRadius: '16px',
+                fontSize: '13.5px',
+                lineHeight: 1.55,
+                background: m.sender === 'user'
+                  ? 'linear-gradient(135deg, #00539C 0%, #1688FF 50%, #00D9FF 100%)'
+                  : 'rgba(255, 255, 255, 0.05)',
+                color: '#FFFFFF',
                 fontWeight: m.sender === 'user' ? 600 : 400,
-                border: m.sender === 'user' ? 'none' : '1px solid var(--border-subtle)',
-                boxShadow: m.sender === 'user' ? 'var(--cyber-cyan-glow)' : 'none'
+                border: m.sender === 'user' ? 'none' : '1px solid rgba(255, 255, 255, 0.12)',
+                boxShadow: m.sender === 'user' ? '0 4px 18px rgba(0, 83, 156, 0.45)' : '0 4px 16px rgba(0,0,0,0.25)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)'
               }}>
                 {m.text}
               </div>
@@ -187,20 +204,23 @@ export default function NexusAIModal({ isOpen, onClose, setActivePage }) {
         </div>
 
         {/* Quick Prompts */}
-        <div style={{ padding: '8px 16px', display: 'flex', gap: '6px', overflowX: 'auto', borderTop: '1px solid var(--border-subtle)' }}>
+        {/* Quick Prompts */}
+        <div style={{ padding: '10px 18px', display: 'flex', gap: '8px', overflowX: 'auto', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
           {quickPrompts.map((p, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(p)}
               style={{
                 whiteSpace: 'nowrap',
-                padding: '4px 10px',
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-secondary)',
+                padding: '6px 12px',
+                borderRadius: '999px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                color: '#D7E7FF',
                 fontSize: '11px',
-                cursor: 'pointer'
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
               }}
             >
               {p}
@@ -209,8 +229,8 @@ export default function NexusAIModal({ isOpen, onClose, setActivePage }) {
         </div>
 
         {/* Input Bar */}
-        <div style={{ padding: '16px', borderTop: '1px solid var(--border-subtle)', background: 'rgba(10, 15, 28, 0.95)' }}>
-          <form 
+        <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', background: 'rgba(6, 26, 51, 0.98)' }}>
+          <form
             onSubmit={(e) => { e.preventDefault(); handleSend(); }}
             style={{ display: 'flex', gap: '10px' }}
           >
@@ -221,29 +241,34 @@ export default function NexusAIModal({ isOpen, onClose, setActivePage }) {
               onChange={(e) => setInput(e.target.value)}
               style={{
                 flex: 1,
-                background: 'var(--bg-input)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                color: 'var(--text-primary)',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.14)',
+                borderRadius: '12px',
+                padding: '11px 16px',
+                color: '#FFFFFF',
                 fontSize: '13px',
-                outline: 'none'
+                outline: 'none',
+                boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
               }}
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
               style={{
-                padding: '10px 16px',
-                background: 'var(--cyber-cyan)',
+                padding: '11px 18px',
+                background: 'linear-gradient(135deg, #00539C 0%, #1688FF 50%, #00D9FF 100%)',
                 border: 'none',
-                borderRadius: '8px',
-                color: '#060B14',
-                fontWeight: 700,
-                cursor: 'pointer'
+                borderRadius: '12px',
+                color: '#FFFFFF',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 14px rgba(0, 83, 156, 0.4)'
               }}
             >
-              <Send size={15} />
+              <Send size={16} />
             </button>
           </form>
         </div>

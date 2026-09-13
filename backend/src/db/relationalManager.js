@@ -40,10 +40,13 @@ if (isPgConfigured) {
           password: process.env.PGPASSWORD,
           database: process.env.PGDATABASE || 'skillnexus_db'
         };
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' || (process.env.DATABASE_URL && (process.env.DATABASE_URL.includes('supabase.com') || process.env.DATABASE_URL.includes('sslmode') || process.env.DATABASE_URL.includes('pooler')))) {
       poolConfig.ssl = { rejectUnauthorized: false };
     }
     pgPool = new Pool(poolConfig);
+    pgPool.on('error', (err) => {
+      console.warn('⚠️ [pgPool] Idle client error (recovering):', err.message);
+    });
     pgPool.query('SELECT 1').then(() => {
       isPgActive = true;
       console.log('✅ PostgreSQL connection verified & active');
@@ -61,650 +64,24 @@ if (isPgConfigured) {
 // DEFAULT RELATIONAL SEED STATE (Aligned with 25 Normalized Tables)
 // ══════════════════════════════════════════════════════════════════════════
 const DEFAULT_RELATIONAL_DATA = {
-  users: [
-    {
-      id: 'usr_001',
-      email: 'arun.kumar@nexus.edu',
-      passwordHash: '$2b$10$bidafvs9ecyWGFZT1BtXVulhJpl2ERnA4ts38.aGmMhzS9UiDXsMC',
-      role: 'STUDENT',
-      name: 'Arun Kumar',
-      studentId: 'STU-TN010-001',
-      collegeId: 'TN010',
-      status: 'ACTIVE',
-      isVerified: true,
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'usr_002',
-      email: 'placements@srmist.edu.in',
-      passwordHash: '$2b$10$bidafvs9ecyWGFZT1BtXVulhJpl2ERnA4ts38.aGmMhzS9UiDXsMC',
-      role: 'INSTITUTION',
-      name: 'Prof. K. Ramanathan',
-      institutionId: 'TN010',
-      collegeId: 'TN010',
-      status: 'ACTIVE',
-      isVerified: true,
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'usr_003',
-      email: 'talent@abctech.com',
-      passwordHash: '$2b$10$bidafvs9ecyWGFZT1BtXVulhJpl2ERnA4ts38.aGmMhzS9UiDXsMC',
-      role: 'COMPANY',
-      name: 'Sarah Jenkins',
-      companyId: 'COMP-001',
-      status: 'ACTIVE',
-      isVerified: true,
-      createdAt: new Date().toISOString()
-    }
-  ],
-  institutions: [
-    {
-      institutionId: 'TN010',
-      collegeName: 'SRM Institute of Science and Technology',
-      collegeCode: 'SRM-KTR-01',
-      state: 'Tamil Nadu',
-      district: 'Chengalpattu',
-      campusType: 'Deemed University',
-      departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE', 'Mechanical'],
-      studentCount: 1420,
-      placementRate: '94.2%',
-      dean: 'Prof. K. Ramanathan',
-      email: 'placements@srmist.edu.in',
-      website: 'https://www.srmist.edu.in'
-    },
-    {
-      institutionId: 'TN001',
-      collegeName: 'Anna University (CEG Campus)',
-      collegeCode: 'AU-CEG-01',
-      state: 'Tamil Nadu',
-      district: 'Chennai',
-      campusType: 'State University',
-      departments: ['CSE', 'IT', 'ECE', 'EEE', 'Mechanical', 'Civil'],
-      studentCount: 2150,
-      placementRate: '96.8%',
-      dean: 'Dr. M. Shanmugam',
-      email: 'tpo@annauniv.edu',
-      website: 'https://www.annauniv.edu'
-    },
-    {
-      institutionId: 'TN030',
-      collegeName: 'PSG College of Technology',
-      collegeCode: 'PSG-CBE-01',
-      state: 'Tamil Nadu',
-      district: 'Coimbatore',
-      campusType: 'Autonomous',
-      departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'Robotics'],
-      studentCount: 1680,
-      placementRate: '95.4%',
-      dean: 'Dr. V. Radhakrishnan',
-      email: 'placement@psgtech.edu',
-      website: 'https://www.psgtech.edu'
-    }
-  ],
-  students: [
-    {
-      studentId: 'STU-TN010-001',
-      regNo: 'RA2211003010001',
-      name: 'Arun Kumar',
-      email: 'arun.kumar@nexus.edu',
-      collegeId: 'TN010',
-      collegeName: 'SRM Institute of Science and Technology',
-      department: 'CSE',
-      year: 'III Year',
-      semester: 'Sem 6',
-      cgpa: '8.92',
-      backlogs: 0,
-      headline: 'B.Tech CSE • Aspiring Data Scientist & AI Systems Engineer',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      readinessScore: 92,
-      placementStatus: 'Placement Ready',
-      preferredRoles: ['Data Scientist', 'AI/ML Engineer', 'Full Stack Developer'],
-      skills: [
-        { name: 'Python', level: 'Advanced', confidence: 94, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-        { name: 'SQL', level: 'Advanced', confidence: 88, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-        { name: 'React', level: 'Intermediate', confidence: 82, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: false },
-        { name: 'Machine Learning', level: 'Advanced', confidence: 87, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-        { name: 'FastAPI', level: 'Intermediate', confidence: 78, verified: true, hasAssessment: false, hasCourse: true, hasProject: true, hasInstSeal: false },
-        { name: 'Docker', level: 'Beginner', confidence: 58, verified: false, hasAssessment: false, hasCourse: false, hasProject: true, hasInstSeal: false },
-        { name: 'Power BI', level: 'Beginner', confidence: 35, verified: false, hasAssessment: false, hasCourse: false, hasProject: false, hasInstSeal: false }
-      ],
-      assessments: [
-        { domain: 'Programming & Data Structures', score: 92, percentile: '94th Percentile', status: 'Verified' },
-        { domain: 'Logical & Algorithmic Reasoning', score: 88, percentile: '91st Percentile', status: 'Verified' },
-        { domain: 'Quantitative Aptitude', score: 84, percentile: '88th Percentile', status: 'Verified' }
-      ],
-      badges: ['Code Master Gold', 'Algorithmic Thinker', '100 Days of Code', 'AI Scholar'],
-      certifications: [
-        { title: 'Cryptographic Python Specialist', issuer: 'SRM Center of Excellence', date: '2026-06-12', credentialId: 'NX-3801-PY' },
-        { title: 'Full Stack Web Architecture', issuer: 'Nexus AI Academy', date: '2026-07-20', credentialId: 'NX-9102-REACT' }
-      ]
-    },
-    {
-      studentId: 'STU-TN010-002',
-      regNo: 'RA2211003010045',
-      name: 'Priya Sundaram',
-      email: 'priya.sundaram@nexus.edu',
-      collegeId: 'TN010',
-      collegeName: 'SRM Institute of Science and Technology',
-      department: 'ECE',
-      year: 'II Year',
-      semester: 'Sem 4',
-      cgpa: '9.15',
-      backlogs: 0,
-      headline: 'B.Tech ECE • Embedded Systems & Edge AI Researcher',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-      readinessScore: 88,
-      placementStatus: 'Placement Ready',
-      preferredRoles: ['IoT Specialist', 'Edge AI Engineer', 'Firmware Developer'],
-      skills: [
-        { name: 'C++', level: 'Advanced', confidence: 91, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-        { name: 'Python', level: 'Intermediate', confidence: 80, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-        { name: 'IoT', level: 'Advanced', confidence: 94, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-        { name: 'Embedded Systems', level: 'Advanced', confidence: 89, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true }
-      ],
-      assessments: [
-        { domain: 'Embedded Architecture & C', score: 94, percentile: '97th Percentile', status: 'Verified' },
-        { domain: 'Digital Logic & Circuitry', score: 90, percentile: '92nd Percentile', status: 'Verified' }
-      ],
-      badges: ['Hardware Hacker', 'Circuit Champion', 'IoT Visionary'],
-      certifications: [
-        { title: 'Edge AI & TinyML Attestation', issuer: 'SRM Center of Excellence', date: '2026-05-18', credentialId: 'NX-4412-TINY' }
-      ]
-    },
-    {
-      studentId: 'STU-TN010-003',
-      regNo: 'RA2211003010112',
-      name: 'Karthik Raja',
-      email: 'karthik.raja@nexus.edu',
-      collegeId: 'TN010',
-      collegeName: 'SRM Institute of Science and Technology',
-      department: 'AI & DS',
-      year: 'III Year',
-      semester: 'Sem 6',
-      cgpa: '8.45',
-      backlogs: 0,
-      headline: 'B.Tech AI & DS • MLOps & Distributed AI Pipelines',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-      readinessScore: 84,
-      placementStatus: 'Under Mentorship',
-      preferredRoles: ['MLOps Engineer', 'Cloud AI Architect', 'Data Engineer'],
-      skills: [
-        { name: 'Python', level: 'Advanced', confidence: 89, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-        { name: 'Docker', level: 'Intermediate', confidence: 82, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: false },
-        { name: 'Kubernetes', level: 'Beginner', confidence: 64, verified: false, hasAssessment: false, hasCourse: true, hasProject: true, hasInstSeal: false },
-        { name: 'MLflow', level: 'Intermediate', confidence: 75, verified: true, hasAssessment: false, hasCourse: true, hasProject: true, hasInstSeal: false }
-      ],
-      assessments: [
-        { domain: 'Algorithms & Computation', score: 86, percentile: '89th Percentile', status: 'Verified' }
-      ],
-      badges: ['Pipeline Builder', 'Cloud Apprentice'],
-      certifications: []
-    },
-    {
-      studentId: 'STU-TN001-001',
-      regNo: 'AU22101001',
-      name: 'Kaviya Selvan',
-      email: 'kaviya.s@annauniv.edu',
-      collegeId: 'TN001',
-      collegeName: 'Anna University (CEG Campus)',
-      department: 'CSE',
-      year: 'III Year',
-      semester: 'Sem 6',
-      cgpa: '9.40',
-      backlogs: 0,
-      headline: 'B.Tech CSE CEG • Distributed Systems & High-Throughput DBs',
-      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-      readinessScore: 95,
-      placementStatus: 'Placement Ready',
-      preferredRoles: ['Cloud Architect', 'Backend Systems Engineer'],
-      skills: [
-        { name: 'Go', level: 'Advanced', confidence: 96, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-        { name: 'Kubernetes', level: 'Advanced', confidence: 92, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-        { name: 'Python', level: 'Advanced', confidence: 90, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true }
-      ],
-      assessments: [
-        { domain: 'Distributed Systems & Concurrency', score: 96, percentile: '99th Percentile', status: 'Verified' }
-      ],
-      badges: ['CEG Gold Medalist', 'Systems Legend'],
-      certifications: []
-    },
-    {
-      studentId: 'STU-TN001-002',
-      regNo: 'AU22101054',
-      name: 'Divya Bharathi',
-      email: 'divya.b@annauniv.edu',
-      collegeId: 'TN001',
-      collegeName: 'Anna University (CEG Campus)',
-      department: 'IT',
-      year: 'II Year',
-      semester: 'Sem 4',
-      cgpa: '8.78',
-      backlogs: 0,
-      headline: 'B.Tech IT CEG • Cryptography & DevSecOps Lead',
-      avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80',
-      readinessScore: 86,
-      placementStatus: 'Placement Ready',
-      preferredRoles: ['Security Analyst', 'DevSecOps Engineer'],
-      skills: [
-        { name: 'Cybersecurity', level: 'Advanced', confidence: 90, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-        { name: 'Linux', level: 'Advanced', confidence: 88, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true }
-      ],
-      assessments: [],
-      badges: ['Security Ninja'],
-      certifications: []
-    }
-  ],
-  courses: [
-    {
-      courseId: 'CRS-TN010-01',
-      institutionId: 'TN010',
-      institutionName: 'SRM Institute of Science and Technology',
-      title: 'Applied Deep Learning & NLP',
-      code: 'CS-702-DL',
-      category: 'Artificial Intelligence',
-      level: 'Advanced',
-      duration: '8 Weeks (24 Hours)',
-      hours: 24,
-      instructor: 'Prof. K. Ramanathan',
-      enrolledCount: 184,
-      skillsTaught: ['Python', 'Machine Learning', 'FastAPI'],
-      rating: 4.9,
-      modules: [
-        { moduleNumber: 1, title: 'Foundations of Neural Networks & Tensor Mathematics', duration: '3 Hours', lessons: ['Matrix calculus review', 'Backpropagation from scratch', 'PyTorch tensor ops'] },
-        { moduleNumber: 2, title: 'Transformer Architecture & Self-Attention Mechanisms', duration: '3 Hours', lessons: ['Scaled dot-product attention', 'Multi-head attention blocks', 'Positional encodings'] },
-        { moduleNumber: 3, title: 'Pre-training, Masked Language Models & Fine-Tuning', duration: '3 Hours', lessons: ['BERT architecture', 'HuggingFace Trainer API', 'Classification head tuning'] },
-        { moduleNumber: 4, title: 'Model Quantization, ONNX Export & Production Serving', duration: '3 Hours', lessons: ['Post-training INT8 quantization', 'ONNX runtime benchmarking', 'FastAPI streaming endpoint'] }
-      ]
-    },
-    {
-      courseId: 'CRS-TN010-02',
-      institutionId: 'TN010',
-      institutionName: 'SRM Institute of Science and Technology',
-      title: 'Full-Stack Systems with Go & React',
-      code: 'CS-504-FS',
-      category: 'Systems Engineering',
-      level: 'Intermediate',
-      duration: '6 Weeks (18 Hours)',
-      hours: 18,
-      instructor: 'Dr. Aruna Devi',
-      enrolledCount: 220,
-      skillsTaught: ['React', 'Docker', 'SQL'],
-      rating: 4.8,
-      modules: [
-        { moduleNumber: 1, title: 'High-Concurrency Backend with Go', duration: '3 Hours', lessons: ['Goroutines and channels', 'HTTP multiplexers', 'GORM repository pattern'] },
-        { moduleNumber: 2, title: 'Modern Frontend with React 19', duration: '3 Hours', lessons: ['Server actions', 'Optimistic UI hooks', 'Tailwind tokens'] }
-      ]
-    },
-    {
-      courseId: 'CRS-TN001-01',
-      institutionId: 'TN001',
-      institutionName: 'Anna University (CEG Campus)',
-      title: 'Cloud-Native Kubernetes & Microservices',
-      code: 'IT-801-CN',
-      category: 'Cloud Architecture',
-      level: 'Advanced',
-      duration: '10 Weeks (30 Hours)',
-      hours: 30,
-      instructor: 'Dr. M. Shanmugam',
-      enrolledCount: 142,
-      skillsTaught: ['Kubernetes', 'Docker', 'Linux'],
-      rating: 4.9,
-      modules: [
-        { moduleNumber: 1, title: 'Containerization & Dockerfile Optimization', duration: '3 Hours', lessons: ['Multi-stage builds', 'Distroless images', 'Linux namespaces'] }
-      ]
-    },
-    {
-      courseId: 'CRS-TN030-01',
-      institutionId: 'TN030',
-      institutionName: 'PSG College of Technology',
-      title: 'Autonomous Robotics & ROS 2',
-      code: 'ROB-601-AU',
-      category: 'Robotics',
-      level: 'Advanced',
-      duration: '12 Weeks (36 Hours)',
-      hours: 36,
-      instructor: 'Dr. V. Radhakrishnan',
-      enrolledCount: 98,
-      skillsTaught: ['C++', 'IoT', 'Embedded Systems'],
-      rating: 4.7,
-      modules: [
-        { moduleNumber: 1, title: 'ROS 2 Architecture & Node Graph Topology', duration: '3 Hours', lessons: ['Publishers & Subscribers', 'DDS middleware', 'Custom message IDL'] }
-      ]
-    },
-    {
-      courseId: 'CRS-TN010-03',
-      institutionId: 'TN010',
-      institutionName: 'SRM Institute of Science and Technology',
-      title: 'Generative AI & LLM Systems',
-      code: 'CS-901-GENAI',
-      category: 'Artificial Intelligence',
-      level: 'Advanced',
-      duration: '6 Weeks (18 Hours)',
-      hours: 18,
-      instructor: 'Prof. K. Ramanathan',
-      enrolledCount: 310,
-      skillsTaught: ['Generative AI', 'Python', 'Machine Learning'],
-      rating: 5.0,
-      modules: [
-        { moduleNumber: 1, title: 'Foundations & Architecture of Large Language Models', duration: '2.5 Hours', lessons: ['Transformer attention blocks', 'Tokenization paradigms', 'Open-weight checkpoints'] },
-        { moduleNumber: 2, title: 'Prompt Engineering, System Prompts & Guardrails', duration: '2.5 Hours', lessons: ['Few-shot prompting', 'Chain-of-Thought', 'Structured JSON validation'] },
-        { moduleNumber: 3, title: 'Vector Embeddings, Similarity Search & Indexing', duration: '3 Hours', lessons: ['Dense embedding models', 'Cosine similarity vs inner product', 'ChromaDB index management'] },
-        { moduleNumber: 4, title: 'Retrieval-Augmented Generation (RAG) Architectures', duration: '3 Hours', lessons: ['Recursive document chunking', 'Hybrid search ranking', 'Hallucination filtering'] }
-      ]
-    }
-  ],
-  enrollments: [
-    {
-      id: 'enr_001',
-      studentId: 'STU-TN010-001',
-      courseId: 'CRS-TN010-01',
-      courseTitle: 'Applied Deep Learning & NLP',
-      category: 'Artificial Intelligence',
-      instructor: 'Prof. K. Ramanathan',
-      progress: 75,
-      completedModules: 6,
-      totalModules: 8,
-      hoursRemaining: 6,
-      status: 'In Progress',
-      currentModule: 'Module 4: Model Quantization, ONNX Export & Production Serving',
-      enrolledAt: '2026-08-10T10:00:00.000Z'
-    },
-    {
-      id: 'enr_002',
-      studentId: 'STU-TN010-001',
-      courseId: 'CRS-TN010-03',
-      courseTitle: 'Generative AI & LLM Systems',
-      category: 'Artificial Intelligence',
-      instructor: 'Prof. K. Ramanathan',
-      progress: 85,
-      completedModules: 7,
-      totalModules: 8,
-      hoursRemaining: 3,
-      status: 'In Progress',
-      currentModule: 'Module 4: Retrieval-Augmented Generation (RAG) Architectures',
-      enrolledAt: '2026-08-18T14:30:00.000Z'
-    }
-  ],
-  projects: [
-    {
-      projectId: 'PRJ-001',
-      studentId: 'STU-TN010-001',
-      studentName: 'Arun Kumar',
-      collegeId: 'TN010',
-      title: 'AI Resume Analyzer & ATS Parser',
-      description: 'Enterprise ATS parser utilizing fine-tuned NLP pipelines, vector embeddings, and zero-shot keyword extraction with 96% match accuracy against Fortune 500 job descriptions.',
-      techStack: ['Python', 'NLP', 'FastAPI', 'React', 'PostgreSQL'],
-      githubUrl: 'https://github.com/arunkumar/ai-resume-ats-engine',
-      liveUrl: 'https://ats-analyzer-demo.nexus.app',
-      status: 'Validated',
-      statusNote: 'Faculty verified & anchored to sovereign block #8941_301',
-      submittedAt: '2026-08-25T11:20:00.000Z',
-      validatedAt: '2026-09-02T16:00:00.000Z',
-      proof: {
-        proofHash: '0x94f8128bc91a782b10a9c84e1823019f823a78bc',
-        gitCommitHash: 'c8a91f3',
-        testPassPercentage: 96,
-        codeQualityScore: 94.5,
-        facultyVerified: true,
-        facultyId: 'Prof. K. Ramanathan',
-        facultySignature: 'SIG_COE_SRM_9821_OCT24',
-        verificationStatus: 'Validated',
-        ledgerBlock: 'Block #8941_301'
-      }
-    },
-    {
-      projectId: 'PRJ-002',
-      studentId: 'STU-TN010-001',
-      studentName: 'Arun Kumar',
-      collegeId: 'TN010',
-      title: 'Distributed Predictive Churn Engine',
-      description: 'Production-grade churn prediction engine processing 100K+ transactional events with real-time risk scoring and Kafka stream integration.',
-      techStack: ['Python', 'Pandas', 'Scikit-Learn', 'PostgreSQL'],
-      githubUrl: 'https://github.com/arunkumar/churn-predictive-eda',
-      liveUrl: 'https://churn-predictor.nexus.app',
-      status: 'Validated',
-      statusNote: 'Faculty attested on SRM Sovereign Ledger',
-      submittedAt: '2026-08-05T09:00:00.000Z',
-      validatedAt: '2026-08-20T14:15:00.000Z',
-      proof: {
-        proofHash: '0x8821bc109b4317a8029c738192a40b912384a8bc',
-        gitCommitHash: 'a41f89e',
-        testPassPercentage: 98.2,
-        codeQualityScore: 92.0,
-        facultyVerified: true,
-        facultyId: 'Prof. K. Ramanathan',
-        facultySignature: 'SIG_COE_SRM_4412_SEP24',
-        verificationStatus: 'Validated',
-        ledgerBlock: 'Block #8930_118'
-      }
-    }
-  ],
-  companies: [
-    {
-      companyId: 'COMP-001',
-      companyName: 'ABC Technologies',
-      industry: 'Information Technology & AI Solutions',
-      tier: 'Tier 1 Prime Partner',
-      headquarters: 'Chennai (OMR IT Expressway)',
-      state: 'Tamil Nadu',
-      verified: true,
-      activePostings: 4,
-      recruiterName: 'Sarah Jenkins',
-      recruiterEmail: 'talent@abctech.com',
-      recruiterTitle: 'Head of Talent Acquisition & Campus Partnerships'
-    },
-    {
-      companyId: 'COMP-002',
-      companyName: 'CloudScale Systems',
-      industry: 'Cloud Infrastructure & Distributed Systems',
-      tier: 'Tier 1 Prime Partner',
-      headquarters: 'Bengaluru, Karnataka',
-      state: 'Karnataka',
-      verified: true,
-      activePostings: 6,
-      recruiterName: 'Vikram Anand',
-      recruiterEmail: 'vikram.anand@cloudscale.com',
-      recruiterTitle: 'Director of Engineering & Emerging Talent'
-    },
-    {
-      companyId: 'COMP-003',
-      companyName: 'Apex Financial AI',
-      industry: 'Fintech & Algorithmic Intelligence',
-      tier: 'Strategic Hiring Partner',
-      headquarters: 'Mumbai, Maharashtra',
-      state: 'Maharashtra',
-      verified: true,
-      activePostings: 2,
-      recruiterName: 'Priya Menon',
-      recruiterEmail: 'priya.menon@apexfin.com',
-      recruiterTitle: 'Lead Quantitative Recruitment Lead'
-    },
-    {
-      companyId: 'COMP-004',
-      companyName: 'Infosys Springboard',
-      industry: 'Global Technology Consulting',
-      tier: 'Global Corporate Sponsor',
-      headquarters: 'Bengaluru, Karnataka',
-      state: 'Karnataka',
-      verified: true,
-      activePostings: 8,
-      recruiterName: 'Corporate Hiring Desk',
-      recruiterEmail: 'springboard@infosys.com',
-      recruiterTitle: 'Academic Outreach Lead'
-    }
-  ],
-  opportunities: [
-    {
-      oppId: 'OPP-001',
-      companyId: 'COMP-001',
-      companyName: 'ABC Technologies',
-      title: 'Data Analyst Intern',
-      type: 'Internship',
-      mode: 'Hybrid',
-      location: 'Chennai, Tamil Nadu (OMR Campus)',
-      stipend: '₹35,000 / month',
-      duration: '6 Months (PPO Convertible)',
-      minCgpa: '7.5',
-      deadline: 'September 25, 2026',
-      requiredSkills: [
-        { name: 'Python', requiredLevel: 'Advanced', weight: 35 },
-        { name: 'SQL', requiredLevel: 'Advanced', weight: 30 },
-        { name: 'Machine Learning', requiredLevel: 'Intermediate', weight: 20 },
-        { name: 'Power BI', requiredLevel: 'Intermediate', weight: 15 }
-      ],
-      description: 'Analyze high-velocity client telemetry data, build automated executive dashboards, and implement SQL/Python predictive pipelines for enterprise clients.',
-      applicantCount: 42,
-      status: 'ACTIVE'
-    },
-    {
-      oppId: 'OPP-002',
-      companyId: 'COMP-002',
-      companyName: 'CloudScale Systems',
-      title: 'Cloud DevOps Intern',
-      type: 'Internship',
-      mode: 'Remote',
-      location: 'Remote (India Hub)',
-      stipend: '₹45,000 / month',
-      duration: '3 Months (Full-Time Offer on Review)',
-      minCgpa: '7.8',
-      deadline: 'October 10, 2026',
-      requiredSkills: [
-        { name: 'Docker', requiredLevel: 'Intermediate', weight: 35 },
-        { name: 'Linux', requiredLevel: 'Intermediate', weight: 25 },
-        { name: 'AWS', requiredLevel: 'Intermediate', weight: 25 },
-        { name: 'Python', requiredLevel: 'Intermediate', weight: 15 }
-      ],
-      description: 'Build and maintain automated CI/CD pipelines, containerize backend microservices with Docker, and orchestrate deployments on AWS Kubernetes clusters.',
-      applicantCount: 68,
-      status: 'ACTIVE'
-    },
-    {
-      oppId: 'OPP-003',
-      companyId: 'COMP-003',
-      companyName: 'Apex Financial AI',
-      title: 'AI Systems Research Intern',
-      type: 'Internship',
-      mode: 'Hybrid',
-      location: 'Mumbai / Hybrid',
-      stipend: '₹55,000 / month',
-      duration: '6 Months',
-      minCgpa: '8.5',
-      deadline: 'September 30, 2026',
-      requiredSkills: [
-        { name: 'Python', requiredLevel: 'Advanced', weight: 35 },
-        { name: 'Generative AI', requiredLevel: 'Advanced', weight: 35 },
-        { name: 'RAG', requiredLevel: 'Intermediate', weight: 20 },
-        { name: 'FastAPI', requiredLevel: 'Intermediate', weight: 10 }
-      ],
-      description: 'Implement retrieval-augmented generation (RAG) engines, benchmark open-weight LLMs, and optimize inference latency using vLLM and TensorRT-LLM.',
-      applicantCount: 29,
-      status: 'ACTIVE'
-    }
-  ],
-  applications: [
-    {
-      applicationId: 'APP-001',
-      studentId: 'STU-TN010-001',
-      studentName: 'Arun Kumar',
-      studentCollegeId: 'TN010',
-      studentDepartment: 'CSE',
-      opportunityId: 'OPP-001',
-      companyId: 'COMP-001',
-      opportunityTitle: 'Data Analyst Intern',
-      companyName: 'ABC Technologies',
-      matchScore: 92,
-      stage: 'Shortlisted',
-      appliedAt: '2026-09-02T14:15:00.000Z',
-      recruiterAction: 'Shortlisted for Round 1 Technical Interview • Passport Verified'
-    },
-    {
-      applicationId: 'APP-002',
-      studentId: 'STU-TN010-001',
-      studentName: 'Arun Kumar',
-      studentCollegeId: 'TN010',
-      studentDepartment: 'CSE',
-      opportunityId: 'OPP-002',
-      companyId: 'COMP-002',
-      opportunityTitle: 'Cloud DevOps Intern',
-      companyName: 'CloudScale Systems',
-      matchScore: 86,
-      stage: 'Applied',
-      appliedAt: '2026-09-03T18:30:00.000Z',
-      recruiterAction: 'Candidate in Initial Automated Screening Queue'
-    }
-  ],
-  notifications: [
-    {
-      id: 'notif_01',
-      role: 'student',
-      type: 'high_match',
-      title: 'New High-Match Internship',
-      preview: 'ABC Technologies posted Data Analyst Intern matching 92% of your verified competencies.',
-      time: '2 hours ago',
-      timestamp: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-      unread: true,
-      deleted: false,
-      deletedAt: null,
-      details: {
-        matchPercentage: 92,
-        role: 'Data Analyst Intern',
-        company: 'ABC Technologies',
-        compensation: '₹35,000 / month',
-        action: 'opportunities'
-      }
-    },
-    {
-      id: 'notif_02',
-      role: 'student',
-      type: 'project_validated',
-      title: 'Project Proof Validated',
-      preview: 'Your "AI Resume Analyzer & ATS Parser" project was verified and sealed to your Digital Passport.',
-      time: '5 hours ago',
-      timestamp: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
-      unread: true,
-      deleted: false,
-      deletedAt: null,
-      details: {
-        project: 'AI Resume Analyzer & ATS Parser',
-        proctorHash: '0x94f8128bc91a782b',
-        action: 'projects'
-      }
-    },
-    {
-      id: 'inst_notif_01',
-      role: 'institution',
-      type: 'student_skill_updated',
-      title: 'Student Skill Verified',
-      preview: 'Arun Kumar (B.Tech CSE) completed verification for Python (94%) & Machine Learning (87%).',
-      time: '3 hours ago',
-      timestamp: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
-      unread: true,
-      deleted: false,
-      deletedAt: null,
-      details: {
-        student: 'Arun Kumar',
-        action: 'institution-students'
-      }
-    },
-    {
-      id: 'comp_notif_01',
-      role: 'company',
-      type: 'application_received',
-      title: 'New Verified Candidate Application',
-      preview: 'Arun Kumar applied for Data Analyst Intern with 92% NEXUS Match and validated Sovereign Ledger proof.',
-      time: '1 hour ago',
-      timestamp: new Date(Date.now() - 3600 * 1000).toISOString(),
-      unread: true,
-      deleted: false,
-      deletedAt: null,
-      details: {
-        candidate: 'Arun Kumar',
-        matchScore: 92,
-        action: 'applications'
-      }
-    }
-  ]
+  users: [],
+  institutions: [],
+  students: [],
+  courses: [],
+  enrollments: [],
+  projects: [],
+  companies: [],
+  opportunities: [],
+  applications: [],
+  notifications: [],
+  matchResults: [],
+  interviews: [],
+  accessRequests: [],
+  sharedStudents: [],
+  institutionAssessments: [],
+  courseCertificates: [],
+  skillsList: [],
+  partnerships: []
 };
 
 // Initialize file if not exists
@@ -961,7 +338,50 @@ class RelationalManager {
   }
 
   getRegisteredInstitutions() {
-    const data = this._read();
+    // Phase 10: PostgreSQL-only runtime. Never read relational_db.json.
+    // Return authoritative Tamil Nadu Engineering Colleges master directory as static reference
+    const masterColleges = TAMIL_NADU_ENGINEERING_COLLEGES || [];
+    return masterColleges.map(inst => {
+      const depts = [
+        'Computer Science and Engineering',
+        'Information Technology',
+        'Artificial Intelligence and Data Science',
+        'Electronics and Communication Engineering',
+        'Mechanical Engineering',
+        'Electrical and Electronics Engineering'
+      ];
+      const normStructure = depts.map(d => ({
+        department: d,
+        degrees: ['B.E.', 'B.Tech'],
+        specializations: ['General', 'Artificial Intelligence & Machine Learning', 'Data Science', 'Cloud Computing']
+      }));
+      normStructure.departments = depts;
+      normStructure.degrees = ['B.E.', 'B.Tech'];
+      normStructure.specializations = ['General', 'Artificial Intelligence & Machine Learning', 'Data Science', 'Cloud Computing'];
+
+      return {
+        id: inst.id || inst.collegeCode,
+        institutionId: inst.collegeCode,
+        collegeId: inst.collegeCode,
+        collegeName: inst.collegeName,
+        collegeCode: inst.collegeCode,
+        institutionCode: inst.collegeCode,
+        district: inst.district,
+        state: 'Tamil Nadu',
+        campusType: inst.collegeType || 'Affiliated Engineering College',
+        university: inst.university || 'Anna University',
+        departments: depts,
+        academicStructure: normStructure,
+        email: inst.email || `contact@${inst.collegeCode.toLowerCase()}.edu.in`,
+        website: inst.website || '',
+        isVerified: true,
+        status: 'ACTIVE'
+      };
+    });
+  }
+
+  getRegisteredInstitutionsLegacy() {
+    const data = this._read(true);
     return (data.institutions || []).map(inst => {
       let normStructure = [];
       if (Array.isArray(inst.academicStructure) && inst.academicStructure.length > 0) {
@@ -1032,7 +452,7 @@ class RelationalManager {
         }
 
         const passwordHash = bcrypt.hashSync(userData.password, 10);
-        const roleCode = (role === 'institution' ? 'INSTITUTION' : role === 'company' || role === 'industry' ? 'COMPANY' : 'STUDENT');
+        const roleCode = (role === 'institution' ? 'INSTITUTION' : role === 'company' || role === 'industry' ? 'COMPANY' : role === 'faculty' || role === 'academician' ? 'FACULTY' : 'STUDENT');
         const roleRes = await this.pg.query('SELECT id FROM roles WHERE code = $1 LIMIT 1', [roleCode]);
         let roleId = roleRes.rows[0]?.id;
         if (!roleId) {
@@ -1056,13 +476,31 @@ class RelationalManager {
           if (!institutionValue) {
             return { success: false, code: 400, statusCode: 400, message: 'Institution code or ID is required for student registration.' };
           }
-          const institutionRes = await this.pg.query(
+          let institutionRes = await this.pg.query(
             'SELECT id, code, name FROM institutions WHERE id::text = $1 OR code = $1 OR LOWER(code) = LOWER($1) OR name ILIKE $2 LIMIT 1',
             [String(institutionValue), `%${String(institutionValue)}%`]
           );
-          const institution = institutionRes.rows[0];
+          let institution = institutionRes.rows[0];
           if (!institution) {
-            return { success: false, code: 400, statusCode: 400, message: 'Requested institution does not exist.' };
+            const masterCollege = getMasterCollegeByCodeOrId(institutionValue);
+            const cleanCode = masterCollege ? masterCollege.collegeCode : String(institutionValue).toUpperCase().slice(0, 32);
+            const cleanName = masterCollege ? masterCollege.collegeName : (userData.collegeName || userData.institutionName || `Institution ${cleanCode}`);
+            const cleanDistrict = masterCollege ? masterCollege.district : (userData.district || 'Tamil Nadu');
+            const cleanEmail = (masterCollege && masterCollege.email) ? masterCollege.email : (userData.officialEmail || `contact@${cleanCode.toLowerCase()}.edu.in`);
+
+            const newInst = await this.pg.query(
+              `INSERT INTO institutions (code, name, district, state, official_email, website_url, created_at, updated_at)
+               VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING id, code, name`,
+              [
+                cleanCode,
+                cleanName,
+                cleanDistrict,
+                'Tamil Nadu',
+                cleanEmail,
+                (masterCollege && masterCollege.website) ? masterCollege.website : (userData.website || null)
+              ]
+            );
+            institution = newInst.rows[0];
           }
 
           const deptValue = userData.departmentId || userData.departmentCode || userData.department || userData.dept || null;
@@ -1076,19 +514,63 @@ class RelationalManager {
              LIMIT 1`,
             [institution.id, String(deptValue), `%${String(deptValue)}%`]
           );
-          if (departmentRes.rows.length === 0) {
-            return { success: false, code: 400, statusCode: 400, message: 'Specified department does not exist for the selected institution.' };
+          let deptId = departmentRes.rows[0]?.id;
+          if (!deptId) {
+            const cleanDeptCode = String(deptValue).toUpperCase().slice(0, 10);
+            const cleanDeptName = String(deptValue);
+            const newDept = await this.pg.query(
+              `INSERT INTO departments (institution_id, code, name, created_at)
+               VALUES ($1, $2, $3, NOW()) RETURNING id`,
+              [institution.id, cleanDeptCode, cleanDeptName]
+            );
+            deptId = newDept.rows[0].id;
           }
-          const deptId = departmentRes.rows[0].id;
+
+          // Resolve class_id if provided
+          const classValue = userData.classId || userData.className || userData.class || userData.section || null;
+          let classId = null;
+          if (classValue && institution.id && deptId) {
+            const classRes = await this.pg.query(
+              `SELECT id FROM classes 
+               WHERE institution_id = $1 AND department_id = $2 
+                 AND (id::text = $3 OR LOWER(name) = LOWER($3) OR name ILIKE $4) 
+               LIMIT 1`,
+              [institution.id, deptId, String(classValue), `%${String(classValue)}%`]
+            );
+            if (classRes.rows.length > 0) {
+              classId = classRes.rows[0].id;
+            } else {
+              const newClass = await this.pg.query(
+                `INSERT INTO classes (institution_id, department_id, name, section, year_semester, batch, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id`,
+                [
+                  institution.id,
+                  deptId,
+                  String(classValue).trim(),
+                  String(classValue).slice(-1).toUpperCase() || 'A',
+                  userData.yearSemester || userData.year || userData.semester || '3rd Year / 5th Sem',
+                  userData.batch || '2023-2027'
+                ]
+              );
+              classId = newClass.rows[0].id;
+            }
+          }
 
           const regNo = (userData.regNo || userData.registerNumber || userData.rollNumber || userData.studentId || `REG-${Date.now().toString().slice(-6)}`).trim();
           const studentInsert = await this.pg.query(
-            `INSERT INTO students (user_id, institution_id, department_id, roll_number, full_name, cgpa, batch, graduation_year, readiness_score, placement_status, target_career_role, bio, resume_url, github_url, linkedin_url, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW()) RETURNING id, full_name`,
+            `INSERT INTO students (
+               user_id, institution_id, department_id, class_id, roll_number, full_name,
+               cgpa, batch, graduation_year, readiness_score, placement_status,
+               target_career_role, bio, resume_url, github_url, linkedin_url,
+               year_semester, age, created_at, updated_at
+             )
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW(), NOW()) 
+             RETURNING id, full_name`,
             [
               userId,
               institution.id,
               deptId,
+              classId,
               regNo,
               userData.name || userData.fullName || 'Student',
               userData.cgpa != null && userData.cgpa !== '' && !isNaN(Number(userData.cgpa)) ? Number(userData.cgpa) : null,
@@ -1100,9 +582,23 @@ class RelationalManager {
               userData.bio || null,
               userData.resumeUrl || null,
               userData.githubUrl || null,
-              userData.linkedinUrl || null
+              userData.linkedinUrl || null,
+              userData.yearSemester || userData.year || userData.semester || '3rd Year / 5th Sem',
+              userData.age ? parseInt(userData.age, 10) : null
             ]
           );
+
+          const newStudentId = studentInsert.rows[0].id;
+          // Trigger automatic student -> staff mapping
+          if (classId) {
+            try {
+              const { mapStudentToStaff } = require('../services/staffMappingEngine');
+              await mapStudentToStaff(newStudentId, this.pg);
+            } catch (mapErr) {
+              console.warn('[registerUser] Student-staff mapping trigger note:', mapErr.message);
+            }
+          }
+
           const { otp } = this.generateDemoOtp(email, 'REGISTRATION');
           return {
             success: true,
@@ -1115,10 +611,11 @@ class RelationalManager {
               userId,
               email,
               role,
-              studentId: studentInsert.rows[0].id,
+              studentId: newStudentId,
               name: studentInsert.rows[0].full_name,
               institutionId: institution.id,
               collegeId: institution.id,
+              classId,
               status: 'ACTIVE',
               isVerified: true
             }
@@ -1220,6 +717,167 @@ class RelationalManager {
               role,
               companyId: compId,
               name: compName,
+              status: 'ACTIVE',
+              isVerified: true
+            }
+          };
+        }
+
+        if (role === 'faculty' || role === 'academician') {
+          const facultyName = userData.name || userData.fullName || 'Faculty Member';
+          const institutionValue = userData.institutionId || userData.collegeId || userData.collegeCode || userData.institutionCode || userData.institution || null;
+          let instId = null;
+          let instCode = null;
+
+          if (institutionValue) {
+            let instRes = await this.pg.query(
+              'SELECT id, code, name FROM institutions WHERE id::text = $1 OR code = $1 OR LOWER(code) = LOWER($1) OR name ILIKE $2 LIMIT 1',
+              [String(institutionValue), `%${String(institutionValue)}%`]
+            );
+            if (instRes.rows.length > 0) {
+              instId = instRes.rows[0].id;
+              instCode = instRes.rows[0].code;
+            }
+          }
+          if (!instId) {
+            const firstInst = await this.pg.query('SELECT id, code, name FROM institutions LIMIT 1');
+            if (firstInst.rows.length > 0) {
+              instId = firstInst.rows[0].id;
+              instCode = firstInst.rows[0].code;
+            }
+          }
+
+          let deptId = null;
+          const deptValue = userData.departmentId || userData.departmentCode || userData.department || userData.dept || null;
+          if (deptValue && instId) {
+            const deptRes = await this.pg.query(
+              `SELECT id FROM departments WHERE institution_id = $1 AND (id::text = $2 OR code = $2 OR LOWER(code) = LOWER($2) OR name ILIKE $3) LIMIT 1`,
+              [instId, String(deptValue), `%${String(deptValue)}%`]
+            );
+            if (deptRes.rows.length > 0) {
+              deptId = deptRes.rows[0].id;
+            } else {
+              const newDept = await this.pg.query(
+                `INSERT INTO departments (institution_id, code, name, created_at)
+                 VALUES ($1, $2, $3, NOW()) RETURNING id`,
+                [instId, String(deptValue).toUpperCase().slice(0, 10), String(deptValue)]
+              );
+              deptId = newDept.rows[0].id;
+            }
+          }
+
+          // Resolve class_id if provided
+          let classId = null;
+          const classValue = userData.classId || userData.className || userData.class || null;
+          if (classValue && instId && deptId) {
+            const classRes = await this.pg.query(
+              `SELECT id FROM classes 
+               WHERE institution_id = $1 AND department_id = $2 
+                 AND (id::text = $3 OR LOWER(name) = LOWER($3) OR name ILIKE $4) 
+               LIMIT 1`,
+              [instId, deptId, String(classValue), `%${String(classValue)}%`]
+            );
+            if (classRes.rows.length > 0) {
+              classId = classRes.rows[0].id;
+            } else {
+              const newClass = await this.pg.query(
+                `INSERT INTO classes (institution_id, department_id, name, section, year_semester, batch, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id`,
+                [
+                  instId,
+                  deptId,
+                  String(classValue).trim(),
+                  String(classValue).slice(-1).toUpperCase() || 'A',
+                  userData.yearSemester || '3rd Year / 5th Sem',
+                  userData.batch || '2023-2027'
+                ]
+              );
+              classId = newClass.rows[0].id;
+            }
+          }
+
+          const facultyId = (userData.facultyId || userData.staffId || `FAC-${Date.now().toString().slice(-6)}`).trim();
+          const designation = userData.designation || 'Assistant Professor';
+
+          if (instId) {
+            await this.pg.query(
+              `INSERT INTO institution_members (institution_id, user_id, member_role, designation, is_active, joined_at)
+               VALUES ($1, $2, 'FACULTY', $3, true, NOW())
+               ON CONFLICT (institution_id, user_id) DO UPDATE SET member_role = 'FACULTY', designation = $3`,
+              [instId, userId, designation]
+            );
+
+            await this.pg.query(
+              `INSERT INTO academician_profiles (
+                 user_id, institution_id, department_id, class_id, faculty_id, full_name, designation,
+                 official_email, phone, cabin_location, bio, qualifications, specializations,
+                 age, qualification, specialization, experience, joining_date, gender, created_at, updated_at
+               )
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), NOW())
+               ON CONFLICT (user_id) DO UPDATE
+               SET full_name = $6, designation = $7, official_email = $8, class_id = COALESCE($4, academician_profiles.class_id)`,
+              [
+                userId,
+                instId,
+                deptId,
+                classId,
+                facultyId,
+                facultyName,
+                designation,
+                email,
+                userData.phone || null,
+                userData.cabinLocation || null,
+                userData.bio || 'Faculty mentor in technical excellence.',
+                JSON.stringify(userData.qualifications || (userData.qualification ? [userData.qualification] : ['M.Tech / Ph.D'])),
+                JSON.stringify(userData.specializations || (userData.specialization ? [userData.specialization] : ['Computer Science'])),
+                userData.age ? parseInt(userData.age, 10) : null,
+                userData.qualification || null,
+                userData.specialization || null,
+                userData.experience || null,
+                userData.joiningDate || userData.joining_date || null,
+                userData.gender || null
+              ]
+            );
+
+            // Create staff assignment & map existing students
+            if (classId && deptId) {
+              const assignmentType = userData.assignmentType || 'Class Advisor';
+              const assignRes = await this.pg.query(
+                `INSERT INTO staff_assignments (staff_id, institution_id, department_id, class_id, assignment_type, is_primary, status, created_at, updated_at)
+                 VALUES ($1, $2, $3, $4, $5, true, 'ACTIVE', NOW(), NOW())
+                 RETURNING id`,
+                [userId, instId, deptId, classId, assignmentType]
+              );
+              const assignmentId = assignRes.rows[0]?.id;
+
+              try {
+                const { mapStaffToExistingStudents } = require('../services/staffMappingEngine');
+                await mapStaffToExistingStudents(userId, classId, deptId, instId, assignmentId, this.pg);
+              } catch (mapErr) {
+                console.warn('[registerUser] Staff mapping to existing students notice:', mapErr.message);
+              }
+            }
+          }
+
+          const { otp } = this.generateDemoOtp(email, 'REGISTRATION');
+          return {
+            success: true,
+            message: 'Academician account created successfully. Please enter the 6-digit OTP to verify and activate your account.',
+            demoOtp: otp,
+            email,
+            role: 'academician',
+            user: {
+              id: userId,
+              userId,
+              email,
+              role: 'academician',
+              facultyId,
+              designation,
+              institutionId: instCode || instId,
+              collegeId: instCode || instId,
+              departmentId: deptId,
+              classId,
+              name: facultyName,
               status: 'ACTIVE',
               isVerified: true
             }
@@ -1578,7 +1236,8 @@ class RelationalManager {
           if (requestedRole && ![
             (requestedRole === 'student' && userRole === 'student'),
             (requestedRole === 'institution' && userRole === 'institution'),
-            ((requestedRole === 'company' || requestedRole === 'industry') && (userRole === 'company' || userRole === 'industry'))
+            ((requestedRole === 'company' || requestedRole === 'industry') && (userRole === 'company' || userRole === 'industry')),
+            ((requestedRole === 'faculty' || requestedRole === 'academician') && (userRole === 'faculty' || userRole === 'academician'))
           ].some(Boolean)) {
             return {
               success: false,
@@ -1611,7 +1270,7 @@ class RelationalManager {
             id: user.id,
             userId: user.id,
             email: user.email,
-            role: userRole,
+            role: (userRole === 'faculty' || userRole === 'academician') ? 'academician' : userRole,
             isVerified: user.email_verified !== false,
             status: user.account_status || 'ACTIVE'
           };
@@ -1647,6 +1306,42 @@ class RelationalManager {
                 sanitizedUser.institutionId = im.institution_id;
                 sanitizedUser.collegeId = im.inst_code || im.institution_id;
                 sanitizedUser.name = im.inst_name || sanitizedUser.name;
+              }
+            } catch (e) {}
+          } else if (userRole === 'faculty' || userRole === 'academician') {
+            try {
+              const apRes = await this.pg.query(
+                `SELECT ap.*, i.name as inst_name, i.code as inst_code, d.name as dept_name
+                 FROM academician_profiles ap
+                 LEFT JOIN institutions i ON i.id = ap.institution_id
+                 LEFT JOIN departments d ON d.id = ap.department_id
+                 WHERE ap.user_id = $1 LIMIT 1`,
+                [user.id]
+              );
+              if (apRes.rows.length > 0) {
+                const ap = apRes.rows[0];
+                sanitizedUser.name = ap.full_name || sanitizedUser.name;
+                sanitizedUser.institutionId = ap.institution_id;
+                sanitizedUser.collegeId = ap.inst_code || ap.institution_id;
+                sanitizedUser.departmentId = ap.department_id;
+                sanitizedUser.departmentName = ap.dept_name;
+                sanitizedUser.facultyId = ap.faculty_id;
+                sanitizedUser.designation = ap.designation;
+              } else {
+                // fallback to institution_members if academician_profile not created yet
+                const imRes = await this.pg.query(
+                  `SELECT im.institution_id, i.name as inst_name, i.code as inst_code, im.designation
+                   FROM institution_members im
+                   LEFT JOIN institutions i ON i.id = im.institution_id
+                   WHERE im.user_id = $1 LIMIT 1`,
+                  [user.id]
+                );
+                if (imRes.rows.length > 0) {
+                  const im = imRes.rows[0];
+                  sanitizedUser.institutionId = im.institution_id;
+                  sanitizedUser.collegeId = im.inst_code || im.institution_id;
+                  sanitizedUser.designation = im.designation;
+                }
               }
             } catch (e) {}
           } else if (userRole === 'company' || userRole === 'industry') {
@@ -1925,6 +1620,185 @@ class RelationalManager {
     return {
       success: true,
       message: 'Password has been successfully updated. You can now log in.'
+    };
+  }
+
+  async resetPassword(token, newPassword) {
+    if (!token || !newPassword) {
+      return { success: false, code: 400, message: 'Token and new password are required.' };
+    }
+    if (newPassword.length < 6) {
+      return { success: false, code: 400, message: 'Password must be at least 6 characters in length.' };
+    }
+    try {
+      const jwt = require('jsonwebtoken');
+      const { JWT_SECRET } = require('../middleware/auth');
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const email = (decoded.email || '').toLowerCase().trim();
+      if (!email) {
+        return { success: false, code: 400, message: 'Invalid reset token payload.' };
+      }
+
+      if (this.pg) {
+        try {
+          const userRes = await this.pg.query('SELECT id FROM users WHERE lower(email) = lower($1) LIMIT 1', [email]);
+          if (userRes.rows.length > 0) {
+            const newHash = bcrypt.hashSync(newPassword, 10);
+            await this.pg.query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [newHash, userRes.rows[0].id]);
+            return { success: true, message: 'Password has been successfully updated. You can now log in.' };
+          }
+        } catch (err) {
+          console.warn('[resetPassword] PostgreSQL password update failed:', err.message);
+        }
+      }
+
+      const data = this._read();
+      const user = (data.users || []).find(u => (u.email || '').toLowerCase() === email);
+      if (!user) {
+        return { success: false, code: 404, message: 'Account not found.' };
+      }
+      user.passwordHash = bcrypt.hashSync(newPassword, 10);
+      user.updatedAt = new Date().toISOString();
+      this._write(data);
+      return { success: true, message: 'Password has been successfully updated. You can now log in.' };
+    } catch (err) {
+      return { success: false, code: 400, message: 'Invalid or expired password reset token.' };
+    }
+  }
+
+  async getInstitutionProfile(institutionId) {
+    if (!institutionId) return null;
+    const cleanId = String(institutionId).trim();
+
+    if (this.pg) {
+      try {
+        const instRes = await this.pg.query(
+          `SELECT i.*,
+                  (SELECT COUNT(*) FROM students s WHERE s.institution_id = i.id) as student_count,
+                  (SELECT COUNT(*) FROM courses c WHERE c.institution_id = i.id) as course_count,
+                  (SELECT COUNT(*) FROM company_institution_partnerships cip WHERE cip.institution_id = i.id AND cip.status = 'ACTIVE') as partnership_count
+           FROM institutions i
+           WHERE i.id::text = $1 OR i.code = $1 OR LOWER(i.name) = LOWER($1)
+              OR EXISTS (SELECT 1 FROM institution_members im WHERE im.institution_id = i.id AND im.user_id::text = $1)
+           LIMIT 1`,
+          [cleanId]
+        );
+        if (instRes.rows.length > 0) {
+          const row = instRes.rows[0];
+          const deptRes = await this.pg.query(
+            `SELECT id, code, name FROM departments WHERE institution_id = $1 ORDER BY name ASC`,
+            [row.id]
+          );
+          return {
+            id: row.id,
+            institutionId: row.id,
+            campusId: row.code || `INST-${row.id.slice(0, 8).toUpperCase()}`,
+            collegeId: row.id,
+            code: row.code,
+            institutionCode: row.code,
+            name: row.name,
+            institutionName: row.name,
+            district: row.district || 'Tamil Nadu',
+            state: row.state || 'Tamil Nadu',
+            officialEmail: row.official_email,
+            email: row.official_email,
+            websiteUrl: row.website_url,
+            website: row.website_url,
+            phone: row.phone || '',
+            departments: deptRes.rows.map(d => d.name),
+            studentCount: parseInt(row.student_count || 0, 10),
+            courseCount: parseInt(row.course_count || 0, 10),
+            partnershipCount: parseInt(row.partnership_count || 0, 10),
+            type: 'Affiliated / Autonomous College'
+          };
+        }
+      } catch (err) {
+        console.warn('[getInstitutionProfile] PG error:', err.message);
+      }
+      if (this.isPgRequired) return null;
+    }
+
+    const data = this._read();
+    const inst = (data.institutions || []).find(i =>
+      i.id === cleanId || i.institutionId === cleanId || i.collegeId === cleanId || i.code === cleanId
+    );
+    if (!inst) return null;
+    return {
+      id: inst.id || inst.institutionId,
+      institutionId: inst.institutionId || inst.id,
+      collegeId: inst.collegeId || inst.id,
+      name: inst.name || inst.collegeName || 'Institution',
+      institutionName: inst.name || inst.collegeName || 'Institution',
+      code: inst.code || inst.collegeCode || '',
+      district: inst.district || 'Tamil Nadu',
+      state: inst.state || 'Tamil Nadu',
+      email: inst.official_email || inst.email || '',
+      website: inst.website || inst.websiteUrl || '',
+      departments: inst.departments || ['Computer Science and Engineering', 'Information Technology'],
+      studentCount: (data.students || []).filter(s => s.institutionId === inst.id || s.collegeId === inst.collegeId).length,
+      courseCount: (data.courses || []).filter(c => c.institutionId === inst.id || c.institutionId === inst.collegeId).length,
+      partnershipCount: (data.partnerships || []).length,
+      type: inst.type || 'College'
+    };
+  }
+
+  async getCompanyProfile(companyId) {
+    if (!companyId) return null;
+    const cleanId = String(companyId).trim();
+
+    if (this.pg) {
+      try {
+        const compRes = await this.pg.query(
+          `SELECT c.*,
+                  (SELECT COUNT(*) FROM opportunities o WHERE o.company_id = c.id) as opportunity_count,
+                  (SELECT COUNT(*) FROM company_institution_partnerships cip WHERE cip.company_id = c.id AND cip.status = 'ACTIVE') as partnership_count
+           FROM companies c
+           WHERE c.id::text = $1 OR LOWER(c.company_name) = LOWER($1) OR c.registration_number = $1
+              OR EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id = c.id AND cm.user_id::text = $1)
+           LIMIT 1`,
+          [cleanId]
+        );
+        if (compRes.rows.length > 0) {
+          const row = compRes.rows[0];
+          return {
+            id: row.id,
+            companyId: row.id,
+            recruiterHandle: row.registration_number || `CORP-${row.id.slice(0, 8).toUpperCase()}`,
+            name: row.company_name,
+            companyName: row.company_name,
+            registrationNumber: row.registration_number,
+            industry: row.industry || 'Technology',
+            website: row.website_url,
+            websiteUrl: row.website_url,
+            headquarters: row.headquarters || 'Tamil Nadu',
+            location: row.headquarters ? `${row.headquarters}, ${row.state || 'India'}` : 'Tamil Nadu',
+            state: row.state || 'Tamil Nadu',
+            isVerified: row.is_verified,
+            opportunityCount: parseInt(row.opportunity_count || 0, 10),
+            partnershipCount: parseInt(row.partnership_count || 0, 10)
+          };
+        }
+      } catch (err) {
+        console.warn('[getCompanyProfile] PG error:', err.message);
+      }
+      if (this.isPgRequired) return null;
+    }
+
+    const data = this._read();
+    const comp = (data.companies || []).find(c =>
+      c.id === cleanId || c.companyId === cleanId || (c.companyName && c.companyName.toLowerCase() === cleanId.toLowerCase())
+    );
+    if (!comp) return null;
+    return {
+      id: comp.id || comp.companyId,
+      companyId: comp.companyId || comp.id,
+      name: comp.name || comp.companyName || 'Company',
+      companyName: comp.companyName || comp.name || 'Company',
+      industry: comp.industry || 'Technology',
+      website: comp.website || '',
+      location: comp.location || comp.headquarters || 'Tamil Nadu',
+      opportunityCount: (data.opportunities || []).filter(o => o.companyId === comp.companyId || o.companyId === comp.id).length,
+      partnershipCount: 0
     };
   }
 
@@ -2208,31 +2082,32 @@ class RelationalManager {
     return (data.applications || []).filter(a => instStudentIds.includes(a.studentId));
   }
 
-  async getApplicationById(appId, institutionId = null) {
+  async getApplicationById(appId, scope = null) {
     if (!appId) return null;
-    if (institutionId) {
-      const apps = await this.getApplicationsByInstitution(institutionId);
-      return apps.find(a => a.id === appId || a.applicationId === appId) || null;
-    }
     if (this.pg) {
       try {
-        const query = `
+        let query = `
           SELECT
             a.id,
             a.id AS "applicationId",
             a.student_id AS "studentId",
             s.full_name AS "studentName",
+            s.full_name AS "name",
             s.roll_number AS "studentCollegeId",
             s.roll_number AS "rollNumber",
             s.cgpa,
             s.institution_id AS "institutionId",
             d.name AS "studentDepartment",
+            d.name AS "department",
             a.opportunity_id AS "opportunityId",
             o.title AS "opportunityTitle",
             o.company_id AS "companyId",
             c.company_name AS "companyName",
+            c.company_name AS "company",
             a.match_score AS "matchScore",
             a.current_stage AS "stage",
+            a.current_stage AS "current_stage",
+            a.current_stage AS "status",
             a.applied_at AS "appliedAt",
             a.updated_at AS "updatedAt",
             a.resume_url AS "resumeUrl"
@@ -2242,16 +2117,22 @@ class RelationalManager {
           JOIN opportunities o ON o.id = a.opportunity_id
           JOIN companies c ON c.id = o.company_id
           WHERE a.id::text = $1
-          LIMIT 1
         `;
-        const res = await this.pg.query(query, [appId]);
+        const params = [String(appId)];
+        if (scope) {
+          query += ` AND (o.company_id::text = $2 OR s.institution_id::text = $2 OR s.institution_id IN (SELECT id FROM institutions WHERE code = $2 OR id::text = $2))`;
+          params.push(String(scope));
+        }
+        query += ` LIMIT 1`;
+        const res = await this.pg.query(query, params);
         if (res.rows.length > 0) return res.rows[0];
       } catch (err) {
         console.warn('[getApplicationById] PG error:', err.message);
       }
     }
+    if (this.isPgRequired) return null;
     const data = this._read();
-    return (data.applications || []).find(a => a.id === appId || a.applicationId === appId) || null;
+    return (data.applications || []).find(a => String(a.id) === String(appId) || String(a.applicationId) === String(appId)) || null;
   }
 
   // 6. Partnerships – generic update helper
@@ -2310,17 +2191,52 @@ class RelationalManager {
           Rejected: apps.filter(a => (a.current_stage || '').toLowerCase() === 'rejected').length
         };
 
-        const stuCountRes = await this.pg.query(`SELECT count(*) as count FROM students`);
-        const totalPoolStudents = parseInt(stuCountRes.rows[0]?.count || 0, 10);
+        const partRes = await this.pg.query(
+          `SELECT count(DISTINCT institution_id) as count FROM company_institution_partnerships 
+           WHERE company_id::text = $1 AND status IN ('ACTIVE', 'APPROVED', 'ACCEPTED')`,
+          [String(comp.id)]
+        );
+        const partnerInstitutionsCount = parseInt(partRes.rows[0]?.count || 0, 10);
+
+        const authTalentRes = await this.pg.query(
+          `SELECT count(DISTINCT s.id) as count FROM students s
+           WHERE s.institution_id IN (
+             SELECT institution_id FROM company_institution_partnerships WHERE company_id::text = $1 AND status IN ('ACTIVE', 'APPROVED', 'ACCEPTED')
+           ) OR s.id IN (
+             SELECT student_id FROM applications a JOIN opportunities o ON o.id = a.opportunity_id WHERE o.company_id::text = $1
+           )`,
+          [String(comp.id)]
+        );
+        const authorizedTalentCount = parseInt(authTalentRes.rows[0]?.count || 0, 10);
+
+        const readyRes = await this.pg.query(
+          `SELECT count(DISTINCT s.id) as count FROM students s
+           WHERE (s.readiness_score >= 70 OR s.placement_readiness_score >= 70)
+           AND (
+             s.institution_id IN (
+               SELECT institution_id FROM company_institution_partnerships WHERE company_id::text = $1 AND status IN ('ACTIVE', 'APPROVED', 'ACCEPTED')
+             ) OR s.id IN (
+               SELECT student_id FROM applications a JOIN opportunities o ON o.id = a.opportunity_id WHERE o.company_id::text = $1
+             )
+           )`,
+          [String(comp.id)]
+        );
+        const jobReadyTalent = parseInt(readyRes.rows[0]?.count || 0, 10);
+
+        const poolCountRes = await this.pg.query(
+          `SELECT count(*) as count FROM talent_pools WHERE company_id::text = $1`,
+          [String(comp.id)]
+        );
+        const talentPoolCount = parseInt(poolCountRes.rows[0]?.count || 0, 10);
 
         return {
           companyId,
           companyName: comp.company_name || comp.name || cleanId,
-          totalPoolStudents,
-          authorizedTalentCount: totalPoolStudents,
-          talentPoolCount: totalPoolStudents,
-          jobReadyTalent: Math.round(totalPoolStudents * 0.75),
-          partnerInstitutionsCount: 3,
+          totalPoolStudents: authorizedTalentCount,
+          authorizedTalentCount,
+          talentPoolCount,
+          jobReadyTalent,
+          partnerInstitutionsCount,
           totalOpportunities: opps.length,
           activePostings: opps.length,
           totalApplications: apps.length,
@@ -3041,9 +2957,6 @@ class RelationalManager {
           const sCode = String(s.collegeCode || s.institutionCode || '').toUpperCase().trim();
           if (sColl === target || sCode === target) return true;
 
-          // Check alias mapping
-          if ((target === 'TN010' || target === 'SRM001') && (sColl === 'TN010' || sColl === 'SRM001')) return true;
-
           // Lookup target matching institution in data.institutions
           const matchingInst = (data.institutions || []).find(inst =>
             String(inst.institutionId || inst.id || inst.code || inst.collegeId || inst.institutionCode || inst.collegeCode || '').toUpperCase().trim() === target
@@ -3080,9 +2993,6 @@ class RelationalManager {
       const sCode = String(s.collegeCode || s.institutionCode || '').toUpperCase().trim();
       if (sColl === target || sCode === target) return true;
 
-      // Check alias mapping
-      if ((target === 'TN010' || target === 'SRM001') && (sColl === 'TN010' || sColl === 'SRM001')) return true;
-
       // Lookup target matching institution in data.institutions
       const matchingInst = (data.institutions || []).find(inst =>
         String(inst.institutionId || inst.id || inst.code || inst.collegeId || inst.institutionCode || inst.collegeCode || '').toUpperCase().trim() === target
@@ -3118,7 +3028,6 @@ class RelationalManager {
            LEFT JOIN departments d ON s.department_id = d.id
            WHERE s.id::text = $1 OR s.roll_number = $1 OR u.id::text = $1 OR LOWER(u.email) = LOWER($1)
                OR s.resume_url ILIKE '%' || $1 || '%'
-               OR ($1 = 'STU-TN010-001' AND (s.roll_number = 'RA2211003010001' OR s.roll_number ILIKE '%TN010%'))
             ORDER BY (CASE WHEN s.id::text = $1 OR s.roll_number = $1 THEN 0 ELSE 1 END)
             LIMIT 1`,
           [cleanId]
@@ -3156,7 +3065,7 @@ class RelationalManager {
           return {
             ...(fileMatched || {}),
             id: row.id,
-            studentId: cleanId === 'STU-TN010-001' ? 'STU-TN010-001' : (row.roll_number || row.id),
+            studentId: row.roll_number || row.id,
             userId: row.user_id,
             user_id: row.user_id,
             name: row.full_name,
@@ -3375,30 +3284,62 @@ class RelationalManager {
         let query = `
           SELECT c.*, c.id as "courseId", c.course_code as code,
                  c.institution_id as "institutionId", c.company_id as "companyId",
-                 c.instructor_name as instructor, c.duration_weeks as "durationWeeks"
+                 c.instructor_name as instructor, c.duration_weeks as "durationWeeks",
+                 i.name as "institutionName",
+                 i.code as "institutionCode",
+                 comp.company_name as "companyName",
+                 (SELECT COUNT(*)::int FROM enrollments e WHERE e.course_id = c.id) AS enrolled_count,
+                 (SELECT COUNT(*)::int FROM enrollments e WHERE e.course_id = c.id AND e.status = 'COMPLETED') AS completed_count,
+                 COALESCE((
+                   SELECT json_agg(s.name) FROM course_skills cs JOIN skills s ON s.id = cs.skill_id WHERE cs.course_id = c.id
+                 ), '[]'::json) AS skills
           FROM courses c
+          LEFT JOIN institutions i ON i.id = c.institution_id
+          LEFT JOIN companies comp ON comp.id = c.company_id
         `;
         const params = [];
         if (institutionId) {
-          query += ` WHERE c.institution_id::text = $1 OR c.institution_id IN (SELECT id FROM institutions WHERE code = $1 OR id::text = $1)`;
+          query += ` WHERE c.institution_id::text = $1 
+                     OR c.institution_id IN (SELECT id FROM institutions WHERE code = $1 OR id::text = $1)
+                     OR (c.institution_id IS NULL AND c.company_id IS NOT NULL)`;
           params.push(String(institutionId));
         }
         query += ` ORDER BY c.created_at DESC`;
         const res = await this.pg.query(query, params);
-        return res.rows.map(r => ({
-          ...r,
-          id: r.id,
-          courseId: r.id,
-          code: r.course_code,
-          title: r.title,
-          category: r.category,
-          level: r.difficulty,
-          difficulty: r.difficulty,
-          instructor: r.instructor_name || 'Instructor',
-          durationWeeks: r.duration_weeks,
-          rating: Number(r.rating) || 5.0,
-          status: r.status || 'ACTIVE'
-        }));
+        return res.rows.map(r => {
+          const enrolled = Number(r.enrolled_count) || 0;
+          const completed = Number(r.completed_count) || 0;
+          const completionRate = enrolled > 0 ? `${Math.round((completed / enrolled) * 100)}%` : 'N/A';
+          let skillsList = Array.isArray(r.skills) && r.skills.length > 0 ? r.skills : [r.category || 'Technology'];
+          return {
+            ...r,
+            id: r.id,
+            courseId: r.id,
+            code: r.course_code,
+            courseCode: r.course_code,
+            title: r.title,
+            courseName: r.title,
+            category: r.category,
+            level: r.difficulty,
+            difficulty: r.difficulty,
+            instructor: r.instructor_name || 'Instructor',
+            durationWeeks: r.duration_weeks,
+            duration: `${r.duration_weeks} Weeks`,
+            hours: r.hours || 24,
+            rating: Number(r.rating) || 5.0,
+            status: r.status || 'ACTIVE',
+            enrolledCount: enrolled,
+            enrolled: enrolled,
+            completedCount: completed,
+            completionRate: completionRate,
+            institutionName: r.institutionName || 'Partner Institution',
+            institutionCode: r.institutionCode,
+            companyName: r.companyName || 'Enterprise Partner',
+            isSponsored: !!r.companyId,
+            skillsDeveloped: skillsList,
+            skills: skillsList
+          };
+        });
       } catch (err) {
         if (this.isPgRequired) throw new Error('DATABASE ERROR (getCourses): ' + err.message);
         console.warn('[getCourses] PG lookup error:', err.message);
@@ -3407,6 +3348,7 @@ class RelationalManager {
     if (this.isPgRequired) return [];
     const data = this._read();
     if (!institutionId) return data.courses || [];
+    return (data.courses || []).filter(c => c.institutionId === institutionId || !c.institutionId);
   }
 
   async getAssessments() {
@@ -3441,27 +3383,46 @@ class RelationalManager {
 
   async createCourse(courseData) {
     let pgCourse = null;
+    let savedModules = [];
     if (this.pg) {
       try {
         let instUuid = null;
-        if (courseData.institutionId) {
+        if (courseData.institutionId && courseData.institutionId !== 'ALL') {
           const iCheck = await this.pg.query(
-            `SELECT id FROM institutions WHERE id::text = $1 OR code = $1 LIMIT 1`,
+            `SELECT id, name, code FROM institutions WHERE id::text = $1 OR code = $1 LIMIT 1`,
             [String(courseData.institutionId)]
           );
-          if (iCheck.rows.length > 0) instUuid = iCheck.rows[0].id;
+          if (iCheck.rows.length > 0) {
+            instUuid = iCheck.rows[0].id;
+            courseData.institutionName = iCheck.rows[0].name;
+          }
         }
+
+        let compUuid = null;
+        let compDisplayName = courseData.companyName || 'Enterprise Partner';
+        if (courseData.companyId) {
+          const cCheck = await this.pg.query(
+            `SELECT id, company_name FROM companies WHERE id::text = $1 OR registration_number = $1 LIMIT 1`,
+            [String(courseData.companyId)]
+          );
+          if (cCheck.rows.length > 0) {
+            compUuid = cCheck.rows[0].id;
+            if (cCheck.rows[0].company_name) compDisplayName = cCheck.rows[0].company_name;
+          }
+        }
+
         const cCode = courseData.code || courseData.courseCode || `CRS-${Date.now().toString().slice(-6)}`;
         const insRes = await this.pg.query(
-          `INSERT INTO courses (institution_id, course_code, title, category, difficulty, duration_weeks, hours, instructor_name, rating, status, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 5.0, 'ACTIVE', NOW(), NOW())
+          `INSERT INTO courses (institution_id, company_id, course_code, title, category, difficulty, duration_weeks, hours, instructor_name, rating, status, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 5.0, 'ACTIVE', NOW(), NOW())
            RETURNING *`,
           [
             instUuid,
+            compUuid,
             cCode,
             courseData.title || 'Course Title',
             courseData.category || 'Computer Science',
-            courseData.level || 'Intermediate',
+            courseData.level || courseData.difficulty || 'Intermediate',
             Number(courseData.durationWeeks || courseData.duration_weeks || 8),
             Number(courseData.hours) || 24,
             courseData.instructor || 'Instructor'
@@ -3469,25 +3430,169 @@ class RelationalManager {
         );
         pgCourse = insRes.rows[0];
 
+        // Modules insertion
         if (Array.isArray(courseData.modules) && courseData.modules.length > 0) {
           for (let i = 0; i < courseData.modules.length; i++) {
             const m = courseData.modules[i];
-            await this.pg.query(
+            const modTitle = m.title || `Module ${i + 1}`;
+            const modDuration = m.duration || m.durationText || '2 Hours';
+            const modDesc = m.description || '';
+            const modLessons = Array.isArray(m.lessons) ? m.lessons : (typeof m.lessons === 'string' ? m.lessons.split(',').map(l => l.trim()).filter(Boolean) : []);
+
+            const modIns = await this.pg.query(
               `INSERT INTO course_modules (course_id, module_number, title, description, duration_text, lessons)
-               VALUES ($1, $2, $3, $4, $5, $6)`,
+               VALUES ($1, $2, $3, $4, $5, $6)
+               RETURNING *`,
               [
                 pgCourse.id,
                 m.moduleNumber || m.orderIndex || (i + 1),
-                m.title || `Module ${i + 1}`,
-                m.description || '',
-                m.duration || '2 Hours',
-                JSON.stringify(m.lessons || [])
+                modTitle,
+                modDesc,
+                modDuration,
+                JSON.stringify(modLessons)
               ]
             );
+            savedModules.push({
+              id: modIns.rows[0].id,
+              moduleNumber: modIns.rows[0].module_number,
+              title: modIns.rows[0].title,
+              description: modIns.rows[0].description,
+              duration: modIns.rows[0].duration_text,
+              lessons: modLessons
+            });
           }
         }
+
+        // Skills association in course_skills
+        const rawSkills = courseData.skillsTaught || courseData.skillsDeveloped || courseData.skills || [];
+        const skillsList = Array.isArray(rawSkills) ? rawSkills : (typeof rawSkills === 'string' ? rawSkills.split(',').map(s => s.trim()).filter(Boolean) : []);
+        if (skillsList.length > 0) {
+          for (const sName of skillsList) {
+            const trimmed = String(sName).trim();
+            if (!trimmed) continue;
+            try {
+              let skillId = null;
+              const sExist = await this.pg.query(`SELECT id FROM skills WHERE LOWER(name) = LOWER($1) LIMIT 1`, [trimmed]);
+              if (sExist.rows.length > 0) {
+                skillId = sExist.rows[0].id;
+              } else {
+                const catRes = await this.pg.query(`SELECT id FROM skill_categories LIMIT 1`);
+                const catId = catRes.rows.length > 0 ? catRes.rows[0].id : null;
+                if (catId) {
+                  const insSkill = await this.pg.query(
+                    `INSERT INTO skills (name, category_id, difficulty, industry_demand) VALUES ($1, $2, 'Intermediate', 'HIGH') RETURNING id`,
+                    [trimmed, catId]
+                  );
+                  skillId = insSkill.rows[0].id;
+                }
+              }
+              if (skillId) {
+                await this.pg.query(
+                  `INSERT INTO course_skills (course_id, skill_id, priority, imparted_level)
+                   VALUES ($1, $2, 'HIGH', 'Intermediate')
+                   ON CONFLICT DO NOTHING`,
+                  [pgCourse.id, skillId]
+                );
+              }
+            } catch (sErr) {
+              console.warn('[createCourse] Skill link notice:', sErr.message);
+            }
+          }
+        }
+
+        // =========================================================================
+        // AUTOMATED NOTIFICATION PIPELINE:
+        // 1. Notify Respected Collaboration Institution
+        // 2. Notify Respected Institution's Students
+        // =========================================================================
+        if (instUuid) {
+          // 1. Notify the collaboration institution
+          await this.addNotification('institution', {
+            institutionId: instUuid,
+            type: 'COURSE_SPONSORED',
+            title: `New Industry Sponsored Course: ${pgCourse.title}`,
+            message: `${compDisplayName} has published an accredited sponsored course: "${pgCourse.title}" (${pgCourse.course_code}). It is now integrated into your academic portal.`,
+            details: {
+              courseId: pgCourse.id,
+              courseCode: pgCourse.course_code,
+              title: pgCourse.title,
+              category: pgCourse.category,
+              companyId: compUuid,
+              companyName: compDisplayName,
+              institutionId: instUuid
+            }
+          });
+
+          // 2. Notify all enrolled students of this collaboration institution
+          const studentRes = await this.pg.query(
+            `SELECT s.id, s.user_id FROM students s WHERE s.institution_id = $1`,
+            [instUuid]
+          );
+
+          if (studentRes.rows.length > 0) {
+            for (const st of studentRes.rows) {
+              await this.addNotification('student', {
+                userId: st.user_id,
+                studentId: st.id,
+                type: 'COURSE_NEW',
+                title: `New Course Available: ${pgCourse.title}`,
+                message: `New sponsored industry course "${pgCourse.title}" sponsored by ${compDisplayName} is now available in your Learning Catalog!`,
+                details: {
+                  courseId: pgCourse.id,
+                  courseCode: pgCourse.course_code,
+                  title: pgCourse.title,
+                  companyId: compUuid,
+                  companyName: compDisplayName,
+                  institutionId: instUuid
+                }
+              });
+            }
+          } else {
+            // General broadcast for student role
+            await this.addNotification('student', {
+              type: 'COURSE_NEW',
+              title: `New Course Available: ${pgCourse.title}`,
+              message: `New sponsored industry course "${pgCourse.title}" sponsored by ${compDisplayName} is now available in your Learning Catalog!`,
+              details: {
+                courseId: pgCourse.id,
+                courseCode: pgCourse.course_code,
+                title: pgCourse.title,
+                companyId: compUuid,
+                companyName: compDisplayName,
+                institutionId: instUuid
+              }
+            });
+          }
+        } else {
+          // Ecosystem-wide sponsored course (All institutions & students)
+          await this.addNotification('institution', {
+            type: 'COURSE_SPONSORED',
+            title: `New Industry Sponsored Course: ${pgCourse.title}`,
+            message: `${compDisplayName} published an open enterprise learning track: "${pgCourse.title}" (${pgCourse.course_code}).`,
+            details: {
+              courseId: pgCourse.id,
+              courseCode: pgCourse.course_code,
+              title: pgCourse.title,
+              companyId: compUuid,
+              companyName: compDisplayName
+            }
+          });
+          await this.addNotification('student', {
+            type: 'COURSE_NEW',
+            title: `New Course Available: ${pgCourse.title}`,
+            message: `New industry course "${pgCourse.title}" sponsored by ${compDisplayName} is now open for enrollment!`,
+            details: {
+              courseId: pgCourse.id,
+              courseCode: pgCourse.course_code,
+              title: pgCourse.title,
+              companyId: compUuid,
+              companyName: compDisplayName
+            }
+          });
+        }
       } catch (err) {
-        console.warn('[createCourse] PG insert note:', err.message);
+        console.warn('[createCourse] PG insert error:', err.message);
+        if (this.isPgRequired) throw new Error('DATABASE ERROR (createCourse): ' + err.message);
       }
     }
 
@@ -3496,20 +3601,24 @@ class RelationalManager {
         return {
           id: pgCourse.id,
           courseId: pgCourse.id,
-          companyId: pgCourse.company_id || null,
+          companyId: pgCourse.company_id || courseData.companyId || null,
           institutionId: pgCourse.institution_id || courseData.institutionId,
-          institutionName: courseData.institutionName || 'SRM Institute of Science and Technology',
+          institutionName: courseData.institutionName || 'Partner Institution',
           title: pgCourse.title,
           code: pgCourse.course_code,
+          courseCode: pgCourse.course_code,
           category: pgCourse.category,
           level: pgCourse.difficulty,
+          difficulty: pgCourse.difficulty,
           duration: `${pgCourse.duration_weeks} Weeks (${pgCourse.hours} Hours)`,
+          durationWeeks: pgCourse.duration_weeks,
           hours: pgCourse.hours,
           instructor: pgCourse.instructor_name,
           enrolledCount: 0,
-          skillsTaught: courseData.skillsTaught || ['Python', 'SQL'],
+          skillsTaught: courseData.skillsTaught || ['Applied Engineering'],
+          skillsDeveloped: courseData.skillsTaught || ['Applied Engineering'],
           rating: pgCourse.rating,
-          modules: courseData.modules || []
+          modules: savedModules.length > 0 ? savedModules : (courseData.modules || [])
         };
       }
       throw new Error('DATABASE ERROR (createCourse): Failed to insert course into PostgreSQL');
@@ -3517,11 +3626,11 @@ class RelationalManager {
 
     const data = this._read();
     const newCourse = {
-      id: pgCourse ? pgCourse.id : (courseData.courseId || `CRS-${courseData.institutionId || 'TN010'}-${Math.floor(10 + Math.random() * 90)}`),
-      courseId: pgCourse ? pgCourse.id : (courseData.courseId || `CRS-${courseData.institutionId || 'TN010'}-${Math.floor(10 + Math.random() * 90)}`),
+      id: pgCourse ? pgCourse.id : (courseData.courseId || `CRS-${courseData.institutionId || 'INST'}-${Math.floor(10 + Math.random() * 90)}`),
+      courseId: pgCourse ? pgCourse.id : (courseData.courseId || `CRS-${courseData.institutionId || 'INST'}-${Math.floor(10 + Math.random() * 90)}`),
       companyId: courseData.companyId || null,
-      institutionId: courseData.institutionId || 'TN010',
-      institutionName: courseData.institutionName || 'SRM Institute of Science and Technology',
+      institutionId: courseData.institutionId || 'INST',
+      institutionName: courseData.institutionName || 'Institution',
       title: courseData.title || 'Advanced Systems Engineering',
       code: courseData.code || 'CS-601-ADV',
       category: courseData.category || 'Artificial Intelligence',
@@ -3531,10 +3640,11 @@ class RelationalManager {
       instructor: courseData.instructor || 'Prof. K. Ramanathan',
       enrolledCount: 0,
       skillsTaught: courseData.skillsTaught || ['Python', 'SQL'],
+      skillsDeveloped: courseData.skillsTaught || ['Python', 'SQL'],
       rating: 5.0,
-      modules: courseData.modules || [
+      modules: savedModules.length > 0 ? savedModules : (courseData.modules || [
         { moduleNumber: 1, title: 'Introduction & Foundations', duration: '3 Hours', lessons: ['Core theory', 'Hands-on lab'] }
-      ]
+      ])
     };
     data.courses.unshift(newCourse);
     this._write(data);
@@ -3870,9 +3980,9 @@ class RelationalManager {
           courseTitle: course.title || enrollment.courseTitle || 'Course',
           companyId: course.companyId || company.id || null,
           companyName: company.name || company.companyName || 'Offering Company',
-          institutionId: student.collegeId || student.institutionId || 'TN010',
-          institutionName: inst.name || student.collegeName || 'SRM Institute of Science and Technology',
-          department: student.department || 'Computer Science',
+          institutionId: student.collegeId || student.institutionId || '',
+          institutionName: inst.name || student.collegeName || 'Institution',
+          department: student.department || 'Engineering',
           issueDate: new Date().toISOString(),
           status: 'PENDING_VERIFICATION',
           grade: 'A+ (100%)',
@@ -4424,11 +4534,6 @@ class RelationalManager {
     return this.getApplications({ companyId });
   }
 
-  async getApplicationById(id, companyId = null) {
-    const apps = await this.getApplications(companyId ? { companyId } : {});
-    return apps.find(a => String(a.id) === String(id) || String(a.applicationId) === String(id)) || null;
-  }
-
   async submitApplication(student, opportunity) {
     if (this.pg) {
       const client = await this.pg.connect();
@@ -4639,6 +4744,10 @@ class RelationalManager {
             'screened': 'Screened',
             'under review': 'Under Review',
             'shortlisted': 'Shortlisted',
+            'selected_for_test': 'SELECTED_FOR_TEST',
+            'selected for test': 'SELECTED_FOR_TEST',
+            'test_completed': 'TEST_COMPLETED',
+            'test completed': 'TEST_COMPLETED',
             'interview': 'Interview',
             'technical round': 'Interview',
             'hr round': 'Interview',
@@ -4649,7 +4758,7 @@ class RelationalManager {
             'rejected': 'Rejected'
           };
           const rawStage = String(newStage || '').trim();
-          const canonicalStage = stageMap[rawStage.toLowerCase()] || (['Applied', 'Screened', 'Under Review', 'Shortlisted', 'Interview', 'Selected', 'Rejected'].includes(rawStage) ? rawStage : 'Under Review');
+          const canonicalStage = stageMap[rawStage.toLowerCase()] || (['Applied', 'Screened', 'Under Review', 'Shortlisted', 'SELECTED_FOR_TEST', 'Selected for Test', 'TEST_COMPLETED', 'Interview', 'Selected', 'Rejected'].includes(rawStage) ? rawStage : 'Under Review');
 
           // Idempotency: if stage didn't change, don't insert duplicate history
           if (app.current_stage === canonicalStage) {
@@ -4744,6 +4853,378 @@ class RelationalManager {
     } catch (e) {}
 
     return app;
+  }
+
+  async selectStudentForTesting(applicationId, userContext = {}) {
+    if (!this.pg) throw new Error('PostgreSQL database required');
+
+    const client = await this.pg.connect();
+    try {
+      await client.query('BEGIN');
+
+      const appRes = await client.query(
+        `SELECT a.*, o.title as opportunity_title, o.company_id, c.company_name, 
+                s.id as student_id, s.full_name as student_name, s.user_id as student_user_id, s.institution_id
+         FROM applications a
+         JOIN opportunities o ON o.id = a.opportunity_id
+         JOIN companies c ON c.id = o.company_id
+         JOIN students s ON s.id = a.student_id
+         WHERE a.id::text = $1 LIMIT 1`,
+        [String(applicationId)]
+      );
+
+      if (appRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        throw new Error('Application not found');
+      }
+
+      const app = appRes.rows[0];
+
+      // Update stage to SELECTED_FOR_TEST
+      const updateRes = await client.query(
+        `UPDATE applications 
+         SET current_stage = 'SELECTED_FOR_TEST', updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1
+         RETURNING *`,
+        [app.id]
+      );
+      const updatedApp = updateRes.rows[0];
+
+      // Insert audit history
+      await client.query(
+        `INSERT INTO application_stage_history (application_id, stage, changed_by_user_id, notes, created_at)
+         VALUES ($1, 'SELECTED_FOR_TEST', $2, $3, CURRENT_TIMESTAMP)`,
+        [app.id, userContext.userId || null, `Selected for company testing by ${userContext.role || 'evaluator'}`]
+      );
+
+      // Notification 1: Student
+      if (app.student_user_id) {
+        const dupCheck = await client.query(
+          `SELECT id FROM notifications 
+           WHERE recipient_id = $1 AND notification_type = 'STUDENT_SELECTED' AND related_entity_id = $2 LIMIT 1`,
+          [app.student_user_id, String(app.id)]
+        );
+        if (dupCheck.rows.length === 0) {
+          await client.query(
+            `INSERT INTO notifications (
+              recipient_type, recipient_id, notification_type, title, message, related_entity_type, related_entity_id, details, is_read, is_deleted, created_at
+            ) VALUES ($1, $2, 'STUDENT_SELECTED', 'Selected for Company Testing', 'You have been selected for company testing.', 'application', $3, $4, false, false, CURRENT_TIMESTAMP)`,
+            [
+              'student',
+              app.student_user_id,
+              String(app.id),
+              JSON.stringify({
+                applicationId: app.id,
+                companyName: app.company_name,
+                opportunityTitle: app.opportunity_title,
+                stage: 'SELECTED_FOR_TEST'
+              })
+            ]
+          );
+        }
+      }
+
+      // Notification 2: Student's Respective Institution
+      if (app.institution_id) {
+        const instMembers = await client.query(
+          `SELECT user_id FROM institution_members WHERE institution_id = $1`,
+          [app.institution_id]
+        );
+        for (const m of instMembers.rows) {
+          const dupCheck = await client.query(
+            `SELECT id FROM notifications 
+             WHERE recipient_id = $1 AND notification_type = 'STUDENT_SELECTED' AND related_entity_id = $2 LIMIT 1`,
+            [m.user_id, String(app.id)]
+          );
+          if (dupCheck.rows.length === 0) {
+            await client.query(
+              `INSERT INTO notifications (
+                recipient_type, recipient_id, notification_type, title, message, related_entity_type, related_entity_id, details, is_read, is_deleted, created_at
+              ) VALUES ($1, $2, 'STUDENT_SELECTED', 'Student Selected for Testing', $3, 'application', $4, $5, false, false, CURRENT_TIMESTAMP)`,
+              [
+                'institution',
+                m.user_id,
+                `Student ${app.student_name} has been selected for company testing with ${app.company_name}.`,
+                String(app.id),
+                JSON.stringify({
+                  applicationId: app.id,
+                  studentId: app.student_id,
+                  studentName: app.student_name,
+                  companyName: app.company_name,
+                  stage: 'SELECTED_FOR_TEST'
+                })
+              ]
+            );
+          }
+        }
+      }
+
+      await client.query('COMMIT');
+      return {
+        id: updatedApp.id,
+        applicationId: updatedApp.id,
+        stage: 'SELECTED_FOR_TEST',
+        current_stage: 'SELECTED_FOR_TEST',
+        status: 'SELECTED_FOR_TEST',
+        studentName: app.student_name,
+        companyName: app.company_name,
+        opportunityTitle: app.opportunity_title,
+        updatedAt: updatedApp.updated_at
+      };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  async getCollaborationsForInstitution(institutionId) {
+    if (!this.pg) return { partneredColleges: [], incomingRequests: [], outgoingRequests: [], industryPartners: [] };
+
+    const inst = await this.resolveInstitution(institutionId);
+    if (!inst) return { partneredColleges: [], incomingRequests: [], outgoingRequests: [], industryPartners: [] };
+
+    // 1. Peer Institution Collaborations
+    const peerRes = await this.pg.query(
+      `SELECT ic.*, 
+              ri.id as req_id, ri.name as requester_name, ri.code as requester_code,
+              ti.id as tar_id, ti.name as target_name, ti.code as target_code
+       FROM institution_collaborations ic
+       JOIN institutions ri ON ri.id = ic.requester_institution_id
+       JOIN institutions ti ON ti.id = ic.target_institution_id
+       WHERE ic.requester_institution_id = $1 OR ic.target_institution_id = $1
+       ORDER BY ic.created_at DESC`,
+      [inst.id]
+    );
+
+    const partneredColleges = [];
+    const incomingRequests = [];
+    const outgoingRequests = [];
+
+    for (const r of peerRes.rows) {
+      const isRequester = String(r.requester_institution_id) === String(inst.id);
+      const partnerName = isRequester ? r.target_name : r.requester_name;
+      const partnerCode = isRequester ? r.target_code : r.requester_code;
+      const partnerId = isRequester ? r.target_institution_id : r.requester_institution_id;
+
+      if (r.status === 'ACTIVE' || r.status === 'ACCEPTED' || r.status === 'APPROVED') {
+        partneredColleges.push({
+          id: r.id,
+          partnerId,
+          institutionName: partnerName,
+          code: partnerCode,
+          status: 'ACTIVE',
+          since: r.updated_at || r.created_at
+        });
+      } else if (!isRequester && r.status === 'PENDING') {
+        incomingRequests.push({
+          id: r.id,
+          requesterId: partnerId,
+          institutionName: partnerName,
+          code: partnerCode,
+          requestDate: r.created_at,
+          requestMessage: r.message || 'Requesting academic and placement collaboration.',
+          status: r.status
+        });
+      } else if (isRequester) {
+        outgoingRequests.push({
+          id: r.id,
+          targetId: partnerId,
+          requestedInstitution: partnerName,
+          code: partnerCode,
+          requestMessage: r.message || 'Collaboration request submitted.',
+          date: r.created_at,
+          status: r.status
+        });
+      }
+    }
+
+    // 2. Industry Partnerships (MoUs)
+    const indRes = await this.pg.query(
+      `SELECT cip.*, c.company_name, c.industry, c.headquarters, c.website_url
+       FROM company_institution_partnerships cip
+       JOIN companies c ON c.id = cip.company_id
+       WHERE cip.institution_id = $1
+       ORDER BY cip.created_at DESC`,
+      [inst.id]
+    );
+
+    const industryPartners = indRes.rows.map(row => ({
+      id: row.id,
+      companyId: row.company_id,
+      companyName: row.company_name,
+      industry: row.industry || 'Technology',
+      location: row.headquarters || `${row.company_state || 'Tamil Nadu'}, India`,
+      tier: row.partnership_tier,
+      status: row.status,
+      message: row.message || 'Corporate hiring & curriculum partner.',
+      requestedDate: row.created_at,
+      website: row.website_url
+    }));
+
+    return {
+      partneredColleges,
+      incomingRequests,
+      outgoingRequests,
+      industryPartners
+    };
+  }
+
+  async respondToInstitutionCollaboration(collaborationId, institutionId, action) {
+    if (!this.pg) throw new Error('PostgreSQL database required');
+    const inst = await this.resolveInstitution(institutionId);
+    if (!inst) throw new Error('Institution not found');
+
+    const status = action === 'ACCEPT' ? 'ACTIVE' : 'REJECTED';
+    const res = await this.pg.query(
+      `UPDATE institution_collaborations
+       SET status = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id::text = $2 AND target_institution_id = $3
+       RETURNING *`,
+      [status, String(collaborationId), inst.id]
+    );
+    if (res.rows.length === 0) throw new Error('Collaboration request not found or unauthorized');
+    return res.rows[0];
+  }
+
+  async respondToCompanyPartnership(partnershipId, institutionId, action) {
+    if (!this.pg) throw new Error('PostgreSQL database required');
+    const inst = await this.resolveInstitution(institutionId);
+    if (!inst) throw new Error('Institution not found');
+
+    const status = (String(action).toUpperCase() === 'ACCEPT' || String(action).toLowerCase() === 'accept') ? 'ACTIVE' : 'REJECTED';
+    const res = await this.pg.query(
+      `UPDATE company_institution_partnerships
+       SET status = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE (id::text = $2 OR company_id::text = $2) AND institution_id = $3
+       RETURNING *`,
+      [status, String(partnershipId), inst.id]
+    );
+    if (res.rows.length === 0) throw new Error('Company collaboration request not found or unauthorized');
+    return res.rows[0];
+  }
+
+  async createInstitutionCollaborationRequest(requesterInstitutionId, targetInstitutionId, message) {
+    if (!this.pg) throw new Error('PostgreSQL database required');
+    const reqInst = await this.resolveInstitution(requesterInstitutionId);
+    const tarInst = await this.resolveInstitution(targetInstitutionId);
+    if (!reqInst || !tarInst) throw new Error('Institutions not found');
+
+    const res = await this.pg.query(
+      `INSERT INTO institution_collaborations (requester_institution_id, target_institution_id, status, message, created_at, updated_at)
+       VALUES ($1, $2, 'PENDING', $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       ON CONFLICT (requester_institution_id, target_institution_id)
+       DO UPDATE SET status = 'PENDING', message = $3, updated_at = CURRENT_TIMESTAMP
+       RETURNING *`,
+      [reqInst.id, tarInst.id, message || 'Collaboration request.']
+    );
+    return res.rows[0];
+  }
+
+  async getCompaniesForInstitution(institutionId) {
+    if (!this.pg) return [];
+    const inst = await this.resolveInstitution(institutionId);
+    if (!inst) return [];
+
+    const res = await this.pg.query(
+      `SELECT DISTINCT c.id, c.company_name as name, c.company_name, c.industry, c.website_url as website, 
+              c.headquarters as location, cip.status as partnership_status, cip.partnership_tier as tier,
+              (SELECT count(*) FROM opportunities o WHERE o.company_id = c.id) as opportunities_count
+       FROM companies c
+       JOIN company_institution_partnerships cip ON cip.company_id = c.id
+       WHERE cip.institution_id = $1 AND cip.status IN ('ACTIVE', 'APPROVED', 'ACCEPTED')
+       ORDER BY c.company_name ASC`,
+      [inst.id]
+    );
+    return res.rows;
+  }
+
+  async getOpportunitiesForInstitution(institutionId) {
+    if (!this.pg) return [];
+    const inst = await this.resolveInstitution(institutionId);
+    if (!inst) return [];
+
+    const res = await this.pg.query(
+      `SELECT o.*, c.company_name, c.industry as company_industry
+       FROM opportunities o
+       JOIN companies c ON c.id = o.company_id
+       WHERE c.id IN (
+         SELECT company_id FROM company_institution_partnerships 
+         WHERE institution_id = $1 AND status IN ('ACTIVE', 'APPROVED', 'ACCEPTED')
+       )
+       ORDER BY o.created_at DESC`,
+      [inst.id]
+    );
+    return res.rows.map(o => ({
+      id: o.id,
+      opportunityId: o.id,
+      title: o.title,
+      company: o.company_name,
+      companyName: o.company_name,
+      companyId: o.company_id,
+      type: o.opportunity_type,
+      location: o.location,
+      stipend: o.stipend,
+      duration: o.duration,
+      requiredSkills: o.required_skills || [],
+      skills: o.required_skills || [],
+      status: o.status,
+      deadline: o.application_deadline
+    }));
+  }
+
+  async getInstitutionCertificates(institutionId, filters = {}) {
+    if (!this.pg) return { success: true, data: [] };
+    const inst = await this.resolveInstitution(institutionId);
+    if (!inst) return { success: true, data: [] };
+
+    const res = await this.pg.query(
+      `SELECT c.id, c.certificate_number, c.title, c.certificate_url, c.verification_hash, c.issued_at,
+              s.id as student_id, s.full_name as student_name, s.roll_number as reg_no,
+              d.name as department, co.title as course_title, i.name as institution_name
+       FROM certificates c
+       JOIN students s ON s.id = c.student_id
+       LEFT JOIN departments d ON d.id = s.department_id
+       JOIN institutions i ON i.id = c.institution_id
+       LEFT JOIN courses co ON co.id = c.course_id
+       WHERE c.institution_id = $1 OR s.institution_id = $1
+       ORDER BY c.issued_at DESC`,
+      [inst.id]
+    );
+    return { success: true, data: res.rows };
+  }
+
+  async getCompanyCertificates(companyId) {
+    if (!this.pg) return [];
+    const compRes = await this.pg.query(
+      `SELECT id, company_name FROM companies WHERE id::text = $1 OR registration_number = $1 OR company_name ILIKE $1 LIMIT 1`,
+      [String(companyId)]
+    );
+    const comp = compRes.rows[0];
+    if (!comp) return [];
+
+    const res = await this.pg.query(
+      `SELECT c.id, c.certificate_number, c.title, c.certificate_url, c.verification_hash, c.issued_at,
+              s.id as student_id, s.full_name as recipient, s.full_name as student_name,
+              i.name as college, i.name as institution_name, co.title as course_title,
+              'Sovereign Verified' as status
+       FROM certificates c
+       JOIN students s ON s.id = c.student_id
+       JOIN institutions i ON i.id = c.institution_id
+       LEFT JOIN courses co ON co.id = c.course_id
+       WHERE s.id IN (
+         SELECT a.student_id FROM applications a 
+         JOIN opportunities o ON o.id = a.opportunity_id 
+         WHERE o.company_id = $1
+       ) OR s.institution_id IN (
+         SELECT cip.institution_id FROM company_institution_partnerships cip 
+         WHERE cip.company_id = $1 AND cip.status IN ('ACTIVE', 'APPROVED', 'ACCEPTED')
+       )
+       ORDER BY c.issued_at DESC`,
+      [comp.id]
+    );
+    return res.rows;
   }
 
   // 6. NOTIFICATIONS & TRASH BIN (PostgreSQL Authoritative)
@@ -4957,14 +5438,17 @@ class RelationalManager {
         }
         if (!recipientId) {
           const uRes = await this.pg.query(
-            `SELECT id FROM users WHERE LOWER(role) = $1 ORDER BY created_at ASC LIMIT 1`,
+            `SELECT u.id FROM users u
+             JOIN user_roles ur ON u.id = ur.user_id
+             JOIN roles r ON ur.role_id = r.id
+             WHERE LOWER(r.code) = $1
+             ORDER BY u.created_at ASC LIMIT 1`,
             [cleanRole]
           );
           if (uRes.rows.length > 0) {
             recipientId = uRes.rows[0].id;
           } else {
-            const anyUser = await this.pg.query(`SELECT id FROM users LIMIT 1`);
-            recipientId = anyUser.rows[0]?.id;
+            recipientId = null;
           }
         }
 
@@ -5036,6 +5520,7 @@ class RelationalManager {
                   s.id as student_id, s.institution_id as student_inst_id, s.department_id, s.roll_number, s.full_name as student_name, s.batch, s.graduation_year,
                   im.institution_id as member_institution_id,
                   cm.company_id as member_company_id,
+                  ap.id as academician_profile_id, ap.faculty_id, ap.full_name as academician_name, ap.designation as academician_designation, ap.department_id as academician_dept_id, ap.institution_id as academician_inst_id,
                   i.name as institution_name, i.code as institution_code,
                   c.company_name, c.registration_number,
                   d.name as department_name, d.code as department_code
@@ -5045,9 +5530,10 @@ class RelationalManager {
            LEFT JOIN students s ON s.user_id = u.id
            LEFT JOIN institution_members im ON im.user_id = u.id
            LEFT JOIN company_members cm ON cm.user_id = u.id
-           LEFT JOIN institutions i ON (s.institution_id = i.id OR im.institution_id = i.id)
+           LEFT JOIN academician_profiles ap ON ap.user_id = u.id
+           LEFT JOIN institutions i ON (s.institution_id = i.id OR im.institution_id = i.id OR ap.institution_id = i.id)
            LEFT JOIN companies c ON cm.company_id = c.id
-           LEFT JOIN departments d ON s.department_id = d.id
+           LEFT JOIN departments d ON (s.department_id = d.id OR ap.department_id = d.id)
            WHERE u.id::text = $1 OR s.id::text = $1 OR s.roll_number::text = $1 OR LOWER(u.email) = $1 LIMIT 1`,
           [cleanId]
         );
@@ -5060,18 +5546,21 @@ class RelationalManager {
               fileU = (data.users || []).find(u => String(u.id).toLowerCase() === cleanId || (u.email || '').toLowerCase() === (pgU.email || '').toLowerCase());
             } catch (e) {}
           }
-          const role = (pgU.role_code || fileU?.role || (pgU.student_id ? 'student' : (pgU.member_institution_id ? 'institution' : (pgU.member_company_id ? 'company' : 'student')))).toLowerCase();
+          const rawRole = (pgU.role_code || fileU?.role || (pgU.student_id ? 'student' : (pgU.academician_profile_id ? 'faculty' : (pgU.member_institution_id ? 'institution' : (pgU.member_company_id ? 'company' : 'student'))))).toLowerCase();
+          const role = (rawRole === 'faculty' || rawRole === 'academician') ? 'academician' : rawRole;
           return {
             id: pgU.student_id || pgU.id,
             userId: pgU.id,
             email: pgU.email,
-            name: pgU.student_name || pgU.institution_name || pgU.company_name || fileU?.name || pgU.email.split('@')[0],
+            name: pgU.academician_name || pgU.student_name || pgU.institution_name || pgU.company_name || fileU?.name || pgU.email.split('@')[0],
             role,
             studentId: pgU.roll_number || pgU.student_id || fileU?.studentId,
-            institutionId: pgU.institution_code || pgU.student_inst_id || pgU.member_institution_id || fileU?.institutionId,
-            collegeId: pgU.institution_code || pgU.student_inst_id || pgU.member_institution_id || fileU?.collegeId,
+            facultyId: pgU.faculty_id,
+            designation: pgU.academician_designation,
+            institutionId: pgU.institution_code || pgU.academician_inst_id || pgU.student_inst_id || pgU.member_institution_id || fileU?.institutionId,
+            collegeId: pgU.institution_code || pgU.academician_inst_id || pgU.student_inst_id || pgU.member_institution_id || fileU?.collegeId,
             companyId: pgU.member_company_id || fileU?.companyId,
-            departmentId: pgU.department_id,
+            departmentId: pgU.academician_dept_id || pgU.department_id,
             departmentName: pgU.department_name,
             rollNumber: pgU.roll_number,
             batch: pgU.batch,
@@ -5396,10 +5885,10 @@ class RelationalManager {
     };
 
     if (cleanRole === 'student') {
-      const cId = profileData.collegeId || 'TN010';
+      const cId = profileData.collegeId || '';
       const inst = (data.institutions || []).find(i => (i.institutionId || i.institution_id) === cId || i.collegeName === profileData.collegeName) || (data.institutions && data.institutions[0]);
-      const collegeId = inst ? (inst.institutionId || inst.institution_id) : 'TN010';
-      const collegeName = inst ? (inst.collegeName || inst.institution_name) : (profileData.collegeName || profileData.institution || 'SRM Institute of Science and Technology');
+      const collegeId = inst ? (inst.institutionId || inst.institution_id) : (cId || '');
+      const collegeName = inst ? (inst.collegeName || inst.institution_name) : (profileData.collegeName || profileData.institution || 'College not linked');
 
       const studentId = `STU-${collegeId}-${Date.now().toString().slice(-4)}`;
       const newStudent = {
@@ -5484,7 +5973,7 @@ class RelationalManager {
             await this.pg.query('INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [pgUserId, roleRow.rows[0].id]);
           }
           if (cleanRole === 'student') {
-            const instRow = await this.pg.query('SELECT id FROM institutions LIMIT 1');
+            const instRow = { rows: [] };
             const instId = instRow.rows[0]?.id;
             const deptRow = await this.pg.query('SELECT id FROM departments WHERE code = $1 OR code = $2 LIMIT 1', ['CSE', 'CS']);
             const deptId = deptRow.rows[0]?.id;
@@ -6000,6 +6489,9 @@ class RelationalManager {
             a.updated_at AS "updatedAt",
             a.resume_url AS "resumeUrl",
             a.cover_note AS "coverNote",
+            s.institution_id AS "institutionId",
+            inst.name AS "studentCollegeName",
+            inst.name AS "college",
             (
               SELECT json_build_object(
                 'id', iv.id,
@@ -6015,6 +6507,7 @@ class RelationalManager {
           FROM applications a
           JOIN students s ON s.id = a.student_id
           LEFT JOIN departments d ON d.id = s.department_id
+          LEFT JOIN institutions inst ON inst.id = s.institution_id
           JOIN opportunities o ON o.id = a.opportunity_id
           JOIN companies c ON c.id = o.company_id
           WHERE ${cWhere}
@@ -6068,6 +6561,26 @@ class RelationalManager {
   }
 
   async createPartnership(partnership) {
+    if (this.pg) {
+      try {
+        const comp = await this.resolveCompany(partnership.companyId);
+        const inst = await this.resolveInstitution(partnership.institutionId || partnership.targetInstitutionId);
+        if (!comp) throw new Error('Company not found');
+        if (!inst) throw new Error('Institution not found');
+        const res = await this.pg.query(
+          `INSERT INTO company_institution_partnerships (company_id, institution_id, partnership_tier, status, message, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+           ON CONFLICT (company_id, institution_id)
+           DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, updated_at = CURRENT_TIMESTAMP
+           RETURNING *`,
+          [comp.id, inst.id, partnership.tier || partnership.partnershipTier || 'Prime Hiring Partner', partnership.status || 'PENDING', partnership.message || 'Collaboration request']
+        );
+        return res.rows[0];
+      } catch (err) {
+        if (this.isPgRequired) throw new Error('DATABASE ERROR (createPartnership): ' + err.message);
+      }
+    }
+    if (this.isPgRequired) return null;
     const data = this._read();
     const newPart = { id: `PRT-${Date.now()}`, ...partnership };
     data.partnerships = data.partnerships || [];
@@ -6138,10 +6651,10 @@ class RelationalManager {
       return {
         id: inst.institutionId || inst.id || '60e7a0c1-e9e2-4eb5-acaa-437a9d81e436',
         code: inst.collegeCode || inst.institutionId || 'TN010',
-        name: inst.collegeName || inst.name || 'SRM Institute of Science and Technology',
+        name: inst.collegeName || inst.name || 'Institution',
         contact_email: inst.official_email || inst.email || (inst.code ? `${inst.code.toLowerCase()}@institution.edu` : 'admin@institution.edu'),
-        address: inst.address || 'Kattankulathur, Chennai, Tamil Nadu',
-        website: inst.website || 'https://www.srmist.edu.in',
+        address: inst.address || 'Tamil Nadu',
+        website: inst.website || '',
         setup_completed: inst.setup_completed !== undefined ? inst.setup_completed : true
       };
     }
@@ -6483,8 +6996,8 @@ class RelationalManager {
         const uCheck = await client.query("SELECT user_id as id FROM institution_members WHERE institution_id = $1 LIMIT 1", [inst.id]);
         if (uCheck.rows.length > 0) safeAdminId = uCheck.rows[0].id;
         if (!safeAdminId) {
-          const anyU = await client.query("SELECT id FROM users LIMIT 1");
-          if (anyU.rows.length > 0) safeAdminId = anyU.rows[0].id;
+          // No arbitrary fallback user
+          safeAdminId = null;
         }
       }
 
@@ -7331,13 +7844,13 @@ class RelationalManager {
         id: certificateId,
         certificateId: certificateId,
         studentId: 'STU-TN010-001',
-        studentName: 'Arun Kumar',
-        courseId: 'CRS-ABC-01',
-        courseTitle: 'Advanced Full Stack Development',
+        studentName: student ? (student.name || student.full_name) : 'Student',
+        courseId: 'CRS-01',
+        courseTitle: 'Course Module',
         companyId: 'COMP-001',
-        companyName: 'ABC Technologies',
-        institutionId: institutionId || 'TN010',
-        institutionName: 'SRM Institute of Science and Technology',
+        companyName: 'Company',
+        institutionId: institutionId || '',
+        institutionName: 'Institution',
         status: newStatus,
         issuedAt: new Date().toISOString(),
         verifiedAt: new Date().toISOString()
@@ -8181,6 +8694,19 @@ class RelationalManager {
 
     await this.saveStudent(student);
 
+    // Record skill growth in database ledger and update student_performance
+    try {
+      const { recordAssessmentSkillGrowth } = require('../services/skillGrowthEngine');
+      await recordAssessmentSkillGrowth({
+        studentId: canonicalStudentId || student.id,
+        assessmentId,
+        score: percentage,
+        customClient: this.pg
+      });
+    } catch (gErr) {
+      console.warn('[submitInstitutionAssessmentAttempt] Skill growth engine notice:', gErr.message);
+    }
+
     return {
       success: true,
       attemptId,
@@ -8961,9 +9487,6 @@ class RelationalManager {
 
   async saveSkill(institutionId, skillData, isPublish = false) {
     if (!institutionId) throw new Error('institutionId is required to save skill');
-    const data = this._read();
-    data.courses = data.courses || [];
-    data.skillsList = data.skillsList || [];
 
     const instList = await this.getInstitutions();
     const instRecord = instList.find(i =>
@@ -9107,19 +9630,118 @@ class RelationalManager {
       updatedAt: new Date().toISOString()
     };
 
-    // Upsert into data.courses
-    const existingIndex = data.courses.findIndex(c =>
-      (c.id === skillId || c.skillId === skillId || c.courseId === skillId) &&
-      String(c.institutionId).toUpperCase() === String(institutionId).toUpperCase()
-    );
+    // Persist into PostgreSQL courses and course_modules if PostgreSQL is active
+    let pgCourse = null;
+    if (this.pg) {
+      try {
+        let instUuid = null;
+        if (institutionId) {
+          const iCheck = await this.pg.query(
+            `SELECT id FROM institutions WHERE id::text = $1 OR code = $1 LIMIT 1`,
+            [String(institutionId)]
+          );
+          if (iCheck.rows.length > 0) instUuid = iCheck.rows[0].id;
+        }
 
-    if (existingIndex >= 0) {
-      data.courses[existingIndex] = { ...data.courses[existingIndex], ...fullSkill };
-    } else {
-      data.courses.unshift(fullSkill);
+        const cCode = skillData.code || skillData.courseCode || `CRS-${Date.now().toString().slice(-6)}`;
+        const durationWeeks = parseInt(String(skillData.duration || '6').replace(/\D/g, '')) || 6;
+        const totalHours = Number(skillData.totalHours || skillData.hours || 40);
+        const instructorName = typeof skillData.instructor === 'object'
+          ? (skillData.instructor.name || skillData.instructorName || 'Campus Faculty Lead')
+          : (skillData.instructorName || skillData.instructor || 'Campus Faculty Lead');
+
+        // Check if course already exists by UUID
+        let existing = null;
+        const potentialId = skillData.id || skillData.courseId || skillData.skillId;
+        if (potentialId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(potentialId)) {
+          const exRes = await this.pg.query('SELECT * FROM courses WHERE id = $1', [potentialId]);
+          if (exRes.rows.length > 0) existing = exRes.rows[0];
+        }
+
+        if (existing) {
+          const upRes = await this.pg.query(
+            `UPDATE courses
+             SET title = $1, category = $2, difficulty = $3, duration_weeks = $4,
+                 hours = $5, instructor_name = $6, status = $7, updated_at = NOW()
+             WHERE id = $8
+             RETURNING *`,
+            [
+              skillData.name || skillData.title || existing.title,
+              skillData.category || existing.category,
+              skillData.level || skillData.difficulty || existing.difficulty,
+              durationWeeks,
+              totalHours,
+              instructorName,
+              cleanStatus === 'PUBLISHED' ? 'ACTIVE' : cleanStatus,
+              existing.id
+            ]
+          );
+          pgCourse = upRes.rows[0];
+        } else {
+          const insRes = await this.pg.query(
+            `INSERT INTO courses (institution_id, course_code, title, category, difficulty, duration_weeks, hours, instructor_name, rating, status, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 5.0, $9, NOW(), NOW())
+             RETURNING *`,
+            [
+              instUuid,
+              cCode,
+              skillData.name || skillData.title || 'Untitled Course',
+              skillData.category || 'Programming',
+              skillData.level || skillData.difficulty || 'Intermediate',
+              durationWeeks,
+              totalHours,
+              instructorName,
+              cleanStatus === 'PUBLISHED' ? 'ACTIVE' : cleanStatus
+            ]
+          );
+          pgCourse = insRes.rows[0];
+        }
+
+        if (pgCourse) {
+          fullSkill.id = pgCourse.id;
+          fullSkill.courseId = pgCourse.id;
+          fullSkill.skillId = pgCourse.id;
+          fullSkill.code = pgCourse.course_code;
+
+          // Sync course_modules if provided
+          if (Array.isArray(skillData.modules) && skillData.modules.length > 0) {
+            await this.pg.query('DELETE FROM course_modules WHERE course_id = $1', [pgCourse.id]);
+            for (let i = 0; i < skillData.modules.length; i++) {
+              const m = skillData.modules[i];
+              const mTitle = typeof m === 'string' ? m : (m.title || `Module ${i + 1}`);
+              const mDesc = typeof m === 'object' ? (m.description || '') : '';
+              const mDuration = typeof m === 'object' ? (m.duration || '2 Hours') : '2 Hours';
+              const mLessons = typeof m === 'object' && Array.isArray(m.lessons) ? m.lessons : [];
+              await this.pg.query(
+                `INSERT INTO course_modules (course_id, module_number, title, description, duration_text, lessons)
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                [pgCourse.id, i + 1, mTitle, mDesc, mDuration, JSON.stringify(mLessons)]
+              );
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[saveSkill] PG insert/update note:', err.message);
+      }
     }
 
-    this._write(data);
+    // Upsert into data.courses fallback if PostgreSQL is not required
+    if (!this.isPgRequired) {
+      const data = this._read();
+      data.courses = data.courses || [];
+      const existingIndex = data.courses.findIndex(c =>
+        (c.id === fullSkill.id || c.skillId === fullSkill.id || c.courseId === fullSkill.id) &&
+        String(c.institutionId).toUpperCase() === String(institutionId).toUpperCase()
+      );
+
+      if (existingIndex >= 0) {
+        data.courses[existingIndex] = { ...data.courses[existingIndex], ...fullSkill };
+      } else {
+        data.courses.unshift(fullSkill);
+      }
+
+      this._write(data);
+    }
 
     // If publishing and notification configured: identify and notify all eligible students
     let notifiedCount = 0;
@@ -9164,25 +9786,94 @@ class RelationalManager {
   async getInstitutionSkills(institutionId, filterStatus = null) {
     if (this.pg) {
       try {
-        const res = await this.pg.query(
-          `SELECT s.id, s.name, s.description, s.difficulty as level, s.industry_demand, s.is_emerging, 'PUBLISHED' as status
-           FROM skills s ORDER BY s.name ASC`
-        );
-        const list = res.rows.map(s => ({
-          ...s,
-          skillId: s.id,
-          enrolledCount: 25,
-          pendingRequestsCount: 2,
-          completedCount: 20,
-          completionRate: '80%',
-          avgAssessmentScore: 85
-        }));
+        let query = `
+          SELECT c.*, c.id AS "courseId", c.course_code AS code,
+                 c.institution_id AS "institutionId", c.company_id AS "companyId",
+                 c.instructor_name AS instructor, c.duration_weeks AS "durationWeeks",
+                 (SELECT COUNT(*)::int FROM enrollments e WHERE e.course_id = c.id) AS enrolled_count,
+                 (SELECT COUNT(*)::int FROM enrollments e WHERE e.course_id = c.id AND e.status = 'COMPLETED') AS completed_count,
+                 (SELECT COUNT(*)::int FROM enrollments e WHERE e.course_id = c.id AND e.status = 'PENDING') AS pending_requests_count
+          FROM courses c
+        `;
+        const params = [];
+        if (institutionId) {
+          query += ` WHERE (c.institution_id::text = $1 OR c.institution_id IN (SELECT id FROM institutions WHERE code = $1 OR id::text = $1))`;
+          params.push(String(institutionId));
+        }
+        if (filterStatus && filterStatus !== 'ALL') {
+          const statusParam = filterStatus.toUpperCase() === 'PUBLISHED' ? 'ACTIVE' : filterStatus.toUpperCase();
+          params.push(statusParam);
+          query += institutionId ? ` AND (c.status = $${params.length} OR ($${params.length} = 'ACTIVE' AND (c.status = 'ACTIVE' OR c.status = 'PUBLISHED')))` : ` WHERE (c.status = $${params.length} OR ($${params.length} = 'ACTIVE' AND (c.status = 'ACTIVE' OR c.status = 'PUBLISHED')))`;
+        }
+        query += ` ORDER BY c.created_at DESC`;
+
+        const res = await this.pg.query(query, params);
+
+        const courseIds = res.rows.map(r => r.id);
+        let modulesByCourse = {};
+        if (courseIds.length > 0) {
+          const modRes = await this.pg.query(
+            `SELECT * FROM course_modules WHERE course_id = ANY($1::uuid[]) ORDER BY module_number ASC`,
+            [courseIds]
+          );
+          modRes.rows.forEach(m => {
+            if (!modulesByCourse[m.course_id]) modulesByCourse[m.course_id] = [];
+            modulesByCourse[m.course_id].push({
+              moduleNumber: m.module_number,
+              title: m.title,
+              description: m.description,
+              duration: m.duration_text,
+              lessons: m.lessons
+            });
+          });
+        }
+
+        const list = res.rows.map(r => {
+          const enrolled = Number(r.enrolled_count) || 0;
+          const completed = Number(r.completed_count) || 0;
+          const compRate = enrolled > 0 ? `${Math.round((completed / enrolled) * 100)}%` : '0%';
+          const stat = (r.status === 'ACTIVE' || r.status === 'PUBLISHED') ? 'PUBLISHED' : (r.status || 'PUBLISHED');
+          const mods = modulesByCourse[r.id] || [];
+          return {
+            id: r.id,
+            skillId: r.id,
+            courseId: r.id,
+            code: r.course_code || r.code,
+            name: r.title,
+            title: r.title,
+            category: r.category,
+            level: r.difficulty,
+            difficulty: r.difficulty,
+            duration: `${r.duration_weeks || 6} Weeks`,
+            durationWeeks: r.duration_weeks || 6,
+            hours: r.hours || 40,
+            totalHours: r.hours || 40,
+            instructor: r.instructor_name || 'Campus Faculty Lead',
+            instructor_name: r.instructor_name || 'Campus Faculty Lead',
+            instructorName: r.instructor_name || 'Campus Faculty Lead',
+            enrolledCount: enrolled,
+            studentsEnrolled: enrolled,
+            pendingRequestsCount: Number(r.pending_requests_count) || 0,
+            completedCount: completed,
+            completionRate: compRate,
+            rating: Number(r.rating) || 5.0,
+            status: stat,
+            modules: mods,
+            createdAt: r.created_at,
+            updatedAt: r.updated_at
+          };
+        });
+
+        const published = list.filter(s => s.status === 'PUBLISHED').length;
+        const draft = list.filter(s => s.status === 'DRAFT').length;
+        const archived = list.filter(s => s.status === 'ARCHIVED').length;
+
         return {
           skills: list,
           totalCount: list.length,
-          publishedCount: list.length,
-          draftCount: 0,
-          archivedCount: 0
+          publishedCount: published,
+          draftCount: draft,
+          archivedCount: archived
         };
       } catch (err) {
         if (this.isPgRequired) throw new Error('DATABASE ERROR (getInstitutionSkills): ' + err.message);
@@ -9198,7 +9889,7 @@ class RelationalManager {
       String(c.institutionId || c.collegeId || '').toUpperCase().trim() === instIdUpper
     );
 
-    if (filterStatus) {
+    if (filterStatus && filterStatus !== 'ALL') {
       const fsUpper = String(filterStatus).toUpperCase().trim();
       list = list.filter(c => String(c.status || 'PUBLISHED').toUpperCase() === fsUpper);
     }
@@ -9233,8 +9924,84 @@ class RelationalManager {
     };
   }
 
+  async getCourseById(courseId) {
+    if (!courseId) return null;
+    if (this.pg) {
+      try {
+        const query = `
+          SELECT c.*, c.id AS "courseId", c.course_code AS code,
+                 c.institution_id AS "institutionId", c.company_id AS "companyId",
+                 c.instructor_name AS instructor, c.duration_weeks AS "durationWeeks",
+                 i.name AS "institutionName",
+                 (SELECT COUNT(*)::int FROM enrollments e WHERE e.course_id = c.id) AS enrolled_count,
+                 (SELECT COUNT(*)::int FROM enrollments e WHERE e.course_id = c.id AND e.status = 'COMPLETED') AS completed_count
+          FROM courses c
+          LEFT JOIN institutions i ON i.id = c.institution_id
+          WHERE c.id::text = $1 OR c.course_code = $1
+          LIMIT 1
+        `;
+        const res = await this.pg.query(query, [String(courseId)]);
+        if (res.rows.length > 0) {
+          const r = res.rows[0];
+          const modRes = await this.pg.query(
+            `SELECT * FROM course_modules WHERE course_id = $1 ORDER BY module_number ASC`,
+            [r.id]
+          );
+          const modules = modRes.rows.map(m => ({
+            moduleNumber: m.module_number,
+            title: m.title,
+            description: m.description,
+            duration: m.duration_text,
+            lessons: m.lessons
+          }));
+          const enrolled = Number(r.enrolled_count) || 0;
+          const completed = Number(r.completed_count) || 0;
+          const compRate = enrolled > 0 ? `${Math.round((completed / enrolled) * 100)}%` : '0%';
+          return {
+            id: r.id,
+            courseId: r.id,
+            skillId: r.id,
+            code: r.course_code,
+            title: r.title,
+            name: r.title,
+            category: r.category,
+            level: r.difficulty,
+            difficulty: r.difficulty,
+            duration: `${r.duration_weeks || 6} Weeks`,
+            durationWeeks: r.duration_weeks || 6,
+            hours: r.hours || 40,
+            instructor: r.instructor_name || 'Campus Faculty Lead',
+            instructor_name: r.instructor_name || 'Campus Faculty Lead',
+            institutionId: r.institutionId,
+            institutionName: r.institutionName || 'Partner Institution',
+            rating: Number(r.rating) || 5.0,
+            status: (r.status === 'ACTIVE' || r.status === 'PUBLISHED') ? 'PUBLISHED' : (r.status || 'PUBLISHED'),
+            enrolledCount: enrolled,
+            studentsEnrolled: enrolled,
+            completedCount: completed,
+            completionRate: compRate,
+            modules,
+            createdAt: r.created_at,
+            updatedAt: r.updated_at
+          };
+        }
+      } catch (err) {
+        console.warn('[getCourseById] PG error:', err.message);
+      }
+    }
+    if (this.isPgRequired) return null;
+    const data = this._read();
+    data.courses = data.courses || [];
+    return data.courses.find(c =>
+      c.id === courseId || c.courseId === courseId || c.skillId === courseId || c.code === courseId
+    ) || null;
+  }
+
   async getSkillById(skillId) {
     if (!skillId) return null;
+    const fromCourse = await this.getCourseById(skillId);
+    if (fromCourse) return fromCourse;
+    if (this.isPgRequired) return null;
     const data = this._read();
     data.courses = data.courses || [];
     return data.courses.find(c =>
@@ -9858,8 +10625,992 @@ class RelationalManager {
       enrollment: data.enrollments[enrIdx]
     };
   }
+
+  // ════════════════════════════════════════════════════════════════
+  // COURSE DISCONTINUATION & MULTI-PARTY NOTIFICATION
+  // ════════════════════════════════════════════════════════════════
+
+  async discontinueCourse(studentIdentifier, enrollmentOrCourseId, reason = null) {
+    if (!this.pg) {
+      if (this.isPgRequired) throw new Error('DATABASE ERROR (discontinueCourse): PostgreSQL required');
+      throw new Error('Database connection required');
+    }
+
+    const sRes = await this.pg.query(
+      `SELECT s.id, s.full_name, s.user_id, s.institution_id, i.name AS institution_name
+       FROM students s
+       LEFT JOIN institutions i ON i.id = s.institution_id
+       WHERE s.id::text = $1 OR s.user_id::text = $1 OR s.roll_number = $1 LIMIT 1`,
+      [String(studentIdentifier)]
+    );
+    if (sRes.rows.length === 0) {
+      throw new Error('Student record not found or unauthorized');
+    }
+    const student = sRes.rows[0];
+
+    const enrRes = await this.pg.query(
+      `SELECT e.*, c.title AS course_title, c.course_code, c.company_id AS course_company_id, c.institution_id AS course_institution_id
+       FROM enrollments e
+       JOIN courses c ON c.id = e.course_id
+       WHERE e.student_id = $1 AND (e.id::text = $2 OR e.course_id::text = $2 OR c.course_code = $2)
+       LIMIT 1`,
+      [student.id, String(enrollmentOrCourseId)]
+    );
+    if (enrRes.rows.length === 0) {
+      throw new Error('Enrollment not found or does not belong to this student');
+    }
+    const enrollment = enrRes.rows[0];
+
+    if (enrollment.status === 'Discontinued' || enrollment.status === 'Dropped') {
+      return {
+        success: true,
+        alreadyDiscontinued: true,
+        message: 'Course has already been discontinued.',
+        data: {
+          enrollmentId: enrollment.id,
+          courseId: enrollment.course_id,
+          courseTitle: enrollment.course_title,
+          status: enrollment.status,
+          progress: enrollment.progress_percentage,
+          discontinuedAt: enrollment.discontinued_at
+        }
+      };
+    }
+
+    const client = await this.pg.connect();
+    try {
+      await client.query('BEGIN');
+
+      const updateRes = await client.query(
+        `UPDATE enrollments
+         SET status = 'Discontinued', discontinued_at = CURRENT_TIMESTAMP, discontinuation_reason = $1
+         WHERE id = $2
+         RETURNING *`,
+        [reason || null, enrollment.id]
+      );
+      const updatedEnrollment = updateRes.rows[0];
+
+      // Resolve Institution recipient users
+      const instId = enrollment.course_institution_id || student.institution_id;
+      if (instId) {
+        const instMembers = await client.query(
+          `SELECT user_id FROM institution_members WHERE institution_id = $1 AND is_active = true`,
+          [instId]
+        );
+        for (const m of instMembers.rows) {
+          const existingNotif = await client.query(
+            `SELECT id FROM notifications
+             WHERE recipient_id = $1 AND notification_type = 'COURSE_DISCONTINUED'
+               AND related_entity_id = $2 AND details->>'studentId' = $3
+               AND created_at > NOW() - INTERVAL '5 minutes' LIMIT 1`,
+            [m.user_id, enrollment.course_id, student.id]
+          );
+          if (existingNotif.rows.length === 0) {
+            await client.query(
+              `INSERT INTO notifications (
+                recipient_type, recipient_id, notification_type, title, message, related_entity_type, related_entity_id, details, is_read, is_deleted, created_at
+              ) VALUES ($1, $2, 'COURSE_DISCONTINUED', $3, $4, 'course', $5, $6, false, false, CURRENT_TIMESTAMP)`,
+              [
+                'institution',
+                m.user_id,
+                'Student course discontinuation',
+                `${student.full_name} has discontinued the course ${enrollment.course_title}.`,
+                enrollment.course_id,
+                JSON.stringify({
+                  studentId: student.id,
+                  studentName: student.full_name,
+                  courseId: enrollment.course_id,
+                  courseTitle: enrollment.course_title,
+                  progress: enrollment.progress_percentage,
+                  discontinuedAt: updatedEnrollment.discontinued_at,
+                  reason: reason || 'Not provided'
+                })
+              ]
+            );
+          }
+        }
+      }
+
+      // Resolve Collaborating Industry recipient users
+      const companyIds = new Set();
+      if (enrollment.course_company_id) {
+        companyIds.add(enrollment.course_company_id);
+      }
+      if (instId) {
+        const partneredComps = await client.query(
+          `SELECT company_id FROM company_institution_partnerships WHERE institution_id = $1 AND status = 'ACTIVE'`,
+          [instId]
+        );
+        for (const r of partneredComps.rows) {
+          companyIds.add(r.company_id);
+        }
+      }
+
+      for (const compId of companyIds) {
+        const compMembers = await client.query(
+          `SELECT user_id FROM company_members WHERE company_id = $1 AND is_active = true`,
+          [compId]
+        );
+        for (const cm of compMembers.rows) {
+          const existingNotif = await client.query(
+            `SELECT id FROM notifications
+             WHERE recipient_id = $1 AND notification_type = 'COURSE_DISCONTINUED'
+               AND related_entity_id = $2 AND details->>'studentId' = $3
+               AND created_at > NOW() - INTERVAL '5 minutes' LIMIT 1`,
+            [cm.user_id, enrollment.course_id, student.id]
+          );
+          if (existingNotif.rows.length === 0) {
+            await client.query(
+              `INSERT INTO notifications (
+                recipient_type, recipient_id, notification_type, title, message, related_entity_type, related_entity_id, details, is_read, is_deleted, created_at
+              ) VALUES ($1, $2, 'COURSE_DISCONTINUED', $3, $4, 'course', $5, $6, false, false, CURRENT_TIMESTAMP)`,
+              [
+                'company',
+                cm.user_id,
+                'Student course discontinuation',
+                `${student.full_name} has discontinued the course ${enrollment.course_title}.`,
+                enrollment.course_id,
+                JSON.stringify({
+                  studentId: student.id,
+                  studentName: student.full_name,
+                  courseId: enrollment.course_id,
+                  courseTitle: enrollment.course_title,
+                  progress: enrollment.progress_percentage,
+                  discontinuedAt: updatedEnrollment.discontinued_at,
+                  reason: reason || 'Not provided'
+                })
+              ]
+            );
+          }
+        }
+      }
+
+      await client.query('COMMIT');
+
+      return {
+        success: true,
+        message: 'Course discontinued successfully.',
+        data: {
+          enrollmentId: updatedEnrollment.id,
+          courseId: enrollment.course_id,
+          courseTitle: enrollment.course_title,
+          status: 'Discontinued',
+          progress: updatedEnrollment.progress_percentage,
+          discontinuedAt: updatedEnrollment.discontinued_at,
+          reason: updatedEnrollment.discontinuation_reason
+        }
+      };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // INDUSTRY TARGETED ASSESSMENTS METHODS
+  // ════════════════════════════════════════════════════════════════
+
+  async createCompanyAssessment(companyIdentifier, data) {
+    if (!this.pg) {
+      if (this.isPgRequired) throw new Error('DATABASE ERROR (createCompanyAssessment): PostgreSQL required');
+      throw new Error('Database connection required');
+    }
+
+    const cRes = await this.pg.query(
+      `SELECT c.id, c.company_name FROM companies c
+       LEFT JOIN company_members cm ON cm.company_id = c.id
+       WHERE c.id::text = $1 OR cm.user_id::text = $1 LIMIT 1`,
+      [String(companyIdentifier)]
+    );
+    if (cRes.rows.length === 0) throw new Error('Company not found or unauthorized');
+    const comp = cRes.rows[0];
+
+    const title = data.title || 'Targeted Technical Assessment';
+    const description = data.description || '';
+    const instructions = data.instructions || 'Answer all questions within the allocated time limit.';
+    const timeLimitMinutes = Number(data.timeLimitMinutes || data.timeLimit || 45);
+    const totalMarks = Number(data.totalMarks || 100);
+    const categories = Array.isArray(data.categories) ? data.categories : ['Logical Reasoning', 'Aptitude', 'Programming'];
+    const trackCode = data.trackCode || `TGT-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 900 + 100)}`;
+    const domain = data.domain || 'Technical & Engineering Benchmark';
+
+    const res = await this.pg.query(
+      `INSERT INTO assessments (
+        track_code, company_id, title, domain, description, instructions, assessment_type, categories, status, time_limit_minutes, total_marks, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, 'TARGETED_INDUSTRY', $7::jsonb, 'DRAFT', $8, $9, NOW(), NOW())
+      RETURNING *`,
+      [trackCode, comp.id, title, domain, description, instructions, JSON.stringify(categories), timeLimitMinutes, totalMarks]
+    );
+    return res.rows[0];
+  }
+
+  async getCompanyAssessments(companyIdentifier) {
+    if (!this.pg) {
+      if (this.isPgRequired) throw new Error('DATABASE ERROR (getCompanyAssessments): PostgreSQL required');
+      return [];
+    }
+    const cRes = await this.pg.query(
+      `SELECT c.id FROM companies c
+       LEFT JOIN company_members cm ON cm.company_id = c.id
+       WHERE c.id::text = $1 OR cm.user_id::text = $1 LIMIT 1`,
+      [String(companyIdentifier)]
+    );
+    if (cRes.rows.length === 0) return [];
+    const compId = cRes.rows[0].id;
+
+    const res = await this.pg.query(
+      `SELECT a.*,
+        COALESCE((SELECT COUNT(*) FROM assessment_questions aq WHERE aq.assessment_id = a.id), 0) AS question_count,
+        COALESCE((SELECT COUNT(*) FROM assessment_targets at WHERE at.assessment_id = a.id), 0) AS target_count,
+        COALESCE((SELECT COUNT(*) FROM assessment_targets at WHERE at.assessment_id = a.id AND at.status = 'COMPLETED'), 0) AS completed_count
+       FROM assessments a
+       WHERE a.company_id = $1
+       ORDER BY a.created_at DESC`,
+      [compId]
+    );
+    return res.rows;
+  }
+
+  async getCompanyAssessmentById(assessmentId, companyIdentifier) {
+    if (!this.pg) {
+      if (this.isPgRequired) throw new Error('DATABASE ERROR (getCompanyAssessmentById): PostgreSQL required');
+      return null;
+    }
+    const cRes = await this.pg.query(
+      `SELECT c.id FROM companies c
+       LEFT JOIN company_members cm ON cm.company_id = c.id
+       WHERE c.id::text = $1 OR cm.user_id::text = $1 LIMIT 1`,
+      [String(companyIdentifier)]
+    );
+    if (cRes.rows.length === 0) return null;
+    const compId = cRes.rows[0].id;
+
+    const asmtRes = await this.pg.query(
+      `SELECT * FROM assessments WHERE id = $1 AND company_id = $2 LIMIT 1`,
+      [assessmentId, compId]
+    );
+    if (asmtRes.rows.length === 0) return null;
+    const assessment = asmtRes.rows[0];
+
+    const qRes = await this.pg.query(
+      `SELECT * FROM assessment_questions WHERE assessment_id = $1 ORDER BY created_at ASC`,
+      [assessmentId]
+    );
+    assessment.questions = qRes.rows;
+
+    const tRes = await this.pg.query(
+      `SELECT at.*, s.full_name AS student_name, s.roll_number, COALESCE(d.name, 'Engineering') AS department, i.name AS institution_name
+       FROM assessment_targets at
+       JOIN students s ON s.id = at.student_id
+       LEFT JOIN departments d ON d.id = s.department_id
+       LEFT JOIN institutions i ON i.id = at.institution_id
+       WHERE at.assessment_id = $1
+       ORDER BY at.assigned_at DESC`,
+      [assessmentId]
+    );
+    assessment.targets = tRes.rows;
+
+    return assessment;
+  }
+
+  async addAssessmentQuestion(assessmentId, companyIdentifier, qData) {
+    if (!this.pg) throw new Error('Database connection required');
+    const asmt = await this.getCompanyAssessmentById(assessmentId, companyIdentifier);
+    if (!asmt) throw new Error('Assessment not found or unauthorized');
+
+    const topic = qData.topic || qData.category || 'General';
+    const res = await this.pg.query(
+      `INSERT INTO assessment_questions (
+        assessment_id, topic, category, question_type, question_text, options, correct_answer, explanation, marks, difficulty, programming_language, starter_code, input_description, output_description, constraints, test_cases, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::jsonb, NOW())
+      RETURNING *`,
+      [
+        assessmentId,
+        topic,
+        qData.category || 'Logical Reasoning',
+        qData.questionType || qData.question_type || (qData.category === 'Programming' ? 'CODE' : 'MCQ'),
+        qData.questionText || qData.question || '',
+        JSON.stringify(Array.isArray(qData.options) ? qData.options : []),
+        qData.correctAnswer !== undefined ? String(qData.correctAnswer) : null,
+        qData.explanation || null,
+        Number(qData.marks || 1),
+        qData.difficulty || 'Intermediate',
+        qData.programmingLanguage || qData.language || 'JavaScript',
+        qData.starterCode || qData.starter_code || null,
+        qData.inputDescription || qData.input_description || null,
+        qData.outputDescription || qData.output_description || null,
+        qData.constraints || null,
+        JSON.stringify(Array.isArray(qData.testCases) ? qData.testCases : (Array.isArray(qData.test_cases) ? qData.test_cases : []))
+      ]
+    );
+    return res.rows[0];
+  }
+
+  async deleteAssessmentQuestion(questionId, assessmentId, companyIdentifier) {
+    if (!this.pg) throw new Error('Database connection required');
+    const asmt = await this.getCompanyAssessmentById(assessmentId, companyIdentifier);
+    if (!asmt) throw new Error('Assessment not found or unauthorized');
+
+    await this.pg.query(
+      `DELETE FROM assessment_questions WHERE id = $1 AND assessment_id = $2`,
+      [questionId, assessmentId]
+    );
+    return { success: true };
+  }
+
+  async assignAssessmentTargets(assessmentId, companyIdentifier, studentIds = []) {
+    if (!this.pg) throw new Error('Database connection required');
+    const asmt = await this.getCompanyAssessmentById(assessmentId, companyIdentifier);
+    if (!asmt) throw new Error('Assessment not found or unauthorized');
+
+    let assignedCount = 0;
+    for (const sid of studentIds) {
+      const sRes = await this.pg.query(
+        `SELECT id, institution_id, user_id, full_name FROM students WHERE id::text = $1 OR user_id::text = $1 OR roll_number = $1 LIMIT 1`,
+        [String(sid)]
+      );
+      if (sRes.rows.length > 0) {
+        const student = sRes.rows[0];
+        const ins = await this.pg.query(
+          `INSERT INTO assessment_targets (assessment_id, student_id, institution_id, status, assigned_at)
+           VALUES ($1, $2, $3, 'ASSIGNED', NOW())
+           ON CONFLICT (assessment_id, student_id) DO NOTHING
+           RETURNING id`,
+          [assessmentId, student.id, student.institution_id]
+        );
+        if (ins.rows.length > 0) assignedCount++;
+      }
+    }
+    return { success: true, assignedCount };
+  }
+
+  async publishAssessment(assessmentId, companyIdentifier) {
+    if (!this.pg) throw new Error('Database connection required');
+    const asmt = await this.getCompanyAssessmentById(assessmentId, companyIdentifier);
+    if (!asmt) throw new Error('Assessment not found or unauthorized');
+
+    await this.pg.query(
+      `UPDATE assessments SET status = 'PUBLISHED', updated_at = NOW() WHERE id = $1`,
+      [assessmentId]
+    );
+
+    const compRes = await this.pg.query(`SELECT company_name FROM companies WHERE id = $1`, [asmt.company_id]);
+    const companyName = compRes.rows[0]?.company_name || 'Enterprise Partner';
+
+    const targets = await this.pg.query(
+      `SELECT at.*, s.user_id, s.full_name
+       FROM assessment_targets at
+       JOIN students s ON s.id = at.student_id
+       WHERE at.assessment_id = $1`,
+      [assessmentId]
+    );
+
+    for (const t of targets.rows) {
+      if (t.user_id) {
+        const existingNotif = await this.pg.query(
+          `SELECT id FROM notifications
+           WHERE recipient_id = $1 AND notification_type = 'ASSESSMENT_ASSIGNED'
+             AND related_entity_id = $2 LIMIT 1`,
+          [t.user_id, assessmentId]
+        );
+        if (existingNotif.rows.length === 0) {
+          await this.pg.query(
+            `INSERT INTO notifications (
+              recipient_type, recipient_id, notification_type, title, message, related_entity_type, related_entity_id, details, is_read, is_deleted, created_at
+            ) VALUES ($1, $2, 'ASSESSMENT_ASSIGNED', $3, $4, 'assessment', $5, $6, false, false, CURRENT_TIMESTAMP)`,
+            [
+              'student',
+              t.user_id,
+              'New Assessment Assigned',
+              `New targeted assessment assigned by ${companyName}: "${asmt.title}".`,
+              assessmentId,
+              JSON.stringify({
+                assessmentId,
+                assessmentTitle: asmt.title,
+                companyName,
+                timeLimitMinutes: asmt.time_limit_minutes,
+                totalMarks: asmt.total_marks
+              })
+            ]
+          );
+        }
+      }
+    }
+
+    return { success: true, message: 'Assessment published and targeted candidates notified.' };
+  }
+
+  async getCompanyAssessmentResults(assessmentId, companyIdentifier) {
+    if (!this.pg) throw new Error('Database connection required');
+    const asmt = await this.getCompanyAssessmentById(assessmentId, companyIdentifier);
+    if (!asmt) throw new Error('Assessment not found or unauthorized');
+
+    const res = await this.pg.query(
+      `SELECT at.id AS target_id, at.status, at.score, at.total_marks, at.result_status, at.started_at, at.submitted_at, at.feedback,
+              s.id AS student_id, s.full_name AS student_name, s.roll_number, COALESCE(d.name, 'Engineering') AS department,
+              i.id AS institution_id, i.name AS institution_name
+       FROM assessment_targets at
+       JOIN students s ON s.id = at.student_id
+       LEFT JOIN departments d ON d.id = s.department_id
+       LEFT JOIN institutions i ON i.id = at.institution_id
+       WHERE at.assessment_id = $1
+       ORDER BY at.score DESC NULLS LAST`,
+      [assessmentId]
+    );
+    return {
+      assessment: {
+        id: asmt.id,
+        title: asmt.title,
+        status: asmt.status,
+        timeLimitMinutes: asmt.time_limit_minutes,
+        totalMarks: asmt.total_marks
+      },
+      results: res.rows
+    };
+  }
+
+  async getAssignedAssessmentsForStudent(studentIdentifier) {
+    if (!this.pg) {
+      if (this.isPgRequired) throw new Error('DATABASE ERROR (getAssignedAssessmentsForStudent): PostgreSQL required');
+      return [];
+    }
+
+    const sRes = await this.pg.query(
+      `SELECT id FROM students WHERE id::text = $1 OR user_id::text = $1 OR roll_number = $1 LIMIT 1`,
+      [String(studentIdentifier)]
+    );
+    if (sRes.rows.length === 0) return [];
+    const studentId = sRes.rows[0].id;
+
+    const res = await this.pg.query(
+      `SELECT at.id AS target_id, at.status AS target_status, at.score, at.total_marks, at.result_status, at.started_at, at.submitted_at,
+              a.id AS assessment_id, a.title, a.description, a.instructions, a.time_limit_minutes, a.categories,
+              c.company_name, c.industry
+       FROM assessment_targets at
+       JOIN assessments a ON a.id = at.assessment_id
+       JOIN companies c ON c.id = a.company_id
+       WHERE at.student_id = $1 AND a.status = 'PUBLISHED'
+       ORDER BY at.assigned_at DESC`,
+      [studentId]
+    );
+    return res.rows;
+  }
+
+  async getAssignedAssessmentQuestions(assessmentId, studentIdentifier) {
+    if (!this.pg) throw new Error('Database connection required');
+
+    const sRes = await this.pg.query(
+      `SELECT id FROM students WHERE id::text = $1 OR user_id::text = $1 OR roll_number = $1 LIMIT 1`,
+      [String(studentIdentifier)]
+    );
+    if (sRes.rows.length === 0) throw new Error('Student unauthorized');
+    const studentId = sRes.rows[0].id;
+
+    const targetRes = await this.pg.query(
+      `SELECT * FROM assessment_targets WHERE assessment_id = $1 AND student_id = $2 LIMIT 1`,
+      [assessmentId, studentId]
+    );
+    if (targetRes.rows.length === 0) {
+      throw new Error('Access denied: Student is not targeted for this assessment');
+    }
+
+    const asmtRes = await this.pg.query(
+      `SELECT a.id, a.title, a.description, a.instructions, a.time_limit_minutes, a.total_marks, c.company_name
+       FROM assessments a
+       JOIN companies c ON c.id = a.company_id
+       WHERE a.id = $1 AND a.status = 'PUBLISHED' LIMIT 1`,
+      [assessmentId]
+    );
+    if (asmtRes.rows.length === 0) throw new Error('Assessment not available or unpublished');
+    const assessment = asmtRes.rows[0];
+
+    // SANITIZATION: Strip out correct_answer, explanation, and hidden test cases
+    const qRes = await this.pg.query(
+      `SELECT id, category, question_type, question_text, options, marks, difficulty, programming_language, starter_code, input_description, output_description, constraints,
+              (SELECT jsonb_agg(jsonb_build_object('input', tc->>'input', 'expectedOutput', tc->>'expectedOutput'))
+               FROM jsonb_array_elements(test_cases) tc
+               WHERE (tc->>'isHidden')::boolean IS NOT true) AS public_test_cases
+       FROM assessment_questions
+       WHERE assessment_id = $1
+       ORDER BY created_at ASC`,
+      [assessmentId]
+    );
+    assessment.questions = qRes.rows;
+    assessment.target = targetRes.rows[0];
+
+    if (assessment.target.status === 'ASSIGNED') {
+      await this.pg.query(
+        `UPDATE assessment_targets SET status = 'IN_PROGRESS', started_at = NOW() WHERE id = $1`,
+        [assessment.target.id]
+      );
+    }
+
+    return assessment;
+  }
+
+  async submitAssignedAssessmentAttempt(assessmentId, studentIdentifier, answers = {}) {
+    if (!this.pg) throw new Error('Database connection required');
+
+    const sRes = await this.pg.query(
+      `SELECT s.id, s.full_name, s.user_id FROM students s WHERE s.id::text = $1 OR s.user_id::text = $1 OR roll_number = $1 LIMIT 1`,
+      [String(studentIdentifier)]
+    );
+    if (sRes.rows.length === 0) throw new Error('Student record not found');
+    const student = sRes.rows[0];
+
+    const targetRes = await this.pg.query(
+      `SELECT * FROM assessment_targets WHERE assessment_id = $1 AND student_id = $2 LIMIT 1`,
+      [assessmentId, student.id]
+    );
+    if (targetRes.rows.length === 0) throw new Error('Student was not targeted for this assessment');
+    const target = targetRes.rows[0];
+
+    const questionsRes = await this.pg.query(
+      `SELECT * FROM assessment_questions WHERE assessment_id = $1`,
+      [assessmentId]
+    );
+    const questions = questionsRes.rows;
+
+    let earnedMarks = 0;
+    let totalMarks = 0;
+    const breakdown = [];
+
+    const programmingExecutionService = require('../services/programmingExecutionService');
+
+    for (const q of questions) {
+      const qMarks = Number(q.marks || 1);
+      totalMarks += qMarks;
+      const userAns = answers[q.id] !== undefined ? answers[q.id] : answers[String(q.id)];
+
+      if (q.category === 'Programming' || q.question_type === 'CODE') {
+        const studentCode = typeof userAns === 'string' ? userAns : (userAns?.code || '');
+        const testCases = Array.isArray(q.test_cases) ? q.test_cases : [];
+        const execRes = await programmingExecutionService.executeCode(studentCode, q.programming_language || 'JavaScript', testCases);
+        const marksForQ = Math.round((execRes.scorePercentage / 100) * qMarks * 10) / 10;
+        earnedMarks += marksForQ;
+        breakdown.push({
+          questionId: q.id,
+          category: q.category,
+          earnedMarks: marksForQ,
+          totalMarks: qMarks,
+          passed: execRes.status === 'SUCCESS' && execRes.passedCount === execRes.totalCount,
+          executionResult: execRes
+        });
+      } else {
+        const isCorrect = String(userAns || '').trim().toLowerCase() === String(q.correct_answer || '').trim().toLowerCase();
+        const marksForQ = isCorrect ? qMarks : 0;
+        earnedMarks += marksForQ;
+        breakdown.push({
+          questionId: q.id,
+          category: q.category,
+          earnedMarks: marksForQ,
+          totalMarks: qMarks,
+          isCorrect
+        });
+      }
+    }
+
+    const scorePercentage = totalMarks > 0 ? Math.round((earnedMarks / totalMarks) * 100) : 0;
+    const passed = scorePercentage >= 60;
+
+    await this.pg.query(
+      `UPDATE assessment_targets
+       SET status = 'COMPLETED', score = $1, total_marks = $2, result_status = $3, submitted_at = NOW(), feedback = $4::jsonb
+       WHERE id = $5`,
+      [scorePercentage, totalMarks, passed ? 'PASSED' : 'FAILED', JSON.stringify({ breakdown, earnedMarks, totalMarks }), target.id]
+    );
+
+    await this.pg.query(
+      `INSERT INTO assessment_attempts (
+        assessment_id, student_id, started_at, completed_at, status, score
+      ) VALUES ($1, $2, COALESCE($3, NOW()), NOW(), 'Completed', $4)`,
+      [assessmentId, student.id, target.started_at, scorePercentage]
+    );
+
+    // Trigger automatic skill growth and student performance calculation
+    let skillGrowthData = null;
+    try {
+      const { recordAssessmentSkillGrowth } = require('../services/skillGrowthEngine');
+      skillGrowthData = await recordAssessmentSkillGrowth({
+        studentId: student.id,
+        assessmentId,
+        score: scorePercentage,
+        customClient: this.pg
+      });
+    } catch (growthErr) {
+      console.warn('[submitAssignedAssessmentAttempt] Skill growth calculation note:', growthErr.message);
+    }
+
+    return {
+      success: true,
+      score: scorePercentage,
+      earnedMarks,
+      totalMarks,
+      resultStatus: passed ? 'PASSED' : 'FAILED',
+      passed,
+      breakdown,
+      skillGrowth: skillGrowthData
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // MESSAGES & CONVERSATIONS (Database-driven, relationship-aware)
+  // ══════════════════════════════════════════════════════════════════════════
+  async getConversations(userId) {
+    if (this.pg) {
+      try {
+        const query = `
+          SELECT 
+            c.id,
+            c.title,
+            c.opportunity_id AS "opportunityId",
+            c.created_at AS "createdAt",
+            COALESCE((
+              SELECT json_agg(
+                json_build_object(
+                  'userId', cp2.user_id,
+                  'name', COALESCE(s.full_name, comp.company_name, inst.name, u.email),
+                  'role', r.code,
+                  'email', u.email,
+                  'avatar', COALESCE(s.resume_url, comp.logo_url)
+                )
+              )
+              FROM conversation_participants cp2
+              JOIN users u ON u.id = cp2.user_id
+              LEFT JOIN user_roles ur ON ur.user_id = u.id
+              LEFT JOIN roles r ON r.id = ur.role_id
+              LEFT JOIN students s ON s.user_id = u.id
+              LEFT JOIN company_members cm ON cm.user_id = u.id
+              LEFT JOIN companies comp ON comp.id = cm.company_id
+              LEFT JOIN institution_members im ON im.user_id = u.id
+              LEFT JOIN institutions inst ON inst.id = im.institution_id
+              WHERE cp2.conversation_id = c.id
+            ), '[]'::json) AS participants,
+            (
+              SELECT json_build_object(
+                'id', m.id,
+                'messageText', m.message_text,
+                'text', m.message_text,
+                'senderUserId', m.sender_user_id,
+                'sentAt', m.sent_at,
+                'timestamp', m.sent_at,
+                'isRead', m.is_read
+              )
+              FROM messages m
+              WHERE m.conversation_id = c.id
+              ORDER BY m.sent_at DESC
+              LIMIT 1
+            ) AS "lastMessage",
+            (
+              SELECT COUNT(*)::int
+              FROM messages m
+              WHERE m.conversation_id = c.id
+                AND m.sender_user_id != $1
+                AND m.is_read = false
+            ) AS "unreadCount"
+          FROM conversations c
+          JOIN conversation_participants cp ON cp.conversation_id = c.id
+          WHERE cp.user_id::text = $1::text
+          ORDER BY (
+            COALESCE((SELECT MAX(sent_at) FROM messages WHERE conversation_id = c.id), c.created_at)
+          ) DESC
+        `;
+        const res = await this.pg.query(query, [String(userId)]);
+        return res.rows.map(row => {
+          const otherParticipant = (row.participants || []).find(p => String(p.userId) !== String(userId)) || row.participants?.[0] || {};
+          return {
+            id: row.id,
+            title: row.title || otherParticipant.name || 'Conversation',
+            opportunityId: row.opportunityId,
+            createdAt: row.createdAt,
+            participants: row.participants || [],
+            otherParticipant,
+            lastMessage: row.lastMessage,
+            unreadCount: row.unreadCount || 0
+          };
+        });
+      } catch (err) {
+        console.warn('[getConversations] PG error:', err.message);
+      }
+    }
+    return [];
+  }
+
+  async getConversationMessages(conversationId, userId) {
+    if (this.pg) {
+      try {
+        const partCheck = await this.pg.query(
+          `SELECT 1 FROM conversation_participants WHERE conversation_id = $1 AND user_id::text = $2 LIMIT 1`,
+          [conversationId, String(userId)]
+        );
+        if (partCheck.rows.length === 0) {
+          throw new Error('Access denied: You are not a participant in this conversation');
+        }
+
+        const msgs = await this.pg.query(
+          `SELECT 
+             m.id,
+             m.conversation_id AS "conversationId",
+             m.sender_user_id AS "senderUserId",
+             m.message_text AS "messageText",
+             m.message_text AS "text",
+             m.is_read AS "isRead",
+             m.sent_at AS "sentAt",
+             m.sent_at AS "timestamp",
+             COALESCE(s.full_name, comp.company_name, inst.name, u.email) AS "senderName",
+             r.code AS "senderRole"
+           FROM messages m
+           JOIN users u ON u.id = m.sender_user_id
+           LEFT JOIN user_roles ur ON ur.user_id = u.id
+           LEFT JOIN roles r ON r.id = ur.role_id
+           LEFT JOIN students s ON s.user_id = u.id
+           LEFT JOIN company_members cm ON cm.user_id = u.id
+           LEFT JOIN companies comp ON comp.id = cm.company_id
+           LEFT JOIN institution_members im ON im.user_id = u.id
+           LEFT JOIN institutions inst ON inst.id = im.institution_id
+           WHERE m.conversation_id = $1
+           ORDER BY m.sent_at ASC`,
+          [conversationId]
+        );
+
+        await this.pg.query(
+          `UPDATE messages 
+           SET is_read = true 
+           WHERE conversation_id = $1 AND sender_user_id::text != $2::text AND is_read = false`,
+          [conversationId, String(userId)]
+        );
+
+        return msgs.rows;
+      } catch (err) {
+        console.warn('[getConversationMessages] PG error:', err.message);
+        throw err;
+      }
+    }
+    return [];
+  }
+
+  async createConversation(initiatorUserId, recipientUserId, title = null, opportunityId = null, initialMessage = null) {
+    if (this.pg) {
+      const client = await this.pg.connect();
+      try {
+        await client.query('BEGIN');
+
+        const existingConv = await client.query(
+          `SELECT c.id
+           FROM conversations c
+           JOIN conversation_participants cp1 ON cp1.conversation_id = c.id AND cp1.user_id::text = $1
+           JOIN conversation_participants cp2 ON cp2.conversation_id = c.id AND cp2.user_id::text = $2
+           LIMIT 1`,
+          [String(initiatorUserId), String(recipientUserId)]
+        );
+
+        let convId;
+        if (existingConv.rows.length > 0) {
+          convId = existingConv.rows[0].id;
+        } else {
+          const convRes = await client.query(
+            `INSERT INTO conversations (opportunity_id, title, created_at)
+             VALUES ($1, $2, NOW())
+             RETURNING id, title, created_at`,
+            [opportunityId || null, title || null]
+          );
+          convId = convRes.rows[0].id;
+
+          await client.query(
+            `INSERT INTO conversation_participants (conversation_id, user_id, last_read_at)
+             VALUES ($1, $2, NOW()), ($1, $3, NULL)`,
+            [convId, initiatorUserId, recipientUserId]
+          );
+        }
+
+        if (initialMessage && initialMessage.trim()) {
+          await client.query(
+            `INSERT INTO messages (conversation_id, sender_user_id, message_text, is_read, sent_at)
+             VALUES ($1, $2, $3, false, NOW())`,
+            [convId, initiatorUserId, initialMessage.trim()]
+          );
+        }
+
+        await client.query('COMMIT');
+        return { id: convId, conversationId: convId };
+      } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('[createConversation] PG error:', err.message);
+        throw err;
+      } finally {
+        client.release();
+      }
+    }
+    return null;
+  }
+
+  async sendMessage(conversationId, senderUserId, messageText) {
+    if (!messageText || !messageText.trim()) throw new Error('Message text cannot be empty');
+    if (this.pg) {
+      try {
+        const partCheck = await this.pg.query(
+          `SELECT 1 FROM conversation_participants WHERE conversation_id = $1 AND user_id::text = $2 LIMIT 1`,
+          [conversationId, String(senderUserId)]
+        );
+        if (partCheck.rows.length === 0) {
+          throw new Error('Access denied: You are not a participant in this conversation');
+        }
+
+        const msgRes = await this.pg.query(
+          `INSERT INTO messages (conversation_id, sender_user_id, message_text, is_read, sent_at)
+           VALUES ($1, $2, $3, false, NOW())
+           RETURNING id, conversation_id, sender_user_id, message_text, is_read, sent_at`,
+          [conversationId, senderUserId, messageText.trim()]
+        );
+
+        const m = msgRes.rows[0];
+        return {
+          id: m.id,
+          conversationId: m.conversation_id,
+          senderUserId: m.sender_user_id,
+          messageText: m.message_text,
+          text: m.message_text,
+          isRead: m.is_read,
+          sentAt: m.sent_at,
+          timestamp: m.sent_at
+        };
+      } catch (err) {
+        console.error('[sendMessage] PG error:', err.message);
+        throw err;
+      }
+    }
+    return null;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // STUDENT LEARNING WORKSPACE TELEMETRY & INTELLIGENCE METHODS
+  // ─────────────────────────────────────────────────────────────────────────────
+  async getStudentLearningOverview(studentId) {
+    try {
+      const enrollments = await this.getEnrollments(studentId) || [];
+      const completed = enrollments.filter(e => (Number(e.progress) || 0) >= 100 || e.status === 'COMPLETED' || e.status === 'CERTIFIED');
+      const inProgress = enrollments.filter(e => (Number(e.progress) || 0) > 0 && (Number(e.progress) || 0) < 100 && e.status !== 'Discontinued');
+
+      return {
+        coursesEnrolled: enrollments.length,
+        coursesInProgress: inProgress.length,
+        coursesCompleted: completed.length,
+        lessonsCompleted: enrollments.reduce((acc, e) => acc + (Number(e.completedLessons) || 0), 0),
+        quizzesCompleted: 0,
+        projectsCompleted: 0,
+        certificationsEarned: completed.length,
+        learningHours: Math.round(enrollments.reduce((acc, e) => acc + ((Number(e.progress) || 0) * 0.4), 0)),
+        currentStreak: enrollments.length > 0 ? 1 : 0
+      };
+    } catch (err) {
+      console.warn('[getStudentLearningOverview] error:', err.message);
+      return {
+        coursesEnrolled: 0,
+        coursesInProgress: 0,
+        coursesCompleted: 0,
+        lessonsCompleted: 0,
+        quizzesCompleted: 0,
+        projectsCompleted: 0,
+        certificationsEarned: 0,
+        learningHours: 0,
+        currentStreak: 0
+      };
+    }
+  }
+
+  async getStudentSelfAssessments(studentId) {
+    return [];
+  }
+
+  async saveStudentSelfAssessment(studentId, data) {
+    return {
+      id: data.id || `sa_${Date.now()}`,
+      studentId,
+      skillName: data.skillName || 'Technical Skill',
+      level: data.level || 'Intermediate',
+      confidence: Number(data.confidence) || 75,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  async deleteStudentSelfAssessment(studentId, id) {
+    return { success: true, id };
+  }
+
+  async getStudentQuizzes(studentId) {
+    return [];
+  }
+
+  async submitStudentQuiz(studentId, data) {
+    return {
+      id: `quiz_${Date.now()}`,
+      studentId,
+      score: data.score || 0,
+      submittedAt: new Date().toISOString()
+    };
+  }
+
+  async getStudentProjects(studentId) {
+    return [];
+  }
+
+  async getStudentCertifications(studentId) {
+    return [];
+  }
+
+  async getStudentLearningActivities(studentId) {
+    return [];
+  }
+
+  async getStudentLearningIntelligence(studentId) {
+    return {
+      readinessVelocity: 0,
+      skillGaps: [],
+      recommendations: []
+    };
+  }
+
+  async getStudentSkillGapIntelligence(studentId) {
+    return {
+      gaps: [],
+      targets: []
+    };
+  }
+
+  async checkStudentSkillEligibility(student, skill) {
+    try {
+      const enrollments = await this.getEnrollments(student.id || student.studentId) || [];
+      const existing = enrollments.find(e => e.skillId === skill.id || e.courseId === skill.id || e.skillName === skill.name);
+      if (existing) {
+        return {
+          isEligible: false,
+          status: 'ALREADY_ENROLLED',
+          existingEnrollment: existing
+        };
+      }
+      return {
+        isEligible: true,
+        status: 'ELIGIBLE',
+        existingEnrollment: null,
+        breakdown: [],
+        reasons: []
+      };
+    } catch (err) {
+      return {
+        isEligible: true,
+        status: 'ELIGIBLE',
+        existingEnrollment: null,
+        breakdown: [],
+        reasons: []
+      };
+    }
+  }
+
+  async getCourseCatalog() {
+    return await this.getCourses();
+  }
 }
 
 module.exports = new RelationalManager();
-
-

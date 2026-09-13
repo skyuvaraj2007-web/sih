@@ -113,7 +113,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
           fontSize: '11.5px', fontFamily: 'var(--font-mono)'
         }}>
           <span style={{ color: 'var(--text-muted)' }}>CANDIDATE PROFILE:</span>
-          <strong style={{ color: 'var(--cyber-cyan)' }}>Arun Kumar • Verified CSE</strong>
+          <strong style={{ color: 'var(--cyber-cyan)' }}>{user?.name || user?.full_name || 'Enrolled Student'} • {user?.department || 'Verified Academic'}</strong>
         </div>
       </div>
 

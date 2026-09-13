@@ -453,7 +453,7 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Match Score</div>
                       <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)' }}>
-                        {app.matchScore || app.match_score || 85}%
+                        {app.matchScore || app.match_score || 0}%
                       </div>
                     </div>
                   </div>

@@ -28,7 +28,10 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
-  FileText
+  FileText,
+  TrendingUp,
+  UserCheck,
+  Trash2
 } from 'lucide-react';
 
 export default function Sidebar({ activePage, setActivePage, user, onLogout, companyTab = 'dashboard' }) {
@@ -36,11 +39,33 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
 
   const currentRole = (user?.role === 'industry' || user?.role === 'company')
     ? 'company'
-    : (user?.role === 'institution' ? 'institution' : 'student');
+    : (user?.role === 'institution'
+      ? 'institution'
+      : (user?.role === 'faculty' || user?.role === 'academician' ? 'academician' : 'student'));
 
   const isActive = (item) => {
     const id = typeof item === 'string' ? item : item?.id;
     const tab = typeof item === 'object' ? item?.tab : null;
+
+    if (currentRole === 'academician') {
+      if (id === 'academician-dashboard') return activePage === 'academician-dashboard' || activePage === 'home' || activePage === 'dashboard';
+      if (id === 'academician-students') return activePage === 'academician-students';
+      if (id === 'academician-student-performance') return activePage === 'academician-student-performance' || activePage === 'academician-student-performance-detail' || activePage === 'academician-student-detail';
+      if (id === 'academician-skill-assessments') return ['academician-skill-assessments', 'academician-assessments', 'academician-create-assessment', 'academician-assessment-results', 'academician-assessment-detail'].includes(activePage);
+      if (id === 'academician-skill-analytics') return ['academician-skill-analytics', 'academician-analytics'].includes(activePage);
+      if (id === 'academician-skill-gaps') return activePage === 'academician-skill-gaps';
+      if (id === 'academician-courses') return activePage === 'academician-courses' || activePage === 'academician-create-course';
+      if (id === 'academician-assigned-courses') return activePage === 'academician-assigned-courses';
+      if (id === 'academician-overall-progress') return activePage === 'academician-overall-progress' || activePage === 'academician-course-progress';
+      if (id === 'academician-achievements') return activePage === 'academician-achievements';
+      if (id === 'academician-trash') return activePage === 'academician-trash';
+      if (id === 'academician-recommendations') return activePage === 'academician-recommendations';
+      if (id === 'academician-mentorship') return activePage === 'academician-mentorship';
+      if (id === 'academician-industry-requirements') return activePage === 'academician-industry-requirements';
+      if (id === 'academician-opportunities') return activePage === 'academician-opportunities';
+      if (id === 'academician-notifications') return activePage === 'academician-notifications' || activePage === 'notifications';
+      if (id === 'settings') return activePage === 'settings';
+    }
 
     if (currentRole === 'company') {
       const activeCpmTab = companyTab || 'dashboard';
@@ -75,17 +100,41 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
 
     // Institution Top-Level Route Matching
     if (id === 'institution-console') return activePage === 'institution-console' || activePage === 'institution-academic-workspace';
-    if (id === 'institution-students') return ['institution-readiness', 'institution-students', 'institution-assessments', 'institution-skill-analytics'].includes(activePage);
-    if (id === 'institution-courses') return ['institution-courses', 'institution-skill-mapping'].includes(activePage);
-    if (id === 'institution-certificates') return ['institution-certificates', 'institution-course-certificates', 'institution-proofs'].includes(activePage);
-    if (id === 'institution-company-directory') return ['institution-company-directory', 'institution-companies', 'institution-company-intelligence', 'institution-company-opportunities', 'institution-industry-requests'].includes(activePage);
-    if (id === 'institution-matching') return ['institution-matching', 'institution-skill-gap'].includes(activePage);
+    if (id === 'institution-staff') return ['institution-staff', 'institution-staff-management', 'staff-management'].includes(activePage);
+    if (id === 'institution-campus-directory') return activePage === 'institution-campus-directory';
+    if (id === 'institution-management') return activePage === 'institution-management';
     if (id === 'institution-placement') return ['institution-placement', 'institution-recruitment-drives'].includes(activePage);
+    if (id === 'institution-candidates') return activePage === 'institution-candidates';
+    if (id === 'institution-courses') return ['institution-courses', 'institution-skill-mapping'].includes(activePage);
+    if (id === 'institution-messages') return activePage === 'institution-messages';
     if (id === 'institution-analytics') return ['institution-analytics', 'institution-industry-demand', 'institution-skill-trends'].includes(activePage);
+    if (id === 'institution-company-opportunities') return activePage === 'institution-company-opportunities';
+    if (id === 'institution-students') return ['institution-readiness', 'institution-students', 'institution-assessments', 'institution-skill-analytics'].includes(activePage);
+    if (id === 'institution-certificates') return ['institution-certificates', 'institution-course-certificates', 'institution-proofs'].includes(activePage);
+    if (id === 'institution-company-directory') return ['institution-company-directory', 'institution-companies', 'institution-company-intelligence', 'institution-industry-requests'].includes(activePage);
+    if (id === 'institution-matching') return ['institution-matching', 'institution-skill-gap'].includes(activePage);
 
     if (id === 'industry-portal') return activePage === 'industry-portal';
     return activePage === id;
   };
+
+  const academicianNavItems = [
+    { id: 'academician-dashboard', label: 'Dashboard', icon: Home },
+    { id: 'academician-students', label: 'My Students', icon: Users },
+    { id: 'academician-student-performance', label: 'Student Performance', icon: TrendingUp },
+    { id: 'academician-courses', label: 'My Courses', icon: BookOpen },
+    { id: 'academician-assigned-courses', label: 'Assigned Courses', icon: UserCheck },
+    { id: 'academician-overall-progress', label: 'Course Progress', icon: TrendingUp },
+    { id: 'academician-skill-assessments', label: 'Skill Assessments', icon: Award },
+    { id: 'academician-achievements', label: 'Verify Achievements', icon: ShieldCheck },
+    { id: 'academician-skill-analytics', label: 'Skill Analytics', icon: BarChart2 },
+    { id: 'academician-skill-gaps', label: 'Skill Gaps', icon: Brain, badge: 'Crucial' },
+    { id: 'academician-mentorship', label: 'Mentorship', icon: GraduationCap },
+    { id: 'academician-industry-requirements', label: 'Industry Demands', icon: Building2 },
+    { id: 'academician-opportunities', label: 'Opportunities', icon: Briefcase },
+    { id: 'academician-notifications', label: 'Notifications', icon: Bell },
+    { id: 'academician-trash', label: 'Trash', icon: Trash2 }
+  ];
 
   const studentNavItems = [
     { id: 'home', label: 'Home', icon: Home },
@@ -96,52 +145,60 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
     { id: 'communication', label: 'Communication', icon: MessageSquare, badge: 'Drills' },
     { id: 'advanced-tech', label: 'Emerging Tech', icon: Cpu, badge: 'AI 2.0' },
     { id: 'projects', label: 'Build Projects', icon: FolderGit2 },
-    { id: 'opportunities', label: 'Opportunities', icon: Briefcase, count: 12 },
+    { id: 'opportunities', label: 'Opportunities', icon: Briefcase },
     { id: 'passport', label: 'Digital Passport', icon: ShieldCheck }
   ];
 
   const institutionNavItems = [
-    { id: 'institution-console', label: 'Cohort Telemetry', icon: Building2 },
-    { id: 'institution-students', label: 'Students', icon: Users },
+    { id: 'institution-console', label: 'Dashboard', icon: Home },
+    { id: 'institution-staff', label: 'Staff Management', icon: Users, badge: 'Faculty' },
+    { id: 'institution-campus-directory', label: 'Campus Directory', icon: Building2 },
+    { id: 'institution-management', label: 'Institution Management', icon: ShieldCheck },
+    { id: 'institution-placement', label: 'Application Pipeline', icon: GraduationCap },
+    { id: 'institution-candidates', label: 'Candidate List', icon: Users },
     { id: 'institution-courses', label: 'Learning', icon: BookOpen },
+    { id: 'institution-messages', label: 'Messages', icon: MessageSquare },
+    { id: 'institution-analytics', label: 'Analytics', icon: BarChart2 },
+    { id: 'institution-company-opportunities', label: 'Opportunities', icon: Briefcase },
+    { id: 'institution-matching', label: 'Talent Matching', icon: Brain },
     { id: 'institution-projects', label: 'Project Verification', icon: FolderGit2 },
     { id: 'institution-certificates', label: 'Certificate Verification', icon: Award },
-    { id: 'institution-company-directory', label: 'Companies', icon: Building },
-    { id: 'institution-matching', label: 'Talent Matching', icon: Brain },
-    { id: 'institution-placement', label: 'Placement Pipeline', icon: GraduationCap },
-    { id: 'institution-analytics', label: 'Executive Analytics', icon: BarChart2 },
     { id: 'settings', label: 'Console Settings', icon: Settings }
   ];
 
   const companyNavItems = [
     { id: 'industry-portal', tab: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'industry-portal', tab: 'students', label: 'Talent', icon: Users, count: 245 },
+    { id: 'industry-portal', tab: 'students', label: 'Talent', icon: Users },
     { id: 'industry-portal', tab: 'colleges', label: 'Institutions', icon: Building },
     { id: 'industry-portal', tab: 'opportunities', label: 'Opportunities', icon: Briefcase },
     { id: 'industry-portal', tab: 'courses', label: 'Learning', icon: BookOpen },
     { id: 'industry-portal', tab: 'analytics', label: 'Analytics', icon: BarChart2 },
-    { id: 'industry-portal', tab: 'messages', label: 'Messages', icon: MessageSquare, count: 2 },
+    { id: 'industry-portal', tab: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'industry-portal', tab: 'settings', label: 'Settings', icon: Settings }
   ];
 
-  const navItems = currentRole === 'institution'
-    ? institutionNavItems
-    : currentRole === 'company'
-      ? companyNavItems
-      : studentNavItems;
+  const navItems = currentRole === 'academician'
+    ? academicianNavItems
+    : currentRole === 'institution'
+      ? institutionNavItems
+      : currentRole === 'company'
+        ? companyNavItems
+        : studentNavItems;
 
-  const workspaceLabel = currentRole === 'institution'
-    ? 'ACADEMIA COMMAND'
-    : currentRole === 'company'
-      ? 'TALENT INTELLIGENCE'
-      : 'CAREER RAIL';
+  const workspaceLabel = currentRole === 'academician'
+    ? 'FACULTY / ACADEMIA'
+    : currentRole === 'institution'
+      ? 'ACADEMIA COMMAND'
+      : currentRole === 'company'
+        ? 'TALENT INTELLIGENCE'
+        : 'CAREER RAIL';
 
   const bottomLinks = [
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'profile', label: 'My Profile', icon: User },
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'help', label: 'Help Center', icon: HelpCircle },
-    { id: 'logout', label: 'Sign Out', icon: LogOut, isLogout: true }
+    { id: 'logout', label: 'Logout', icon: LogOut, isLogout: true }
   ];
 
   const handleBottomClick = (link) => {
@@ -153,11 +210,13 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
     }
   };
 
-  const themeAccentColor = currentRole === 'institution'
-    ? 'var(--cyber-purple)'
-    : currentRole === 'company'
-      ? 'var(--cyber-emerald)'
-      : 'var(--brand-primary)';
+  const themeAccentColor = currentRole === 'academician'
+    ? '#F59E0B'
+    : currentRole === 'institution'
+      ? 'var(--cyber-purple)'
+      : currentRole === 'company'
+        ? 'var(--cyber-emerald)'
+        : 'var(--brand-primary)';
 
   return (
     <aside

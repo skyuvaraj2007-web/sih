@@ -25,6 +25,10 @@ export default function CompanyApplications({
   const [activeTab, setActiveTab] = useState(defaultTab || 'All');
   const [searchQuery, setSearchQuery] = useState('');
 
+  React.useEffect(() => {
+    if (defaultTab) setActiveTab(defaultTab);
+  }, [defaultTab]);
+
   // Available Stages
   const stages = ['All', 'New', 'Under Review', 'Shortlisted', 'Interview', 'Selected', 'Rejected'];
 
@@ -126,7 +130,7 @@ export default function CompanyApplications({
           <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #94A3B8)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Hiring Pipeline Progression
           </span>
-          <span style={{ fontSize: '11px', color: '#00D4FF', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{apps.length} Total Inflow</span>
+          <span style={{ fontSize: '11px', color: '#00D4FF', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{applications.length} Total Inflow</span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
@@ -223,22 +227,21 @@ export default function CompanyApplications({
               {filteredApps.length === 0 ? (
                 <tr>
                   <td colSpan="7" style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-muted, #94A3B8)' }}>
-                    No applications found in this stage.
+                    {activeTab === 'Shortlisted'
+                      ? 'No candidates have been shortlisted yet.'
+                      : applications.length === 0 ? 'No applications yet.' : 'No candidates available yet in this stage.'}
                   </td>
                 </tr>
               ) : (
                 filteredApps.map(app => {
-                  const candidateName = app.candidateName || app.studentName || app.candidate || 'Arun Kumar';
-                  const role = app.opportunityTitle || app.roleTitle || app.role || 'Frontend Developer Intern';
-                  const college = app.studentCollegeName?.includes('Velalar') ? 'VCET'
-                    : app.studentCollegeName?.includes('PSG') ? 'PSG Tech'
-                    : app.studentCollegeName?.includes('SRM') ? 'SRM'
-                    : 'VCET';
-                  const match = app.matchScore || app.match || 92;
+                  const candidateName = app.candidateName || app.studentName || app.candidate || 'Candidate';
+                  const role = app.opportunityTitle || app.roleTitle || app.role || 'Opportunity';
+                  const college = app.studentCollegeName ? (app.studentCollegeName.length > 18 ? app.studentCollegeName.split(' ').map(w => w[0]).join('').slice(0, 8) : app.studentCollegeName) : 'Campus';
+                  const match = app.matchScore != null ? app.matchScore : (app.match != null ? app.match : 0);
                   const stage = app.stage || 'New';
                   const date = app.appliedAt
                     ? new Date(app.appliedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                    : (app.date || 'Sep 4, 2026');
+                    : (app.date || 'Recent');
 
                   return (
                     <tr key={app.applicationId || app.id} style={{ transition: 'background 0.2s ease' }}>

@@ -1,60 +1,5 @@
-// Pre-seeded database state matching Arun Kumar's exact records from the SKILLNEXUS AI design specification
 const seedData = {
-  users: [
-    {
-      id: "usr_student_01",
-      email: "arun.kumar@nexus.edu",
-      passwordHash: "$2a$10$w8PqWkX7F5n0R7FvK4a2QOqUe5/8t4C9B4Z2yW5Z4c7v.d8g6X9xW", // hashed "password123"
-      role: "student",
-      name: "Arun Kumar",
-      headline: "Aspiring Data Scientist & AI Systems Engineer",
-      studentId: "SRM-CSE-2022-8419",
-      candidateId: "NEX-DID-8941A",
-      did: "did:nexus:0x89419f8721cba3402ef94819d429c",
-      college: "SRM Institute of Science and Technology",
-      degree: "B.Tech Computer Science & Engineering",
-      gradYear: "2026 (3rd Year)",
-      phone: "+91 98765 43210",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-      integrityIndex: 99.4,
-      readinessIndex: 72,
-      profileCompletion: 92,
-      careerTarget: {
-        desiredRole: "Aspiring Data Scientist / AI Engineer",
-        targetIndustry: "Artificial Intelligence, Fintech, Cloud Enterprise",
-        compensation: "₹15L - ₹25L / annum",
-        modalities: ["Hybrid (Bengaluru / NCR)", "Remote (Global Tier-1)", "On-Site (Any Tech Hub)"]
-      },
-      bio: "Passionate 3rd-year CS student specializing in Data Science, RAG systems, and predictive ML pipelines. Looking for high-impact internship opportunities starting Summer 2025.",
-      techStackMatrix: ["Python", "SQL", "Machine Learning", "Generative AI", "LangChain", "PostgreSQL"],
-      companionPreferences: {
-        proactivityLevel: 75,
-        autoSyncGithub: true,
-        alertHighMatch: true,
-        enableSimulationBots: true
-      }
-    },
-    {
-      id: "usr_industry_01",
-      email: "talent@techcorp.global",
-      passwordHash: "$2a$10$w8PqWkX7F5n0R7FvK4a2QOqUe5/8t4C9B4Z2yW5Z4c7v.d8g6X9xW",
-      role: "industry",
-      name: "Sarah Jenkins",
-      companyName: "TechCorp Global Systems",
-      recruiterHandle: "TECHCORP-GLOBAL-CORP",
-      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"
-    },
-    {
-      id: "usr_institution_01",
-      email: "placements@srm.edu.in",
-      passwordHash: "$2a$10$w8PqWkX7F5n0R7FvK4a2QOqUe5/8t4C9B4Z2yW5Z4c7v.d8g6X9xW",
-      role: "institution",
-      name: "Prof. K. Ramanathan",
-      institutionName: "SRM Institute of Science and Technology",
-      campusId: "SRM-MAIN-CAMPUS-2025",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"
-    }
-  ],
+  users: [],
 
   skills: [
     {
@@ -778,7 +723,7 @@ const seedData = {
     {
       id: "seal_02",
       title: "Advanced Python for Data Science",
-      partner: "SRM Center of Excellence",
+      partner: "Academic Center of Excellence",
       sealType: "ACADEMIC SEAL",
       idCode: "ID: IN-7714-PY-06"
     },

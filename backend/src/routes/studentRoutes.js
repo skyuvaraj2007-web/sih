@@ -1156,7 +1156,7 @@ router.get('/:studentId', requireAuth, async (req, res) => {
     else if (role === 'institution') {
       const callerInstId = String(user.institutionId || user.collegeId || '').toUpperCase().trim();
       const sInstId = String(student.institutionId || student.institution_id || student.collegeId || student.collegeCode || '').toUpperCase().trim();
-      const isMatch = sInstId && (sInstId === callerInstId || (callerInstId === 'TN010' && sInstId === 'SRM001') || (callerInstId === 'SRM001' && sInstId === 'TN010'));
+      const isMatch = sInstId && (sInstId === callerInstId);
 
       if (!isMatch && role !== 'admin') {
         return res.status(403).json({

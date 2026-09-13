@@ -88,13 +88,21 @@ function SkillBar({ label, value, color, isGap, onClick }) {
 /* =========================================================================
    MAIN DASHBOARD COMPONENT
    ========================================================================= */
-export default function StudentDashboard({ setActivePage, onShowToast, user }) {
+export default function StudentDashboard({ setActivePage, onShowToast, user, onOpenAIModal }) {
   const studentName = user?.name?.split(' ')[0] || (user?.email ? user.email.split('@')[0] : 'Student');
 
   // Dynamic assessment & evidence store
   const [assessmentState, setAssessmentState] = useState(() => loadAssessmentStore());
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [skillProfile, setSkillProfile] = useState(user?.skillProfile || null);
+
+  // ── AI Intelligence Layer States ──────────────────────────────────────────
+  const [aiSkillGap, setAiSkillGap] = useState(null);
+  const [aiCourseRecs, setAiCourseRecs] = useState([]);
+  const [aiLearningPath, setAiLearningPath] = useState(null);
+  const [aiCareers, setAiCareers] = useState([]);
+  const [aiActiveTab, setAiActiveTab] = useState('gap'); // 'gap' | 'courses' | 'path' | 'career'
+  const [aiLoading, setAiLoading] = useState(true);
 
   // ── Unified dashboard data — ALL data from /api/students/dashboard ──────────
   // Zero-state is genuine; no demo flags, no hardcoded arrays.
@@ -154,6 +162,36 @@ export default function StudentDashboard({ setActivePage, onShowToast, user }) {
       }
     };
     fetchDashboard();
+    return () => { isMounted = false; };
+  }, [user]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAI = async () => {
+      try {
+        const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+        const token = localStorage.getItem('nexus_token') || localStorage.getItem('nexus_auth_token') || localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+        const [gapRes, courseRes, pathRes, careerRes] = await Promise.allSettled([
+          fetch(`${apiBase}/ai/skill-gap`, { headers, credentials: 'include' }).then(r => r.ok ? r.json() : null),
+          fetch(`${apiBase}/ai/course-recommendations`, { headers, credentials: 'include' }).then(r => r.ok ? r.json() : null),
+          fetch(`${apiBase}/ai/learning-path`, { headers, credentials: 'include' }).then(r => r.ok ? r.json() : null),
+          fetch(`${apiBase}/ai/career-recommendations`, { headers, credentials: 'include' }).then(r => r.ok ? r.json() : null)
+        ]);
+
+        if (isMounted) {
+          if (gapRes.value?.success && gapRes.value.data) setAiSkillGap(gapRes.value.data);
+          if (courseRes.value?.success && courseRes.value.data?.recommendations) setAiCourseRecs(courseRes.value.data.recommendations);
+          if (pathRes.value?.success && pathRes.value.data) setAiLearningPath(pathRes.value.data);
+          if (careerRes.value?.success && careerRes.value.data?.recommendations) setAiCareers(careerRes.value.data.recommendations);
+          setAiLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) setAiLoading(false);
+      }
+    };
+    fetchAI();
     return () => { isMounted = false; };
   }, [user]);
 
@@ -594,6 +632,232 @@ export default function StudentDashboard({ setActivePage, onShowToast, user }) {
       </div>
 
       {/* =====================================================================
+          SKILLNEXUS AI INTELLIGENCE & CAREER ROADMAP (Phase 13 Integration)
+          ===================================================================== */}
+      <div style={{ ...s.card, marginBottom: '24px', borderColor: 'rgba(139, 92, 246, 0.3)', background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.04) 0%, rgba(10, 15, 28, 0.95) 100%)' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #8B5CF6, #28D7FF, #2FE0A1)', opacity: 0.9 }} />
+
+        {/* AI Suite Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'linear-gradient(135deg, #8B5CF6, #28D7FF)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Sparkles size={16} color="#060B14" />
+              </div>
+              <span style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-heading)' }}>NEXUS AI Career Intelligence</span>
+              <span style={{ ...s.badge, background: 'rgba(139, 92, 246, 0.15)', color: '#A78BFA', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+                Target: {aiSkillGap?.targetRole || 'Full Stack Developer'}
+              </span>
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+              Personalized skill gap telemetry, adaptive course recommendations, and career milestone mapping grounded in verified PostgreSQL data.
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={() => onOpenAIModal ? onOpenAIModal() : null}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '7px 14px', borderRadius: '8px',
+                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(40, 215, 255, 0.2))',
+                border: '1px solid rgba(139, 92, 246, 0.4)',
+                color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Brain size={14} color="var(--cyber-cyan)" />
+              Ask NEXUS AI
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Switcher */}
+        <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px', marginBottom: '18px', overflowX: 'auto' }}>
+          {[
+            { id: 'gap', label: '1. Skill Gap Analysis', count: (aiSkillGap?.priorityGaps || []).length },
+            { id: 'courses', label: '2. Recommended Courses', count: (aiCourseRecs || []).length },
+            { id: 'path', label: '3. Learning Path', count: (aiLearningPath?.path || []).length },
+            { id: 'career', label: '4. Career Options', count: (aiCareers || []).length }
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => setAiActiveTab(t.id)}
+              style={{
+                padding: '6px 14px', borderRadius: '6px',
+                background: aiActiveTab === t.id ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
+                border: aiActiveTab === t.id ? '1px solid #8B5CF6' : '1px solid transparent',
+                color: aiActiveTab === t.id ? '#A78BFA' : 'var(--text-secondary)',
+                fontWeight: aiActiveTab === t.id ? 700 : 500, fontSize: '12.5px',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {t.label}
+              {t.count > 0 && (
+                <span style={{ fontSize: '10.5px', padding: '1px 6px', borderRadius: '10px', background: aiActiveTab === t.id ? '#8B5CF6' : 'rgba(255,255,255,0.08)', color: '#fff' }}>
+                  {t.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab 1: AI Skill Gap Analysis */}
+        {aiActiveTab === 'gap' && (
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '16px' }}>
+              <div style={{ padding: '12px 14px', borderRadius: '10px', background: 'rgba(46, 224, 161, 0.05)', border: '1px solid rgba(46, 224, 161, 0.2)' }}>
+                <div style={{ fontSize: '11px', color: '#2FE0A1', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>
+                  ✓ Mastered Competencies ({(aiSkillGap?.masteredSkills || []).length})
+                </div>
+                {(aiSkillGap?.masteredSkills || []).length > 0 ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {aiSkillGap.masteredSkills.map((s, idx) => (
+                      <span key={idx} style={{ padding: '3px 8px', borderRadius: '4px', background: 'rgba(46, 224, 161, 0.15)', color: '#2FE0A1', fontSize: '11px', fontWeight: 600 }}>
+                        {s.name} ({s.currentLevel})
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No skills verified at benchmark level yet.</div>
+                )}
+              </div>
+
+              <div style={{ padding: '12px 14px', borderRadius: '10px', background: 'rgba(255, 157, 77, 0.05)', border: '1px solid rgba(255, 157, 77, 0.2)' }}>
+                <div style={{ fontSize: '11px', color: '#FF9D4D', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>
+                  ⚠ Priority Missing Gaps ({(aiSkillGap?.priorityGaps || []).length})
+                </div>
+                {(aiSkillGap?.priorityGaps || []).length > 0 ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {aiSkillGap.priorityGaps.map((s, idx) => (
+                      <span key={idx} style={{ padding: '3px 8px', borderRadius: '4px', background: 'rgba(255, 157, 77, 0.15)', color: '#FF9D4D', fontSize: '11px', fontWeight: 600 }}>
+                        {s.name} ({s.requiredLevel})
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>All core skills verified.</div>
+                )}
+              </div>
+
+              <div style={{ padding: '12px 14px', borderRadius: '10px', background: 'rgba(52, 120, 255, 0.05)', border: '1px solid rgba(52, 120, 255, 0.2)' }}>
+                <div style={{ fontSize: '11px', color: '#3478FF', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>
+                  ⚡ In-Progress / Partial ({(aiSkillGap?.partialSkills || []).length})
+                </div>
+                {(aiSkillGap?.partialSkills || []).length > 0 ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {aiSkillGap.partialSkills.map((s, idx) => (
+                      <span key={idx} style={{ padding: '3px 8px', borderRadius: '4px', background: 'rgba(52, 120, 255, 0.15)', color: '#3478FF', fontSize: '11px', fontWeight: 600 }}>
+                        {s.name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No partial skills recorded.</div>
+                )}
+              </div>
+            </div>
+
+            {aiSkillGap?.explanation && (
+              <div style={{ padding: '12px 16px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                <strong style={{ color: 'var(--cyber-cyan)' }}>AI Synthesis: </strong>{aiSkillGap.explanation}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 2: AI Course Recommendations */}
+        {aiActiveTab === 'courses' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
+            {aiCourseRecs.length > 0 ? aiCourseRecs.map((c, idx) => (
+              <div key={idx} style={{ padding: '14px', borderRadius: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '10px' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: c.priority === 'CRITICAL' ? 'rgba(255, 77, 77, 0.2)' : 'rgba(52, 120, 255, 0.2)', color: c.priority === 'CRITICAL' ? '#FF4D4D' : '#3478FF', fontWeight: 700 }}>
+                      {c.priority} GAP
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'var(--cyber-emerald)', fontWeight: 700 }}>
+                      {c.relevanceScore}% Fit
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '4px' }}>{c.title}</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '8px' }}>{c.reason}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Target Skill: <strong style={{ color: 'var(--cyber-cyan)' }}>{c.targetSkill}</strong></div>
+                </div>
+                <button
+                  onClick={() => setActivePage('learning')}
+                  style={{ width: '100%', padding: '7px 0', borderRadius: '6px', background: 'var(--cyber-cyan)', border: 'none', color: '#060B14', fontWeight: 700, fontSize: '11.5px', cursor: 'pointer', textAlign: 'center' }}
+                >
+                  Enroll / View Module →
+                </button>
+              </div>
+            )) : (
+              <div style={{ gridColumn: '1 / -1', padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                No unmet course gaps detected. You are in good standing!
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 3: AI Learning Path */}
+        {aiActiveTab === 'path' && (
+          <div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '14px', fontStyle: 'italic' }}>
+              Ordered via {aiLearningPath?.orderingSource || 'AI Pedagogical Sequencing'} based on prerequisite dependencies for {aiLearningPath?.targetRole}.
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {(aiLearningPath?.path || []).map((step, idx) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(139, 92, 246, 0.2)', border: '1px solid #8B5CF6', color: '#A78BFA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '12px' }}>
+                      {step.step}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-heading)' }}>{step.skill} — <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{step.courseTitle}</span></div>
+                      <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{step.reason}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--cyber-cyan)', fontWeight: 600 }}>{step.estimatedDuration}</span>
+                    <span style={{ fontSize: '10.5px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(255, 255, 255, 0.06)', color: 'var(--text-secondary)' }}>
+                      {step.milestone}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: AI Career Recommendations */}
+        {aiActiveTab === 'career' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' }}>
+            {(aiCareers || []).map((car, idx) => (
+              <div key={idx} style={{ padding: '16px', borderRadius: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-heading)' }}>{car.role}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 800, color: car.suitabilityScore >= 70 ? 'var(--cyber-emerald)' : '#FF9D4D' }}>
+                    {car.suitabilityScore}% Match
+                  </span>
+                </div>
+                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '10px' }}>{car.description}</div>
+                <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                  <strong style={{ color: 'var(--cyber-cyan)' }}>Matched Skills: </strong>{car.matchedSkills.join(', ') || 'None'}
+                </div>
+                <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                  <strong style={{ color: '#FF9D4D' }}>Missing Skills: </strong>{car.missingSkills.join(', ') || 'None'}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                  {car.explanation}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* =====================================================================
           1. CAPABILITY SNAPSHOT (Activity-Based, Real Data, 0% Empty State)
           ===================================================================== */}
       <div style={{ ...s.card, marginBottom: '20px', borderColor: 'rgba(40, 215, 255, 0.15)' }}>
@@ -808,7 +1072,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user }) {
               <BookOpen size={16} color="#28D7FF" />
               <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-heading)' }}>Browse Course Catalog</span>
               <span className="cyber-badge badge-cyan" style={{ fontSize: '10px' }}>
-                {dashboardData.recommendedCourses?.length || 6} Curricula Available
+                {dashboardData.recommendedCourses?.length || 0} Curricula Available
               </span>
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>
@@ -821,41 +1085,13 @@ export default function StudentDashboard({ setActivePage, onShowToast, user }) {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
-          {((dashboardData.recommendedCourses && dashboardData.recommendedCourses.length > 0)
-            ? dashboardData.recommendedCourses.slice(0, 3)
-            : [
-                {
-                  id: 'crs-1',
-                  title: 'Generative AI & Transformer Architectures',
-                  category: 'AI & ML',
-                  institution: 'Nexus Academy',
-                  difficulty: 'Intermediate',
-                  duration: '8 Weeks • 48 hrs',
-                  description: 'Learn dense embeddings, attention mechanisms, fine-tuning, and RAG pipelines.',
-                  skills: ['Python', 'PyTorch', 'Transformers']
-                },
-                {
-                  id: 'crs-2',
-                  title: 'Cloud-Native Distributed Microservices',
-                  category: 'Cloud',
-                  institution: 'SRM Institute of Science and Technology',
-                  difficulty: 'Advanced',
-                  duration: '6 Weeks • 36 hrs',
-                  description: 'Container orchestration, Raft consensus, resilient APIs, and Istio service mesh.',
-                  skills: ['Docker', 'Kubernetes', 'Go']
-                },
-                {
-                  id: 'crs-3',
-                  title: 'Full Stack Modern Web Architecture',
-                  category: 'Web Dev',
-                  institution: 'Nexus Academy',
-                  difficulty: 'Beginner',
-                  duration: '10 Weeks • 60 hrs',
-                  description: 'End-to-end full stack development with React, Node.js, and relational database modeling.',
-                  skills: ['React', 'Node.js', 'PostgreSQL']
-                }
-              ]
-          ).map((course, i) => (
+          {(!dashboardData.recommendedCourses || dashboardData.recommendedCourses.length === 0) ? (
+            <div style={{ padding: '36px 20px', textAlign: 'center', color: 'var(--text-muted)', gridColumn: '1 / -1', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+              <BookOpen size={32} style={{ opacity: 0.3, margin: '0 auto 8px' }} />
+              <p style={{ margin: 0, fontSize: '13px' }}>No course curricula published yet.</p>
+            </div>
+          ) : (
+            dashboardData.recommendedCourses.slice(0, 3).map((course, i) => (
             <div key={course.id || i} style={{
               padding: '16px', borderRadius: '12px',
               background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)',
@@ -908,7 +1144,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user }) {
                 </button>
               </div>
             </div>
-          ))}
+          )))}
         </div>
       </div>
 

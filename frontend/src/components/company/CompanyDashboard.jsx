@@ -201,7 +201,7 @@ export default function CompanyDashboard({
         <div className="comp-telemetry-tag">
           <span>SKILLNEXUS ENTERPRISE</span>
           <span>//</span>
-          <span>CORPORATE LICENSE: {user?.companyId || user?.code || 'COMP-001'} — {user?.companyName || user?.company || user?.name || 'ENTERPRISE ECOSYSTEM'}</span>
+          <span>CORPORATE LICENSE: {user?.companyId || user?.code || user?.id || 'UNASSIGNED'} — {user?.companyName || user?.company || user?.name || 'ENTERPRISE ECOSYSTEM'}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span className="comp-badge comp-badge-emerald">
@@ -406,18 +406,10 @@ export default function CompanyDashboard({
               className="company-select"
               style={{ width: '100%' }}
             >
-              <option value="All">All Partnered Institutions ({collegeStats.length || 'Ecosystem'})</option>
-              {collegeStats.length > 0 ? (
-                collegeStats.map(c => (
-                  <option key={c.name} value={c.name}>{c.name} ({c.count} talent)</option>
-                ))
-              ) : (
-                <>
-                  <option value="Velalar College of Engineering and Technology">Velalar College of Eng. & Tech (VCET)</option>
-                  <option value="PSG College of Technology">PSG College of Technology</option>
-                  <option value="Sri Krishna College of Engineering and Technology">Sri Krishna College (SKCET)</option>
-                </>
-              )}
+              <option value="All">All Partnered Institutions ({collegeStats.length || '0'})</option>
+              {collegeStats.map(c => (
+                <option key={c.name} value={c.name}>{c.name} ({c.count} talent)</option>
+              ))}
             </select>
           </div>
 
@@ -618,7 +610,12 @@ export default function CompanyDashboard({
         {/* Tab 1: College-wise Progress Rows */}
         {overviewTab === 'colleges' ? (
           <div className="comp-grid-2">
-            {collegeStats.map((col) => (
+            {collegeStats.length === 0 ? (
+              <div style={{ gridColumn: '1 / -1', padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94A3B8)', fontSize: '13px' }}>
+                No partner colleges yet
+              </div>
+            ) : (
+              collegeStats.map((col) => (
               <div 
                 key={col.name} 
                 style={{
@@ -658,12 +655,17 @@ export default function CompanyDashboard({
                   />
                 </div>
               </div>
-            ))}
+            )))}
           </div>
         ) : (
           /* Tab 2: Department-wise Category Grid */
           <div className="comp-grid-4">
-            {deptStats.map(d => (
+            {deptStats.length === 0 ? (
+              <div style={{ gridColumn: '1 / -1', padding: '36px', textAlign: 'center', color: 'var(--text-muted, #94A3B8)', fontSize: '13px' }}>
+                No department records available yet
+              </div>
+            ) : (
+              deptStats.map(d => (
               <div 
                 key={d.dept} 
                 style={{
@@ -688,8 +690,9 @@ export default function CompanyDashboard({
                   <div style={{ width: `${d.pct * 2.5}%`, height: '100%', backgroundColor: d.color, borderRadius: '3px' }} />
                 </div>
               </div>
-            ))}
-          </div>
+            ))
+          )}
+        </div>
         )}
 
         {/* Footer info link */}

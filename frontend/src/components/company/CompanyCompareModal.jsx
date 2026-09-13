@@ -36,7 +36,7 @@ export default function CompanyCompareModal({ students = [], onClose, onSelectSt
                     <div>
                       <h4 className="font-bold text-white text-sm">{s.name}</h4>
                       <span className="text-xs text-slate-400 block">{s.department} • {s.year}</span>
-                      <span className="text-[11px] text-cyan-400">{s.collegeName?.includes('Velalar') ? 'VCET' : 'College'}</span>
+                      <span className="text-[11px] text-cyan-400">{s.collegeName || s.institutionName || 'College'}</span>
                     </div>
                   </div>
 

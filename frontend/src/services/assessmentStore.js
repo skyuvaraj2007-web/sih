@@ -290,10 +290,10 @@ export const QUESTION_BANKS = {
           topic: 'Indexing & Performance',
           question: 'Given an index on (last_name, first_name), which WHERE clause CANNOT utilize this index effectively?',
           options: [
-            'WHERE last_name = "Kumar"',
-            'WHERE last_name = "Kumar" AND first_name = "Arun"',
-            'WHERE first_name = "Arun"',
-            'WHERE last_name LIKE "Kum%"'
+            'WHERE last_name = "Sharma"',
+            'WHERE last_name = "Sharma" AND first_name = "Dev"',
+            'WHERE first_name = "Dev"',
+            'WHERE last_name LIKE "Shar%"'
           ],
           correct: 2,
           explanation: 'B-tree composite indexes must satisfy the leftmost prefix rule. Searching solely on first_name bypasses the index.'
@@ -343,11 +343,8 @@ function getCurrentUser() {
   }
 }
 
-function isDemoUser(user) {
-  if (!user) return false;
-  const email = (user.email || '').toLowerCase();
-  const id = (user.id || user.studentId || '').toLowerCase();
-  return email === 'arun.kumar@nexus.edu' || email === 'arun.kumar@vit.edu' || id === 'usr_001' || id === 'stu-tn010-001';
+function isDemoUser() {
+  return false;
 }
 
 function getAssessmentKey() {
@@ -356,7 +353,7 @@ function getAssessmentKey() {
   return uid ? `nexus_assessments_store_${uid}` : 'nexus_assessments_store';
 }
 
-// Zero state for all new real students
+// Zero state for all real students
 const ZERO_STATE = {
   assessments: [],
   capabilities: {
@@ -371,60 +368,16 @@ const ZERO_STATE = {
   recentActivities: []
 };
 
-// Initial demo state (reserved ONLY for Arun Kumar / demo profile)
-const DEMO_STATE = {
-  assessments: [
-    {
-      id: 'as_init_01',
-      trackId: 'logical',
-      trackTitle: 'Logical Reasoning',
-      score: 84,
-      accuracy: 88,
-      speedEfficiency: 78,
-      percentile: 92.4,
-      completedAt: 'October 24, 2024',
-      status: 'Completed',
-      strengths: ['Data Wrangling', 'Conditional Logic', 'Array Transformations'],
-      weaknesses: ['Graph Algorithms', 'Memory Optimization'],
-      skillImpact: [
-        { skill: 'Problem Solving', boost: '+8%', evidence: 'Logical Reasoning Assessment (84%)' },
-        { skill: 'Logical Reasoning', boost: '+12%', evidence: 'Cognitive Matrix Diagnostic (84%)' }
-      ],
-      aiRecommendation: {
-        summary: 'Your pattern recognition and conditional deduction are top-tier (92nd percentile). Focus next on graph algorithm traversals to complete tier-1 analytics readiness.',
-        nextBestAction: 'Start Graph Algorithms Sprint',
-        actionPage: 'learning',
-        recommendedCourse: 'Graph Algorithms & Optimization',
-        recommendedProject: 'Algorithm Visualizer Node'
-      }
-    }
-  ],
-  capabilities: {
-    technicalSkills: 82,
-    problemSolving: 76,
-    communication: 71,
-    systemDesign: 43,
-    cloud: 58
-  },
-  careerJourney: 72,
-  verifiedSkillsCount: 5,
-  recentActivities: [
-    { text: 'Completed Logical Reasoning Assessment', time: 'Yesterday, 10:34 AM', color: '#2FE0A1' }
-  ]
-};
-
 // Backward-compatible DEFAULT_STATE
 const DEFAULT_STATE = ZERO_STATE;
 
 // Helper: load from localStorage with user scoping
 export function loadAssessmentStore() {
   try {
-    const user = getCurrentUser();
     const key = getAssessmentKey();
     const raw = localStorage.getItem(key);
-    const fallback = isDemoUser(user) ? DEMO_STATE : ZERO_STATE;
-    if (!raw) return { ...fallback };
-    return { ...fallback, ...JSON.parse(raw) };
+    if (!raw) return { ...ZERO_STATE };
+    return { ...ZERO_STATE, ...JSON.parse(raw) };
   } catch (err) {
     console.error('Error loading assessment store:', err);
     return { ...ZERO_STATE };

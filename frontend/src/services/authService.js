@@ -76,6 +76,60 @@ export const authService = {
   },
 
   /**
+   * Dedicated Academician / Faculty Login
+   * @param {string} email
+   * @param {string} password
+   * @param {boolean} [rememberMe=false]
+   */
+  async academicianLogin(email, password, rememberMe = false) {
+    try {
+      const res = await fetch(`${API_AUTH_BASE}/academician/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password, rememberMe })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        return {
+          success: false,
+          message: data.message || 'Authentication failed. Please check your credentials.'
+        };
+      }
+
+      if (data.token) {
+        localStorage.setItem('nexus_token', data.token);
+        localStorage.setItem('token', data.token);
+      }
+      if (data.user) {
+        localStorage.setItem('nexus_user', JSON.stringify(data.user));
+        localStorage.setItem('nexus_auth_user', JSON.stringify(data.user));
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('nexus_auth_changed', { detail: data.user }));
+      }
+
+      return {
+        success: true,
+        user: data.user,
+        token: data.token,
+        message: data.message
+      };
+    } catch (err) {
+      console.error('[authService] Academician login error:', err);
+      return {
+        success: false,
+        message: 'Unable to login right now. Please try again.'
+      };
+    }
+  },
+
+  /**
    * Register a new user account
    * @param {Object} userData 
    */
@@ -179,6 +233,12 @@ export const authService = {
       localStorage.removeItem('token');
       localStorage.removeItem('nexus_user');
       localStorage.removeItem('nexus_auth_user');
+      localStorage.removeItem('nexus_student_profile');
+      localStorage.removeItem('nexus_institution_profile');
+      localStorage.removeItem('nexus_industry_profile');
+      try {
+        sessionStorage.removeItem('nexus_otp_params');
+      } catch {}
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('nexus_auth_changed', { detail: null }));
       }
@@ -309,13 +369,17 @@ export const authService = {
   /**
    * Submit new password with OTP or reset token
    */
-  async resetPassword(tokenOrPayload, newPassword) {
+  async resetPassword(tokenOrPayload, otpOrPassword, maybeNewPassword) {
     try {
       let body;
-      if (typeof tokenOrPayload === 'object') {
+      if (typeof tokenOrPayload === 'object' && tokenOrPayload !== null) {
         body = JSON.stringify(tokenOrPayload);
+      } else if (maybeNewPassword !== undefined) {
+        // Called as resetPassword(email, otp, newPassword)
+        body = JSON.stringify({ email: tokenOrPayload, otp: otpOrPassword, newPassword: maybeNewPassword });
       } else {
-        body = JSON.stringify({ token: tokenOrPayload, newPassword });
+        // Called as resetPassword(token, newPassword)
+        body = JSON.stringify({ token: tokenOrPayload, newPassword: otpOrPassword });
       }
       const res = await fetch(`${API_AUTH_BASE}/reset-password`, {
         method: 'POST',

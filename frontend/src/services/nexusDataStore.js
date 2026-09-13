@@ -49,22 +49,22 @@ export async function syncWithBackendDatabase() {
       nexusApiClient.getApplications()
     ]);
 
-    if (students && students.length > 0) {
+    if (Array.isArray(students)) {
       writeStorage(KEYS.STUDENTS, students, 'nexus_students_updated');
     }
-    if (courses && courses.length > 0) {
+    if (Array.isArray(courses)) {
       writeStorage(KEYS.COURSES, courses, 'nexus_courses_updated');
     }
-    if (enrollments && enrollments.length > 0) {
+    if (Array.isArray(enrollments)) {
       writeStorage(KEYS.ENROLLMENTS, enrollments, 'nexus_enrollments_updated');
     }
-    if (projects && projects.length > 0) {
+    if (Array.isArray(projects)) {
       writeStorage(KEYS.PROJECTS, projects, 'nexus_projects_updated');
     }
-    if (opportunities && opportunities.length > 0) {
+    if (Array.isArray(opportunities)) {
       writeStorage(KEYS.OPPORTUNITIES, opportunities, 'nexus_opportunities_updated');
     }
-    if (applications && applications.length > 0) {
+    if (Array.isArray(applications)) {
       writeStorage(KEYS.APPLICATIONS, applications, 'nexus_applications_updated');
     }
   } catch (err) {
@@ -81,727 +81,27 @@ if (typeof window !== 'undefined') {
 // 1. SEED DATA
 // ══════════════════════════════════════════════════════════════════════════
 
-export const SEED_INSTITUTIONS = [
-  {
-    institutionId: 'TN010',
-    collegeId: 'TN010',
-    collegeName: 'SRM Institute of Science and Technology',
-    shortName: 'SRM IST',
-    collegeCode: 'SRM-KTR-01',
-    state: 'Tamil Nadu',
-    district: 'Chengalpattu',
-    city: 'Kattankulathur',
-    campusType: 'Deemed University',
-    departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE', 'Mechanical'],
-    studentCount: 6400,
-    placementRate: '96.5%',
-    dean: 'Prof. K. Ramanathan',
-    email: 'placements@srmist.edu.in',
-    website: 'https://www.srmist.edu.in',
-    tier: 'Tier 1 Partner',
-    nirf: '#28 Ranked',
-    naac: 'A++ Grade'
-  },
-  {
-    institutionId: 'TN001',
-    collegeId: 'TN001',
-    collegeName: 'Anna University (CEG Campus)',
-    shortName: 'Anna University',
-    collegeCode: 'AU-CEG-01',
-    state: 'Tamil Nadu',
-    district: 'Chennai',
-    city: 'Chennai',
-    campusType: 'State University',
-    departments: ['CSE', 'IT', 'ECE', 'EEE', 'Mechanical', 'Civil'],
-    studentCount: 2150,
-    placementRate: '96.8%',
-    dean: 'Dr. M. Shanmugam',
-    email: 'tpo@annauniv.edu',
-    website: 'https://www.annauniv.edu',
-    tier: 'Tier 1 Partner',
-    nirf: '#13 Ranked',
-    naac: 'A++ Grade'
-  },
-  {
-    institutionId: 'TN030',
-    collegeId: 'TN030',
-    collegeName: 'PSG College of Technology',
-    shortName: 'PSG Tech',
-    collegeCode: 'PSG-CBE-01',
-    state: 'Tamil Nadu',
-    district: 'Coimbatore',
-    city: 'Coimbatore',
-    campusType: 'Autonomous',
-    departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'Robotics'],
-    studentCount: 4200,
-    placementRate: '98.1%',
-    dean: 'Dr. V. Radhakrishnan',
-    email: 'placement@psgtech.edu',
-    website: 'https://www.psgtech.edu',
-    tier: 'Tier 1 Partner',
-    nirf: '#53 Ranked',
-    naac: 'A++ Grade'
-  },
-  {
-    institutionId: 'TN040',
-    collegeId: 'TN040',
-    collegeName: 'Velalar College of Engineering and Technology',
-    shortName: 'VCET',
-    collegeCode: 'VCET-ERD-01',
-    state: 'Tamil Nadu',
-    district: 'Erode',
-    city: 'Erode',
-    campusType: 'Autonomous',
-    departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE', 'Mechanical', 'Civil'],
-    studentCount: 3850,
-    placementRate: '94.2%',
-    dean: 'Dr. M. Jayaraman',
-    email: 'principal@velalarengg.ac.in',
-    website: 'https://velalarengg.ac.in',
-    tier: 'Strategic Campus Partner',
-    nirf: '#84 Ranked',
-    naac: 'A+ Grade'
-  },
-  {
-    institutionId: 'TN050',
-    collegeId: 'TN050',
-    collegeName: 'Sri Krishna College of Engineering and Technology',
-    shortName: 'SKCET',
-    collegeCode: 'SKCET-CBE-02',
-    state: 'Tamil Nadu',
-    district: 'Coimbatore',
-    city: 'Coimbatore',
-    campusType: 'Autonomous',
-    departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE'],
-    studentCount: 3600,
-    placementRate: '93.5%',
-    dean: 'Dr. J. Janet',
-    email: 'info@skcet.ac.in',
-    website: 'https://www.skcet.ac.in',
-    tier: 'Tier 1 Partner',
-    nirf: '#77 Ranked',
-    naac: 'A Grade'
-  },
-  {
-    institutionId: 'TN060',
-    collegeId: 'TN060',
-    collegeName: 'Kongu Engineering College',
-    shortName: 'Kongu',
-    collegeCode: 'KEC-PER-01',
-    state: 'Tamil Nadu',
-    district: 'Erode',
-    city: 'Perundurai',
-    campusType: 'Autonomous',
-    departments: ['CSE', 'IT', 'AI & DS', 'Mechanical', 'Chemical'],
-    studentCount: 4100,
-    placementRate: '92.8%',
-    dean: 'Dr. V. Balusamy',
-    email: 'principal@kongu.ac.in',
-    website: 'https://www.kongu.ac.in',
-    tier: 'Strategic Partner',
-    nirf: '#99 Ranked',
-    naac: 'A++ Grade'
-  },
-  {
-    institutionId: 'TN070',
-    collegeId: 'TN070',
-    collegeName: 'KSG Institute of Technology',
-    shortName: 'KSG',
-    collegeCode: 'KSG-CBE-03',
-    state: 'Tamil Nadu',
-    district: 'Coimbatore',
-    city: 'Coimbatore',
-    campusType: 'Affiliated',
-    departments: ['CSE', 'ECE', 'Civil'],
-    studentCount: 2200,
-    placementRate: '88.4%',
-    dean: 'Dr. R. Nandagopal',
-    email: 'contact@ksg.edu.in',
-    website: 'https://www.ksg.edu.in',
-    tier: 'Emerging Partner',
-    nirf: '#142 Ranked',
-    naac: 'A Grade'
-  },
-  {
-    institutionId: 'TN-UNIV-0001',
-    collegeId: 'TN-UNIV-0001',
-    collegeName: 'Indian Institute of Technology Madras',
-    shortName: 'IIT Madras',
-    collegeCode: 'IITM-CHE-01',
-    state: 'Tamil Nadu',
-    district: 'Chennai',
-    city: 'Chennai',
-    campusType: 'Institute of National Importance',
-    departments: ['CSE', 'EE', 'Data Science', 'Mechanical', 'Aerospace'],
-    studentCount: 9500,
-    placementRate: '98.9%',
-    dean: 'Prof. V. Kamakoti',
-    email: 'placement@iitm.ac.in',
-    website: 'https://www.iitm.ac.in',
-    tier: 'Tier 1 Partner',
-    nirf: '#1 Ranked',
-    naac: 'A++ Grade'
-  }
-];
-
-export function getAllRelationalInstitutions() {
-  return readStorage(KEYS.INSTITUTIONS, SEED_INSTITUTIONS);
-}
-
-export function getRelationalInstitutionById(instId) {
-  if (!instId) return null;
-  const cleanId = String(instId).toUpperCase().trim();
-  return getAllRelationalInstitutions().find(inst => {
-    const id = String(inst.institutionId || inst.collegeId || '').toUpperCase().trim();
-    const code = String(inst.collegeCode || '').toUpperCase().trim();
-    const name = String(inst.collegeName || '').toUpperCase().trim();
-    return id === cleanId || code === cleanId || name === cleanId ||
-      (cleanId === 'TN010' && (id === 'SRM001' || id === 'TN-010')) ||
-      (cleanId === 'SRM001' && id === 'TN010');
-  }) || null;
-}
-
-export const SEED_STUDENTS = [
-  {
-    studentId: 'STU-TN010-001',
-    regNo: 'RA2211003010001',
-    name: 'Arun Kumar',
-    email: 'arun.kumar@nexus.edu',
-    collegeId: 'TN010',
-    collegeName: 'SRM Institute of Science and Technology',
-    department: 'CSE',
-    year: 'III Year',
-    semester: 'Sem 6',
-    cgpa: '8.92',
-    backlogs: 0,
-    headline: 'B.Tech CSE • Aspiring Data Scientist & AI Systems Engineer',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    readinessScore: 92,
-    placementStatus: 'Placement Ready',
-    preferredRoles: ['Data Scientist', 'AI/ML Engineer', 'Full Stack Developer'],
-    skills: [
-      { name: 'Python', level: 'Advanced', confidence: 94, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'SQL', level: 'Advanced', confidence: 88, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'React', level: 'Intermediate', confidence: 82, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: false },
-      { name: 'Machine Learning', level: 'Advanced', confidence: 87, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'FastAPI', level: 'Intermediate', confidence: 78, verified: true, hasAssessment: false, hasCourse: true, hasProject: true, hasInstSeal: false },
-      { name: 'Docker', level: 'Beginner', confidence: 58, verified: false, hasAssessment: false, hasCourse: false, hasProject: true, hasInstSeal: false },
-      { name: 'Power BI', level: 'Beginner', confidence: 35, verified: false, hasAssessment: false, hasCourse: false, hasProject: false, hasInstSeal: false }
-    ],
-    assessments: [
-      { domain: 'Programming & Data Structures', score: 92, percentile: '94th Percentile', status: 'Verified' },
-      { domain: 'Logical & Algorithmic Reasoning', score: 88, percentile: '91st Percentile', status: 'Verified' },
-      { domain: 'Quantitative Aptitude', score: 84, percentile: '88th Percentile', status: 'Verified' }
-    ],
-    badges: ['Code Master Gold', 'Algorithmic Thinker', '100 Days of Code', 'AI Scholar'],
-    certifications: [
-      { title: 'Cryptographic Python Specialist', issuer: 'SRM Center of Excellence', date: '2026-06-12', credentialId: 'NX-3801-PY' },
-      { title: 'Full Stack Web Architecture', issuer: 'Nexus AI Academy', date: '2026-07-20', credentialId: 'NX-9102-REACT' }
-    ],
-    registeredAt: '2025-08-12T10:30:00Z'
-  },
-  {
-    studentId: 'STU-TN010-002',
-    regNo: 'RA2211003010045',
-    name: 'Priya Sundaram',
-    email: 'priya.sundaram@srmist.edu.in',
-    collegeId: 'TN010',
-    collegeName: 'SRM Institute of Science and Technology',
-    department: 'ECE',
-    year: 'II Year',
-    semester: 'Sem 4',
-    cgpa: '8.45',
-    backlogs: 0,
-    headline: 'Embedded Systems & IoT Firmware Engineer',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    readinessScore: 88,
-    placementStatus: 'In Process',
-    preferredRoles: ['Embedded Systems Engineer', 'IoT Firmware Developer'],
-    skills: [
-      { name: 'C++', level: 'Advanced', confidence: 86, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'Embedded Systems', level: 'Advanced', confidence: 84, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'IoT', level: 'Intermediate', confidence: 76, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: false },
-      { name: 'Python', level: 'Intermediate', confidence: 68, verified: false, hasAssessment: true, hasCourse: false, hasProject: false, hasInstSeal: false }
-    ],
-    assessments: [
-      { domain: 'Logical Reasoning', score: 80, percentile: '82nd Percentile', status: 'Verified' },
-      { domain: 'Aptitude', score: 78, percentile: '79th Percentile', status: 'Verified' },
-      { domain: 'Programming (C/C++)', score: 86, percentile: '89th Percentile', status: 'Verified' }
-    ],
-    badges: ['Hardware Hacker', 'Circuit Champion'],
-    certifications: [
-      { title: 'Embedded Systems Attestation', issuer: 'Bosch Engineering Lab', date: '2026-05-18', credentialId: 'NX-8838-EMB' }
-    ],
-    registeredAt: '2025-09-01T14:15:00Z'
-  },
-  {
-    studentId: 'STU-TN010-003',
-    regNo: 'RA2111003010112',
-    name: 'Rahul Krishnan',
-    email: 'rahul.k@srmist.edu.in',
-    collegeId: 'TN010',
-    collegeName: 'SRM Institute of Science and Technology',
-    department: 'IT',
-    year: 'IV Year',
-    semester: 'Sem 8',
-    cgpa: '9.35',
-    backlogs: 0,
-    headline: 'Cloud Architect & Microservices Specialist',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    readinessScore: 94,
-    placementStatus: 'Placed',
-    preferredRoles: ['Cloud Architect', 'Backend SDE', 'DevOps Specialist'],
-    skills: [
-      { name: 'Java', level: 'Advanced', confidence: 94, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'Spring Boot', level: 'Advanced', confidence: 92, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'Kubernetes', level: 'Advanced', confidence: 90, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'AWS', level: 'Advanced', confidence: 88, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true }
-    ],
-    assessments: [
-      { domain: 'Logical Reasoning', score: 94, percentile: '96th Percentile', status: 'Verified' },
-      { domain: 'Programming (Java/Cloud)', score: 96, percentile: '98th Percentile', status: 'Verified' }
-    ],
-    badges: ['Cloud Titan', 'System Architect Elite'],
-    certifications: [
-      { title: 'AWS Certified Solutions Architect', issuer: 'AWS Training & Certification', date: '2026-03-10', credentialId: 'AWS-SOL-8912' }
-    ],
-    registeredAt: '2025-06-20T09:00:00Z'
-  },
-  {
-    studentId: 'STU-TN010-004',
-    regNo: 'RA2211003010204',
-    name: 'Deepika Raman',
-    email: 'deepika.r@srmist.edu.in',
-    collegeId: 'TN010',
-    collegeName: 'SRM Institute of Science and Technology',
-    department: 'AI & DS',
-    year: 'III Year',
-    semester: 'Sem 6',
-    cgpa: '9.18',
-    backlogs: 0,
-    headline: 'Deep Learning & NLP Research Specialist',
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-    readinessScore: 91,
-    placementStatus: 'Placement Ready',
-    preferredRoles: ['Generative AI Engineer', 'NLP Specialist', 'Data Scientist'],
-    skills: [
-      { name: 'Python', level: 'Advanced', confidence: 95, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'PyTorch', level: 'Advanced', confidence: 94, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'LangChain', level: 'Advanced', confidence: 90, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'Vector DBs', level: 'Intermediate', confidence: 85, verified: true, hasAssessment: false, hasCourse: true, hasProject: true, hasInstSeal: false }
-    ],
-    assessments: [
-      { domain: 'Machine Learning & Deep Learning', score: 94, percentile: '95th Percentile', status: 'Verified' },
-      { domain: 'Logical Reasoning', score: 91, percentile: '92nd Percentile', status: 'Verified' }
-    ],
-    badges: ['AI Pioneer', 'Prompt Master'],
-    certifications: [
-      { title: 'Generative AI Specialist Attestation', issuer: 'IITM Research Park', date: '2026-08-10', credentialId: 'IITM-GENAI-8839' }
-    ],
-    registeredAt: '2025-08-25T11:45:00Z'
-  },
-  {
-    studentId: 'STU-TN001-001',
-    regNo: '2022101001',
-    name: 'Siddharth M',
-    email: 'siddharth.m@annauniv.edu',
-    collegeId: 'TN001',
-    collegeName: 'Anna University (CEG Campus)',
-    department: 'CSE',
-    year: 'III Year',
-    semester: 'Sem 6',
-    cgpa: '9.40',
-    backlogs: 0,
-    headline: 'Systems Programming & Linux Kernel Specialist',
-    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
-    readinessScore: 93,
-    placementStatus: 'Placement Ready',
-    preferredRoles: ['Systems Engineer', 'Rust Developer', 'Kernel Engineer'],
-    skills: [
-      { name: 'Rust', level: 'Advanced', confidence: 94, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'C', level: 'Advanced', confidence: 92, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true },
-      { name: 'Linux Kernel', level: 'Advanced', confidence: 88, verified: true, hasAssessment: true, hasCourse: true, hasProject: true, hasInstSeal: true }
-    ],
-    assessments: [
-      { domain: 'Low-level Systems Programming', score: 95, percentile: '99th Percentile', status: 'Verified' }
-    ],
-    badges: ['Kernel Hacker', 'Rustacean Pro'],
-    certifications: [],
-    registeredAt: '2025-08-18T12:00:00Z'
-  }
-];
-
-export const SEED_COURSES = [
-  {
-    courseId: 'CRS-TN010-01',
-    institutionId: 'TN010',
-    courseName: 'Python for Data Science & Machine Learning',
-    courseCode: 'CSE-DS-301',
-    category: 'DATA & AI',
-    description: 'Master foundational Python, NumPy, Pandas, Data Wrangling, Scikit-Learn pipelines, and Model Evaluation.',
-    duration: '8 Weeks',
-    durationWeeks: 8,
-    instructor: 'Dr. S. Kulanthaivel, Dept of CSE',
-    skillsDeveloped: ['Python', 'SQL', 'Pandas', 'NumPy', 'Machine Learning'],
-    difficulty: 'Beginner → Intermediate',
-    prerequisites: 'Basic Programming Literacy',
-    modules: [
-      'Variables, Data Types & Control Flow',
-      'Data Structures & Functional Idioms in Python',
-      'Vectorized Computation with NumPy',
-      'Data Wrangling & Cleaning with Pandas',
-      'Exploratory Data Analysis & Visualization',
-      'Supervised Learning with Scikit-Learn',
-      'Model Tuning, Cross-Validation & ROC-AUC',
-      'Capstone Project & Verifiable Attestation'
-    ],
-    assessment: 'Midterm Quiz + Final Capstone Project Repository',
-    certificate: 'Verifiable W3C Digital Credential',
-    enrollmentStatus: 'Open for Enrollment',
-    enrolledCount: 24,
-    tags: ['Python', 'Pandas', 'Machine Learning', 'Data Analysis']
-  },
-  {
-    courseId: 'CRS-TN010-02',
-    institutionId: 'TN010',
-    courseName: 'Generative AI & LLM Engineering',
-    courseCode: 'AI-GEN-402',
-    category: 'BY NEXUS AI',
-    description: 'Architecting RAG pipelines, Vector Embeddings, Transformer architectures, and Fine-Tuning with LangChain & PyTorch.',
-    duration: '6 Weeks',
-    durationWeeks: 6,
-    instructor: 'Prof. R. Revathi, Lead AI Lab',
-    skillsDeveloped: ['Python', 'PyTorch', 'LangChain', 'FastAPI', 'Machine Learning'],
-    difficulty: 'Intermediate → Advanced',
-    prerequisites: 'Python Proficiency, Linear Algebra',
-    modules: [
-      'Transformer Architecture & Self-Attention',
-      'Vector Embeddings & Semantic Similarity',
-      'RAG Pipelines with ChromaDB & LangChain',
-      'Prompt Engineering & Structured Extraction',
-      'Quantization, LoRA & Parameter-Efficient Fine-Tuning',
-      'Production Deployment with vLLM & FastAPI'
-    ],
-    assessment: 'Live Agent Evaluation Sandbox',
-    certificate: 'NEXUS Sovereign AI Certificate',
-    enrollmentStatus: 'Open for Enrollment',
-    enrolledCount: 18,
-    tags: ['Generative AI', 'PyTorch', 'LangChain', 'FastAPI']
-  },
-  {
-    courseId: 'CRS-TN010-03',
-    institutionId: 'TN010',
-    courseName: 'Cloud-Native Microservices & Kubernetes',
-    courseCode: 'IT-CLOUD-305',
-    category: 'CLOUD',
-    description: 'Build enterprise-grade microservices with Docker, Kubernetes orchestration, Helm, and CI/CD pipelines.',
-    duration: '6 Weeks',
-    durationWeeks: 6,
-    instructor: 'Dr. G. Natarajan, Dept of IT',
-    skillsDeveloped: ['Docker', 'Kubernetes', 'AWS', 'Linux'],
-    difficulty: 'Intermediate',
-    prerequisites: 'Basic Linux, Web Fundamentals',
-    modules: [
-      'Containerization Fundamentals with Docker',
-      'Multi-Stage Dockerfile Optimization',
-      'Kubernetes Architecture (Pods, Deployments, Services)',
-      'Ingress Controllers & Service Meshes',
-      'CI/CD Pipelines with GitHub Actions',
-      'Observability with Prometheus & Grafana'
-    ],
-    assessment: 'Live Kubernetes Cluster Deployment',
-    certificate: 'Cloud-Native Engineering Credential',
-    enrollmentStatus: 'Open for Enrollment',
-    enrolledCount: 32,
-    tags: ['Docker', 'Kubernetes', 'DevOps', 'AWS']
-  }
-];
-
-export const SEED_ENROLLMENTS = [
-  {
-    enrollmentId: 'ENR-01',
-    studentId: 'STU-TN010-001',
-    courseId: 'CRS-TN010-01',
-    courseTitle: 'Python for Data Science & Machine Learning',
-    category: 'DATA & AI',
-    institutionId: 'TN010',
-    progress: 75,
-    completedModules: 6,
-    totalModules: 8,
-    hoursRemaining: 6,
-    currentModule: 'Module 7: Model Tuning & Evaluation',
-    status: 'active',
-    enrolledAt: '2026-08-01T10:00:00Z',
-    assessmentScore: '88%'
-  },
-  {
-    enrollmentId: 'ENR-02',
-    studentId: 'STU-TN010-001',
-    courseId: 'CRS-TN010-02',
-    courseTitle: 'Generative AI & LLM Engineering',
-    category: 'BY NEXUS AI',
-    institutionId: 'TN010',
-    progress: 42,
-    completedModules: 3,
-    totalModules: 6,
-    hoursRemaining: 12,
-    currentModule: 'Module 4: Prompt Engineering & Guardrails',
-    status: 'active',
-    enrolledAt: '2026-08-15T14:00:00Z',
-    assessmentScore: null
-  }
-];
-
-export const SEED_PROJECTS = [
-  {
-    projectId: 'PRJ-01',
-    studentId: 'STU-TN010-001',
-    studentName: 'Arun Kumar',
-    department: 'CSE',
-    institutionId: 'TN010',
-    title: 'AI Resume Analyzer & ATS Parser',
-    category: 'DATA & AI',
-    description: 'Production ATS semantic parsing engine utilizing cosine vector similarity and zero-shot taxonomy classification.',
-    technologies: ['Python', 'FastAPI', 'NLP', 'Docker'],
-    repositoryUrl: 'https://github.com/arunkumar/ai-resume-analyzer',
-    status: 'Verified',
-    validation: {
-      score: 94,
-      unitTestsPassed: '96% Unit Tests Passed',
-      commits: 24,
-      proctorSignature: 'PROCTOR-TN010-8812',
-      blockNumber: 'Block #8,941,301',
-      verifiedDate: '2026-08-20'
-    },
-    reviewer: 'Prof. K. Ramanathan (SRM CSE Dept Lead)'
-  },
-  {
-    projectId: 'PRJ-02',
-    studentId: 'STU-TN010-001',
-    studentName: 'Arun Kumar',
-    department: 'CSE',
-    institutionId: 'TN010',
-    title: 'Real-time Cryptographic Talent Ledger',
-    category: 'BLOCKCHAIN & SECURITY',
-    description: 'Decentralized verifiable credentials registry with tamper-proof ZK-SNARK mathematical proofs.',
-    technologies: ['Python', 'SQL', 'FastAPI', 'Cryptography'],
-    repositoryUrl: 'https://github.com/arunkumar/talent-ledger-zksnark',
-    status: 'Verified',
-    validation: {
-      score: 92,
-      unitTestsPassed: '98% Unit Tests Passed',
-      commits: 38,
-      proctorSignature: 'PROCTOR-TN010-9104',
-      blockNumber: 'Block #8,939,410',
-      verifiedDate: '2026-08-28'
-    },
-    reviewer: 'Dr. S. Kulanthaivel'
-  },
-  {
-    projectId: 'PRJ-03',
-    studentId: 'STU-TN010-001',
-    studentName: 'Arun Kumar',
-    department: 'CSE',
-    institutionId: 'TN010',
-    title: 'Multi-Agent Autonomous RAG Assistant',
-    category: 'GENERATIVE AI',
-    description: 'Hierarchical query planner that orchestrates multi-agent reflection loops for technical document intelligence.',
-    technologies: ['Python', 'LangChain', 'ChromaDB', 'FastAPI'],
-    repositoryUrl: 'https://github.com/arunkumar/agentic-rag-engine',
-    status: 'Submitted',
-    validation: {
-      score: null,
-      unitTestsPassed: '92% Test Coverage',
-      commits: 16,
-      proctorSignature: null,
-      blockNumber: null,
-      verifiedDate: null
-    },
-    reviewer: 'Under Faculty Review'
-  }
-];
-
-export const SEED_COMPANIES = [
-  {
-    companyId: 'COM001',
-    companyName: 'TechCorp Global Systems',
-    industry: 'IT & Software',
-    recruiterName: 'Sarah Jenkins',
-    recruiterHandle: 'TECHCORP-GLOBAL-CORP',
-    email: 'talent@techcorp.global',
-    location: 'Chennai (OMR Corridor) & Hybrid',
-    city: 'Chennai',
-    state: 'Tamil Nadu',
-    hiringPreferences: {
-      preferredRoles: ['Software Developer', 'Data Analyst', 'ML Engineer', 'Cloud Engineer'],
-      requiredSkills: ['Python', 'SQL', 'FastAPI', 'React', 'AWS'],
-      preferredProficiency: 'Intermediate',
-      educationDegree: 'B.Tech / B.E.',
-      educationDepartment: 'CSE & IT',
-      targetGradBatch: '2026 Batch',
-      experienceLevel: 'Fresher / Internship Experience',
-      locationPreference: 'Hybrid (OMR Chennai / Remote)',
-      opportunityType: 'Internship (PPO Convertible)'
-    }
-  }
-];
-
-export const SEED_OPPORTUNITIES = [
-  {
-    opportunityId: 'OPP-001',
-    companyId: 'COM001',
-    companyName: 'TechCorp Global Systems',
-    title: 'Data Analyst Intern',
-    role: 'Data Analyst Intern',
-    type: 'Internship',
-    department: 'Data & Analytics',
-    location: 'Chennai (OMR) / Hybrid',
-    workMode: 'Hybrid',
-    stipend: '₹35,000 / month',
-    duration: '3–6 Months (PPO Convertible)',
-    requiredSkills: ['Python', 'SQL', 'FastAPI', 'Data Analysis'],
-    preferredSkills: ['Pandas', 'Docker', 'Power BI'],
-    minimumProficiency: 'Intermediate',
-    targetBatch: '2026 Batch',
-    status: 'Active',
-    applicantsCount: 24,
-    shortlistedCount: 6,
-    description: 'Build enterprise analytics pipelines and automated reporting workflows using Python and SQL.'
-  },
-  {
-    opportunityId: 'OPP-002',
-    companyId: 'COM001',
-    companyName: 'TechCorp Global Systems',
-    title: 'Cloud DevOps Intern',
-    role: 'Cloud DevOps Intern',
-    type: 'Internship',
-    department: 'Cloud Infrastructure',
-    location: 'Remote (India)',
-    workMode: 'Remote',
-    stipend: '₹30,000 / month',
-    duration: '3 Months',
-    requiredSkills: ['Docker', 'Linux', 'AWS', 'Python'],
-    preferredSkills: ['Kubernetes', 'CI/CD', 'Terraform'],
-    minimumProficiency: 'Intermediate',
-    targetBatch: '2026 Batch',
-    status: 'Active',
-    applicantsCount: 38,
-    shortlistedCount: 8,
-    description: 'Deploy resilient containerized services and automate cloud infrastructure provisioning on AWS.'
-  },
-  {
-    opportunityId: 'OPP-003',
-    companyId: 'COM001',
-    companyName: 'TechCorp Global Systems',
-    title: 'Machine Learning Engineer (Junior)',
-    role: 'Machine Learning Engineer (Junior)',
-    type: 'Full-Time',
-    department: 'AI & Systems',
-    location: 'Chennai, OMR IT Corridor',
-    workMode: 'On-site',
-    stipend: '₹50,000 / month',
-    duration: 'Full-Time Convertible',
-    requiredSkills: ['PyTorch', 'Python', 'Machine Learning', 'FastAPI'],
-    preferredSkills: ['LangChain', 'PostgreSQL', 'Docker'],
-    minimumProficiency: 'Advanced',
-    targetBatch: '2026 Batch',
-    status: 'Active',
-    applicantsCount: 19,
-    shortlistedCount: 4,
-    description: 'Develop and fine-tune scalable machine learning inference endpoints and vector retrieval architectures.'
-  },
-  {
-    opportunityId: 'OPP-004',
-    companyId: 'COM001',
-    companyName: 'TechCorp Global Systems',
-    title: 'Associate Full-Stack Developer',
-    role: 'Full-Stack Software Engineer',
-    type: 'Full-Time',
-    department: 'Product Engineering',
-    location: 'Chennai (Hybrid)',
-    workMode: 'Hybrid',
-    stipend: '₹45,000 / month',
-    duration: 'Full-Time Position',
-    requiredSkills: ['React', 'Next.js', 'PostgreSQL', 'TypeScript', 'Git'],
-    preferredSkills: ['Tailwind', 'REST APIs', 'Docker'],
-    minimumProficiency: 'Intermediate',
-    targetBatch: '2026 Batch',
-    status: 'Active',
-    applicantsCount: 42,
-    shortlistedCount: 12,
-    description: 'Design, develop, and maintain reactive web applications and scalable database schemas across our enterprise platform.'
-  },
-  {
-    opportunityId: 'OPP-005',
-    companyId: 'COM001',
-    companyName: 'TechCorp Global Systems',
-    title: 'Cloud Infrastructure & DevOps Engineer',
-    role: 'Site Reliability & Cloud Engineer',
-    type: 'Full-Time',
-    department: 'Cloud & Infrastructure',
-    location: 'Chennai (On-site)',
-    workMode: 'On-site',
-    stipend: '₹48,000 / month',
-    duration: 'Full-Time Position',
-    requiredSkills: ['AWS', 'Docker', 'Kubernetes', 'Linux', 'CI/CD'],
-    preferredSkills: ['Terraform', 'Prometheus', 'FastAPI'],
-    minimumProficiency: 'Advanced',
-    targetBatch: '2026 Batch',
-    status: 'Active',
-    applicantsCount: 28,
-    shortlistedCount: 7,
-    description: 'Deploy, automate, and orchestrate containerized cloud microservices with zero-downtime reliability and monitoring.'
-  }
-];
-
-export const SEED_APPLICATIONS = [
-  {
-    applicationId: 'APP-001',
-    opportunityId: 'OPP-001',
-    companyId: 'COM001',
-    companyName: 'TechCorp Global Systems',
-    studentId: 'STU-TN010-001',
-    candidateName: 'Arun Kumar',
-    department: 'CSE',
-    roleTitle: 'Data Analyst Intern',
-    matchScore: 92,
-    stage: 'Interview',
-    appliedAt: '2026-09-02T11:00:00Z',
-    notes: 'Fast-track technical interview scheduled with lead data architect.'
-  },
-  {
-    applicationId: 'APP-002',
-    opportunityId: 'OPP-002',
-    companyId: 'COM001',
-    companyName: 'TechCorp Global Systems',
-    studentId: 'STU-TN010-003',
-    candidateName: 'Rahul Krishnan',
-    department: 'IT',
-    roleTitle: 'Cloud DevOps Intern',
-    matchScore: 94,
-    stage: 'Shortlisted',
-    appliedAt: '2026-09-01T09:30:00Z',
-    notes: 'Candidate verified for Kubernetes and AWS microservices proofs.'
-  },
-  {
-    applicationId: 'APP-003',
-    opportunityId: 'OPP-003',
-    companyId: 'COM001',
-    companyName: 'TechCorp Global Systems',
-    studentId: 'STU-TN010-004',
-    candidateName: 'Deepika Raman',
-    department: 'AI & DS',
-    roleTitle: 'Machine Learning Engineer (Junior)',
-    matchScore: 91,
-    stage: 'Under Review',
-    appliedAt: '2026-09-03T16:20:00Z',
-    notes: 'Evaluating NLP model fine-tuning repository proof.'
-  }
-];
+export const SEED_INSTITUTIONS = [];
+export const SEED_STUDENTS = [];
+export const SEED_COURSES = [];
+export const SEED_ENROLLMENTS = [];
+export const SEED_PROJECTS = [];
+export const SEED_COMPANIES = [];
+export const SEED_OPPORTUNITIES = [];
+export const SEED_APPLICATIONS = [];
 
 // ══════════════════════════════════════════════════════════════════════════
 // 2. DATA STORE INITIALIZATION & ACCESSORS
 // ══════════════════════════════════════════════════════════════════════════
+
+function isMockItem(item) {
+  if (!item || typeof item !== 'object') return false;
+  if (item.institutionId === 'TN-ACE-01' || item.collegeId === 'TN-ACE-01' || item.collegeId === 'TN010') return true;
+  if (typeof item.studentId === 'string' && item.studentId.startsWith('STU-TN010')) return true;
+  if (typeof item.id === 'string' && (item.id.startsWith('STU-TN010') || item.id.startsWith('crs_0') || item.id.startsWith('prj_0') || item.id.startsWith('app_0'))) return true;
+  if (item.companyId === 'COM001' && item.companyName === 'TechCorp Global Systems') return true;
+  return false;
+}
 
 function readStorage(key, fallback) {
   try {
@@ -810,7 +110,11 @@ function readStorage(key, fallback) {
       localStorage.setItem(key, JSON.stringify(fallback));
       return fallback;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter(x => !isMockItem(x));
+    }
+    return parsed;
   } catch {
     return fallback;
   }
@@ -831,6 +135,19 @@ function writeStorage(key, data, eventName) {
 }
 
 // ──────────────────────────────────────────
+// Institution Services
+// ──────────────────────────────────────────
+
+export function getAllRelationalInstitutions() {
+  return readStorage(KEYS.INSTITUTIONS, SEED_INSTITUTIONS);
+}
+
+export function getRelationalInstitutionById(id) {
+  const all = getAllRelationalInstitutions();
+  return all.find(i => i.institutionId === id || i.collegeId === id || i.id === id) || null;
+}
+
+// ──────────────────────────────────────────
 // Student Services
 // ──────────────────────────────────────────
 
@@ -843,7 +160,7 @@ export function getStudentByCollege(collegeId) {
   const cleanId = String(collegeId).toUpperCase().trim();
   return getAllRelationalStudents().filter(s => {
     const sc = String(s.collegeId || '').toUpperCase().trim();
-    return sc === cleanId || (cleanId === 'TN010' && sc === 'SRM001') || (cleanId === 'SRM001' && sc === 'TN010');
+    return sc === cleanId;
   });
 }
 
@@ -891,7 +208,7 @@ export function getCoursesByInstitution(instId) {
   const cleanId = String(instId).toUpperCase().trim();
   return getAllCourses().filter(c => {
     const cc = String(c.institutionId || '').toUpperCase().trim();
-    return cc === cleanId || (cleanId === 'TN010' && cc === 'SRM001') || (cleanId === 'SRM001' && cc === 'TN010');
+    return cc === cleanId;
   });
 }
 
@@ -1106,10 +423,10 @@ export function submitProjectForValidation(projectData) {
   const all = getAllProjects();
   const newPrj = {
     projectId: `PRJ-${Date.now().toString().slice(-4)}`,
-    studentId: projectData.studentId || 'STU-TN010-001',
-    studentName: projectData.studentName || 'Arun Kumar',
+    studentId: projectData.studentId || 'STU-001',
+    studentName: projectData.studentName || 'Student Candidate',
     department: projectData.department || 'CSE',
-    institutionId: projectData.institutionId || 'TN010',
+    institutionId: projectData.institutionId || '',
     title: projectData.title,
     category: projectData.category || 'SOFTWARE & SYSTEMS',
     description: projectData.description || 'Student engineered capstone project repository.',

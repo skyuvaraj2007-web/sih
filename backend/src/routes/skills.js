@@ -13,6 +13,7 @@
 const express = require('express');
 const router = express.Router();
 const relationalManager = require('../db/relationalManager');
+const { supabase } = require('../config/supabase');
 const { calculateReadinessFromStudent } = require('../services/readinessService');
 const { requireAuth } = require('../middleware/auth');
 
@@ -297,18 +298,18 @@ router.put(['/', '/:id'], requireAuth, async (req, res) => {
       await relationalManager.saveStudent(student);
     } catch (e) {}
 
-    if (relationalManager.pg) {
-      try {
-        await relationalManager.pg.query(
-          `UPDATE student_skills 
-           SET claimed_level = $1, confidence_score = $2, last_updated = NOW()
-           WHERE student_id = $3 
-             AND (id::text = $4 OR skill_id IN (SELECT id FROM skills WHERE LOWER(name) = LOWER($5) OR id::text = $4))`,
-          [student.skills[skillIdx].level, student.skills[skillIdx].confidence, student.id, targetIdentifier, student.skills[skillIdx].name]
-        );
-      } catch (err) {
-        console.warn('Error updating student_skills in PG:', err.message);
-      }
+    try {
+      await supabase
+        .from('student_skills')
+        .update({
+          claimed_level: student.skills[skillIdx].level,
+          confidence_score: student.skills[skillIdx].confidence,
+          last_updated: new Date().toISOString()
+        })
+        .eq('student_id', student.id)
+        .or(`id.eq.${targetIdentifier},skill_name.ilike.${student.skills[skillIdx].name}`);
+    } catch (err) {
+      console.warn('[skills] Supabase skill update note:', err.message);
     }
 
     res.json({
@@ -342,17 +343,14 @@ router.delete('/:id', requireAuth, async (req, res) => {
 
     await relationalManager.saveStudent(student);
 
-    if (relationalManager.pg) {
-      try {
-        await relationalManager.pg.query(
-          `DELETE FROM student_skills 
-           WHERE student_id = $1 
-             AND (id::text = $2 OR skill_id IN (SELECT id FROM skills WHERE LOWER(name) = LOWER($3) OR id::text = $2))`,
-          [student.id, req.params.id, removedSkill.name]
-        );
-      } catch (err) {
-        console.warn('Error deleting from student_skills in PG:', err.message);
-      }
+    try {
+      await supabase
+        .from('student_skills')
+        .delete()
+        .eq('student_id', student.id)
+        .or(`id.eq.${req.params.id},skill_name.ilike.${removedSkill.name}`);
+    } catch (err) {
+      console.warn('[skills] Supabase skill delete note:', err.message);
     }
 
     // Recalculate readiness

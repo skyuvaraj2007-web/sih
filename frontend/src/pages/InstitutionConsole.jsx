@@ -40,11 +40,17 @@ import InstitutionPlacementPipeline from '../components/institution/InstitutionP
 import InstitutionCombinedAnalytics from '../components/institution/InstitutionCombinedAnalytics';
 import InstitutionSkillAnalytics from '../components/institution/InstitutionSkillAnalytics';
 import InstitutionSetupWizard from '../components/institution/InstitutionSetupWizard';
-import InstitutionAssessmentTests from '../components/institution/InstitutionAssessmentTests';
+import InstitutionSkillGrowth from '../components/institution/InstitutionSkillGrowth';
+import InstitutionStudentPerformance from '../components/institution/InstitutionStudentPerformance';
 import InstitutionIndustryRequests from '../components/institution/InstitutionIndustryRequests';
 import InstitutionCourseCertificates from '../components/institution/InstitutionCourseCertificates';
+import InstitutionCampusDirectory from '../components/institution/InstitutionCampusDirectory';
 import InstitutionCertificateVerification from '../components/institution/InstitutionCertificateVerification';
 import InstitutionProjectVerification from '../components/institution/InstitutionProjectVerification';
+import InstitutionCandidateList from '../components/institution/InstitutionCandidateList';
+import InstitutionManagement from '../components/institution/InstitutionManagement';
+import InstitutionStaffManagement from '../components/institution/InstitutionStaffManagement';
+import ProjectDetailsExplorer from '../components/common/ProjectDetailsExplorer';
 import { academicService } from '../services/academicService';
 
 export default function InstitutionConsole({ setActivePage, activePage, user, onShowToast, onLogout }) {
@@ -58,17 +64,35 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
     switch (activePage) {
       case 'institution-readiness':
         return 'readiness';
+      case 'institution-skill-growth':
+      case 'skill-growth':
+        return 'skill-growth';
       case 'institution-skill-analytics':
         return 'skill-analytics';
       case 'institution-students':
-        return 'students';
+      case 'institution-student-performance':
+      case 'student-performance':
+        return 'student-performance';
+      case 'institution-candidates':
+        return 'candidates';
+      case 'institution-messages':
+        return 'messages';
+      case 'institution-management':
+        return 'management';
+      case 'institution-staff':
+      case 'institution-staff-management':
+      case 'staff-management':
+        return 'staff-management';
       case 'institution-courses':
         return 'courses';
       case 'institution-skill-mapping':
       case 'institution-skill-gap':
         return 'skill-gap';
       case 'institution-projects':
+      case 'institution-project-verification':
         return 'project-verification';
+      case 'institution-project-explorer':
+        return 'project-explorer';
       case 'institution-certificates':
         return 'certificate-verification';
       case 'institution-course-certificates':
@@ -84,12 +108,19 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
         return 'matching';
       case 'institution-placement':
       case 'institution-recruitment-drives':
+      case 'institution-pipeline':
+      case 'placement':
+      case 'pipeline':
         return 'placement';
-      case 'institution-assessments':
-        return 'assessments';
+      case 'institution-selected-students':
+      case 'selected-students':
+      case 'selected':
+        return 'selected-students';
       case 'institution-industry-requests':
       case 'institution-industry-collaboration':
         return 'industry-requests';
+      case 'institution-campus-directory':
+        return 'campus-directory';
       case 'institution-analytics':
       case 'institution-industry-demand':
       case 'institution-skill-trends':
@@ -100,7 +131,7 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
   }, [activePage]);
 
   // Resolve institution's collegeId
-  const collegeId = user?.collegeId || 'TN010';
+  const collegeId = user?.collegeId || user?.institutionId || user?.id || '';
   const institutionDisplayName = user?.institutionName || user?.collegeName || user?.name || 'Institution Workspace';
 
   // Load live students for metric calculations
@@ -203,13 +234,16 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
     telemetry: 'Cohort Telemetry',
     readiness: 'Student Readiness Intelligence',
     students: 'Student Database',
+    candidates: 'Candidate List',
+    messages: 'Institutional Messaging',
+    management: 'Institution Management',
     companies: 'Company Intelligence',
     opportunities: 'Corporate Opportunities',
     matching: 'Student–Company Matching',
     'skill-gap': 'Skill Gap Intelligence',
     courses: 'Course & Training Management',
     proofs: 'Verified Skill Proofs',
-    placement: 'Placement Pipeline',
+    placement: 'Application Pipeline',
     analytics: 'Institution Analytics'
   };
 
@@ -217,6 +251,9 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
     telemetry: `Academic workspace, student roster telemetry, curriculum competency tracking, and automated placement pipeline analytics for ${institutionDisplayName}.`,
     readiness: `Multi-pillar student dossier: Academic, Skills, Learning progress, and Career readiness diagnostics for ${institutionDisplayName}.`,
     students: `Filterable student database across Department, Batch, Semester, Skill, Proficiency, Placement Status, and Readiness.`,
+    candidates: `Filterable candidate roster across academic departments, readiness tiers, and skill profiles authenticated under ${institutionDisplayName}.`,
+    messages: `Real-time database-driven correspondence with industry recruiters, corporate partners, and student candidates.`,
+    management: `Administrative configuration of institution metadata, departments, and accreditation console for ${institutionDisplayName}.`,
     companies: `Deep corporate employer directory with live skill requirements, hiring volume, and HR relationships for ${institutionDisplayName}.`,
     opportunities: `Review, validate, and broadcast corporate Jobs, Internships, Projects, Hackathons, and Training to students.`,
     matching: `AI algorithmic matching between corporate opening specifications and student skill graphs with transparency rationale.`,
@@ -229,12 +266,12 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
 
   const workspaceTabs = useMemo(() => {
     // 1. Students Workspace
-    if (['institution-readiness', 'institution-students', 'institution-assessments', 'institution-skill-analytics'].includes(activePage)) {
+    if (['institution-readiness', 'institution-students', 'institution-student-performance', 'institution-skill-growth', 'institution-skill-analytics'].includes(activePage)) {
       return [
-        { id: 'institution-readiness', label: 'Student Readiness', icon: Target },
-        { id: 'institution-students', label: 'Student Details & Roster', icon: Users },
-        { id: 'institution-assessments', label: 'Assessment Tests', icon: Award },
-        { id: 'institution-skill-analytics', label: 'Skill Analytics', icon: BarChart2 }
+        { id: 'institution-students', label: 'Student Performance', icon: Users },
+        { id: 'institution-skill-growth', label: 'Skill Growth', icon: TrendingUp },
+        { id: 'institution-skill-analytics', label: 'Skill Analytics', icon: BarChart2 },
+        { id: 'institution-readiness', label: 'Student Readiness', icon: Target }
       ];
     }
     // 2. Learning Workspace
@@ -251,27 +288,35 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
         { id: 'institution-course-certificates', label: 'Company Course Certificates', icon: ShieldCheck }
       ];
     }
-    // 3. Companies Workspace
-    if (['institution-company-directory', 'institution-companies', 'institution-company-intelligence', 'institution-company-opportunities', 'institution-industry-requests', 'institution-industry-collaboration'].includes(activePage)) {
+    // 2c. Projects Workspace
+    if (['institution-projects', 'institution-project-verification', 'institution-project-explorer'].includes(activePage)) {
+      return [
+        { id: 'institution-projects', label: 'Verification Queue', icon: ShieldCheck },
+        { id: 'institution-project-explorer', label: 'Project Portfolio Explorer', icon: FolderGit2 }
+      ];
+    }
+    // 3. Opportunities & Placement Workspace
+    if (['institution-placement', 'institution-recruitment-drives', 'institution-candidates', 'institution-company-opportunities'].includes(activePage)) {
+      return [
+        { id: 'institution-placement', label: 'Application Pipeline', icon: GraduationCap },
+        { id: 'institution-candidates', label: 'Candidate List', icon: Users },
+        { id: 'institution-company-opportunities', label: 'Corporate Opportunities', icon: Briefcase }
+      ];
+    }
+    // 4. Companies Workspace
+    if (['institution-company-directory', 'institution-companies', 'institution-company-intelligence', 'institution-industry-requests', 'institution-industry-collaboration', 'institution-campus-directory'].includes(activePage)) {
       return [
         { id: 'institution-company-directory', label: 'Company Directory', icon: Building },
         { id: 'institution-company-intelligence', label: 'Company Intelligence', icon: Target },
-        { id: 'institution-company-opportunities', label: 'Shared Opportunities', icon: Briefcase },
-        { id: 'institution-industry-requests', label: 'Access Requests', icon: ShieldCheck }
+        { id: 'institution-industry-requests', label: 'Access Requests', icon: ShieldCheck },
+        { id: 'institution-campus-directory', label: 'Campus Collaborations', icon: GraduationCap }
       ];
     }
-    // 4. Talent Matching Workspace
+    // 5. Talent Matching Workspace
     if (['institution-matching', 'institution-skill-gap'].includes(activePage)) {
       return [
         { id: 'institution-matching', label: 'AI Talent Matcher', icon: Brain },
         { id: 'institution-skill-gap', label: 'Skill Gap Telemetry', icon: Target }
-      ];
-    }
-    // 5. Placement Pipeline Workspace
-    if (['institution-placement', 'institution-recruitment-drives'].includes(activePage)) {
-      return [
-        { id: 'institution-placement', label: 'Placement Funnel', icon: GraduationCap },
-        { id: 'institution-recruitment-drives', label: 'Recruitment Drives', icon: Briefcase }
       ];
     }
     // 6. Executive Analytics Workspace
@@ -443,7 +488,47 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
 
       {/* ── 10. PLACEMENT PIPELINE VIEW ── */}
       {currentView === 'placement' && (
-        <InstitutionPlacementPipeline onShowToast={onShowToast} />
+        <InstitutionPlacementPipeline onShowToast={onShowToast} initialTab="pipeline" />
+      )}
+
+      {/* ── 10A. SELECTED STUDENTS VIEW ── */}
+      {currentView === 'selected-students' && (
+        <InstitutionPlacementPipeline onShowToast={onShowToast} initialTab="selected" />
+      )}
+
+      {/* ── 10B. CANDIDATE LIST VIEW ── */}
+      {currentView === 'candidates' && (
+        <InstitutionCandidateList
+          institution={{ ...user, collegeId, institutionName: institutionDisplayName }}
+          onShowToast={onShowToast}
+          setActivePage={setActivePage}
+        />
+      )}
+
+      {/* ── 10C. MESSAGES VIEW ── */}
+      {currentView === 'messages' && (
+        <InstitutionMessages
+          institution={{ ...user, collegeId, institutionName: institutionDisplayName }}
+          onShowToast={onShowToast}
+        />
+      )}
+
+      {/* ── 10D. INSTITUTION MANAGEMENT VIEW ── */}
+      {currentView === 'management' && (
+        <InstitutionManagement
+          institution={{ ...user, collegeId, institutionName: institutionDisplayName }}
+          onShowToast={onShowToast}
+          onOpenSetupWizard={() => setShowSetupWizard(true)}
+          setActivePage={setActivePage}
+        />
+      )}
+
+      {/* ── 10E. STAFF / ACADEMICIAN MANAGEMENT VIEW ── */}
+      {currentView === 'staff-management' && (
+        <InstitutionStaffManagement
+          institution={{ ...user, collegeId, institutionName: institutionDisplayName }}
+          onShowToast={onShowToast}
+        />
       )}
 
       {/* ── 11. INSTITUTION ANALYTICS VIEW ── */}
@@ -451,14 +536,27 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
         <InstitutionCombinedAnalytics onShowToast={onShowToast} />
       )}
 
-      {/* ── 12. INSTITUTION ASSESSMENT TESTS VIEW ── */}
-      {currentView === 'assessments' && (
-        <InstitutionAssessmentTests onShowToast={onShowToast} />
+      {/* ── 12. INSTITUTION SKILL GROWTH VIEW ── */}
+      {currentView === 'skill-growth' && (
+        <InstitutionSkillGrowth onShowToast={onShowToast} />
+      )}
+
+      {/* ── 12B. INSTITUTION STUDENT PERFORMANCE VIEW ── */}
+      {currentView === 'student-performance' && (
+        <InstitutionStudentPerformance
+          institution={{ ...user, collegeId, institutionName: institutionDisplayName }}
+          onShowToast={onShowToast}
+        />
       )}
 
       {/* ── 13. INDUSTRY COLLABORATION & ACCESS REQUESTS VIEW ── */}
       {currentView === 'industry-requests' && (
         <InstitutionIndustryRequests onShowToast={onShowToast} />
+      )}
+
+      {/* ── 13B. CAMPUS DIRECTORY & INTER-COLLEGE COLLABORATIONS VIEW ── */}
+      {currentView === 'campus-directory' && (
+        <InstitutionCampusDirectory onShowToast={onShowToast} />
       )}
 
       {/* ── 14. STUDENT CERTIFICATE VERIFICATION VIEW ── */}
@@ -474,6 +572,11 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
       {/* ── 16. STUDENT PROJECT VERIFICATION VIEW ── */}
       {currentView === 'project-verification' && (
         <InstitutionProjectVerification onShowToast={onShowToast} />
+      )}
+
+      {/* ── 16B. STUDENT PROJECT DETAILS EXPLORER VIEW ── */}
+      {currentView === 'project-explorer' && (
+        <ProjectDetailsExplorer portal="institution" onShowToast={onShowToast} />
       )}
 
       {/* Master Directory Inspector Modal */}

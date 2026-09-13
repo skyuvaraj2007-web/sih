@@ -4,6 +4,7 @@ const router = express.Router();
 const path = require('path');
 const fs = require('fs');
 const relationalManager = require('../db/relationalManager');
+const { supabase } = require('../config/supabase');
 const { requireAuth } = require('../middleware/auth');
 
 const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads', 'documents');
@@ -257,16 +258,25 @@ router.get('/:id/view', requireAuth, async (req, res) => {
     const instId = req.user?.institutionId || req.user?.collegeId;
 
     let cert = null;
-    if (relationalManager.pg) {
-      try {
-        const cRes = await relationalManager.pg.query(
-          `SELECT id, student_id AS "studentId", institution_id AS "institutionId", title, certificate_url AS "storedFileName" FROM certificates WHERE id::text = $1 OR certificate_number = $1 LIMIT 1`,
-          [certId]
-        );
-        if (cRes.rows.length > 0) cert = cRes.rows[0];
-      } catch (e) {}
-    }
-    if (!cert && !relationalManager.isPgRequired) {
+    try {
+      const { data: cRow } = await supabase
+        .from('certificates')
+        .select('id, student_id, institution_id, title, certificate_url')
+        .or(`id.eq.${certId},certificate_number.eq.${certId}`)
+        .limit(1)
+        .maybeSingle();
+      if (cRow) {
+        cert = {
+          id: cRow.id,
+          studentId: cRow.student_id,
+          institutionId: cRow.institution_id,
+          title: cRow.title,
+          storedFileName: cRow.certificate_url
+        };
+      }
+    } catch (e) {}
+
+    if (!cert) {
       const data = relationalManager._read();
       cert = (data.certificates || []).find(c => c.id === certId);
     }
@@ -309,16 +319,25 @@ router.get('/:id/download', requireAuth, async (req, res) => {
     const instId = req.user?.institutionId || req.user?.collegeId;
 
     let cert = null;
-    if (relationalManager.pg) {
-      try {
-        const cRes = await relationalManager.pg.query(
-          `SELECT id, student_id AS "studentId", institution_id AS "institutionId", title, certificate_url AS "storedFileName" FROM certificates WHERE id::text = $1 OR certificate_number = $1 LIMIT 1`,
-          [certId]
-        );
-        if (cRes.rows.length > 0) cert = cRes.rows[0];
-      } catch (e) {}
-    }
-    if (!cert && !relationalManager.isPgRequired) {
+    try {
+      const { data: cRow } = await supabase
+        .from('certificates')
+        .select('id, student_id, institution_id, title, certificate_url')
+        .or(`id.eq.${certId},certificate_number.eq.${certId}`)
+        .limit(1)
+        .maybeSingle();
+      if (cRow) {
+        cert = {
+          id: cRow.id,
+          studentId: cRow.student_id,
+          institutionId: cRow.institution_id,
+          title: cRow.title,
+          storedFileName: cRow.certificate_url
+        };
+      }
+    } catch (e) {}
+
+    if (!cert) {
       const data = relationalManager._read();
       cert = (data.certificates || []).find(c => c.id === certId);
     }

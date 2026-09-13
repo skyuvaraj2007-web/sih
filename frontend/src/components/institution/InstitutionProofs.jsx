@@ -36,112 +36,15 @@ export default function InstitutionProofs({ onShowToast, institution }) {
     };
   }, []);
 
-  const staticProofs = [
-    {
-      id: 'VSP-8841',
-      student: 'Arun Kumar',
-      studentId: 'STU-TN010-001',
-      dept: 'CSE',
-      skill: 'Python – Advanced',
-      type: 'Skill Assessment',
-      hash: '0xA3F99C1284...B24E71',
-      date: '2026-08-14',
-      status: 'verified',
-      evidence: {
-        score: '92/100',
-        assessment: 'Diagnostic Proctored CodeSprint',
-        gitRepo: 'https://github.com/nexus-student/python-ai-diagnostics',
-        proctorId: 'PROCTOR-TN010-8812',
-        blockNumber: '#8,941,301',
-        validator: 'SRM Academic Board Node #04'
-      }
-    },
-    {
-      id: 'VSP-8840',
-      student: 'Rahul Krishnan',
-      studentId: 'STU-TN010-003',
-      dept: 'IT',
-      skill: 'Java Enterprise & Spring Boot',
-      type: 'Project Verification',
-      hash: '0xC7D201A944...F91A33',
-      date: '2026-08-12',
-      status: 'verified',
-      evidence: {
-        score: '96/100',
-        assessment: 'Enterprise ERP Microservices Deployment',
-        gitRepo: 'https://github.com/rahul-k/erp-microservices-kafka',
-        proctorId: 'Zoho Industry Mentor Node',
-        blockNumber: '#8,939,112',
-        validator: 'Nexus Consortium Validator Node'
-      }
-    },
-    {
-      id: 'VSP-8839',
-      student: 'Deepika Raman',
-      studentId: 'STU-TN010-004',
-      dept: 'AI & DS',
-      skill: 'Generative AI & LLM Engineering',
-      type: 'Course Completion',
-      hash: '0xE1B648AC29...3C7F90',
-      date: '2026-08-10',
-      status: 'verified',
-      evidence: {
-        score: '95/100',
-        assessment: 'Tamil Vernacular LLM Assistant (Llama 3 Fine-tune)',
-        gitRepo: 'https://github.com/deepika-r/tamil-rag-llm',
-        proctorId: 'IITM Research Park Attestation',
-        blockNumber: '#8,935,744',
-        validator: 'SRM AI Department Lead Node'
-      }
-    },
-    {
-      id: 'VSP-8838',
-      student: 'Priya Sundaram',
-      studentId: 'STU-TN010-002',
-      dept: 'ECE',
-      skill: 'Embedded RTOS & CAN Bus',
-      type: 'Internship Attestation',
-      hash: '0xF4A91180CD...8D2B05',
-      date: '2026-08-08',
-      status: 'verified',
-      evidence: {
-        score: '88/100',
-        assessment: 'Bosch Automotive CAN Diagnostic Protocol',
-        gitRepo: 'https://github.com/priya-s/smart-agri-can-bus',
-        proctorId: 'Bosch Engineering Lab Attestation',
-        blockNumber: '#8,931,219',
-        validator: 'Bosch Autonomous Systems Unit'
-      }
-    },
-    {
-      id: 'VSP-8837',
-      student: 'Karthik Venkatesh',
-      studentId: 'STU-TN010-005',
-      dept: 'CSE',
-      skill: 'Docker & Kubernetes Orchestration',
-      type: 'Badge Attestation',
-      hash: '0x2BC4991FA7...7E5A44',
-      date: '2026-08-05',
-      status: 'pending',
-      evidence: {
-        score: '84/100',
-        assessment: 'High-Throughput Trading Engine Microservice',
-        gitRepo: 'https://github.com/karthik-v/trading-engine-go',
-        proctorId: 'Pending Faculty Review',
-        blockNumber: 'Awaiting Next Mint Block',
-        validator: 'Consensus Pool'
-      }
-    }
-  ];
-
-  const instCollegeId = String(institution?.collegeId || 'TN010').toUpperCase().trim();
+  const instCollegeId = String(institution?.collegeId || institution?.id || '').toUpperCase().trim();
 
   const relationalProjects = useMemo(() => {
     return getAllProjects()
       .filter(p => {
         if (!p.studentId) return true;
         const sid = String(p.studentId).toUpperCase();
-        return sid.includes(`-${instCollegeId}-`) || (instCollegeId === 'TN010' && (sid.includes('-SRM001-') || sid.includes('-TN010-')));
+        if (!instCollegeId) return true;
+        return sid.includes(`-${instCollegeId}-`);
       })
       .map(p => ({
         id: p.projectId,
@@ -165,20 +68,10 @@ export default function InstitutionProofs({ onShowToast, institution }) {
       }));
   }, [version, instCollegeId]);
 
-  // Combine static and live relational submissions, prioritizing live ones and campus isolation
+  // Live relational submissions only - no hardcoded fake proofs
   const allProofs = useMemo(() => {
-    const map = new Map();
-    relationalProjects.forEach(p => map.set(p.id, p));
-    staticProofs
-      .filter(p => {
-        const sid = String(p.studentId || '').toUpperCase();
-        return sid.includes(`-${instCollegeId}-`) || (instCollegeId === 'TN010' && sid.includes('-TN010-'));
-      })
-      .forEach(p => {
-        if (!map.has(p.id)) map.set(p.id, p);
-      });
-    return Array.from(map.values());
-  }, [relationalProjects, instCollegeId]);
+    return relationalProjects;
+  }, [relationalProjects]);
 
   const types = ['ALL', 'Skill Assessment', 'Project Verification', 'Course Completion', 'Internship Attestation', 'Badge Attestation'];
 

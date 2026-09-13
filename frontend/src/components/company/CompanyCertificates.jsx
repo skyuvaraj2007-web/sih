@@ -1,64 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Award, ShieldCheck, ExternalLink, Search, CheckCircle2, X, Lock, Check } from 'lucide-react';
 
 export default function CompanyCertificates() {
   const [selectedCert, setSelectedCert] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [certs, setCerts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const certs = [
-    {
-      id: 'NX-9102-REACT',
-      title: 'Full Stack Web Architecture with React',
-      recipient: 'Arun Kumar',
-      college: 'Velalar College of Engineering & Technology',
-      issuer: 'Nexus AI Academy & CoE',
-      date: 'July 20, 2026',
-      block: 'Block #8,914,686',
-      txHash: '0x8f2a1b94c39e8471da5b81729012bce123f81e7d23a19b882',
-      status: 'Sovereign Verified'
-    },
-    {
-      id: 'CR-PY-8841',
-      title: 'Python for Data Science & ML',
-      recipient: 'Arun Kumar',
-      college: 'Velalar College of Engineering & Technology',
-      issuer: 'Coursera & VCET CoE',
-      date: 'May 14, 2026',
-      block: 'Block #8,891,012',
-      txHash: '0x14d89a12c8b74901ea2b19280145cbe334f71a6e921b77102',
-      status: 'Sovereign Verified'
-    },
-    {
-      id: 'AWS-SAA-9012',
-      title: 'AWS Solutions Architect Associate Attestation',
-      recipient: 'Priya Dhanushri',
-      college: 'Velalar College of Engineering & Technology',
-      issuer: 'Amazon Web Services & VCET Lab',
-      date: 'June 18, 2026',
-      block: 'Block #8,902,341',
-      txHash: '0x992b1029c7821034ba12c98192038172efaa1203498127391',
-      status: 'Sovereign Verified'
-    },
-    {
-      id: 'TF-DEV-9902',
-      title: 'TensorFlow & PyTorch Developer Certificate',
-      recipient: 'Karthik Raja',
-      college: 'Velalar College of Engineering & Technology',
-      issuer: 'Google AI & VCET Data Lab',
-      date: 'May 11, 2026',
-      block: 'Block #8,884,910',
-      txHash: '0x334a1928bc120934ea99182301928172bcfa3910293817281',
-      status: 'Sovereign Verified'
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchCerts() {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
+        const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+        const res = await fetch(`${apiBase}/company/certificates`, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          credentials: 'include'
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json.data) && isMounted) {
+            setCerts(json.data);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load certificates:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
     }
-  ];
+    fetchCerts();
+    return () => { isMounted = false; };
+  }, []);
 
   const filteredCerts = certs.filter(c => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
-    return c.title.toLowerCase().includes(q) ||
-      c.recipient.toLowerCase().includes(q) ||
-      c.id.toLowerCase().includes(q) ||
-      c.college.toLowerCase().includes(q);
+    return (c.title || '').toLowerCase().includes(q) ||
+      (c.recipient || c.student_name || '').toLowerCase().includes(q) ||
+      (c.id || c.certificate_number || '').toLowerCase().includes(q) ||
+      (c.college || c.institution_name || '').toLowerCase().includes(q);
   });
 
   return (
@@ -83,7 +68,15 @@ export default function CompanyCertificates() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {filteredCerts.map(cert => (
+        {filteredCerts.length === 0 ? (
+          <div className="col-span-full p-12 text-center border border-white/5 rounded-2xl bg-white/[0.01]">
+            <Award className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+            <p className="text-sm text-slate-400">
+              {certs.length === 0 ? 'No verified certificates available yet.' : 'No credentials matched your search.'}
+            </p>
+          </div>
+        ) : (
+          filteredCerts.map(cert => (
           <div
             key={cert.id}
             className="company-card p-5 flex items-start gap-4 cursor-pointer hover:border-cyan-500/40 transition-all"
@@ -122,7 +115,8 @@ export default function CompanyCertificates() {
               </div>
             </div>
           </div>
-        ))}
+        ))
+      )}
       </div>
 
       {/* CREDENTIAL PROOF VERIFICATION MODAL (Phase 16) */}

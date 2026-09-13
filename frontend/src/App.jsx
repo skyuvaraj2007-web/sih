@@ -5,6 +5,7 @@ import NexusAIModal from './components/NexusAIModal';
 import Toast from './components/Toast';
 
 // Pages
+import LandingPage from './pages/LandingPage';
 import RoleGateway from './pages/RoleGateway';
 import StudentLogin from './pages/StudentLogin';
 import IndustryLogin from './pages/IndustryLogin';
@@ -32,6 +33,8 @@ import StudentCollegePage from './pages/StudentCollegePage';
 import OtpVerificationPage from './pages/OtpVerificationPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import CommunicationLearning from './pages/CommunicationLearning';
+import AcademicianLogin from './pages/AcademicianLogin';
+import AcademicianPortal from './pages/AcademicianPortal';
 
 // ════════════════════════════════════════════════════════════════
 // URL SYNCHRONIZATION & ROLE NORMALIZATION UTILITIES
@@ -41,18 +44,45 @@ export const normalizeRole = (role) => {
   const r = String(role).toLowerCase();
   if (r === 'industry' || r === 'company') return 'company';
   if (r === 'institution') return 'institution';
+  if (r === 'faculty' || r === 'academician') return 'academician';
   return 'student';
 };
 
 export const pageToPath = (page, role, tab = 'dashboard') => {
   const normRole = normalizeRole(role);
+  if (page === 'landing') return '/';
   if (page === 'role-select') return '/auth/select-role';
   if (page === 'student-login') return '/auth/student-login';
   if (page === 'institution-login') return '/auth/institution-login';
   if (page === 'industry-login') return '/auth/company-login';
+  if (page === 'academician-login' || page === 'faculty-login') return '/academician/login';
   if (page === 'activate') return '/activate';
   if (page === 'verify-otp') return '/auth/verify-otp';
   if (page === 'forgot-password') return '/auth/forgot-password';
+
+  if (normRole === 'academician') {
+    if (page === 'academician-dashboard' || page === 'home' || page === 'dashboard') return '/academician/dashboard';
+    if (page === 'academician-students' || page === 'academician-my-students') return '/academician/students';
+    if (page === 'academician-student-performance') return '/academician/student-performance';
+    if (page === 'academician-student-performance-detail' || page === 'academician-student-detail') return tab ? `/academician/students/${tab}/performance` : '/academician/student-performance';
+    if (page === 'academician-skill-analytics') return '/academician/skill-analytics';
+    if (page === 'academician-skill-assessments' || page === 'academician-assessments') return '/academician/skill-assessments';
+    if (page === 'academician-create-assessment' || page === 'academician-skill-assessments-create') return '/academician/skill-assessments/create';
+    if (page === 'academician-assessment-detail') return tab ? `/academician/skill-assessments/${tab}` : '/academician/skill-assessments';
+    if (page === 'academician-assessment-results') return '/academician/assessment-results';
+    if (page === 'academician-courses') return '/academician/courses';
+    if (page === 'academician-create-course') return '/academician/courses/create';
+    if (page === 'academician-skill-gaps') return '/academician/skill-gaps';
+    if (page === 'academician-industry-requirements') return '/academician/industry-requirements';
+    if (page === 'academician-recommendations') return '/academician/recommendations';
+    if (page === 'academician-mentorship') return '/academician/mentorship';
+    if (page === 'academician-opportunities') return '/academician/opportunities';
+    if (page === 'academician-analytics') return '/academician/skill-analytics';
+    if (page === 'academician-notifications' || page === 'notifications') return '/academician/notifications';
+    if (page === 'settings') return '/academician/settings';
+    if (page === 'profile') return '/academician/profile';
+    return '/academician/dashboard';
+  }
 
   if (normRole === 'student') {
     if (page === 'home') return '/student/home';
@@ -77,22 +107,29 @@ export const pageToPath = (page, role, tab = 'dashboard') => {
   }
 
   if (normRole === 'institution') {
-    if (page === 'institution-console') return '/institution/telemetry';
-    if (page === 'institution-readiness') return '/institution/readiness';
+    if (page === 'institution-console' || page === 'institution-dashboard') return '/institution/dashboard';
+    if (page === 'institution-staff' || page === 'institution-staff-management') return '/institution/staff';
     if (page === 'institution-students') return '/institution/students';
+    if (page === 'institution-student-performance') return '/institution/student-performance';
+    if (page === 'institution-skill-growth') return '/institution/skill-growth';
+    if (page === 'institution-campus-directory') return '/institution/campus-directory';
+    if (page === 'institution-management') return '/institution/management';
+    if (page === 'institution-placement' || page === 'institution-opportunities-pipeline') return '/institution/opportunities/pipeline';
+    if (page === 'institution-candidates' || page === 'institution-opportunities-candidates') return '/institution/opportunities/candidates';
+    if (page === 'institution-company-opportunities') return '/institution/opportunities';
+    if (page === 'institution-courses' || page === 'institution-learning') return '/institution/learning';
+    if (page === 'institution-messages') return '/institution/messages';
+    if (page === 'institution-readiness') return '/institution/readiness';
     if (page === 'institution-assessments') return '/institution/assessments';
     if (page === 'institution-skill-analytics') return '/institution/skill-analytics';
     if (page === 'institution-industry-requests') return '/institution/industry-requests';
     if (page === 'institution-company-directory' || page === 'institution-companies') return '/institution/companies';
     if (page === 'institution-company-intelligence') return '/institution/company-intelligence';
-    if (page === 'institution-company-opportunities') return '/institution/company-opportunities';
     if (page === 'institution-matching') return '/institution/matching';
     if (page === 'institution-skill-gap') return '/institution/skill-gap';
-    if (page === 'institution-courses') return '/institution/courses';
     if (page === 'institution-course-certificates') return '/institution/course-certificates';
     if (page === 'institution-skill-mapping') return '/institution/skill-mapping';
     if (page === 'institution-certificates' || page === 'institution-proofs') return '/institution/proofs';
-    if (page === 'institution-placement') return '/institution/placement';
     if (page === 'institution-recruitment-drives') return '/institution/recruitment-drives';
     if (page === 'institution-analytics') return '/institution/analytics';
     if (page === 'institution-industry-demand') return '/institution/industry-demand';
@@ -102,7 +139,7 @@ export const pageToPath = (page, role, tab = 'dashboard') => {
     if (page === 'notifications') return '/institution/notifications';
     if (page === 'help') return '/institution/help';
     if (page === 'search') return '/institution/search';
-    return '/institution/telemetry';
+    return '/institution/dashboard';
   }
 
   if (normRole === 'company') {
@@ -142,7 +179,13 @@ export const resolvePath = (pathname, currentUser) => {
   const role = currentUser ? normalizeRole(currentUser.role) : null;
 
   // Unauthenticated / Auth routes
-  if (path === '' || path === '/' || path === '/role-select' || path === '/auth/select-role') {
+  if (path === '') {
+    return { page: 'landing', isAuth: true };
+  }
+  if (path === '/') {
+    return { page: 'landing', isAuth: true };
+  }
+  if (path === '/role-select' || path === '/auth/select-role') {
     return { page: 'role-select', isAuth: true };
   }
   if (path === '/student-login' || path === '/auth/student-login') {
@@ -153,6 +196,9 @@ export const resolvePath = (pathname, currentUser) => {
   }
   if (path === '/industry-login' || path === '/company-login' || path === '/auth/company-login') {
     return { page: 'industry-login', isAuth: true };
+  }
+  if (path === '/academician-login' || path === '/faculty-login' || path === '/auth/academician-login' || path === '/auth/faculty-login' || path === '/academician/login') {
+    return { page: 'academician-login', isAuth: true };
   }
   if (path === '/activate') {
     return { page: 'activate', isAuth: true };
@@ -166,13 +212,16 @@ export const resolvePath = (pathname, currentUser) => {
 
   // If user is NOT logged in and attempting to visit any protected route
   if (!currentUser) {
+    if (path.startsWith('/academician') || path.startsWith('/faculty')) {
+      return { page: 'academician-login', isAuth: true };
+    }
     return { page: 'role-select', redirectReason: 'unauthenticated' };
   }
 
   // Student URL route handling
   if (path.startsWith('/student')) {
     if (role !== 'student') {
-      return { page: role === 'institution' ? 'institution-console' : 'industry-portal', redirectReason: 'cross-role' };
+      return { page: role === 'academician' ? 'academician-dashboard' : role === 'institution' ? 'institution-console' : 'industry-portal', redirectReason: 'cross-role' };
     }
     if (path === '/student/college' || path === '/my-college') return { page: 'college' };
     if (path === '/student/skills') return { page: 'skills' };
@@ -197,11 +246,23 @@ export const resolvePath = (pathname, currentUser) => {
   // Institution URL route handling
   if (path.startsWith('/institution')) {
     if (role !== 'institution') {
-      return { page: role === 'company' ? 'industry-portal' : 'home', redirectReason: 'cross-role' };
+      return { page: role === 'academician' ? 'academician-dashboard' : role === 'company' ? 'industry-portal' : 'home', redirectReason: 'cross-role' };
     }
+    if (path === '/institution' || path === '/institution/dashboard' || path === '/institution/telemetry') return { page: 'institution-console' };
+    if (path === '/institution/staff' || path === '/institution/staff-management') return { page: 'institution-staff' };
+    if (path === '/institution/students') return { page: 'institution-students' };
+    if (path === '/institution/student-performance') return { page: 'institution-student-performance' };
+    if (path === '/institution/skill-growth') return { page: 'institution-skill-growth' };
+    if (path === '/institution/campus-directory') return { page: 'institution-campus-directory' };
+    if (path === '/institution/management') return { page: 'institution-management' };
+    if (path === '/institution/opportunities/pipeline' || path === '/institution/opportunities/application-pipeline' || path === '/institution/pipeline' || path === '/institution/placement') return { page: 'institution-placement' };
+    if (path === '/institution/opportunities/candidates' || path === '/institution/opportunities/candidate-list' || path === '/institution/candidates' || path === '/institution/candidate-list') return { page: 'institution-candidates' };
+    if (path === '/institution/opportunities/selected-students' || path === '/institution/selected-students' || path === '/institution/selected') return { page: 'institution-selected-students' };
+    if (path === '/institution/opportunities') return { page: 'institution-placement' };
+    if (path === '/institution/learning' || path === '/institution/courses' || path === '/institution/curriculum' || path === '/institution/enterprise-curriculum' || path === '/institution/course-telemetry') return { page: 'institution-courses' };
+    if (path === '/institution/messages') return { page: 'institution-messages' };
     if (path === '/institution/readiness') return { page: 'institution-readiness' };
     if (path === '/institution/skill-analytics') return { page: 'institution-skill-analytics' };
-    if (path === '/institution/students') return { page: 'institution-students' };
     if (path === '/institution/assessments') return { page: 'institution-assessments' };
     if (path === '/institution/industry-requests' || path === '/institution/requests') return { page: 'institution-industry-requests' };
     if (path === '/institution/companies') return { page: 'institution-company-directory' };
@@ -209,11 +270,11 @@ export const resolvePath = (pathname, currentUser) => {
     if (path === '/institution/company-opportunities') return { page: 'institution-company-opportunities' };
     if (path === '/institution/matching') return { page: 'institution-matching' };
     if (path === '/institution/skill-gap') return { page: 'institution-skill-gap' };
-    if (path === '/institution/courses') return { page: 'institution-courses' };
     if (path === '/institution/course-certificates') return { page: 'institution-course-certificates' };
     if (path === '/institution/skill-mapping') return { page: 'institution-skill-mapping' };
+    if (path === '/institution/projects' || path === '/institution/project-verification') return { page: 'institution-projects' };
+    if (path === '/institution/project-details' || path === '/institution/project-explorer') return { page: 'institution-project-explorer' };
     if (path === '/institution/proofs' || path === '/institution/certificates') return { page: 'institution-proofs' };
-    if (path === '/institution/placement') return { page: 'institution-placement' };
     if (path === '/institution/recruitment-drives') return { page: 'institution-recruitment-drives' };
     if (path === '/institution/analytics') return { page: 'institution-analytics' };
     if (path === '/institution/industry-demand') return { page: 'institution-industry-demand' };
@@ -228,7 +289,7 @@ export const resolvePath = (pathname, currentUser) => {
   // Company URL route handling
   if (path.startsWith('/company')) {
     if (role !== 'company') {
-      return { page: role === 'institution' ? 'institution-console' : 'home', redirectReason: 'cross-role' };
+      return { page: role === 'academician' ? 'academician-dashboard' : role === 'institution' ? 'institution-console' : 'home', redirectReason: 'cross-role' };
     }
     if (path.startsWith('/company/students/')) {
       const studentId = path.split('/company/students/')[1];
@@ -243,9 +304,12 @@ export const resolvePath = (pathname, currentUser) => {
     if (path === '/company/opportunities') return { page: 'industry-portal', companyTab: 'opportunities', isCompanyRoute: true };
     if (path === '/company/applications') return { page: 'industry-portal', companyTab: 'applications', isCompanyRoute: true };
     if (path === '/company/shortlisted') return { page: 'industry-portal', companyTab: 'shortlisted', isCompanyRoute: true };
-    if (path === '/company/colleges') return { page: 'industry-portal', companyTab: 'colleges', isCompanyRoute: true };
+    if (path === '/company/selected' || path === '/company/selected-students') return { page: 'industry-portal', companyTab: 'selected', isCompanyRoute: true };
+    if (path === '/company/colleges' || path === '/company/collaboration' || path === '/company/collaborations') return { page: 'industry-portal', companyTab: 'colleges', isCompanyRoute: true };
     if (path === '/company/courses') return { page: 'industry-portal', companyTab: 'courses', isCompanyRoute: true };
     if (path === '/company/certificates') return { page: 'industry-portal', companyTab: 'certificates', isCompanyRoute: true };
+    if (path === '/company/assessments') return { page: 'industry-portal', companyTab: 'assessments', isCompanyRoute: true };
+    if (path === '/company/projects' || path === '/company/project-explorer') return { page: 'industry-portal', companyTab: 'projects', isCompanyRoute: true };
     if (path === '/company/ai-matching' || path === '/company/talent-matching') return { page: 'industry-portal', companyTab: 'ai-matching', isCompanyRoute: true };
     if (path === '/company/talent-pools') return { page: 'industry-portal', companyTab: 'talent-pools', isCompanyRoute: true };
     if (path === '/company/analytics') return { page: 'industry-portal', companyTab: 'analytics', isCompanyRoute: true };
@@ -255,38 +319,85 @@ export const resolvePath = (pathname, currentUser) => {
     return { page: 'industry-portal', companyTab: 'dashboard', isCompanyRoute: true };
   }
 
-  // Direct top-level student routes (accessible directly via URL bar)
+  // Academician URL route handling
+  if (path.startsWith('/academician') || path.startsWith('/faculty')) {
+    if (role !== 'academician') {
+      return { page: role === 'institution' ? 'institution-console' : role === 'company' ? 'industry-portal' : 'home', redirectReason: 'cross-role' };
+    }
+    if (path === '/academician' || path === '/academician/dashboard') return { page: 'academician-dashboard' };
+    if (path === '/academician/students') return { page: 'academician-students' };
+    if (path === '/academician/student-performance') return { page: 'academician-student-performance' };
+    if (path.startsWith('/academician/students/') && path.endsWith('/performance')) {
+      const parts = path.split('/');
+      const studentId = parts[3];
+      return { page: 'academician-student-performance-detail', studentId };
+    }
+    if (path.startsWith('/academician/students/')) {
+      const studentId = path.split('/academician/students/')[1];
+      return { page: 'academician-student-performance-detail', studentId };
+    }
+    if (path === '/academician/skill-analytics' || path === '/academician/analytics') return { page: 'academician-skill-analytics' };
+    if (path === '/academician/skill-assessments' || path === '/academician/assessments') return { page: 'academician-skill-assessments' };
+    if (path === '/academician/skill-assessments/create' || path === '/academician/assessments/create') return { page: 'academician-create-assessment' };
+    if (path.startsWith('/academician/skill-assessments/')) {
+      const asmtId = path.split('/academician/skill-assessments/')[1];
+      return { page: 'academician-assessment-detail', asmtId };
+    }
+    if (path === '/academician/assessment-results') return { page: 'academician-assessment-results' };
+    if (path === '/academician/courses') return { page: 'academician-courses' };
+    if (path === '/academician/courses/create') return { page: 'academician-create-course' };
+    if (path === '/academician/assigned-courses') return { page: 'academician-assigned-courses' };
+    if (path === '/academician/course-progress' || path === '/academician/overall-progress') return { page: 'academician-overall-progress' };
+    if (path === '/academician/achievements') return { page: 'academician-achievements' };
+    if (path === '/academician/trash') return { page: 'academician-trash' };
+    if (path === '/academician/skill-gaps') return { page: 'academician-skill-gaps' };
+    if (path === '/academician/industry-requirements') return { page: 'academician-industry-requirements' };
+    if (path === '/academician/recommendations') return { page: 'academician-recommendations' };
+    if (path === '/academician/mentorship') return { page: 'academician-mentorship' };
+    if (path === '/academician/opportunities') return { page: 'academician-opportunities' };
+    if (path === '/academician/notifications') return { page: 'academician-notifications' };
+    if (path === '/academician/profile') return { page: 'profile' };
+    return { page: 'academician-dashboard' };
+  }
+
+  // Direct top-level routes (accessible directly via URL bar)
   if (path === '/learning' || path === '/my-learning' || path === '/courses') {
-    if (role === 'institution') return { page: 'institution-console' };
+    if (role === 'academician') return { page: 'academician-courses' };
+    if (role === 'institution') return { page: 'institution-courses' };
     if (role === 'company') return { page: 'industry-portal', companyTab: 'courses', isCompanyRoute: true };
     return { page: 'learning' };
   }
   if (path === '/skills' || path === '/my-skills') {
-    return { page: role === 'institution' ? 'institution-console' : role === 'company' ? 'industry-portal' : 'skills' };
+    return { page: role === 'academician' ? 'academician-skill-gaps' : role === 'institution' ? 'institution-skill-analytics' : role === 'company' ? 'industry-portal' : 'skills' };
   }
   if (path === '/assessment' || path === '/assessments') {
-    return { page: role === 'institution' ? 'institution-console' : role === 'company' ? 'industry-portal' : 'assessment' };
+    return { page: role === 'academician' ? 'academician-assessments' : role === 'institution' ? 'institution-assessments' : role === 'company' ? 'industry-portal' : 'assessment' };
   }
   if (path === '/projects' || path === '/my-projects') {
-    return { page: role === 'institution' ? 'institution-console' : role === 'company' ? 'industry-portal' : 'projects' };
+    return { page: role === 'institution' ? 'institution-projects' : role === 'company' ? 'industry-portal' : 'projects' };
   }
   if (path === '/opportunities') {
-    return { page: role === 'institution' ? 'institution-console' : role === 'company' ? 'industry-portal' : 'opportunities' };
+    return { page: role === 'academician' ? 'academician-opportunities' : role === 'institution' ? 'institution-placement' : role === 'company' ? 'industry-portal' : 'opportunities' };
+  }
+  if (path === '/messages') {
+    if (role === 'institution') return { page: 'institution-messages' };
+    if (role === 'company') return { page: 'industry-portal', companyTab: 'messages', isCompanyRoute: true };
+    return { page: 'communication' };
   }
   if (path === '/passport' || path === '/digital-passport') {
-    return { page: role === 'institution' ? 'institution-console' : role === 'company' ? 'industry-portal' : 'passport' };
+    return { page: role === 'institution' ? 'institution-proofs' : role === 'company' ? 'industry-portal' : 'passport' };
   }
 
   // Direct shared routes (e.g. /profile, /settings, /notifications, /help)
-  if (path === '/profile') return { page: 'profile' };
+  if (path === '/profile') return { page: role === 'academician' ? 'academician-dashboard' : 'profile' };
   if (path === '/settings') return { page: 'settings' };
-  if (path === '/notifications') return { page: 'notifications' };
+  if (path === '/notifications') return { page: role === 'academician' ? 'academician-notifications' : 'notifications' };
   if (path === '/help') return { page: 'help' };
-  if (path === '/search') return { page: 'search' };
+  if (path === '/search') return { page: role === 'academician' ? 'academician-students' : 'search' };
 
   // Fallback to role-specific dashboard
   return {
-    page: role === 'institution' ? 'institution-console' : role === 'company' ? 'industry-portal' : 'home'
+    page: role === 'academician' ? 'academician-dashboard' : role === 'institution' ? 'institution-console' : role === 'company' ? 'industry-portal' : 'home'
   };
 };
 
@@ -331,11 +442,19 @@ export default function App() {
           setUser(normalized);
 
           // If currently on an auth page, redirect to the user's portal
-          const path = window.location.pathname.toLowerCase();
-          const authPaths = ['/', '/auth/select-role', '/role-select', '/student-login', '/auth/student-login', '/institution-login', '/auth/institution-login', '/industry-login', '/company-login', '/auth/company-login', '/verify-otp', '/auth/verify-otp', '/forgot-password', '/auth/forgot-password'];
+          const path = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+          const authPaths = [
+            '/', '/auth/select-role', '/role-select',
+            '/student-login', '/auth/student-login',
+            '/institution-login', '/auth/institution-login',
+            '/industry-login', '/company-login', '/auth/company-login',
+            '/academician-login', '/auth/academician-login', '/faculty-login', '/auth/faculty-login', '/academician/login',
+            '/verify-otp', '/auth/verify-otp',
+            '/forgot-password', '/auth/forgot-password'
+          ];
           if (authPaths.includes(path)) {
             const normRole = normalized.role;
-            const targetPage = normRole === 'institution' ? 'institution-console' : normRole === 'company' ? 'industry-portal' : 'home';
+            const targetPage = normRole === 'academician' ? 'academician-dashboard' : normRole === 'institution' ? 'institution-console' : normRole === 'company' ? 'industry-portal' : 'home';
             const targetPath = pageToPath(targetPage, normRole);
             setActivePage(targetPage);
             if (normRole === 'company') setCompanyTab('dashboard');
@@ -344,11 +463,24 @@ export default function App() {
         } else {
           // Unauthenticated
           setUser(null);
-          const path = window.location.pathname.toLowerCase();
-          const authPaths = ['/', '/auth/select-role', '/role-select', '/student-login', '/auth/student-login', '/institution-login', '/auth/institution-login', '/industry-login', '/company-login', '/auth/company-login', '/verify-otp', '/auth/verify-otp', '/forgot-password', '/auth/forgot-password'];
+          const path = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+          const authPaths = [
+            '/', '/auth/select-role', '/role-select',
+            '/student-login', '/auth/student-login',
+            '/institution-login', '/auth/institution-login',
+            '/industry-login', '/company-login', '/auth/company-login',
+            '/academician-login', '/auth/academician-login', '/faculty-login', '/auth/faculty-login', '/academician/login',
+            '/verify-otp', '/auth/verify-otp',
+            '/forgot-password', '/auth/forgot-password'
+          ];
           if (!authPaths.includes(path)) {
-            setActivePage('role-select');
-            try { window.history.replaceState(null, '', '/auth/select-role'); } catch {}
+            if (path.startsWith('/academician') || path.startsWith('/faculty')) {
+              setActivePage('academician-login');
+              try { window.history.replaceState(null, '', '/academician/login'); } catch {}
+            } else {
+              setActivePage('role-select');
+              try { window.history.replaceState(null, '', '/auth/select-role'); } catch {}
+            }
           }
         }
       } catch (err) {
@@ -413,6 +545,17 @@ export default function App() {
     }
   });
 
+  const [subViewParam, setSubViewParam] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('nexus_auth_user');
+      const parsed = savedUser ? JSON.parse(savedUser) : null;
+      const resolved = resolvePath(window.location.pathname, parsed);
+      return resolved.studentId || resolved.asmtId || null;
+    } catch {
+      return null;
+    }
+  });
+
   const [settingsTab, setSettingsTab] = useState(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
@@ -426,23 +569,36 @@ export default function App() {
 
   // 3. Centralized Logout Handler
   const handleLogout = useCallback(async () => {
+    const isAcademician = user?.role === 'academician' || user?.role === 'faculty' || window.location.pathname.startsWith('/academician') || window.location.pathname.startsWith('/faculty');
     await authService.logout();
     setUser(null);
-    setActivePage('role-select');
-    try {
-      window.history.pushState({ page: 'role-select' }, '', '/auth/select-role');
-    } catch {}
-    showToast({
-      title: 'Signed Out',
-      message: 'You have been safely signed out. Please choose your sector to log in.',
-      type: 'info'
-    });
-  }, [showToast]);
+    if (isAcademician) {
+      setActivePage('academician-login');
+      try {
+        window.history.pushState({ page: 'academician-login' }, '', '/academician/login');
+      } catch {}
+      showToast({
+        title: 'Signed Out',
+        message: 'You have been safely signed out of the Academician portal.',
+        type: 'info'
+      });
+    } else {
+      setActivePage('landing');
+      try {
+        window.history.pushState({ page: 'landing' }, '', '/');
+      } catch {}
+      showToast({
+        title: 'Signed Out',
+        message: 'You have been safely signed out. Please choose your sector to log in.',
+        type: 'info'
+      });
+    }
+  }, [user, showToast]);
 
 
   // 4. Role-based Route Guarded Navigation & URL Synchronization
   const navigateGuarded = useCallback((targetPage, optionalTab) => {
-    const authPages = ['role-select', 'student-login', 'industry-login', 'institution-login', 'activate', 'verify-otp', 'forgot-password'];
+    const authPages = ['landing', 'role-select', 'student-login', 'industry-login', 'institution-login', 'academician-login', 'faculty-login', 'activate', 'verify-otp', 'forgot-password'];
 
     // If not authenticated, restrict strictly to auth routes
     if (!user) {
@@ -451,6 +607,11 @@ export default function App() {
         const p = pageToPath(targetPage, null);
         try { window.history.pushState({ page: targetPage }, '', p); } catch {}
       } else {
+        if (targetPage.startsWith('academician-') || targetPage.startsWith('faculty-')) {
+          setActivePage('academician-login');
+          try { window.history.pushState({ page: 'academician-login' }, '', '/academician/login'); } catch {}
+          return;
+        }
         setActivePage('role-select');
         try { window.history.pushState({ page: 'role-select' }, '', '/auth/select-role'); } catch {}
         showToast({
@@ -463,60 +624,133 @@ export default function App() {
     }
 
     const normRole = normalizeRole(user.role);
+    let effectiveTarget = targetPage;
+    let effectiveTab = optionalTab;
+
+    // Normalize cross-role aliases so that 'learning', 'courses', etc. seamlessly map to the user's role
+    if (normRole === 'institution') {
+      if (effectiveTarget === 'learning' || effectiveTarget === 'courses' || effectiveTarget === 'my-learning' || effectiveTarget === 'institution-learning') {
+        effectiveTarget = 'institution-courses';
+      } else if (effectiveTarget === 'opportunities' || effectiveTarget === 'pipeline' || effectiveTarget === 'placement') {
+        effectiveTarget = 'institution-placement';
+      } else if (effectiveTarget === 'candidates' || effectiveTarget === 'candidate-list') {
+        effectiveTarget = 'institution-candidates';
+      } else if (effectiveTarget === 'messages' || effectiveTarget === 'communication') {
+        effectiveTarget = 'institution-messages';
+      } else if (effectiveTarget === 'analytics') {
+        effectiveTarget = 'institution-analytics';
+      } else if (effectiveTarget === 'campus-directory') {
+        effectiveTarget = 'institution-campus-directory';
+      } else if (effectiveTarget === 'management') {
+        effectiveTarget = 'institution-management';
+      } else if (effectiveTarget === 'home' || effectiveTarget === 'dashboard') {
+        effectiveTarget = 'institution-console';
+      }
+    } else if (normRole === 'company') {
+      if (effectiveTarget === 'learning' || effectiveTarget === 'courses' || effectiveTarget === 'my-learning') {
+        effectiveTarget = 'industry-portal';
+        effectiveTab = 'courses';
+      } else if (effectiveTarget === 'messages' || effectiveTarget === 'communication') {
+        effectiveTarget = 'industry-portal';
+        effectiveTab = 'messages';
+      } else if (effectiveTarget === 'opportunities' || effectiveTarget === 'jobs' || effectiveTarget === 'internships') {
+        effectiveTarget = 'industry-portal';
+        effectiveTab = 'opportunities';
+      } else if (effectiveTarget === 'students' || effectiveTarget === 'talent') {
+        effectiveTarget = 'industry-portal';
+        effectiveTab = 'students';
+      } else if (effectiveTarget === 'home' || effectiveTarget === 'dashboard') {
+        effectiveTarget = 'industry-portal';
+        effectiveTab = 'dashboard';
+      }
+    } else if (normRole === 'student') {
+      if (effectiveTarget === 'dashboard') {
+        effectiveTarget = 'home';
+      }
+    } else if (normRole === 'academician') {
+      if (effectiveTarget === 'learning' || effectiveTarget === 'courses' || effectiveTarget === 'my-learning') {
+        effectiveTarget = 'academician-courses';
+      } else if (effectiveTarget === 'assessments' || effectiveTarget === 'assessment') {
+        effectiveTarget = 'academician-assessments';
+      } else if (effectiveTarget === 'skills' || effectiveTarget === 'skill-gaps') {
+        effectiveTarget = 'academician-skill-gaps';
+      } else if (effectiveTarget === 'students' || effectiveTarget === 'my-students') {
+        effectiveTarget = 'academician-students';
+      } else if (effectiveTarget === 'opportunities') {
+        effectiveTarget = 'academician-opportunities';
+      } else if (effectiveTarget === 'analytics') {
+        effectiveTarget = 'academician-analytics';
+      } else if (effectiveTarget === 'home' || effectiveTarget === 'dashboard') {
+        effectiveTarget = 'academician-dashboard';
+      }
+    }
 
     // Role-specific route protection
     if (normRole === 'student') {
-      const isForbidden = targetPage === 'institution-console' || targetPage === 'industry-portal' || targetPage.startsWith('institution-');
+      const isForbidden = effectiveTarget === 'institution-console' || effectiveTarget === 'industry-portal' || effectiveTarget.startsWith('institution-') || effectiveTarget.startsWith('academician-');
       if (isForbidden) {
         setActivePage('home');
         try { window.history.pushState({ page: 'home' }, '', '/student/home'); } catch {}
         showToast({
           title: 'Access Restricted',
-          message: 'Student accounts cannot access Institutional or Industry portals.',
-          type: 'warning'
-        });
-        return;
-      }
-    } else if (normRole === 'institution') {
-      const isAllowed = targetPage.startsWith('institution-') || [
-        'profile', 'settings', 'notifications', 'help', 'search'
-      ].includes(targetPage);
-      if (!isAllowed) {
-        setActivePage('institution-console');
-        try { window.history.pushState({ page: 'institution-console' }, '', '/institution/telemetry'); } catch {}
-        showToast({
-          title: 'Access Restricted',
-          message: 'Institution accounts cannot access Student or Industry views.',
+          message: 'Student accounts cannot access Academician, Institutional, or Industry portals.',
           type: 'warning'
         });
         return;
       }
     } else if (normRole === 'company') {
-      const isAllowed = targetPage === 'industry-portal' || [
-        'profile', 'settings', 'notifications', 'help', 'search'
-      ].includes(targetPage);
-      if (!isAllowed) {
+      const isForbidden = effectiveTarget === 'institution-console' || effectiveTarget.startsWith('academician-') || effectiveTarget.startsWith('institution-');
+      if (isForbidden) {
         setActivePage('industry-portal');
         try { window.history.pushState({ page: 'industry-portal' }, '', '/company/dashboard'); } catch {}
         showToast({
           title: 'Access Restricted',
-          message: 'Company accounts cannot access Student or Institution views.',
+          message: 'Industry accounts cannot access Academician portals.',
+          type: 'warning'
+        });
+        return;
+      }
+    } else if (normRole === 'institution') {
+      const isForbidden = effectiveTarget.startsWith('academician-');
+      if (isForbidden) {
+        setActivePage('institution-console');
+        try { window.history.pushState({ page: 'institution-console' }, '', '/institution/dashboard'); } catch {}
+        showToast({
+          title: 'Access Restricted',
+          message: 'Institution accounts cannot access Academician views.',
+          type: 'warning'
+        });
+        return;
+      }
+    } else if (normRole === 'academician') {
+      const isAllowed = effectiveTarget.startsWith('academician-') || [
+        'profile', 'settings', 'notifications', 'help', 'search'
+      ].includes(effectiveTarget);
+      if (!isAllowed) {
+        setActivePage('academician-dashboard');
+        try { window.history.pushState({ page: 'academician-dashboard' }, '', '/academician/dashboard'); } catch {}
+        showToast({
+          title: 'Access Restricted',
+          message: 'Academician accounts cannot access Student, Institution, or Industry views.',
           type: 'warning'
         });
         return;
       }
     }
 
-    setActivePage(targetPage);
-    if (targetPage === 'industry-portal' && optionalTab) {
-      setCompanyTab(optionalTab);
+    setActivePage(effectiveTarget);
+    if (effectiveTarget === 'industry-portal' && effectiveTab) {
+      setCompanyTab(effectiveTab);
     }
-    if (targetPage === 'settings') {
-      setSettingsTab(optionalTab || null);
+    if (effectiveTarget === 'settings') {
+      setSettingsTab(effectiveTab || null);
     }
-    const targetPath = pageToPath(targetPage, normRole, optionalTab);
+    if (effectiveTarget === 'academician-student-performance-detail' || effectiveTarget === 'academician-student-detail' || effectiveTarget === 'academician-assessment-detail') {
+      setSubViewParam(effectiveTab || null);
+    }
+    const targetPath = pageToPath(effectiveTarget, normRole, effectiveTab);
     try {
-      window.history.pushState({ page: targetPage, tab: optionalTab }, '', targetPath);
+      window.history.pushState({ page: effectiveTarget, tab: effectiveTab }, '', targetPath);
     } catch {}
   }, [user, showToast]);
 
@@ -546,6 +780,11 @@ export default function App() {
         if (resolved.companyTab) {
           setCompanyTab(resolved.companyTab);
         }
+        if (resolved.studentId) {
+          setSubViewParam(resolved.studentId);
+        } else if (resolved.asmtId) {
+          setSubViewParam(resolved.asmtId);
+        }
       }
     };
 
@@ -558,16 +797,17 @@ export default function App() {
     if (roleId === 'student') navigateGuarded('student-login');
     else if (roleId === 'institution') navigateGuarded('institution-login');
     else if (roleId === 'industry' || roleId === 'company') navigateGuarded('industry-login');
+    else if (roleId === 'faculty' || roleId === 'academician') navigateGuarded('academician-login');
   };
 
-  // Handle Successful Login across all 3 sectors
+  // Handle Successful Login across all sectors
   const handleLoginSuccess = (loggedInUser) => {
     const normalizedUser = {
       ...loggedInUser,
       role: normalizeRole(loggedInUser.role),
       currentRole: normalizeRole(loggedInUser.role),
-      userId: loggedInUser.userId || loggedInUser.id || (normalizeRole(loggedInUser.role) === 'institution' ? 'INS001' : normalizeRole(loggedInUser.role) === 'company' ? 'COM001' : 'STU001'),
-      currentUserId: loggedInUser.currentUserId || loggedInUser.userId || loggedInUser.id || (normalizeRole(loggedInUser.role) === 'institution' ? 'INS001' : normalizeRole(loggedInUser.role) === 'company' ? 'COM001' : 'STU001')
+      userId: loggedInUser.userId || loggedInUser.id || (normalizeRole(loggedInUser.role) === 'institution' ? 'INS001' : normalizeRole(loggedInUser.role) === 'company' ? 'COM001' : normalizeRole(loggedInUser.role) === 'academician' ? 'FAC001' : 'STU001'),
+      currentUserId: loggedInUser.currentUserId || loggedInUser.userId || loggedInUser.id || (normalizeRole(loggedInUser.role) === 'institution' ? 'INS001' : normalizeRole(loggedInUser.role) === 'company' ? 'COM001' : normalizeRole(loggedInUser.role) === 'academician' ? 'FAC001' : 'STU001')
     };
 
     try {
@@ -578,7 +818,7 @@ export default function App() {
     setUser(normalizedUser);
 
     const normRole = normalizedUser.role;
-    const targetPage = normRole === 'institution' ? 'institution-console' : normRole === 'company' ? 'industry-portal' : 'home';
+    const targetPage = normRole === 'academician' ? 'academician-dashboard' : normRole === 'institution' ? 'institution-console' : normRole === 'company' ? 'industry-portal' : 'home';
     const targetPath = pageToPath(targetPage, normRole);
 
     setActivePage(targetPage);
@@ -621,7 +861,7 @@ export default function App() {
   }, []);
 
   // Check if current view is a full-screen unauthenticated/login view
-  const isAuthPage = ['role-select', 'student-login', 'industry-login', 'institution-login', 'activate', 'verify-otp', 'forgot-password'].includes(activePage);
+  const isAuthPage = ['landing', 'role-select', 'student-login', 'industry-login', 'institution-login', 'academician-login', 'activate', 'verify-otp', 'forgot-password'].includes(activePage);
 
   if (isCheckingSession) {
     return (
@@ -661,8 +901,14 @@ export default function App() {
 
       {isAuthPage ? (
         <main style={{ position: 'relative', zIndex: 10, flex: 1, overflowY: 'auto', height: '100%' }}>
+          {activePage === 'landing' && (
+            <LandingPage onGetStarted={() => navigateGuarded('role-select')} onSelectRole={handleRoleSelect} />
+          )}
           {activePage === 'role-select' && (
-            <RoleGateway onSelectRole={handleRoleSelect} />
+            <RoleGateway
+              onSelectRole={handleRoleSelect}
+              onBackToLanding={() => navigateGuarded('landing')}
+            />
           )}
           {activePage === 'student-login' && (
             <StudentLogin 
@@ -686,6 +932,12 @@ export default function App() {
               onBackToRoles={() => navigateGuarded('role-select')} 
               onNavigateToOtp={handleNavigateToOtp}
               onNavigateToForgot={() => handleNavigateToForgot('company')}
+            />
+          )}
+          {activePage === 'academician-login' && (
+            <AcademicianLogin 
+              onLoginSuccess={handleLoginSuccess}
+              onBackToRoles={() => navigateGuarded('role-select')} 
             />
           )}
           {activePage === 'activate' && (
@@ -715,7 +967,7 @@ export default function App() {
           )}
         </main>
       ) : (
-        <div className="app-layout">
+        <div className={`app-layout portal-${normalizeRole(user?.role)}`}>
           {/* Left Cyber Sidebar */}
           <Sidebar 
             activePage={activePage} 
@@ -740,7 +992,7 @@ export default function App() {
             <main className="main-viewport" style={activePage === 'home' || activePage === 'industry-portal' ? { padding: 0, maxWidth: 'none' } : {}}>
               {/* Student Workspace */}
               {activePage === 'home' && normalizeRole(user?.role) === 'student' && (
-                <StudentDashboard setActivePage={navigateGuarded} onShowToast={showToast} user={user} />
+                <StudentDashboard setActivePage={navigateGuarded} onShowToast={showToast} user={user} onOpenAIModal={() => setIsAIModalOpen(true)} />
               )}
               {activePage === 'college' && (
                 <StudentCollegePage setActivePage={navigateGuarded} onShowToast={showToast} user={user} />
@@ -751,7 +1003,7 @@ export default function App() {
               {activePage === 'assessment' && (
                 <SkillAssessment setActivePage={navigateGuarded} onShowToast={showToast} />
               )}
-              {activePage === 'learning' && (
+              {activePage === 'learning' && normalizeRole(user?.role) === 'student' && (
                 <MyLearning setActivePage={navigateGuarded} onShowToast={showToast} user={user} />
               )}
               {activePage === 'learning-progress' && (
@@ -795,10 +1047,10 @@ export default function App() {
               )}
 
               {/* Institution Workspace */}
-              {activePage.startsWith('institution-') && (
+              {(activePage.startsWith('institution-') || (normalizeRole(user?.role) === 'institution' && (activePage === 'learning' || activePage === 'courses' || activePage === 'opportunities' || activePage === 'messages' || activePage === 'analytics'))) && (
                 <InstitutionConsole 
                   setActivePage={navigateGuarded}
-                  activePage={activePage}
+                  activePage={activePage === 'learning' || activePage === 'courses' ? 'institution-courses' : activePage === 'opportunities' ? 'institution-placement' : activePage === 'messages' ? 'institution-messages' : activePage === 'analytics' ? 'institution-analytics' : activePage}
                   user={user} 
                   onShowToast={showToast} 
                   onLogout={handleLogout}
@@ -806,14 +1058,26 @@ export default function App() {
               )}
 
               {/* Industry / Company Workspace */}
-              {activePage === 'industry-portal' && (
+              {(activePage === 'industry-portal' || (normalizeRole(user?.role) === 'company' && (activePage === 'learning' || activePage === 'courses' || activePage === 'opportunities' || activePage === 'messages'))) && (
                 <IndustryPortal 
                   setActivePage={navigateGuarded} 
                   onShowToast={showToast} 
                   onLogout={handleLogout}
                   user={user}
-                  initialTab={companyTab}
+                  initialTab={activePage === 'learning' || activePage === 'courses' ? 'courses' : activePage === 'opportunities' ? 'opportunities' : activePage === 'messages' ? 'messages' : companyTab}
                   isEmbedded={true}
+                />
+              )}
+
+              {/* Academician / Faculty Workspace */}
+              {(activePage.startsWith('academician-') || (normalizeRole(user?.role) === 'academician' && (activePage === 'home' || activePage === 'dashboard' || activePage === 'notifications' || activePage === 'profile' || activePage === 'settings'))) && (
+                <AcademicianPortal 
+                  activePage={activePage}
+                  setActivePage={navigateGuarded}
+                  user={user}
+                  onShowToast={showToast}
+                  onLogout={handleLogout}
+                  subViewParam={subViewParam}
                 />
               )}
             </main>

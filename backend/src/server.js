@@ -18,6 +18,7 @@ const passportRoutes = require('./routes/passport');
 const profileRoutes = require('./routes/profile');
 const aiRoutes = require('./routes/ai');
 const nexusRoutes = require('./routes/nexusRoutes');
+const messageRoutes = require('./routes/messages');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -57,14 +58,19 @@ const studentRoutes = require('./routes/studentRoutes');
 const internshipRoutes = require('./routes/internshipRoutes');
 const communicationRoutes = require('./routes/communicationRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
+const academicianRoutes = require('./routes/academician');
+const institutionStaffRoutes = require('./routes/institutionStaff');
 app.use('/api/college-master', collegeMasterRoutes);
 app.use('/api/academic', academicRoutes);
+app.use('/api/academician', academicianRoutes);
+app.use('/api/institution', institutionStaffRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/internships', internshipRoutes);
 app.use('/api/communication', communicationRoutes);
 app.use('/api/certificates', certificateRoutes);
+app.use('/api/messages', messageRoutes);
 
 const relationalManager = require('./db/relationalManager');
 const notificationRouter = express.Router();
@@ -131,6 +137,13 @@ app.get('/api/health', (req, res) => {
     blockHeight: 'Block #8941_301 Synced',
     timestamp: new Date().toISOString()
   });
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[CRITICAL] Uncaught Exception:', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[CRITICAL] Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 // Global error handler

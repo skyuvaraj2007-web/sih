@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Building,
   Briefcase,
@@ -13,28 +13,76 @@ import {
   CheckCircle2,
   Sparkles,
   ExternalLink,
-  Eye
+  Eye,
+  AlertCircle
 } from 'lucide-react';
-import { COMPANY_DIRECTORY } from '../../services/institutionData';
+import { academicService } from '../../services/academicService';
 import '../common/CompactDataList.css';
 
 export default function InstitutionCompanyIntelligence({ onShowToast, setActivePage }) {
-  const [companies] = useState(COMPANY_DIRECTORY);
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCompany, setSelectedCompany] = useState(null);
 
+  const fetchCompanies = async () => {
+    setLoading(true);
+    try {
+      const res = await academicService.getCompanies();
+      if (res && res.success && Array.isArray(res.data)) {
+        setCompanies(res.data);
+      } else if (Array.isArray(res)) {
+        setCompanies(res);
+      } else {
+        setCompanies([]);
+      }
+    } catch (err) {
+      console.error('Failed to load corporate partners:', err);
+      setCompanies([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const normalizedCompanies = useMemo(() => {
+    return companies.map(c => ({
+      id: c.id || c.companyId,
+      companyName: c.company_name || c.name || c.companyName || 'Corporate Partner',
+      partnerStatus: c.partnership_status || c.partnerStatus || c.tier || 'Strategic Partner',
+      industry: c.industry || 'Technology & Systems',
+      location: c.location || c.headquarters || 'India',
+      website: c.website || c.website_url || '#',
+      companySize: c.companySize || c.size || '500+ employees',
+      openingsCount: Number(c.opportunities_count || c.openings || (c.currentOpenings ? c.currentOpenings.length : 0)),
+      avgCTC: c.avg_ctc || (c.previousRecruitment?.avgCTC) || 'Market Standard',
+      alumniHired: c.total_hires || (c.previousRecruitment?.totalHired) || 0,
+      skills: Array.isArray(c.required_skills) ? c.required_skills : (Array.isArray(c.highDemandSkills) ? c.highDemandSkills.map(s => typeof s === 'string' ? s : s.name) : []),
+      currentOpenings: Array.isArray(c.currentOpenings) ? c.currentOpenings : [],
+      hrContact: c.hrContact || {
+        name: c.contact_person || 'Talent Acquisition Team',
+        designation: c.contact_designation || 'Head of Campus Relations',
+        email: c.official_email || c.email || 'campus-relations@partner.com',
+        phone: c.phone || 'Available via MoU Desk'
+      }
+    }));
+  }, [companies]);
+
   const filtered = useMemo(() => {
-    return companies.filter(c => {
+    return normalizedCompanies.filter(c => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
       return (
         c.companyName.toLowerCase().includes(q) ||
         c.industry.toLowerCase().includes(q) ||
         c.location.toLowerCase().includes(q) ||
-        c.highDemandSkills.some(s => s.name.toLowerCase().includes(q))
+        c.skills.some(s => s.toLowerCase().includes(q))
       );
     });
-  }, [companies, searchQuery]);
+  }, [normalizedCompanies, searchQuery]);
 
   return (
     <div>
@@ -48,18 +96,19 @@ export default function InstitutionCompanyIntelligence({ onShowToast, setActiveP
                 Corporate Partners & Industry Intelligence
               </h2>
               <span className="cyber-badge badge-cyan" style={{ fontSize: '10px' }}>
-                LIVE DEMAND TELEMETRY
+                DATABASE DRIVEN
               </span>
             </div>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-              Real-time skill requirements, hiring volume, HR relationships, and campus recruitment profiles for corporate partners.
+              Verified corporate partnerships, recruitment demand telemetry, and active placement relationships.
             </p>
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
               onClick={() => {
-                if (onShowToast) onShowToast({ title: 'MoU Sync Complete', message: 'Corporate partner directory refreshed from state ledger.', type: 'success' });
+                fetchCompanies();
+                if (onShowToast) onShowToast({ title: 'MoU Sync Complete', message: 'Corporate partner directory refreshed from database.', type: 'success' });
               }}
               className="btn-cyber-outline"
               style={{ fontSize: '12px', padding: '6px 14px' }}
@@ -74,7 +123,7 @@ export default function InstitutionCompanyIntelligence({ onShowToast, setActiveP
           <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input
             type="text"
-            placeholder="Search by company name, industry, location, or demanded skill (e.g. Microsoft, Azure, Python)..."
+            placeholder="Search by company name, industry, location, or demanded skill..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="cyber-input"
@@ -86,28 +135,42 @@ export default function InstitutionCompanyIntelligence({ onShowToast, setActiveP
       {/* ── COMPACT COMPANY LIST TABLE ── */}
       <div className="compact-table-container" style={{ marginBottom: '28px' }}>
         <div className="compact-table-scroll">
-          <table className="compact-table">
-            <thead>
-              <tr>
-                <th style={{ width: '28%' }}>Corporate Partner</th>
-                <th style={{ width: '14%' }}>Location & Size</th>
-                <th style={{ width: '14%' }}>Placement Telemetry</th>
-                <th style={{ width: '12%' }}>Openings</th>
-                <th style={{ width: '20%' }}>Critical Demand Skills</th>
-                <th style={{ width: '12%', textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
+          {loading ? (
+            <div style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              <div className="spinner" style={{ margin: '0 auto 12px' }} />
+              Loading verified corporate partners...
+            </div>
+          ) : normalizedCompanies.length === 0 ? (
+            <div style={{ padding: '56px 24px', textAlign: 'center' }}>
+              <AlertCircle size={38} color="var(--text-muted)" style={{ margin: '0 auto 12px', opacity: 0.6 }} />
+              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                No corporate partners or company intelligence records available yet.
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                Active industry partnerships and company connections will populate dynamically once registered.
+              </div>
+            </div>
+          ) : (
+            <table className="compact-table">
+              <thead>
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)' }}>
-                    No corporate partners matched your search filter.
-                  </td>
+                  <th style={{ width: '28%' }}>Corporate Partner</th>
+                  <th style={{ width: '16%' }}>Location & Presence</th>
+                  <th style={{ width: '16%' }}>Placement Telemetry</th>
+                  <th style={{ width: '12%' }}>Open Roles</th>
+                  <th style={{ width: '18%' }}>Key Demanded Skills</th>
+                  <th style={{ width: '10%', textAlign: 'right' }}>Actions</th>
                 </tr>
-              ) : (
-                filtered.map((comp) => {
-                  const totalOpenings = comp.currentOpenings.reduce((sum, o) => sum + (o.openings || 1), 0);
-                  return (
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)' }}>
+                      No corporate partners matched your search filter.
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((comp) => (
                     <tr
                       key={comp.id}
                       onClick={() => setSelectedCompany(comp)}
@@ -144,46 +207,46 @@ export default function InstitutionCompanyIntelligence({ onShowToast, setActiveP
                           <MapPin size={12} color="var(--text-muted)" /> {comp.location}
                         </div>
                         <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          {comp.companySize} employees
+                          {comp.companySize}
                         </div>
                       </td>
                       <td>
                         <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--cyber-emerald)' }}>
-                          {comp.previousRecruitment.avgCTC} <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 400 }}>avg</span>
+                          {comp.avgCTC}
                         </div>
                         <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
-                          {comp.previousRecruitment.totalHired} alumni hired
+                          {comp.alumniHired} hires recorded
                         </div>
                       </td>
                       <td>
                         <span className="badge badge-amber" style={{ fontSize: '11px', fontWeight: 700 }}>
-                          {totalOpenings} Roles
+                          {comp.openingsCount} Opportunities
                         </span>
-                        <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          {comp.currentOpenings.length} categories
-                        </div>
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                          {comp.highDemandSkills.slice(0, 3).map((sk, idx) => (
+                          {comp.skills.slice(0, 3).map((sk, idx) => (
                             <span
                               key={idx}
                               style={{
                                 fontSize: '10px',
                                 padding: '2px 6px',
                                 borderRadius: '4px',
-                                background: sk.demandLevel.includes('Critical') ? 'rgba(239,68,68,0.14)' : 'rgba(40,215,255,0.1)',
-                                color: sk.demandLevel.includes('Critical') ? 'var(--cyber-rose)' : 'var(--cyber-cyan)',
-                                border: `1px solid ${sk.demandLevel.includes('Critical') ? 'rgba(239,68,68,0.25)' : 'rgba(40,215,255,0.2)'}`
+                                background: 'rgba(40,215,255,0.1)',
+                                color: 'var(--cyber-cyan)',
+                                border: '1px solid rgba(40,215,255,0.2)'
                               }}
                             >
-                              {sk.name}
+                              {sk}
                             </span>
                           ))}
-                          {comp.highDemandSkills.length > 3 && (
+                          {comp.skills.length > 3 && (
                             <span style={{ fontSize: '10px', color: 'var(--text-muted)', alignSelf: 'center' }}>
-                              +{comp.highDemandSkills.length - 3}
+                              +{comp.skills.length - 3}
                             </span>
+                          )}
+                          {comp.skills.length === 0 && (
+                            <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>General Track</span>
                           )}
                         </div>
                       </td>
@@ -196,15 +259,15 @@ export default function InstitutionCompanyIntelligence({ onShowToast, setActiveP
                           className="btn-compact-details"
                         >
                           <Eye size={12} />
-                          <span>Details →</span>
+                          <span>Profile →</span>
                         </button>
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
@@ -221,7 +284,7 @@ export default function InstitutionCompanyIntelligence({ onShowToast, setActiveP
           zIndex: 1200,
           padding: '20px'
         }}>
-          <div className="glass-panel" style={{ maxWidth: '750px', width: '100%', padding: '28px', border: '1px solid var(--cyber-cyan)', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="glass-panel" style={{ maxWidth: '700px', width: '100%', padding: '28px', border: '1px solid var(--cyber-cyan)', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px' }}>
               <div>
                 <span className="cyber-badge badge-purple" style={{ fontSize: '10px' }}>{selectedCompany.partnerStatus}</span>
@@ -244,33 +307,27 @@ export default function InstitutionCompanyIntelligence({ onShowToast, setActiveP
                 Official Campus Relationship Contact
               </h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', fontSize: '12.5px' }}>
-                <div><strong>Contact:</strong> {selectedCompany.hrContact.name} ({selectedCompany.hrContact.designation})</div>
+                <div><strong>Contact:</strong> {selectedCompany.hrContact.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Mail size={13} color="var(--cyber-cyan)" /> {selectedCompany.hrContact.email}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Phone size={13} color="var(--cyber-emerald)" /> {selectedCompany.hrContact.phone}</div>
               </div>
             </div>
 
-            {/* Current Openings Details */}
-            <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px' }}>
-              DETAILED ROLE SPECIFICATIONS & SKILL REQUIREMENTS
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
-              {selectedCompany.currentOpenings.map((op, idx) => (
-                <div key={idx} style={{ padding: '14px', background: 'rgba(10,16,30,0.6)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{op.role}</span>
-                    <span className="cyber-badge badge-amber" style={{ fontSize: '10px' }}>{op.openings} Open Positions</span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px' }}>Division: {op.department}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    <strong>Required Skills:</strong> {(op.requiredSkills || []).join(', ')}
-                  </div>
-                  <div style={{ fontSize: '11.5px', color: 'var(--text-dim)' }}>
-                    <strong>Qualifications:</strong> {op.preferredQualifications}
-                  </div>
+            {/* Demanded Skills */}
+            {selectedCompany.skills.length > 0 && (
+              <div style={{ marginBottom: '20px' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
+                  HIGH-PRIORITY TECHNICAL SKILLS
+                </h4>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {selectedCompany.skills.map((sk, idx) => (
+                    <span key={idx} className="cyber-badge badge-cyan" style={{ fontSize: '11px' }}>
+                      {sk}
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
 
             {/* Actions */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -282,7 +339,7 @@ export default function InstitutionCompanyIntelligence({ onShowToast, setActiveP
                 className="btn-cyber-primary"
                 style={{ padding: '8px 18px', fontSize: '12.5px' }}
               >
-                Match Students Against These Openings →
+                Match Students Against Openings →
               </button>
             </div>
           </div>

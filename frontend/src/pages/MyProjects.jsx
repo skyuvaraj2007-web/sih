@@ -35,7 +35,7 @@ export default function MyProjects({ onShowToast }) {
     verifiedProjects: 0,
     totalActivities: 0,
     totalEvidence: 0,
-    portfolioStrength: { score: 78, level: 'Proficient' }
+    portfolioStrength: { score: 0, level: 'Initiating' }
   });
   const [activityFeed, setActivityFeed] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -322,10 +322,10 @@ export default function MyProjects({ onShowToast }) {
 
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                           <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
-                            {prj.progress || 25}%
+                            {prj.progress || 0}%
                           </span>
                           <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
-                            {prj.activities?.length || 1} Milestones
+                            {prj.activities?.length || 0} Milestones
                           </div>
                         </div>
                       </div>

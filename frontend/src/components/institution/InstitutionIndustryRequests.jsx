@@ -92,14 +92,6 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
       } catch (e) {
         console.debug('Company list fetch note:', e.message);
       }
-
-      if (companies.length === 0) {
-        setCompanies([
-          { companyId: 'COMP-001', name: 'ABC Technologies', email: 'talent@abctech.com', industry: 'Enterprise Software', location: 'Chennai' },
-          { companyId: 'COMP-002', name: 'Quantum AI Labs', email: 'careers@quantumai.io', industry: 'AI & Data Science', location: 'Bengaluru' },
-          { companyId: 'COMP-003', name: 'CloudScale Networks', email: 'hr@cloudscale.net', industry: 'Cloud & Infrastructure', location: 'Hyderabad' }
-        ]);
-      }
     } catch (err) {
       console.warn('Load industry requests note:', err.message);
     } finally {

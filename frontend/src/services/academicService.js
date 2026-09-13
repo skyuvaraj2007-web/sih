@@ -402,5 +402,194 @@ export const academicService = {
       credentials: 'include'
     });
     return await res.json();
+  },
+
+  // ── APPLICATIONS & STUDENT SELECTION ──
+  async getApplications() {
+    const res = await fetch(`${API_BASE}/academic/applications`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async selectStudentForTest(applicationId) {
+    const res = await fetch(`${API_BASE}/academic/applications/${encodeURIComponent(applicationId)}/select`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  // ── COLLABORATIONS & CAMPUS DIRECTORY ──
+  async getCollaborations() {
+    const res = await fetch(`${API_BASE}/academic/collaborations`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async requestCollaboration(targetInstitutionId, message = '') {
+    const res = await fetch(`${API_BASE}/academic/collaborations`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ targetInstitutionId, message })
+    });
+    return await res.json();
+  },
+
+  async respondToCollaboration(id, action) {
+    const res = await fetch(`${API_BASE}/academic/collaborations/${encodeURIComponent(id)}/respond`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ action })
+    });
+    return await res.json();
+  },
+
+  // ── PARTNER COMPANIES & OPPORTUNITIES ──
+  async getCompanies() {
+    const res = await fetch(`${API_BASE}/academic/companies`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async getOpportunities() {
+    const res = await fetch(`${API_BASE}/academic/opportunities`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async getProjects(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const qs = query ? `?${query}` : '';
+    const res = await fetch(`${API_BASE}/academic/projects${qs}`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  // ── COURSES & LEARNING ──
+  async getCourses() {
+    const res = await fetch(`${API_BASE}/academic/courses`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async getCourseById(courseId) {
+    const res = await fetch(`${API_BASE}/academic/courses/${encodeURIComponent(courseId)}`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async createCourse(courseData) {
+    const res = await fetch(`${API_BASE}/academic/courses`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(courseData)
+    });
+    return await res.json();
+  },
+
+  // ── OPPORTUNITIES & PLACEMENT PIPELINE ──
+  async getApplications() {
+    const res = await fetch(`${API_BASE}/academic/applications`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async updateApplicationStage(applicationId, stage) {
+    const res = await fetch(`${API_BASE}/academic/applications/${encodeURIComponent(applicationId)}/stage`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ stage })
+    });
+    return await res.json();
+  },
+
+  async selectApplicationForTesting(appId) {
+    const res = await fetch(`${API_BASE}/academic/applications/${encodeURIComponent(appId)}/select`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async selectStudentForTest(appId) {
+    return this.selectApplicationForTesting(appId);
+  },
+
+  // ── COLLABORATIONS & CAMPUS DIRECTORY ──
+  async getCollaborations() {
+    const res = await fetch(`${API_BASE}/academic/collaborations`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async requestCollaboration(targetInstitutionId, message) {
+    const res = await fetch(`${API_BASE}/academic/collaborations`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ targetInstitutionId, message })
+    });
+    return await res.json();
+  },
+
+  async respondToCollaboration(id, action, type = 'institution') {
+    const res = await fetch(`${API_BASE}/academic/collaborations/${encodeURIComponent(id)}/respond`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ action, type })
+    });
+    return await res.json();
+  },
+
+  async getCombinedAnalytics() {
+    const res = await fetch(`${API_BASE}/academic/analytics`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async getSkillGrowthAnalytics(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`${API_BASE}/academic/skill-growth${query ? `?${query}` : ''}`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
+  },
+
+  async getStudentPerformanceList(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`${API_BASE}/academic/student-performance${query ? `?${query}` : ''}`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    return await res.json();
   }
 };
+

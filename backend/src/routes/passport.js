@@ -25,8 +25,8 @@ router.get('/export-jsonld', requireAuth, (req, res) => {
     id: `urn:uuid:${user.candidateId}`,
     type: ['VerifiableCredential', 'SkillNexusDigitalPassport'],
     issuer: {
-      id: 'did:nexus:issuer:srm-ist-cert-auth',
-      name: 'SRM Institute of Science & Technology // SkillNexus Sovereign Node'
+      id: 'did:nexus:issuer:auth-node',
+      name: `${user.college || 'SkillNexus Verified Institution'} // Sovereign Node`
     },
     issuanceDate: new Date().toISOString(),
     credentialSubject: {
@@ -48,7 +48,7 @@ router.get('/export-jsonld', requireAuth, (req, res) => {
     proof: {
       type: 'Ed25519Signature2020',
       created: new Date().toISOString(),
-      verificationMethod: 'did:nexus:issuer:srm-ist-cert-auth#key-1',
+      verificationMethod: 'did:nexus:issuer:auth-node#key-1',
       proofPurpose: 'assertionMethod',
       jws: 'eyJhbGciOiJFZERTQSI...ZKhk_SIGNATURE_MINTED_SHA256'
     }

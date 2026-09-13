@@ -13,9 +13,11 @@ import {
   Target,
   FileText,
   Award,
-  BookOpen
+  BookOpen,
+  FolderGit2
 } from 'lucide-react';
 import HorizontalPageTabs from '../components/navigation/HorizontalPageTabs';
+import ProjectDetailsExplorer from '../components/common/ProjectDetailsExplorer';
 
 // Subcomponents
 import CompanySidebar from '../components/company/CompanySidebar';
@@ -37,6 +39,7 @@ import CompanyCompareModal from '../components/company/CompanyCompareModal';
 import CompanyInviteModal from '../components/company/CompanyInviteModal';
 import CompanyStudentAccessRequests from '../components/company/CompanyStudentAccessRequests';
 import CompanyAuthorizedStudents from '../components/company/CompanyAuthorizedStudents';
+import CompanyTargetedAssessments from '../components/company/CompanyTargetedAssessments';
 
 // Relational Services & Data Store
 import {
@@ -61,8 +64,8 @@ export default function IndustryPortal({
   isEmbedded = false
 }) {
   // Normalize company identification for Data Isolation
-  const currentCompanyId = user?.companyId || user?.userId || 'COMP-001';
-  const companyName = user?.companyName || user?.company || 'ABC Technologies';
+  const currentCompanyId = user?.companyId || user?.userId || user?.id || '';
+  const companyName = user?.companyName || user?.company || user?.name || 'Enterprise Portal';
 
   // Active Tab state
   const [activeTab, setActiveTab] = useState(() => {
@@ -76,14 +79,17 @@ export default function IndustryPortal({
     if (path.includes('/company/opportunities')) return 'opportunities';
     if (path.includes('/company/applications')) return 'applications';
     if (path.includes('/company/shortlisted')) return 'shortlisted';
-    if (path.includes('/company/colleges')) return 'colleges';
+    if (path.includes('/company/selected') || path.includes('/company/selected-students')) return 'selected';
+    if (path.includes('/company/colleges') || path.includes('/company/collaboration')) return 'colleges';
+    if (path.includes('/company/assessments')) return 'assessments';
     if (path.includes('/company/courses')) return 'courses';
+    if (path.includes('/company/projects') || path.includes('/company/project-explorer')) return 'projects';
     if (path.includes('/company/certificates')) return 'certificates';
     if (path.includes('/company/ai-matching') || path.includes('/company/talent-matching')) return 'ai-matching';
     if (path.includes('/company/talent-pools')) return 'talent-pools';
     if (path.includes('/company/analytics')) return 'analytics';
     if (path.includes('/company/messages')) return 'messages';
-    if (path.includes('/company/settings')) return 'settings';
+    if (path.includes('/company/settings') || path.includes('/company/profile')) return 'settings';
     return initialTab || 'dashboard';
   });
 
@@ -123,6 +129,7 @@ export default function IndustryPortal({
   const [candidates, setCandidates] = useState([]);
   const [companyOpportunities, setCompanyOpportunities] = useState([]);
   const [companyApplications, setCompanyApplications] = useState([]);
+  const [companyPartnerships, setCompanyPartnerships] = useState([]);
 
   // Reactive Event Listeners for Relational Sync
   useEffect(() => {
@@ -185,6 +192,8 @@ export default function IndustryPortal({
         setActiveTab('shortlisted');
       } else if (path.includes('/company/colleges')) {
         setActiveTab('colleges');
+      } else if (path.includes('/company/assessments')) {
+        setActiveTab('assessments');
       } else if (path.includes('/company/courses')) {
         setActiveTab('courses');
       } else if (path.includes('/company/certificates')) {
@@ -219,10 +228,11 @@ export default function IndustryPortal({
       };
 
       try {
-        const [candRes, oppRes, appRes] = await Promise.all([
+        const [candRes, oppRes, appRes, partRes] = await Promise.all([
           fetch(`${apiBase}/company/candidates`, { headers, credentials: 'include' }).catch(() => null),
           fetch(`${apiBase}/company/opportunities`, { headers, credentials: 'include' }).catch(() => null),
-          fetch(`${apiBase}/company/applications`, { headers, credentials: 'include' }).catch(() => null)
+          fetch(`${apiBase}/company/applications`, { headers, credentials: 'include' }).catch(() => null),
+          fetch(`${apiBase}/company/partnerships`, { headers, credentials: 'include' }).catch(() => null)
         ]);
 
         if (isMounted) {
@@ -237,6 +247,10 @@ export default function IndustryPortal({
           if (appRes && appRes.ok) {
             const json = await appRes.json();
             if (Array.isArray(json.data)) setCompanyApplications(json.data);
+          }
+          if (partRes && partRes.ok) {
+            const json = await partRes.json();
+            if (Array.isArray(json.data)) setCompanyPartnerships(json.data);
           }
         }
       } catch (err) {
@@ -309,6 +323,9 @@ export default function IndustryPortal({
   // Handle Application Stage Progression
   const handleStageChange = useCallback((appId, nextStage) => {
     advanceApplicationStage(appId, nextStage);
+    setCompanyApplications(prev => prev.map(a => 
+      (a.applicationId === appId || a.id === appId) ? { ...a, stage: nextStage, current_stage: nextStage, status: nextStage } : a
+    ));
   }, []);
 
   // Student Profile click
@@ -339,7 +356,8 @@ export default function IndustryPortal({
       { id: 'students', label: 'Candidate Pool', icon: Users },
       { id: 'ai-matching', label: 'AI Talent Match', icon: Brain, badge: 'AI' },
       { id: 'authorized-students', label: 'Authorized Candidates', icon: UserCheck },
-      { id: 'talent-pools', label: 'Saved Pipelines', icon: Layers }
+      { id: 'talent-pools', label: 'Saved Pipelines', icon: Layers },
+      { id: 'project-explorer', label: 'Student Projects', icon: FolderGit2 }
     ];
     if (activeTab === 'student-profile') {
       base.push({ id: 'student-profile', label: 'Candidate Profile', icon: User });
@@ -356,16 +374,16 @@ export default function IndustryPortal({
     { id: 'opportunities', label: 'All Postings', icon: Briefcase },
     { id: 'jobs', label: 'Job Positions', icon: Building2 },
     { id: 'internships', label: 'Internships & Trainees', icon: Target },
-    { id: 'applications', label: 'Application Pipeline', icon: FileText, badge: '6' },
+    { id: 'applications', label: 'Application Pipeline', icon: FileText, badge: companyApplications.length > 0 ? String(companyApplications.length) : undefined },
     { id: 'shortlisted', label: 'Shortlisted Candidates', icon: Award }
-  ], []);
+  ], [companyApplications.length]);
 
   const learningTabs = useMemo(() => [
     { id: 'courses', label: 'Sponsored Courses', icon: BookOpen },
     { id: 'certificates', label: 'Verified Certificates', icon: Award }
   ], []);
 
-  const isTalentGroup = ['students', 'talent-search', 'student-profile', 'ai-matching', 'authorized-students', 'talent-pools'].includes(activeTab);
+  const isTalentGroup = ['students', 'talent-search', 'student-profile', 'ai-matching', 'authorized-students', 'talent-pools', 'project-explorer'].includes(activeTab);
   const isInstitutionGroup = ['colleges', 'access-requests', 'requests'].includes(activeTab);
   const isOpportunityGroup = ['opportunities', 'jobs', 'internships', 'apprenticeships', 'applications', 'shortlisted'].includes(activeTab);
   const isLearningGroup = ['courses', 'certificates'].includes(activeTab);
@@ -508,11 +526,11 @@ export default function IndustryPortal({
         />
       )}
 
-      {/* SCREEN 5: APPLICATION PIPELINE & SHORTLISTED */}
-      {(activeTab === 'applications' || activeTab === 'shortlisted') && (
+      {/* SCREEN 5: APPLICATION PIPELINE, SHORTLISTED & SELECTED */}
+      {(activeTab === 'applications' || activeTab === 'shortlisted' || activeTab === 'selected' || activeTab === 'selected-students') && (
         <CompanyApplications
           applications={applications}
-          defaultTab={activeTab === 'shortlisted' ? 'Shortlisted' : 'All'}
+          defaultTab={activeTab === 'shortlisted' ? 'Shortlisted' : (activeTab === 'selected' || activeTab === 'selected-students') ? 'Selected' : 'All'}
           onStageChange={handleStageChange}
           onSelectCandidate={(app) => {
             const cand = students.find(s => s.studentId === app.studentId || s.name === app.candidateName || s.name === app.candidate);
@@ -543,11 +561,18 @@ export default function IndustryPortal({
         />
       )}
 
+      {/* SCREEN 7B: STUDENT PROJECT DETAILS EXPLORER */}
+      {(activeTab === 'project-explorer' || activeTab === 'projects') && (
+        <ProjectDetailsExplorer portal="industry" onShowToast={onShowToast} />
+      )}
+
       {/* SCREEN 8: ANALYTICS */}
       {activeTab === 'analytics' && (
         <CompanyAnalytics
           applications={applications}
           opportunities={opportunities}
+          candidates={candidates}
+          partnerships={companyPartnerships}
         />
       )}
 
@@ -572,12 +597,22 @@ export default function IndustryPortal({
       {activeTab === 'courses' && (
         <CompanyCourses
           onTabSelect={(tab) => handleTabChange(tab)}
+          onShowToast={onShowToast}
+          user={user}
         />
       )}
 
       {/* SUPPORTING SCREEN: CERTIFICATES */}
       {activeTab === 'certificates' && (
         <CompanyCertificates />
+      )}
+
+      {/* SCREEN: TARGETED ASSESSMENTS */}
+      {activeTab === 'assessments' && (
+        <CompanyTargetedAssessments
+          user={user}
+          onShowToast={onShowToast}
+        />
       )}
 
       {/* SUPPORTING SCREEN: SETTINGS */}

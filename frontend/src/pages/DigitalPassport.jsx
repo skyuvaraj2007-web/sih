@@ -74,11 +74,12 @@ export default function DigitalPassport({ onShowToast, user }) {
     };
   }) : [];
 
-  const seals = studentSkills.some(s => s.verified) ? [
-    { title: "Generative AI Fundamentals", partner: "NEXUS AI × ScaleAI Partnership", type: "INDUSTRY SEAL", code: "ID: NX9824-SEAL" },
-    { title: "Advanced Python for Data Science", partner: "SRM Center of Excellence", type: "ACADEMIC SEAL", code: "ID: IN-7714-PY-06" },
-    { title: "Relational Query Optimization", partner: "PostgreSQL Specialist Level II", type: "PROCTOR BADGE", code: "ID: PL-9141-SQL-II" }
-  ] : [];
+  const seals = studentSkills.filter(s => s.verified).slice(0, 3).map(sk => ({
+    title: `Verified Competency: ${sk.name}`,
+    partner: student.collegeName || 'Accredited Academic Campus',
+    type: "ACADEMIC SEAL",
+    code: `ID: SEAL-${Math.abs(sk.name.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0)).toString().slice(0, 6)}`
+  }));
 
   const handleExportJsonLd = () => {
     window.open('http://localhost:5000/api/passport/export-jsonld', '_blank');
@@ -159,7 +160,7 @@ export default function DigitalPassport({ onShowToast, user }) {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                {student?.name || 'Arun Kumar'}
+                {student?.name || 'Student Candidate'}
               </h2>
               <span className="cyber-badge badge-cyan" style={{ fontSize: '9px' }}>
                 SOVEREIGN DID VERIFIED
@@ -167,10 +168,10 @@ export default function DigitalPassport({ onShowToast, user }) {
             </div>
 
             <div style={{ fontSize: '13.5px', color: 'var(--cyber-cyan)', fontWeight: 600 }}>
-              {student?.headline || 'B.Tech CSE • Aspiring Data Scientist & AI Systems Engineer'}
+              {student?.headline || (student?.desiredRole ? `Aspiring ${student.desiredRole}` : 'Verified Academic Scholar')}
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              {student?.department || 'CSE'} ({student?.year || 'III Year'}, {student?.semester || 'Sem 6'}) • {student?.collegeName || 'SRM Institute of Science and Technology'}
+              {student?.department || 'Curriculum'} {student?.year ? `(${student.year})` : ''} • {student?.collegeName || 'Verified Higher Education Institution'}
             </div>
 
             <div style={{ display: 'flex', gap: '16px', marginTop: '10px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>

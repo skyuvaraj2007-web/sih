@@ -102,11 +102,88 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
   const currentRole = normalizeRole(user?.role);
   const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
 
+  const [instProfile, setInstProfile] = useState(() => {
+    try { const raw = localStorage.getItem('nexus_institution_profile'); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  });
+  const [compProfile, setCompProfile] = useState(() => {
+    try { const raw = localStorage.getItem('nexus_industry_profile'); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  });
+
+  const instData = instProfile || {
+    institutionName: user?.institutionName || user?.name || 'Institution Information Unavailable',
+    campusId: user?.campusId || user?.code || user?.id || '—',
+    email: user?.email || '—',
+    collegeId: user?.collegeId || user?.code || user?.id || '—',
+    district: user?.district || user?.city || '—',
+    university: user?.university || user?.affiliation || '—',
+    type: user?.type || 'Educational Institution',
+    website: user?.website || '—',
+    phone: user?.phone || '—',
+    contactPerson: user?.contactPerson || user?.name || '—',
+    departments: user?.departments || [],
+    studentCount: user?.studentCount || 0,
+    coursesOffered: user?.coursesOffered || 0
+  };
+
+  const compData = compProfile || {
+    companyName: user?.companyName || user?.name || 'Company Information Unavailable',
+    recruiterHandle: user?.recruiterHandle || user?.companyId || user?.id || '—',
+    email: user?.email || '—',
+    contactPerson: user?.contactPerson || user?.name || '—',
+    industry: user?.industry || 'Technology & Innovation',
+    location: user?.location || (user?.city ? `${user.city}, ${user.state || ''}` : '—'),
+    website: user?.website || '—',
+    phone: user?.phone || '—',
+    preferredSkills: user?.preferredSkills || [],
+    preferredRoles: user?.preferredRoles || [],
+    experienceLevel: user?.experienceLevel || 'All Undergraduate Years',
+    internshipType: user?.internshipType || 'Full-time / Internship'
+  };
+
+  const [isEditingInst, setIsEditingInst] = useState(false);
+  const [instFormData, setInstFormData] = useState(instData);
+  const [isEditingComp, setIsEditingComp] = useState(false);
+  const [compFormData, setCompFormData] = useState(compData);
+
   // ── Fetch all profile sections from backend ────────────────────────────────
   const fetchAll = useCallback(async () => {
     const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
     const headers = { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
     const opts = { headers, credentials: 'include' };
+
+    // Institution profile fetch
+    if (currentRole === 'institution') {
+      try {
+        const res = await fetch(`${apiBase}/academic/profile`, opts);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            setInstProfile(json.data);
+            setInstFormData(json.data);
+          }
+        }
+      } catch (err) {
+        console.debug('Institution profile fetch deferred:', err);
+      }
+      return;
+    }
+
+    // Company / Industry profile fetch
+    if (currentRole === 'company' || currentRole === 'industry') {
+      try {
+        const res = await fetch(`${apiBase}/company/profile`, opts);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            setCompProfile(json.data);
+            setCompFormData(json.data);
+          }
+        }
+      } catch (err) {
+        console.debug('Company profile fetch deferred:', err);
+      }
+      return;
+    }
 
     try {
       const [profRes, docRes, statsRes, appRes, commRes] = await Promise.allSettled([
@@ -214,11 +291,11 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
     } catch (err) {
       console.debug('Profile fetch deferred:', err);
     }
-  }, [apiBase]);
+  }, [apiBase, currentRole]);
 
   useEffect(() => {
-    if (currentRole === 'student') fetchAll();
-  }, [currentRole, fetchAll]);
+    fetchAll();
+  }, [fetchAll]);
 
   useEffect(() => {
     const handleProfileUpdate = (e) => {
@@ -297,58 +374,63 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
   // ── Profile Completion ─────────────────────────────────────────────────────
   const completion = calculateProfileCompletion(profile, documents, projects);
 
-  // ── Institution profile helpers (kept for institution/company roles) ────────
-  const [instProfile, setInstProfile] = React.useState(() => {
-    try { const raw = localStorage.getItem('nexus_institution_profile'); return raw ? JSON.parse(raw) : null; } catch { return null; }
-  });
-  const [compProfile, setCompProfile] = React.useState(() => {
-    try { const raw = localStorage.getItem('nexus_industry_profile'); return raw ? JSON.parse(raw) : null; } catch { return null; }
-  });
-
-  const instData = instProfile || {
-    institutionName: user?.institutionName || 'SRM Institute of Science and Technology',
-    campusId: user?.campusId || 'SRM-MAIN-CAMPUS-2025',
-    email: user?.email || 'placements@srm.edu.in',
-    collegeId: user?.collegeId || 'TN010',
-    district: 'Kancheepuram', university: 'SRM University', type: 'Deemed University',
-    website: 'https://www.srmist.edu.in', phone: '+91 44 2745 2270',
-    contactPerson: user?.name || 'Prof. K. Ramanathan',
-    departments: ['CSE', 'IT', 'AI & DS', 'ECE', 'EEE', 'Mechanical'],
-    studentCount: 12840, coursesOffered: 48
-  };
-
-  const compData = compProfile || {
-    companyName: user?.companyName || 'TechCorp Global Systems',
-    recruiterHandle: user?.recruiterHandle || 'TECHCORP-GLOBAL-CORP',
-    email: user?.email || 'talent@techcorp.global',
-    contactPerson: user?.name || 'Sarah Jenkins',
-    industry: user?.industry || 'IT & Software',
-    location: user?.city ? `${user.city}, ${user.state || 'Tamil Nadu'}` : 'Chennai, Tamil Nadu',
-    website: user?.website || 'https://techcorp.global',
-    phone: user?.phone || '+91 80 4132 7890',
-    preferredSkills: ['Python', 'Machine Learning', 'Cloud (AWS/GCP)', 'Data Analytics', 'React'],
-    preferredRoles: ['Data Analyst Intern', 'Cloud DevOps Intern', 'ML Engineer Intern'],
-    experienceLevel: '3rd & 4th Year B.Tech / M.Tech',
-    internshipType: 'Remote / Hybrid (PPO Convertible)'
-  };
-
-  const [isEditingInst, setIsEditingInst] = React.useState(false);
-  const [instFormData, setInstFormData] = React.useState(instData);
-  const [isEditingComp, setIsEditingComp] = React.useState(false);
-  const [compFormData, setCompFormData] = React.useState(compData);
-
-  const handleSaveInst = (e) => {
+  // ── Institution & Company Save Handlers ─────────────────────────────────────
+  const handleSaveInst = async (e) => {
     if (e) e.preventDefault();
+    try {
+      const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
+      const res = await fetch(`${apiBase}/academic/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+        credentials: 'include',
+        body: JSON.stringify(instFormData)
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const updated = json.data || instFormData;
+        localStorage.setItem('nexus_institution_profile', JSON.stringify(updated));
+        setInstProfile(updated);
+        setInstFormData(updated);
+        setIsEditingInst(false);
+        if (onShowToast) onShowToast({ title: 'Institution Profile Updated', message: 'Academic details saved successfully.', type: 'success' });
+        return;
+      }
+    } catch (err) {
+      console.error('Institution profile save error:', err);
+    }
     localStorage.setItem('nexus_institution_profile', JSON.stringify(instFormData));
-    setInstProfile(instFormData); setIsEditingInst(false);
-    if (onShowToast) onShowToast({ title: 'Institution Profile Updated', message: 'Academic details saved successfully.', type: 'success' });
+    setInstProfile(instFormData);
+    setIsEditingInst(false);
+    if (onShowToast) onShowToast({ title: 'Institution Profile Updated', message: 'Academic details saved locally.', type: 'success' });
   };
 
-  const handleSaveComp = (e) => {
+  const handleSaveComp = async (e) => {
     if (e) e.preventDefault();
+    try {
+      const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
+      const res = await fetch(`${apiBase}/company/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+        credentials: 'include',
+        body: JSON.stringify(compFormData)
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const updated = json.data || compFormData;
+        localStorage.setItem('nexus_industry_profile', JSON.stringify(updated));
+        setCompProfile(updated);
+        setCompFormData(updated);
+        setIsEditingComp(false);
+        if (onShowToast) onShowToast({ title: 'Company Profile Updated', message: 'Company details saved successfully.', type: 'success' });
+        return;
+      }
+    } catch (err) {
+      console.error('Company profile save error:', err);
+    }
     localStorage.setItem('nexus_industry_profile', JSON.stringify(compFormData));
-    setCompProfile(compFormData); setIsEditingComp(false);
-    if (onShowToast) onShowToast({ title: 'Company Profile Updated', message: 'Company details saved successfully.', type: 'success' });
+    setCompProfile(compFormData);
+    setIsEditingComp(false);
+    if (onShowToast) onShowToast({ title: 'Company Profile Updated', message: 'Company details saved locally.', type: 'success' });
   };
 
   // ── Photo upload handler ───────────────────────────────────────────────────
@@ -1096,7 +1178,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
           <div className="glass-panel" style={{ padding: '24px' }}>
             <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--cyber-cyan)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><GraduationCap size={15} /> Academic Overview & Departments</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '14px', marginBottom: '20px' }}>
-              {[['STUDENTS ENROLLED', instFormData.studentCount.toLocaleString()], ['DEPARTMENTS', instFormData.departments.length], ['COURSES OFFERED', instFormData.coursesOffered]].map(([label, val]) => (
+              {[['STUDENTS ENROLLED', (Number(instFormData.studentCount) || 0).toLocaleString()], ['DEPARTMENTS', (instFormData.departments || []).length], ['COURSES OFFERED', Number(instFormData.coursesOffered) || 0]].map(([label, val]) => (
                 <div key={label} style={{ padding: '16px', borderRadius: '8px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.25)', textAlign: 'center' }}>
                   <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--cyber-purple)', fontFamily: 'var(--font-mono)' }}>{val}</div>
                   <div style={{ fontSize: '9.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>{label}</div>
@@ -1106,7 +1188,11 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
             <div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>ACTIVE DEPARTMENTS</div>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {instFormData.departments.map(d => <span key={d} className="cyber-badge badge-purple" style={{ fontSize: '11px', padding: '4px 10px' }}>{d}</span>)}
+                {(instFormData.departments || []).length > 0 ? (
+                  instFormData.departments.map(d => <span key={d} className="cyber-badge badge-purple" style={{ fontSize: '11px', padding: '4px 10px' }}>{d}</span>)
+                ) : (
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No departments registered yet</span>
+                )}
               </div>
             </div>
           </div>
@@ -1168,7 +1254,11 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
               <div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>PREFERRED ROLES</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {compFormData.preferredRoles.map(r => <div key={r} style={{ padding: '8px 12px', borderRadius: '6px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.25)', fontSize: '12.5px', color: 'var(--text-primary)' }}>{r}</div>)}
+                  {(compFormData.preferredRoles || []).length > 0 ? (
+                    compFormData.preferredRoles.map(r => <div key={r} style={{ padding: '8px 12px', borderRadius: '6px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.25)', fontSize: '12.5px', color: 'var(--text-primary)' }}>{r}</div>)
+                  ) : (
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No preferred roles specified</div>
+                  )}
                 </div>
               </div>
               <div>
@@ -1182,7 +1272,11 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
           <div className="glass-panel" style={{ padding: '24px' }}>
             <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--cyber-cyan)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><ShieldCheck size={15} /> Preferred Technical Competencies</h3>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {compFormData.preferredSkills.map(sk => <span key={sk} className="cyber-badge badge-emerald" style={{ fontSize: '12px', padding: '5px 12px' }}>{sk}</span>)}
+              {(compFormData.preferredSkills || []).length > 0 ? (
+                compFormData.preferredSkills.map(sk => <span key={sk} className="cyber-badge badge-emerald" style={{ fontSize: '12px', padding: '5px 12px' }}>{sk}</span>)
+              ) : (
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No preferred skills specified</span>
+              )}
             </div>
           </div>
         </div>

@@ -234,8 +234,8 @@ export default function OtpVerificationModal({
             </p>
           </div>
 
-          {/* DEMO OTP PROMINENT CALLOUT BANNER */}
-          {displayedOtp && !resetCompleted && (!isVerified || purpose === 'REGISTRATION') && (
+          {/* DEVELOPMENT OTP INFORMATION CARD (Local Testing Only) */}
+          {Boolean(import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) && displayedOtp && !resetCompleted && (!isVerified || purpose === 'REGISTRATION') && (
             <div className={`mb-6 p-4 rounded-2xl border shadow-sm ${
               purpose === 'PASSWORD_RESET'
                 ? 'bg-gradient-to-br from-pink-500/10 via-purple-500/5 to-indigo-500/15 border-pink-400/50 dark:border-pink-600/40'
@@ -248,11 +248,7 @@ export default function OtpVerificationModal({
                     : 'text-cyan-600 dark:text-cyan-400'
                 }`}>
                   <Sparkles className="w-4 h-4" />
-                  <span>
-                    {purpose === 'PASSWORD_RESET'
-                      ? 'DEMO OTP FOR FORGET PASSWORD'
-                      : 'DEMO OTP FOR CREATING ACCOUNT'}
-                  </span>
+                  <span>DEVELOPMENT VERIFICATION</span>
                 </div>
                 <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${
                   purpose === 'PASSWORD_RESET'
@@ -273,7 +269,7 @@ export default function OtpVerificationModal({
                       : 'text-cyan-600 dark:text-cyan-400'
                   }`}
                 >
-                  [ {displayedOtp.split('').join(' ')} ]
+                  {displayedOtp.split('').join(' ')}
                 </div>
                 <button
                   type="button"
@@ -288,7 +284,7 @@ export default function OtpVerificationModal({
                 </button>
               </div>
               <div className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400 text-center">
-                Active testing code. Click code or button to auto-fill.
+                For local testing only
               </div>
             </div>
           )}

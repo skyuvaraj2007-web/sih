@@ -58,7 +58,7 @@ const ENROLLMENT_TYPES = [
   { type: 'INVITE_ONLY', label: 'Invite Only', desc: 'Only pre-authorized cohorts or invited students can access this skill.' }
 ];
 
-export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, institution }) {
+export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onSuccess, institution, initialSkill }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -305,13 +305,13 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, ins
         } catch {}
       }
 
-      if (onSkillSaved) {
-        onSkillSaved({
-          ...data.data,
-          isPublish,
-          notifiedCount: data.data?.notifiedStudentsCount || 0
-        });
-      }
+      const savedData = {
+        ...data.data,
+        isPublish,
+        notifiedCount: data.data?.notifiedStudentsCount || 0
+      };
+      if (onSkillSaved) onSkillSaved(savedData, isPublish);
+      if (onSuccess) onSuccess(savedData, isPublish);
       onClose();
     } catch (err) {
       setLoading(false);

@@ -3,10 +3,10 @@
 // ==============================================================================
 
 export const getTheme = () => {
-  if (typeof window === 'undefined') return 'light';
+  if (typeof window === 'undefined') return 'dark';
   const saved = localStorage.getItem('skillnexus_theme');
   if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
-  return 'light';
+  return 'dark';
 };
 
 export const getResolvedTheme = (pref) => {
@@ -15,14 +15,14 @@ export const getResolvedTheme = (pref) => {
     if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark';
     }
-    return 'light';
+    return 'dark';
   }
   return themePref === 'light' ? 'light' : 'dark';
 };
 
 export const setTheme = (theme) => {
   if (typeof window === 'undefined') return;
-  const targetPref = (theme === 'light' || theme === 'dark' || theme === 'system') ? theme : 'light';
+  const targetPref = (theme === 'light' || theme === 'dark' || theme === 'system') ? theme : 'dark';
   localStorage.setItem('skillnexus_theme', targetPref);
   
   const effectiveTheme = getResolvedTheme(targetPref);

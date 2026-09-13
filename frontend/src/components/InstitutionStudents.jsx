@@ -38,9 +38,8 @@ export default function InstitutionStudents({ institution, onShowToast }) {
   const PAGE_SIZE = 8;
 
   // Resolve current institution's collegeId
-  // Fallback to TN010 (SRM IST) if unmapped for demo purposes
-  const currentCollegeId = institution?.collegeId || 'TN010';
-  const collegeInfo = useMemo(() => getCollegeById(currentCollegeId), [currentCollegeId]);
+  const currentCollegeId = institution?.collegeId || institution?.id || '';
+  const collegeInfo = useMemo(() => currentCollegeId ? getCollegeById(currentCollegeId) : null, [currentCollegeId]);
 
   // Load students strictly for this college
   const loadCollegeStudents = () => {

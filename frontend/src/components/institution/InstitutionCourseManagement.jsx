@@ -38,8 +38,8 @@ import AddSkillWizardModal from './AddSkillWizardModal';
 import '../common/CompactDataList.css';
 
 export default function InstitutionCourseManagement({ onShowToast, institution }) {
-  const instCollegeId = institution?.collegeId || 'TN010';
-  const instName = institution?.institutionName || 'SRM Institute of Science and Technology';
+  const instCollegeId = institution?.collegeId || institution?.id || '';
+  const instName = institution?.institutionName || institution?.name || 'Institution';
 
   // Navigation tab: 'SKILLS' | 'REQUESTS' | 'INTERVENTIONS'
   const [activeTab, setActiveTab] = useState('SKILLS');
@@ -100,9 +100,18 @@ export default function InstitutionCourseManagement({ onShowToast, institution }
     }
   };
 
-  const loadLegacyData = () => {
+  const loadLegacyData = async () => {
+    try {
+      const res = await academicService.getCourses();
+      if (res && res.success && Array.isArray(res.data)) {
+        setRelationalCourses(res.data);
+      } else {
+        setRelationalCourses(getCoursesByInstitution(instCollegeId));
+      }
+    } catch (e) {
+      setRelationalCourses(getCoursesByInstitution(instCollegeId));
+    }
     setInterventionCourses(getInstitutionCourses());
-    setRelationalCourses(getCoursesByInstitution(instCollegeId));
   };
 
   useEffect(() => {
@@ -219,11 +228,32 @@ export default function InstitutionCourseManagement({ onShowToast, institution }
     }
   };
 
-  const handleCreateCourseSubmit = (e) => {
+  const loadData = () => {
+    loadLegacyData();
+    loadSkillsAndRequests();
+  };
+
+  const handleCreateCourseSubmit = async (e) => {
     e.preventDefault();
     if (!newCourse.courseName.trim()) {
       if (onShowToast) onShowToast({ title: 'Validation Error', message: 'Course name is required.', type: 'warning' });
       return;
+    }
+
+    try {
+      await academicService.createCourse({
+        title: newCourse.courseName,
+        course_name: newCourse.courseName,
+        code: newCourse.courseCode,
+        category: newCourse.category,
+        duration: newCourse.duration,
+        instructor: newCourse.instructor,
+        skills: newCourse.skillsDeveloped ? newCourse.skillsDeveloped.split(',').map(s => s.trim()) : [],
+        difficulty: newCourse.difficulty,
+        modules: newCourse.modules
+      });
+    } catch (err) {
+      console.warn('Backend course creation note:', err.message);
     }
 
     const created = createInstitutionCourse({
@@ -476,22 +506,24 @@ export default function InstitutionCourseManagement({ onShowToast, institution }
             <div className="glass-panel" style={{ padding: '48px 24px', textAlign: 'center', borderRadius: '12px', border: '1px dashed var(--border-subtle)' }}>
               <BookOpen size={40} color="var(--cyber-cyan)" style={{ margin: '0 auto 14px', opacity: 0.7 }} />
               <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-                {skillStatusFilter === 'ALL' ? 'No Skills or Courses Created Yet' : `No ${skillStatusFilter.toLowerCase()} skills found`}
+                {skillStatusFilter === 'ALL' ? 'No courses have been posted yet.' : `No ${skillStatusFilter.toLowerCase()} courses found.`}
               </h3>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 20px' }}>
-                Create structured skills with curriculum modules, instructors, assessment pass benchmarks, and student eligibility criteria using the 10-step wizard.
+                Create structured courses with curriculum modules, instructors, assessment pass benchmarks, and student eligibility criteria using the course wizard.
               </p>
-              <button
-                onClick={() => {
-                  setEditingSkill(null);
-                  setShowWizardModal(true);
-                }}
-                className="btn-cyber-primary"
-                style={{ padding: '10px 24px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-              >
-                <Plus size={16} />
-                <span>+ Launch Add Skill Wizard</span>
-              </button>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => {
+                    setEditingSkill(null);
+                    setShowWizardModal(true);
+                  }}
+                  className="btn-cyber-primary"
+                  style={{ padding: '10px 24px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <Plus size={16} />
+                  <span>+ Add Course</span>
+                </button>
+              </div>
             </div>
           ) : (
             <div className="compact-table-container">
@@ -824,8 +856,20 @@ export default function InstitutionCourseManagement({ onShowToast, institution }
                   </tr>
                 </thead>
                 <tbody>
-                  {interventionCourses.map((c) => {
-                    const isActive = c.status.includes('Active');
+                  {interventionCourses.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)' }}>
+                        <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                          No course telemetry available yet.
+                        </div>
+                        <div style={{ fontSize: '12px' }}>
+                          Course telemetry and deficit tracking will appear here as students engage with academic modules.
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    interventionCourses.map((c) => {
+                      const isActive = c.status.includes('Active');
 
                     return (
                       <tr key={c.id}>
@@ -889,7 +933,7 @@ export default function InstitutionCourseManagement({ onShowToast, institution }
                         </td>
                       </tr>
                     );
-                  })}
+                  }))}
                 </tbody>
               </table>
             </div>
@@ -901,9 +945,24 @@ export default function InstitutionCourseManagement({ onShowToast, institution }
       {showWizardModal && (
         <AddSkillWizardModal
           isOpen={showWizardModal}
+          institution={institution}
           onClose={() => {
             setShowWizardModal(false);
             setEditingSkill(null);
+          }}
+          onSkillSaved={(savedSkill, isPublished) => {
+            setShowWizardModal(false);
+            setEditingSkill(null);
+            loadSkillsAndRequests();
+            if (onShowToast) {
+              onShowToast({
+                title: isPublished ? 'Skill Published Successfully' : 'Draft Saved',
+                message: isPublished 
+                  ? `"${savedSkill.title || savedSkill.name}" is now published and eligible students have been notified!`
+                  : `"${savedSkill.title || savedSkill.name}" saved as draft.`,
+                type: 'success'
+              });
+            }
           }}
           onSuccess={(savedSkill, isPublished) => {
             setShowWizardModal(false);
@@ -913,8 +972,8 @@ export default function InstitutionCourseManagement({ onShowToast, institution }
               onShowToast({
                 title: isPublished ? 'Skill Published Successfully' : 'Draft Saved',
                 message: isPublished 
-                  ? `"${savedSkill.title}" is now published and eligible students have been notified!`
-                  : `"${savedSkill.title}" saved as draft.`,
+                  ? `"${savedSkill.title || savedSkill.name}" is now published and eligible students have been notified!`
+                  : `"${savedSkill.title || savedSkill.name}" saved as draft.`,
                 type: 'success'
               });
             }
@@ -1188,7 +1247,7 @@ export default function InstitutionCourseManagement({ onShowToast, institution }
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '18px' }}>
               <div style={{ padding: '10px 12px', background: 'rgba(15,23,42,0.6)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Enrolled</span>
-                <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{selectedDetailSkill.studentsEnrolled || 0}</span>
+                <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{selectedDetailSkill.enrolledCount ?? selectedDetailSkill.studentsEnrolled ?? 0}</span>
               </div>
               <div style={{ padding: '10px 12px', background: 'rgba(15,23,42,0.6)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Completion</span>
@@ -1200,14 +1259,14 @@ export default function InstitutionCourseManagement({ onShowToast, institution }
               </div>
               <div style={{ padding: '10px 12px', background: 'rgba(15,23,42,0.6)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Level</span>
-                <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--cyber-cyan)' }}>{selectedDetailSkill.level || 'Intermediate'}</span>
+                <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--cyber-cyan)' }}>{selectedDetailSkill.level || selectedDetailSkill.difficulty || 'Intermediate'}</span>
               </div>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
               <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Faculty Lead / Instructor</span>
               <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--text-primary)', fontWeight: 500 }}>
-                {selectedDetailSkill.instructor || 'Designated Academic Faculty'}
+                {typeof selectedDetailSkill.instructor === 'object' ? selectedDetailSkill.instructor?.name : (selectedDetailSkill.instructor || selectedDetailSkill.instructor_name || 'Designated Academic Faculty')}
               </p>
             </div>
 
@@ -1237,7 +1296,7 @@ export default function InstitutionCourseManagement({ onShowToast, institution }
                   ).filter(Boolean).map((mod, idx) => (
                     <div key={idx} style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ color: 'var(--cyber-cyan)', fontWeight: 700, fontSize: '11px' }}>0{idx + 1}.</span>
-                      <span>{mod}</span>
+                      <span>{typeof mod === 'string' ? mod : (mod.title || `Module ${mod.moduleNumber || idx + 1}`)}</span>
                     </div>
                   ))}
                 </div>
