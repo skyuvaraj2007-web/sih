@@ -71,7 +71,7 @@ export default function StudentSkillQuestionnaireModal({ isOpen, onClose, onComp
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+    const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
 
     const payload = {
       careerGoal,

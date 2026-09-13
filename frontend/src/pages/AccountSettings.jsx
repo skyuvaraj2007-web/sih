@@ -82,7 +82,7 @@ export default function AccountSettings({ onShowToast }) {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await fetch('http://localhost:5000/api/profile', {
+      await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

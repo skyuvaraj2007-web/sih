@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import ProjectDetailModal from '../student/ProjectDetailModal';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
 
 function getAuthHeaders() {
   const token = localStorage.getItem('token') || localStorage.getItem('nexus_auth_token');

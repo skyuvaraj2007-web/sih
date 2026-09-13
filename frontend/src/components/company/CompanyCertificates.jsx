@@ -13,7 +13,7 @@ export default function CompanyCertificates() {
       setLoading(true);
       try {
         const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
-        const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+        const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
         const res = await fetch(`${apiBase}/company/certificates`, {
           headers: {
             'Content-Type': 'application/json',

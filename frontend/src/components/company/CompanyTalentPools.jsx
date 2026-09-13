@@ -24,7 +24,7 @@ export default function CompanyTalentPools({ onSelectPool, onTabSelect, onShowTo
     setLoading(true);
     try {
       const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
-      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+      const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
       const res = await fetch(`${apiBase}/company/talent-pools`, {
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ export default function CompanyTalentPools({ onSelectPool, onTabSelect, onShowTo
 
     try {
       const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
-      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+      const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
       const tags = newPoolTags.split(',').map(s => s.trim()).filter(Boolean);
       const res = await fetch(`${apiBase}/company/talent-pools`, {
         method: 'POST',

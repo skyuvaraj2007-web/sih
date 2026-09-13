@@ -78,7 +78,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/institution/staff', {
+      const res = await fetch('/api/institution/staff', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('nexus_token') || ''}`
         },
@@ -103,8 +103,8 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
     if (!instId) return;
     try {
       const [deptRes, classRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/auth/institutions/${encodeURIComponent(instId)}/departments`),
-        fetch('http://localhost:5000/api/institution/classes', {
+        fetch(`/api/auth/institutions/${encodeURIComponent(instId)}/departments`),
+        fetch('/api/institution/classes', {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('nexus_token') || ''}` },
           credentials: 'include'
         })
@@ -132,7 +132,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
     }
     setSubmittingAdd(true);
     try {
-      const res = await fetch('http://localhost:5000/api/institution/staff', {
+      const res = await fetch('/api/institution/staff', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -183,7 +183,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
     }
     setSubmittingAssign(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/institution/staff/${selectedStaff.user_id}/assign`, {
+      const res = await fetch(`/api/institution/staff/${selectedStaff.user_id}/assign`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -211,7 +211,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
   const handleToggleStatus = async (staff) => {
     try {
       const newStatus = !staff.is_active;
-      const res = await fetch(`http://localhost:5000/api/institution/staff/${staff.user_id}/status`, {
+      const res = await fetch(`/api/institution/staff/${staff.user_id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -236,7 +236,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
     setShowStudentsModal(true);
     setStudentsLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/institution/staff/${staff.user_id}/students`, {
+      const res = await fetch(`/api/institution/staff/${staff.user_id}/students`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('nexus_token') || ''}` },
         credentials: 'include'
       });

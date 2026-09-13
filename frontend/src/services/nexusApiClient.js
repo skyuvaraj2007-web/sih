@@ -4,7 +4,7 @@
  * Provides resilient caching, optimistic updates, and fallback handling.
  */
 
-const API_BASE_URL = 'http://localhost:5000/api/nexus';
+const API_BASE_URL = ((import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api') + '/nexus';
 
 async function safeFetchUrl(url, options = {}) {
   try {
@@ -180,7 +180,7 @@ export const nexusApiClient = {
   // 7. AUTHENTICATION & IDENTITY (Phase 4A)
   async login(email, password, role = 'student') {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, role })
@@ -195,7 +195,7 @@ export const nexusApiClient = {
 
   async register(userData) {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/register', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
@@ -230,123 +230,123 @@ export const nexusApiClient = {
 
   // 10. ACADEMIC PORTAL APIS
   async getAcademicDashboard() {
-    return await safeFetchUrl('http://localhost:5000/api/academic/dashboard');
+    return await safeFetchUrl('/api/academic/dashboard');
   },
   async getAcademicStudents() {
-    return await safeFetchUrl('http://localhost:5000/api/academic/students');
+    return await safeFetchUrl('/api/academic/students');
   },
   async getAcademicCourses() {
-    return await safeFetchUrl('http://localhost:5000/api/academic/courses');
+    return await safeFetchUrl('/api/academic/courses');
   },
   async getAcademicSkillAnalytics() {
-    return await safeFetchUrl('http://localhost:5000/api/academic/skill-analytics');
+    return await safeFetchUrl('/api/academic/skill-analytics');
   },
   async getAcademicReadinessBatch() {
-    return await safeFetchUrl('http://localhost:5000/api/academic/readiness');
+    return await safeFetchUrl('/api/academic/readiness');
   },
   async getAcademicPlacementDrives() {
-    return await safeFetchUrl('http://localhost:5000/api/academic/placement-drives');
+    return await safeFetchUrl('/api/academic/placement-drives');
   },
   async getAcademicApplications() {
-    return await safeFetchUrl('http://localhost:5000/api/academic/applications');
+    return await safeFetchUrl('/api/academic/applications');
   },
 
   // 11. COMPANY PORTAL APIS
   async getCompanyDashboard() {
-    return await safeFetchUrl('http://localhost:5000/api/company/dashboard');
+    return await safeFetchUrl('/api/company/dashboard');
   },
   async getCompanyOpportunities() {
-    return await safeFetchUrl('http://localhost:5000/api/company/opportunities');
+    return await safeFetchUrl('/api/company/opportunities');
   },
   async getCompanyCandidates() {
-    return await safeFetchUrl('http://localhost:5000/api/company/candidates');
+    return await safeFetchUrl('/api/company/candidates');
   },
   async getCompanyTalentPools() {
-    return await safeFetchUrl('http://localhost:5000/api/company/talent-pools');
+    return await safeFetchUrl('/api/company/talent-pools');
   },
   async getCompanyOpportunityMatches(oppId) {
-    return await safeFetchUrl(`http://localhost:5000/api/company/opportunities/${encodeURIComponent(oppId)}/matches`);
+    return await safeFetchUrl(`/api/company/opportunities/${encodeURIComponent(oppId)}/matches`);
   },
   async getCompanyApplications() {
-    return await safeFetchUrl('http://localhost:5000/api/company/applications');
+    return await safeFetchUrl('/api/company/applications');
   },
   async getCompanyInterviews() {
-    return await safeFetchUrl('http://localhost:5000/api/company/interviews');
+    return await safeFetchUrl('/api/company/interviews');
   },
   async getCompanyPartnerships() {
-    return await safeFetchUrl('http://localhost:5000/api/company/partnerships');
+    return await safeFetchUrl('/api/company/partnerships');
   },
   async getCompanyCourseLearnerProfile(courseId, studentId) {
-    return await safeFetchUrl(`http://localhost:5000/api/company/courses/${encodeURIComponent(courseId)}/students/${encodeURIComponent(studentId)}/profile`);
+    return await safeFetchUrl(`/api/company/courses/${encodeURIComponent(courseId)}/students/${encodeURIComponent(studentId)}/profile`);
   },
 
   // 12. COURSE-WISE SKILL BENCHMARK TALENT DISCOVERY APIS
   async discoverTalent(searchCriteria = {}) {
-    return await safeFetchUrl('http://localhost:5000/api/company/talent-discovery', {
+    return await safeFetchUrl('/api/company/talent-discovery', {
       method: 'POST',
       body: JSON.stringify(searchCriteria)
     });
   },
   async getSkillsCatalog() {
-    return await safeFetchUrl('http://localhost:5000/api/company/skills-catalog');
+    return await safeFetchUrl('/api/company/skills-catalog');
   },
   async getCoursesCatalog() {
-    return await safeFetchUrl('http://localhost:5000/api/company/courses-catalog');
+    return await safeFetchUrl('/api/company/courses-catalog');
   },
 
   // 13. STUDENT SKILL LIFECYCLE & ELIGIBILITY APIS
   async getSkillsWithEligibility() {
-    return await safeFetchUrl('http://localhost:5000/api/learning/skills');
+    return await safeFetchUrl('/api/learning/skills');
   },
   async getSkillDetails(skillId) {
-    return await safeFetchUrl(`http://localhost:5000/api/learning/skills/${encodeURIComponent(skillId)}`);
+    return await safeFetchUrl(`/api/learning/skills/${encodeURIComponent(skillId)}`);
   },
   async enrollInSkill(skillId, options = {}) {
-    return await safeFetchUrl(`http://localhost:5000/api/learning/skills/${encodeURIComponent(skillId)}/enroll`, {
+    return await safeFetchUrl(`/api/learning/skills/${encodeURIComponent(skillId)}/enroll`, {
       method: 'POST',
       body: JSON.stringify(options)
     });
   },
   async submitSkillAssessment(skillId, submissionData = {}) {
-    return await safeFetchUrl(`http://localhost:5000/api/learning/skills/${encodeURIComponent(skillId)}/assess`, {
+    return await safeFetchUrl(`/api/learning/skills/${encodeURIComponent(skillId)}/assess`, {
       method: 'POST',
       body: JSON.stringify(submissionData)
     });
   },
   async getMyEnrolledSkills() {
-    return await safeFetchUrl('http://localhost:5000/api/learning/my-skills');
+    return await safeFetchUrl('/api/learning/my-skills');
   },
 
   // 14. INSTITUTION ACADEMIC SKILL MANAGEMENT & REVIEW APIS
   async getAcademicSkills(status = null) {
     const query = status ? `?status=${encodeURIComponent(status)}` : '';
-    return await safeFetchUrl(`http://localhost:5000/api/academic/skills${query}`);
+    return await safeFetchUrl(`/api/academic/skills${query}`);
   },
   async getAcademicSkillDetails(skillId) {
-    return await safeFetchUrl(`http://localhost:5000/api/academic/skills/${encodeURIComponent(skillId)}`);
+    return await safeFetchUrl(`/api/academic/skills/${encodeURIComponent(skillId)}`);
   },
   async saveAcademicSkill(skillData, isPublish = false) {
-    return await safeFetchUrl('http://localhost:5000/api/academic/skills', {
+    return await safeFetchUrl('/api/academic/skills', {
       method: 'POST',
       body: JSON.stringify({ ...skillData, isPublish })
     });
   },
   async archiveAcademicSkill(skillId) {
-    return await safeFetchUrl(`http://localhost:5000/api/academic/skills/${encodeURIComponent(skillId)}/archive`, {
+    return await safeFetchUrl(`/api/academic/skills/${encodeURIComponent(skillId)}/archive`, {
       method: 'POST'
     });
   },
   async getPendingEnrollmentRequests() {
-    return await safeFetchUrl('http://localhost:5000/api/academic/enrollment-requests');
+    return await safeFetchUrl('/api/academic/enrollment-requests');
   },
   async approveEnrollmentRequest(enrollmentId, reason = '') {
-    return await safeFetchUrl(`http://localhost:5000/api/academic/enrollments/${encodeURIComponent(enrollmentId)}/approve`, {
+    return await safeFetchUrl(`/api/academic/enrollments/${encodeURIComponent(enrollmentId)}/approve`, {
       method: 'POST',
       body: JSON.stringify({ reason })
     });
   },
   async rejectEnrollmentRequest(enrollmentId, reason = '') {
-    return await safeFetchUrl(`http://localhost:5000/api/academic/enrollments/${encodeURIComponent(enrollmentId)}/reject`, {
+    return await safeFetchUrl(`/api/academic/enrollments/${encodeURIComponent(enrollmentId)}/reject`, {
       method: 'POST',
       body: JSON.stringify({ reason })
     });

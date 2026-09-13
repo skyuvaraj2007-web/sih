@@ -41,7 +41,7 @@ export default function InstitutionStudentReadiness({ onShowToast, institution }
     let rawStudents = [];
     try {
       const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
-      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+      const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
       const res = await fetch(`${apiBase}/academic/students`, {
         headers: {
           'Content-Type': 'application/json',
@@ -67,7 +67,7 @@ export default function InstitutionStudentReadiness({ onShowToast, institution }
     try {
       const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
       if (token) {
-        const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+        const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
         const res = await fetch(`${apiBase}/academic/readiness`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });

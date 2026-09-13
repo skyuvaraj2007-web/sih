@@ -130,7 +130,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
   const fileInputRef = useRef(null);
 
   const currentRole = normalizeRole(user?.role);
-  const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+  const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
 
   // Fetch trash bin from backend
   const fetchTrash = useCallback(async () => {

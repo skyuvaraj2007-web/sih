@@ -515,7 +515,7 @@ export function recordAssessmentCompletion({
   // Synchronize with backend if online
   try {
     const token = localStorage.getItem('nexus_token') || localStorage.getItem('token') || localStorage.getItem('nexus_auth_token');
-    const apiBase = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL ? import.meta.env.VITE_API_URL : 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+    const apiBase = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL ? import.meta.env.VITE_API_URL : '').replace(/\/api\/?$/, '') + '/api';
     fetch(`${apiBase}/assessments/submit`, {
       method: 'POST',
       headers: {

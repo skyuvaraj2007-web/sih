@@ -196,7 +196,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
 
       // Dynamically fetch departments for this institution from database
       try {
-        const dRes = await fetch(`http://localhost:5000/api/auth/institutions/${encodeURIComponent(cId)}/departments`);
+        const dRes = await fetch(`/api/auth/institutions/${encodeURIComponent(cId)}/departments`);
         const dData = await dRes.json();
         if (dData.success && Array.isArray(dData.data) && dData.data.length > 0) {
           setDynamicDepartments(dData.data);
@@ -244,7 +244,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
 
   const loadClassesForDepartment = async (deptId) => {
     try {
-      const cRes = await fetch(`http://localhost:5000/api/auth/departments/${encodeURIComponent(deptId)}/classes`);
+      const cRes = await fetch(`/api/auth/departments/${encodeURIComponent(deptId)}/classes`);
       const cData = await cRes.json();
       if (cData.success && Array.isArray(cData.data)) {
         setDynamicClasses(cData.data);

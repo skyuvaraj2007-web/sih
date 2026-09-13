@@ -63,7 +63,7 @@ export default function CompanyCourses({ onTabSelect, onShowToast, user }) {
   });
 
   const apiBase = useMemo(() => {
-    return (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+    return (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
   }, []);
 
   const fetchCourses = useCallback(async () => {

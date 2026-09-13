@@ -137,7 +137,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
   const [sessionStats, setSessionStats] = useState(null);
   const sessionStartTimeRef = useRef(Date.now());
 
-  const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+  const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
 
   // ── Fetch Telemetry & Curriculum ───────────────────────────────────────────
   const fetchCommunicationData = async () => {

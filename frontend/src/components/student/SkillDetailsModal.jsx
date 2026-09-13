@@ -39,7 +39,7 @@ export default function SkillDetailsModal({
     setEnrollSuccess(false);
 
     const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
-    fetch(`http://localhost:5000/api/learning/skills/${skillId}`, {
+    fetch(`/api/learning/skills/${skillId}`, {
       headers: {
         'Authorization': token ? `Bearer ${token}` : ''
       }
@@ -80,7 +80,7 @@ export default function SkillDetailsModal({
     const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
 
     try {
-      const res = await fetch(`http://localhost:5000/api/learning/skills/${skillId}/enroll`, {
+      const res = await fetch(`/api/learning/skills/${skillId}/enroll`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

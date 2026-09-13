@@ -221,7 +221,7 @@ export default function IndustryPortal({
     let isMounted = true;
     const fetchCompanyData = async () => {
       const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
-      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+      const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
       const headers = {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})

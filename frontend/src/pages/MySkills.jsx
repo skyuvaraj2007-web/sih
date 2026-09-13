@@ -49,7 +49,7 @@ const getApiBase = () => {
   if (typeof window !== 'undefined' && window.__NEXUS_API_BASE__) {
     return window.__NEXUS_API_BASE__;
   }
-  return 'http://localhost:5000/api';
+  return (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
 };
 
 const CANONICAL_LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];

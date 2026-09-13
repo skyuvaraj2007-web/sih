@@ -27,7 +27,7 @@ export default function SearchResults({ setActivePage }) {
     institutions: []
   });
 
-  const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+  const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
 
   const executeSearch = useCallback(async (searchStr) => {
     const q = String(searchStr || '').trim();

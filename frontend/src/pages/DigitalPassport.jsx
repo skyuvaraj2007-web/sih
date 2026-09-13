@@ -82,7 +82,7 @@ export default function DigitalPassport({ onShowToast, user }) {
   }));
 
   const handleExportJsonLd = () => {
-    window.open('http://localhost:5000/api/passport/export-jsonld', '_blank');
+    window.open('/api/passport/export-jsonld', '_blank');
     if (onShowToast) {
       onShowToast({
         title: 'Verifiable Credential Exported',

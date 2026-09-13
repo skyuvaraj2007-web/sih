@@ -49,7 +49,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
     try {
       const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
       if (token) {
-        const res = await fetch('http://localhost:5000/api/academic/skill-analytics', {
+        const res = await fetch('/api/academic/skill-analytics', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -60,7 +60,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
         }
 
         // Fetch published institutional skills
-        const skillsRes = await fetch('http://localhost:5000/api/academic/skills', {
+        const skillsRes = await fetch('/api/academic/skills', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (skillsRes.ok) {
@@ -74,7 +74,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
         }
 
         // Fetch Communication Analytics for mapped cohort
-        const commRes = await fetch('http://localhost:5000/api/academic/communication-analytics', {
+        const commRes = await fetch('/api/academic/communication-analytics', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (commRes.ok) {
@@ -98,8 +98,8 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
         const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
         const [intelRes, stdRes] = await Promise.all([
-          fetch(`http://localhost:5000/api/academic/skills/${selectedSkillId}/intelligence`, { headers }),
-          fetch(`http://localhost:5000/api/academic/skills/${selectedSkillId}/students`, { headers })
+          fetch(`/api/academic/skills/${selectedSkillId}/intelligence`, { headers }),
+          fetch(`/api/academic/skills/${selectedSkillId}/students`, { headers })
         ]);
 
         if (intelRes.ok) {
@@ -131,9 +131,9 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
         // re-fetch skill data
         const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-        fetch(`http://localhost:5000/api/academic/skills/${selectedSkillId}/intelligence`, { headers })
+        fetch(`/api/academic/skills/${selectedSkillId}/intelligence`, { headers })
           .then(r => r.json()).then(j => j.success && setSelectedSkillIntelligence(j.data)).catch(() => {});
-        fetch(`http://localhost:5000/api/academic/skills/${selectedSkillId}/students`, { headers })
+        fetch(`/api/academic/skills/${selectedSkillId}/students`, { headers })
           .then(r => r.json()).then(j => j.success && setSelectedSkillStudents(j.data)).catch(() => {});
       }
     };

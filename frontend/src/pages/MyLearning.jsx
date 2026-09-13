@@ -177,7 +177,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
     setIsDiscontinuing(true);
     try {
       const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
-      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+      const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
       const enrId = discontinueTarget.id || discontinueTarget.enrollmentId || discontinueTarget.courseId;
       const res = await fetch(`${apiBase}/learning/${enrId}/discontinue`, {
         method: 'POST',

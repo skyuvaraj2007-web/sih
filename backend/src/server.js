@@ -156,12 +156,14 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(`⚡ SKILLNEXUS AI BACKEND SERVER ONLINE ON PORT ${PORT} ⚡`);
-  console.log(`   Node: SKILLNEXUS-SOVEREIGN-NODE-01`);
-  console.log(`   Health: http://localhost:${PORT}/api/health`);
-  console.log(`====================================================`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(`⚡ SKILLNEXUS AI BACKEND SERVER ONLINE ON PORT ${PORT} ⚡`);
+    console.log(`   Node: SKILLNEXUS-SOVEREIGN-NODE-01`);
+    console.log(`   Health: http://localhost:${PORT}/api/health`);
+    console.log(`====================================================`);
+  });
+}
 
 module.exports = app;

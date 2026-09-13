@@ -39,7 +39,7 @@ export default function InstitutionStudentDetails({ onShowToast, institution }) 
     setFetchError(null);
     try {
       const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
-      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+      const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
       const res = await fetch(`${apiBase}/academic/students`, {
         headers: {
           'Content-Type': 'application/json',

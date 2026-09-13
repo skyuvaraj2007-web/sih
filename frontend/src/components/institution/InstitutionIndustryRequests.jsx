@@ -78,7 +78,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
       // Fetch active registered companies
       try {
         const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
-        const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+        const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
         const cRes = await fetch(`${apiBase}/company`, {
           headers: token ? { 'Authorization': `Bearer ${token}` } : {},
           credentials: 'include'

@@ -100,7 +100,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
   const [commProfile, setCommProfile] = useState(null);
 
   const currentRole = normalizeRole(user?.role);
-  const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+  const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
 
   const [instProfile, setInstProfile] = useState(() => {
     try { const raw = localStorage.getItem('nexus_institution_profile'); return raw ? JSON.parse(raw) : null; } catch { return null; }

@@ -24,7 +24,7 @@ export default function CodeSandboxModal({ isOpen, onClose, onAttested }) {
   const handleRunCode = async () => {
     setIsRunning(true);
     try {
-      const res = await fetch('http://localhost:5000/api/assessments/run-code', {
+      const res = await fetch('/api/assessments/run-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ language, code })

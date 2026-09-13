@@ -92,8 +92,8 @@ export default function SkillLearningPathModal({
 
     try {
       const [skillRes, progRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/learning/skills/${skillId}`, { headers }).then(r => r.json()),
-        fetch(`http://localhost:5000/api/learning/skills/${skillId}/progress`, { headers }).then(r => r.json())
+        fetch(`/api/learning/skills/${skillId}`, { headers }).then(r => r.json()),
+        fetch(`/api/learning/skills/${skillId}/progress`, { headers }).then(r => r.json())
       ]);
 
       if (skillRes.success && skillRes.data) {
@@ -132,7 +132,7 @@ export default function SkillLearningPathModal({
     const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
 
     try {
-      const res = await fetch(`http://localhost:5000/api/learning/skills/${skillId}/lessons/complete`, {
+      const res = await fetch(`/api/learning/skills/${skillId}/lessons/complete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +176,7 @@ export default function SkillLearningPathModal({
 
     const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:5000/api/learning/skills/${skillId}/practice`, {
+      const res = await fetch(`/api/learning/skills/${skillId}/practice`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ export default function SkillLearningPathModal({
     const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
 
     try {
-      const res = await fetch(`http://localhost:5000/api/learning/skills/${skillId}/project`, {
+      const res = await fetch(`/api/learning/skills/${skillId}/project`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

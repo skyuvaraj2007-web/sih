@@ -34,7 +34,7 @@ export default function NexusAIModal({ isOpen, onClose, setActivePage }) {
     const latest = store.assessments[0];
 
     try {
-      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+      const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
       const token = localStorage.getItem('nexus_token') || localStorage.getItem('token') || localStorage.getItem('nexus_auth_token');
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;

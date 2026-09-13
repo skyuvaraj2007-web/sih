@@ -3,7 +3,7 @@
  * Handles client-side API requests for the Academician/Faculty Module.
  */
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
 const ACADEMICIAN_BASE = `${API_BASE}/api/academician`;
 const LEARNING_BASE = `${API_BASE}/api/learning`;
 

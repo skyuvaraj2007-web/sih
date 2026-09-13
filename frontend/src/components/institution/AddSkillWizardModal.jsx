@@ -284,7 +284,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/academic/skills', {
+      const res = await fetch('/api/academic/skills', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

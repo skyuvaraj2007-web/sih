@@ -141,7 +141,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
     let isMounted = true;
     const fetchDashboard = async () => {
       try {
-        const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+        const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
         const token = localStorage.getItem('nexus_token') || localStorage.getItem('nexus_auth_token') || localStorage.getItem('token');
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
         const res = await fetch(`${apiBase}/students/dashboard`, {
@@ -169,7 +169,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
     let isMounted = true;
     const fetchAI = async () => {
       try {
-        const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+        const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
         const token = localStorage.getItem('nexus_token') || localStorage.getItem('nexus_auth_token') || localStorage.getItem('token');
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 

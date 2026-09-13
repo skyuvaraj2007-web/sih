@@ -51,7 +51,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const res = await fetch('http://localhost:5000/api/learning/enroll', {
+      const res = await fetch('/api/learning/enroll', {
         method: 'POST',
         headers,
         body: JSON.stringify({

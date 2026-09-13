@@ -173,7 +173,7 @@ export function saveStudentProfile(updatedProfile) {
 
     // Async sync with backend if available
     const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
-    const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '') + '/api';
+    const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
     fetch(`${apiBase}/students/profile`, {
       method: 'PUT',
       headers: {
