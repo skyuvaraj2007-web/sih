@@ -84,6 +84,135 @@ class RelationalManager {
 
     const demoAccounts = [
       {
+        email: 'student.demo@skillnexus.ai',
+        role: 'STUDENT',
+        password: 'Demo@2026',
+        name: 'Arun Kumar',
+        userId: 'demo-student-user-canonical',
+        studentId: '23CSE042',
+        rollNumber: '23CSE042',
+        regNo: '23CSE042',
+        collegeId: 'ABC-ENG',
+        institutionId: 'ABC-ENG',
+        collegeCode: 'ABC-ENG',
+        institutionCode: 'ABC-ENG',
+        collegeName: 'ABC Engineering College',
+        institutionName: 'ABC Engineering College',
+        department: 'Computer Science and Engineering',
+        departmentName: 'Computer Science and Engineering',
+        degree: 'B.Tech',
+        batch: '2023-2027',
+        year: 'III Year',
+        semester: 'Semester 5',
+        cgpa: 8.85,
+        creditsCompleted: 98,
+        totalCredits: 160,
+        readinessScore: 88,
+        placementStatus: 'Placement Ready',
+        targetRole: 'Full Stack AI Engineer',
+        targetCareerRole: 'Full Stack AI Engineer',
+        desiredRole: 'Full Stack AI Engineer',
+        careerGoals: 'Full Stack AI Engineer',
+        bio: 'Passionate computer science undergraduate specialized in full stack web development, algorithmic problem solving, and cloud-native architectures.',
+        githubUrl: 'https://github.com/arunkumar-nexus',
+        linkedinUrl: 'https://linkedin.com/in/arunkumar-sih2026',
+        resumeUrl: 'https://skillnexus.io/resumes/arun-kumar-cv.pdf',
+        profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        skills: [
+          { name: 'Python', level: 'Advanced', verified: true, confidence: 88 },
+          { name: 'React.js', level: 'Advanced', verified: true, confidence: 85 },
+          { name: 'React', level: 'Advanced', verified: true, confidence: 85 },
+          { name: 'Data Structures', level: 'Advanced', verified: true, confidence: 84 },
+          { name: 'C++', level: 'Advanced', verified: true, confidence: 82 },
+          { name: 'SQL', level: 'Intermediate', verified: true, confidence: 80 },
+          { name: 'Java', level: 'Intermediate', verified: true, confidence: 78 },
+          { name: 'Cloud Computing', level: 'Intermediate', verified: true, confidence: 76 }
+        ],
+        projects: [
+          {
+            id: 'demo-prj-1',
+            title: 'SkillNexus AI — Decentralized Competency Intelligence Platform',
+            description: 'End-to-end full stack web application incorporating cryptographic skill validation, dynamic matching engines, and micro-credentialing passports.',
+            repoUrl: 'https://github.com/arunkumar-nexus/skillnexus-core',
+            demoUrl: 'https://skillnexus-demo.vercel.app',
+            techStack: ['React', 'Node.js', 'PostgreSQL', 'Express', 'TailwindCSS'],
+            status: 'Validated',
+            proofVerified: true,
+            submittedAt: new Date(Date.now() - 25 * 86400000).toISOString()
+          },
+          {
+            id: 'demo-prj-2',
+            title: 'Neural Network Career Copilot & Resume Optimizer',
+            description: 'AI-assisted career navigation copilot that parses candidate skill graphs and computes deterministic gap analysis across industry benchmarks.',
+            repoUrl: 'https://github.com/arunkumar-nexus/career-copilot-engine',
+            demoUrl: 'https://copilot-nexus.vercel.app',
+            techStack: ['Python', 'FastAPI', 'PyTorch', 'Docker'],
+            status: 'Validated',
+            proofVerified: true,
+            submittedAt: new Date(Date.now() - 15 * 86400000).toISOString()
+          },
+          {
+            id: 'demo-prj-3',
+            title: 'Distributed Microservices Event Pipeline',
+            description: 'Scalable data pipeline built with Kafka and Redis for low-latency assessment streaming and telemetry tracking.',
+            repoUrl: 'https://github.com/arunkumar-nexus/distributed-event-mesh',
+            demoUrl: 'https://mesh-demo.vercel.app',
+            techStack: ['Go', 'Kafka', 'Redis', 'Docker', 'Kubernetes'],
+            status: 'In Progress',
+            proofVerified: false,
+            submittedAt: new Date(Date.now() - 5 * 86400000).toISOString()
+          }
+        ],
+        certifications: [
+          {
+            title: 'Certified Full Stack Web Developer (React.js & Node.js)',
+            certificateNumber: 'SNX-2026-FSD-0842',
+            url: 'https://skillnexus.io/verify/SNX-2026-FSD-0842',
+            issuedAt: new Date(Date.now() - 30 * 86400000).toISOString()
+          },
+          {
+            title: 'Advanced Data Structures & Algorithms Mastery',
+            certificateNumber: 'SNX-2026-DSA-0911',
+            url: 'https://skillnexus.io/verify/SNX-2026-DSA-0911',
+            issuedAt: new Date(Date.now() - 60 * 86400000).toISOString()
+          }
+        ]
+      },
+      {
+        email: 'academician.demo@skillnexus.ai',
+        role: 'FACULTY',
+        password: 'Demo@2026',
+        name: 'Dr. Ramesh Sundaram',
+        userId: 'demo-academician-user',
+        facultyId: 'FAC-CSE-001',
+        institutionId: 'ABC-ENG',
+        collegeId: 'ABC-ENG',
+        department: 'Computer Science and Engineering',
+        designation: 'Professor & Head of Department'
+      },
+      {
+        email: 'institution.demo@skillnexus.ai',
+        role: 'INSTITUTION',
+        password: 'Demo@2026',
+        name: 'ABC Engineering College',
+        userId: 'demo-institution-user',
+        institutionId: 'ABC-ENG',
+        collegeId: 'ABC-ENG',
+        institutionName: 'ABC Engineering College',
+        collegeName: 'ABC Engineering College',
+        university: 'Anna University'
+      },
+      {
+        email: 'industry.demo@skillnexus.ai',
+        role: 'COMPANY',
+        password: 'Demo@2026',
+        name: 'Kavitha N',
+        userId: 'demo-industry-user',
+        companyId: 'COMP-SBT',
+        companyName: 'SBT TECH Innovations',
+        industry: 'Information Technology & AI Solutions'
+      },
+      {
         email: 'arun.kumar@nexus.edu',
         role: 'STUDENT',
         password: 'nexus@2026',
@@ -107,7 +236,7 @@ class RelationalManager {
         role: 'INSTITUTION',
         password: 'nexus@2026',
         name: 'SRM Institute of Science and Technology',
-        userId: 'demo-institution-user',
+        userId: 'demo-institution-user-srm',
         institutionId: 'TN010',
         collegeId: 'TN010',
         institutionName: 'SRM Institute of Science and Technology',
@@ -119,7 +248,7 @@ class RelationalManager {
         role: 'COMPANY',
         password: 'nexus@2026',
         name: 'ABC Technologies',
-        userId: 'demo-company-user',
+        userId: 'demo-company-user-abc',
         companyId: 'COMP-001',
         companyName: 'ABC Technologies',
         industry: 'Information Technology & AI Solutions'
@@ -165,13 +294,26 @@ class RelationalManager {
             year: demo.year,
             semester: demo.semester,
             cgpa: demo.cgpa,
+            creditsCompleted: demo.creditsCompleted || 98,
+            totalCredits: demo.totalCredits || 160,
             collegeId: demo.collegeId,
             institutionId: demo.institutionId,
-            collegeCode: demo.collegeId,
-            institutionCode: demo.institutionId,
-            collegeName: 'SRM Institute of Science and Technology',
+            collegeCode: demo.collegeCode || demo.collegeId,
+            institutionCode: demo.institutionCode || demo.institutionId,
+            collegeName: demo.collegeName || 'ABC Engineering College',
             readinessScore: demo.readinessScore,
             placementStatus: demo.placementStatus,
+            targetRole: demo.targetRole || 'Full Stack AI Engineer',
+            targetCareerRole: demo.targetCareerRole || 'Full Stack AI Engineer',
+            desiredRole: demo.desiredRole || 'Full Stack AI Engineer',
+            careerGoals: demo.careerGoals || 'Full Stack AI Engineer',
+            bio: demo.bio || '',
+            githubUrl: demo.githubUrl || '',
+            linkedinUrl: demo.linkedinUrl || '',
+            resumeUrl: demo.resumeUrl || '',
+            skills: Array.isArray(demo.skills) ? demo.skills : [],
+            projects: Array.isArray(demo.projects) ? demo.projects : [],
+            certifications: Array.isArray(demo.certifications) ? demo.certifications : [],
             profileImage: demo.profileImage,
             isVerified: true,
             status: 'ACTIVE',
@@ -12155,20 +12297,43 @@ class RelationalManager {
   async getStudentCertificates(studentId) {
     if (!studentId) return [];
     try {
-      if (this.pg) {
-        const student = await this.getStudentById(studentId);
-        const resolvedId = student?.id || studentId;
-        const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(String(resolvedId));
-        if (isUuid) {
-          const res = await this.pg.query(
-            `SELECT id, student_id, institution_id, course_id, certificate_number, title, certificate_url, verification_hash, issued_at
-             FROM certificates
-             WHERE student_id = $1
-             ORDER BY issued_at DESC`,
-            [resolvedId]
-          );
-          return res.rows || [];
+      const student = await this.getStudentById(studentId);
+      const resolvedId = student?.id || studentId;
+      const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(String(resolvedId));
+
+      if (this.supabase && isUuid) {
+        const { data, error } = await this.supabase
+          .from('certificates')
+          .select('*')
+          .eq('student_id', resolvedId)
+          .order('issued_at', { ascending: false });
+        if (!error && Array.isArray(data) && data.length > 0) {
+          return data;
         }
+      }
+
+      if (this.pg && isUuid) {
+        const res = await this.pg.query(
+          `SELECT id, student_id, institution_id, course_id, certificate_number, title, certificate_url, verification_hash, issued_at
+           FROM certificates
+           WHERE student_id = $1
+           ORDER BY issued_at DESC`,
+          [resolvedId]
+        );
+        if (res.rows && res.rows.length > 0) return res.rows;
+      }
+
+      if (Array.isArray(student?.certifications) && student.certifications.length > 0) {
+        return student.certifications.map((c, idx) => ({
+          id: c.id || `cert-${resolvedId}-${idx + 1}`,
+          student_id: resolvedId,
+          title: c.title || c.certificateName || 'Certified Professional',
+          certificate_number: c.certificateNumber || c.certificate_number || `SNX-CERT-${idx + 1000}`,
+          certificate_url: c.url || c.certificate_url || '#',
+          verification_hash: c.verification_hash || 'SHA256-VERIFIED-CREDENTIAL',
+          status: 'VERIFIED',
+          issued_at: c.issuedAt || c.issued_at || new Date().toISOString()
+        }));
       }
     } catch (e) {
       console.warn('[getStudentCertificates] error:', e.message);
@@ -12178,6 +12343,38 @@ class RelationalManager {
 
   async getStudentCertifications(studentId) {
     return await this.getStudentCertificates(studentId);
+  }
+
+  async getStudentSkills(studentId) {
+    if (!studentId) return [];
+    try {
+      const student = await this.getStudentById(studentId);
+      if (student && Array.isArray(student.skills) && student.skills.length > 0) {
+        return student.skills;
+      }
+      if (this.supabase) {
+        const resolvedId = student?.id || studentId;
+        const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(String(resolvedId));
+        if (isUuid) {
+          const { data, error } = await this.supabase
+            .from('student_skills')
+            .select('*')
+            .eq('student_id', resolvedId);
+          if (!error && Array.isArray(data) && data.length > 0) {
+            return data.map(r => ({
+              id: r.id,
+              name: r.skill_name,
+              level: r.proficiency_level || r.claimed_level || 'Intermediate',
+              confidence: Number(r.confidence_score || r.proficiency_score || 75),
+              verified: r.verification_status === 'VERIFIED'
+            }));
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[getStudentSkills] error:', e.message);
+    }
+    return [];
   }
 
   async createStudentProject(studentId, data = {}) {

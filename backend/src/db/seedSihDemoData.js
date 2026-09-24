@@ -329,6 +329,59 @@ async function seedSihDemoData() {
   }
   console.log(`✅ Preloaded verified certificates for Arun Kumar.`);
 
+  // Preload Verified Projects for Arun Kumar
+  const demoProjectsData = [
+    {
+      student_id: studentId,
+      institution_id: inst.id,
+      title: 'SkillNexus AI — Decentralized Competency Intelligence Platform',
+      description: 'End-to-end full stack web application incorporating cryptographic skill validation, dynamic matching engines, and micro-credentialing passports.',
+      github_url: 'https://github.com/arunkumar-nexus/skillnexus-core',
+      live_url: 'https://skillnexus-demo.vercel.app',
+      tech_stack: ['React', 'Node.js', 'PostgreSQL', 'Express', 'TailwindCSS'],
+      status: 'Validated',
+      submitted_at: new Date(Date.now() - 25 * 86400000).toISOString(),
+      validated_at: new Date(Date.now() - 20 * 86400000).toISOString()
+    },
+    {
+      student_id: studentId,
+      institution_id: inst.id,
+      title: 'Neural Network Career Copilot & Resume Optimizer',
+      description: 'AI-assisted career navigation copilot that parses candidate skill graphs and computes deterministic gap analysis across industry benchmarks.',
+      github_url: 'https://github.com/arunkumar-nexus/career-copilot-engine',
+      live_url: 'https://copilot-nexus.vercel.app',
+      tech_stack: ['Python', 'FastAPI', 'PyTorch', 'Docker'],
+      status: 'Validated',
+      submitted_at: new Date(Date.now() - 15 * 86400000).toISOString(),
+      validated_at: new Date(Date.now() - 10 * 86400000).toISOString()
+    },
+    {
+      student_id: studentId,
+      institution_id: inst.id,
+      title: 'Distributed Microservices Event Pipeline',
+      description: 'Scalable data pipeline built with Kafka and Redis for low-latency assessment streaming and telemetry tracking.',
+      github_url: 'https://github.com/arunkumar-nexus/distributed-event-mesh',
+      live_url: 'https://mesh-demo.vercel.app',
+      tech_stack: ['Go', 'Kafka', 'Redis', 'Docker', 'Kubernetes'],
+      status: 'In Progress',
+      submitted_at: new Date(Date.now() - 5 * 86400000).toISOString()
+    }
+  ];
+
+  for (const prj of demoProjectsData) {
+    const { data: existingPrj } = await client
+      .from('projects')
+      .select('id')
+      .eq('student_id', studentId)
+      .eq('title', prj.title)
+      .limit(1);
+
+    if (!existingPrj || existingPrj.length === 0) {
+      await client.from('projects').insert(prj);
+    }
+  }
+  console.log(`✅ Preloaded verified projects for Arun Kumar.`);
+
   // Preload Initial Course Enrollment for Arun Kumar
   const { data: sampleCourses } = await client
     .from('courses')

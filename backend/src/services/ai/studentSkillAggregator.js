@@ -164,276 +164,255 @@ class StudentSkillAggregator {
     };
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Source 1: student_skills table (Profile & claim records)
-    // ─────────────────────────────────────────────────────────────────────────
-    try {
-      const { data: dbSkills, error: dbSkillsErr } = await supabase
-        .from('student_skills')
-        .select(`
-          id,
-          self_rating,
-          claimed_level,
-          verified_level,
-          confidence_score,
-          proficiency_score,
-          proficiency_level,
-          credibility_score,
-          evidence_count,
-          last_verified_at,
-          verification_status,
-          last_updated,
-          skill_name,
-          category,
-          source,
-          skills (
-            id,
-            name,
-            difficulty,
-            industry_demand
-          )
-        `)
-        .eq('student_id', studentUuid);
-
-      if (!dbSkillsErr && Array.isArray(dbSkills)) {
-        dbSkills.forEach(row => {
-          const rawName = row.skill_name || row.skills?.name;
-          if (!rawName) return;
-          const score = row.proficiency_score || row.confidence_score || (row.self_rating ? row.self_rating * 20 : 70);
-          const isVerified = row.verification_status === 'VERIFIED';
-          const level = row.proficiency_level || (isVerified ? (row.verified_level || row.claimed_level) : row.claimed_level);
-          recordSkill({
-            name: rawName,
-            category: row.category || determineCategory(rawName),
-            level,
-            score,
-            credibilityScore: row.credibility_score || 0,
-            source: row.source || (isVerified ? 'Skill Graph 2.0 Verified' : 'Student Profile Claim'),
-            verificationStatus: row.verification_status || 'CLAIMED',
-            lastUpdated: row.last_verified_at || row.last_updated
-          });
-        });
-      }
-    } catch (err) {
-      console.debug('[SkillAggregator] Source 1 note:', err.message);
-    }
-
-    // Also check student.skills embedded JSON array if present
-    if (Array.isArray(student.skills)) {
-      student.skills.forEach(s => {
-        const rawName = s.name || s.skill;
-        if (rawName) {
-          recordSkill({
-            name: rawName,
-            category: s.category || determineCategory(rawName),
-            level: s.level || 'Intermediate',
-            score: s.masteryScore || s.confidence || (s.verified ? 85 : 65),
-            source: s.source || (s.verified ? 'Assessment Stamp' : 'Profile Skill'),
-            verificationStatus: s.verified ? 'VERIFIED' : (s.verificationStatus || 'SELF_ASSESSED'),
-            lastUpdated: s.createdAt || s.lastUpdated
-          });
-        }
-      });
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Source 2: Completed Course Enrollments
+    // Sources 1-5: Concurrent Supabase Queries (if valid UUID & connected)
     // ─────────────────────────────────────────────────────────────────────────
     let completedCoursesCount = 0;
-    try {
-      const { data: enrollments, error: enrollErr } = await supabase
-        .from('enrollments')
-        .select(`
-          id,
-          status,
-          progress_percentage,
-          completed_at,
-          courses (
-            id,
-            title,
-            category,
-            skill_category,
-            learning_objectives,
-            difficulty
-          )
-        `)
-        .eq('student_id', studentUuid);
-
-      if (!enrollErr && Array.isArray(enrollments)) {
-        enrollments.forEach(e => {
-          if (!e.courses) return;
-          const progress = Number(e.progress_percentage || 0);
-          const isCompleted = e.status === 'Completed' || progress >= 100;
-          if (isCompleted) completedCoursesCount++;
-
-          // Extract course title keywords / skill
-          const c = e.courses;
-          const title = c.title;
-          const matchedCategory = c.skill_category || c.category || determineCategory(title);
-
-          // If course is completed or near completion, award verified or high credit
-          if (isCompleted || progress >= 75) {
-            const courseScore = isCompleted ? 85 : Math.round(progress * 0.8);
-            // Deduce primary skill from title
-            const cleanedTitle = title.replace(/\d+/g, '').trim();
-            recordSkill({
-              name: cleanedTitle,
-              category: matchedCategory,
-              level: c.difficulty || (isCompleted ? 'Advanced' : 'Intermediate'),
-              score: courseScore,
-              source: `Course: ${title}`,
-              verificationStatus: isCompleted ? 'VERIFIED' : 'IN_PROGRESS',
-              lastUpdated: e.completed_at || new Date().toISOString()
-            });
-
-            // Extract specific technical skills from title keywords
-            ['React', 'Node.js', 'Python', 'SQL', 'Docker', 'Go', 'JavaScript', 'TypeScript', 'Cloud Computing', 'Machine Learning'].forEach(tech => {
-              if (new RegExp(`\\b${tech}\\b`, 'i').test(title)) {
-                recordSkill({
-                  name: tech,
-                  category: determineCategory(tech),
-                  level: isCompleted ? 'Advanced' : 'Intermediate',
-                  score: courseScore,
-                  source: `Course Completed: ${title}`,
-                  verificationStatus: isCompleted ? 'VERIFIED' : 'IN_PROGRESS',
-                  lastUpdated: e.completed_at || new Date().toISOString()
-                });
-              }
-            });
-          }
-        });
-      }
-    } catch (err) {
-      console.debug('[SkillAggregator] Source 2 note:', err.message);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Source 3: Diagnostic and Domain Assessments
-    // ─────────────────────────────────────────────────────────────────────────
     let assessmentsCount = 0;
-    try {
-      const { data: attempts, error: attErr } = await supabase
-        .from('assessment_attempts')
-        .select(`
-          id,
-          score,
-          accuracy,
-          percentile,
-          status,
-          completed_at,
-          assessments (
-            id,
-            title,
-            domain,
-            categories,
-            passing_score,
-            difficulty
-          )
-        `)
-        .eq('student_id', studentUuid)
-        .order('completed_at', { ascending: false });
-
-      if (!attErr && Array.isArray(attempts)) {
-        attempts.forEach(att => {
-          if (!att.assessments) return;
-          const a = att.assessments;
-          const score = Number(att.score || 0);
-          const passingScore = Number(a.passing_score || 50);
-          const passed = score >= passingScore;
-          if (passed) assessmentsCount++;
-
-          const domainName = a.domain || a.title;
-          recordSkill({
-            name: domainName,
-            category: determineCategory(domainName),
-            level: a.difficulty || (score >= 80 ? 'Advanced' : 'Intermediate'),
-            score: Math.max(score, 60),
-            source: `Assessment: ${a.title} (${score}%)`,
-            verificationStatus: passed ? 'VERIFIED' : 'SELF_ASSESSED',
-            lastUpdated: att.completed_at || new Date().toISOString()
-          });
-
-          // Check categories array / string
-          if (Array.isArray(a.categories)) {
-            a.categories.forEach(catItem => {
-              if (typeof catItem === 'string' && catItem.length > 1) {
-                recordSkill({
-                  name: catItem,
-                  category: determineCategory(catItem),
-                  level: score >= 80 ? 'Advanced' : 'Intermediate',
-                  score: Math.max(score, 60),
-                  source: `Assessment: ${a.title}`,
-                  verificationStatus: passed ? 'VERIFIED' : 'SELF_ASSESSED',
-                  lastUpdated: att.completed_at
-                });
-              }
-            });
-          }
-        });
-      }
-    } catch (err) {
-      console.debug('[SkillAggregator] Source 3 note:', err.message);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Source 4: Verified Certificates
-    // ─────────────────────────────────────────────────────────────────────────
-    try {
-      const { data: certs, error: certErr } = await supabase
-        .from('certificates')
-        .select('*')
-        .eq('student_id', studentUuid);
-
-      if (!certErr && Array.isArray(certs)) {
-        certs.forEach(cert => {
-          const isVerified = cert.status === 'VERIFIED';
-          const related = Array.isArray(cert.related_skills) ? cert.related_skills : (Array.isArray(cert.skills) ? cert.skills : []);
-          related.forEach(skName => {
-            recordSkill({
-              name: skName,
-              category: determineCategory(skName),
-              level: isVerified ? 'Advanced' : 'Intermediate',
-              score: isVerified ? 90 : 70,
-              source: `Certificate: ${cert.title || 'Verified Credential'}`,
-              verificationStatus: isVerified ? 'VERIFIED' : 'CLAIMED',
-              lastUpdated: cert.verified_at || cert.created_at
-            });
-          });
-        });
-      }
-    } catch (err) {
-      console.debug('[SkillAggregator] Source 4 note:', err.message);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Source 5: Projects Tech Stack
-    // ─────────────────────────────────────────────────────────────────────────
     let projectsCount = 0;
-    try {
-      const { data: projs, error: projErr } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('student_id', studentUuid);
 
-      if (!projErr && Array.isArray(projs)) {
-        projs.forEach(proj => {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(studentUuid));
+
+    if (isUuid && supabase) {
+      try {
+        const [dbSkillsRes, enrRes, attRes, certRes, projRes] = await Promise.all([
+          supabase.from('student_skills').select(`
+            id, self_rating, claimed_level, verified_level, confidence_score,
+            proficiency_score, proficiency_level, credibility_score, evidence_count,
+            last_verified_at, verification_status, last_updated, skill_name, category, source,
+            skills ( id, name, difficulty, industry_demand )
+          `).eq('student_id', studentUuid),
+
+          supabase.from('enrollments').select(`
+            id, status, progress_percentage, completed_at,
+            courses ( id, title, category, skill_category, learning_objectives, difficulty )
+          `).eq('student_id', studentUuid),
+
+          supabase.from('assessment_attempts').select(`
+            id, score, accuracy, percentile, status, completed_at,
+            assessments ( id, title, domain, categories, passing_score, difficulty )
+          `).eq('student_id', studentUuid).order('completed_at', { ascending: false }),
+
+          supabase.from('certificates').select('*').eq('student_id', studentUuid),
+
+          supabase.from('projects').select('*').eq('student_id', studentUuid)
+        ]);
+
+        // 1. student_skills
+        const dbSkills = dbSkillsRes.data;
+        if (!dbSkillsRes.error && Array.isArray(dbSkills)) {
+          dbSkills.forEach(row => {
+            const rawName = row.skill_name || row.skills?.name;
+            if (!rawName) return;
+            const score = row.proficiency_score || row.confidence_score || (row.self_rating ? row.self_rating * 20 : 70);
+            const isVerified = row.verification_status === 'VERIFIED';
+            const level = row.proficiency_level || (isVerified ? (row.verified_level || row.claimed_level) : row.claimed_level);
+            recordSkill({
+              name: rawName,
+              category: row.category || determineCategory(rawName),
+              level,
+              score,
+              credibilityScore: row.credibility_score || 0,
+              source: row.source || (isVerified ? 'Skill Graph 2.0 Verified' : 'Student Profile Claim'),
+              verificationStatus: row.verification_status || 'CLAIMED',
+              lastUpdated: row.last_verified_at || row.last_updated
+            });
+          });
+        }
+
+        // 2. enrollments
+        const enrollments = enrRes.data;
+        if (!enrRes.error && Array.isArray(enrollments)) {
+          enrollments.forEach(e => {
+            if (!e.courses) return;
+            const progress = Number(e.progress_percentage || 0);
+            const isCompleted = e.status === 'Completed' || progress >= 100;
+            if (isCompleted) completedCoursesCount++;
+            const c = e.courses;
+            const title = c.title;
+            const matchedCategory = c.skill_category || c.category || determineCategory(title);
+            if (isCompleted || progress >= 75) {
+              const courseScore = isCompleted ? 85 : Math.round(progress * 0.8);
+              const cleanedTitle = title.replace(/\d+/g, '').trim();
+              recordSkill({
+                name: cleanedTitle,
+                category: matchedCategory,
+                level: c.difficulty || (isCompleted ? 'Advanced' : 'Intermediate'),
+                score: courseScore,
+                source: `Course: ${title}`,
+                verificationStatus: isCompleted ? 'VERIFIED' : 'IN_PROGRESS',
+                lastUpdated: e.completed_at || new Date().toISOString()
+              });
+              ['React', 'Node.js', 'Python', 'SQL', 'Docker', 'Go', 'JavaScript', 'TypeScript', 'Cloud Computing', 'Machine Learning'].forEach(tech => {
+                if (new RegExp(`\\b${tech}\\b`, 'i').test(title)) {
+                  recordSkill({
+                    name: tech,
+                    category: determineCategory(tech),
+                    level: isCompleted ? 'Advanced' : 'Intermediate',
+                    score: courseScore,
+                    source: `Course Completed: ${title}`,
+                    verificationStatus: isCompleted ? 'VERIFIED' : 'IN_PROGRESS',
+                    lastUpdated: e.completed_at || new Date().toISOString()
+                  });
+                }
+              });
+            }
+          });
+        }
+
+        // 3. assessment_attempts
+        const attempts = attRes.data;
+        if (!attRes.error && Array.isArray(attempts)) {
+          attempts.forEach(att => {
+            if (!att.assessments) return;
+            const a = att.assessments;
+            const score = Number(att.score || 0);
+            const passingScore = Number(a.passing_score || 50);
+            const passed = score >= passingScore;
+            if (passed) assessmentsCount++;
+            const domainName = a.domain || a.title;
+            recordSkill({
+              name: domainName,
+              category: determineCategory(domainName),
+              level: a.difficulty || (score >= 80 ? 'Advanced' : 'Intermediate'),
+              score: Math.max(score, 60),
+              source: `Assessment: ${a.title} (${score}%)`,
+              verificationStatus: passed ? 'VERIFIED' : 'SELF_ASSESSED',
+              lastUpdated: att.completed_at || new Date().toISOString()
+            });
+            if (Array.isArray(a.categories)) {
+              a.categories.forEach(catItem => {
+                if (typeof catItem === 'string' && catItem.length > 1) {
+                  recordSkill({
+                    name: catItem,
+                    category: determineCategory(catItem),
+                    level: score >= 80 ? 'Advanced' : 'Intermediate',
+                    score: Math.max(score, 60),
+                    source: `Assessment: ${a.title}`,
+                    verificationStatus: passed ? 'VERIFIED' : 'SELF_ASSESSED',
+                    lastUpdated: att.completed_at
+                  });
+                }
+              });
+            }
+          });
+        }
+
+        // 4. certificates
+        const certs = certRes.data;
+        if (!certRes.error && Array.isArray(certs)) {
+          certs.forEach(cert => {
+            const isVerified = cert.status === 'VERIFIED';
+            const related = Array.isArray(cert.related_skills) ? cert.related_skills : (Array.isArray(cert.skills) ? cert.skills : []);
+            related.forEach(skName => {
+              recordSkill({
+                name: skName,
+                category: determineCategory(skName),
+                level: isVerified ? 'Advanced' : 'Intermediate',
+                score: isVerified ? 90 : 70,
+                source: `Certificate: ${cert.title || 'Verified Credential'}`,
+                verificationStatus: isVerified ? 'VERIFIED' : 'CLAIMED',
+                lastUpdated: cert.verified_at || cert.created_at
+              });
+            });
+          });
+        }
+
+        // 5. projects
+        const projs = projRes.data;
+        if (!projRes.error && Array.isArray(projs)) {
+          projs.forEach(proj => {
+            projectsCount++;
+            const techList = Array.isArray(proj.tech_stack) ? proj.tech_stack : (Array.isArray(proj.skills) ? proj.skills : []);
+            const isProven = proj.status === 'VERIFIED' || proj.status === 'Validated';
+            techList.forEach(tech => {
+              recordSkill({
+                name: tech,
+                category: determineCategory(tech),
+                level: isProven ? 'Advanced' : 'Intermediate',
+                score: isProven ? 85 : 70,
+                source: `Project: ${proj.title || 'Engineering Capstone'}`,
+                verificationStatus: isProven ? 'VERIFIED' : 'CLAIMED',
+                lastUpdated: proj.created_at
+              });
+            });
+          });
+        }
+      } catch (err) {
+        console.debug('[SkillAggregator] Supabase queries batch error:', err.message);
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Source 6: Direct Student Profile Skills, Projects & Certifications (from Ledger)
+    // ─────────────────────────────────────────────────────────────────────────
+    try {
+      // 1. Direct student profile skills
+      const profileSkills = Array.isArray(student.skills) && student.skills.length > 0
+        ? student.skills
+        : (await relationalManager.getStudentSkills(studentIdentifier));
+      if (Array.isArray(profileSkills)) {
+        profileSkills.forEach(ps => {
+          const sName = ps.name || ps.skillName || ps.skill_name;
+          if (!sName) return;
+          const conf = Number(ps.confidence || ps.masteryScore || ps.score || (ps.level === 'Advanced' ? 85 : ps.level === 'Expert' ? 95 : 70));
+          recordSkill({
+            name: sName,
+            category: ps.category || determineCategory(sName),
+            level: ps.level || canonicalLevel('', conf),
+            score: conf,
+            credibilityScore: ps.credibilityScore || 60,
+            source: ps.source || 'Profile Skills Ledger',
+            verificationStatus: ps.verified ? 'VERIFIED' : (ps.verificationStatus || 'SELF_ASSESSED'),
+            lastUpdated: ps.lastUpdated || ps.createdAt
+          });
+        });
+      }
+
+      // 2. Direct student projects tech stack
+      const profileProjects = Array.isArray(student.projects) && student.projects.length > 0
+        ? student.projects
+        : (await relationalManager.getStudentProjects(studentIdentifier));
+      if (Array.isArray(profileProjects)) {
+        profileProjects.forEach(prj => {
           projectsCount++;
-          const techList = Array.isArray(proj.tech_stack) ? proj.tech_stack : (Array.isArray(proj.skills) ? proj.skills : []);
-          const isProven = proj.status === 'VERIFIED' || proj.status === 'Validated';
+          const techList = Array.isArray(prj.techStack) ? prj.techStack : (Array.isArray(prj.tech_stack) ? prj.tech_stack : (Array.isArray(prj.technologies) ? prj.technologies : []));
+          const isProven = prj.proofVerified || prj.status === 'Validated' || prj.status === 'VERIFIED';
           techList.forEach(tech => {
             recordSkill({
               name: tech,
               category: determineCategory(tech),
               level: isProven ? 'Advanced' : 'Intermediate',
               score: isProven ? 85 : 70,
-              source: `Project: ${proj.title || 'Engineering Capstone'}`,
+              source: `Project: ${prj.title || 'Technical Project'}`,
               verificationStatus: isProven ? 'VERIFIED' : 'CLAIMED',
-              lastUpdated: proj.created_at
+              lastUpdated: prj.submittedAt || prj.createdAt
+            });
+          });
+        });
+      }
+
+      // 3. Direct student certificates
+      const profileCerts = Array.isArray(student.certifications) && student.certifications.length > 0
+        ? student.certifications
+        : (await relationalManager.getStudentCertificates(studentIdentifier));
+      if (Array.isArray(profileCerts)) {
+        profileCerts.forEach(cert => {
+          const related = Array.isArray(cert.related_skills) ? cert.related_skills : (Array.isArray(cert.skills) ? cert.skills : []);
+          related.forEach(skName => {
+            recordSkill({
+              name: skName,
+              category: determineCategory(skName),
+              level: 'Advanced',
+              score: 90,
+              source: `Certificate: ${cert.title || 'Verified Credential'}`,
+              verificationStatus: 'VERIFIED',
+              lastUpdated: cert.issuedAt || cert.issued_at
             });
           });
         });
       }
     } catch (err) {
-      console.debug('[SkillAggregator] Source 5 note:', err.message);
+      console.debug('[SkillAggregator] Source 6 note:', err.message);
     }
 
     const finalSkillsList = Array.from(skillMap.values());

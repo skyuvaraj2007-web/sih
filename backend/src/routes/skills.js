@@ -213,6 +213,50 @@ router.post('/', requireAuth, async (req, res) => {
 
     await relationalManager.saveStudent(student);
 
+    // Sync to Supabase student_skills for live matching engine recalculation
+    try {
+      if (supabase && student.id) {
+        let skillId = null;
+        const { data: dbSk } = await supabase.from('skills').select('id').ilike('name', cleanName).limit(1);
+        if (dbSk && dbSk.length > 0) {
+          skillId = dbSk[0].id;
+        } else {
+          const { data: newSk } = await supabase.from('skills').insert({
+            name: cleanName,
+            category_id: '6e9b92a1-e5d3-40e6-8331-ae38678e5b15',
+            difficulty: cleanLevel,
+            description: `${cleanName} technical competency`
+          }).select().single();
+          if (newSk) skillId = newSk.id;
+        }
+
+        if (skillId) {
+          const { data: existingSS } = await supabase.from('student_skills').select('id').eq('student_id', student.id).eq('skill_id', skillId).limit(1);
+          const ssPayload = {
+            student_id: student.id,
+            skill_id: skillId,
+            skill_name: cleanName,
+            category: newSkillRecord.category,
+            proficiency_level: cleanLevel,
+            claimed_level: cleanLevel,
+            score: confidence,
+            proficiency_score: confidence,
+            confidence_score: confidence,
+            verification_status: 'SELF_ASSESSED',
+            source: 'Student Added Competency',
+            last_updated: new Date().toISOString()
+          };
+          if (existingSS && existingSS.length > 0) {
+            await supabase.from('student_skills').update(ssPayload).eq('id', existingSS[0].id);
+          } else {
+            await supabase.from('student_skills').insert(ssPayload);
+          }
+        }
+      }
+    } catch (sbErr) {
+      console.warn('[POST /api/skills] Supabase student_skills sync notice:', sbErr.message);
+    }
+
     // Recalculate readiness
     try {
       const breakdown = calculateReadinessFromStudent(student);

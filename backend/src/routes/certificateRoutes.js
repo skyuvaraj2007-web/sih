@@ -144,8 +144,22 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. GET /api/certificates/my — List certificates for authenticated student
+// 2. GET /api/certificates & GET /api/certificates/my — List certificates for authenticated student
 // ─────────────────────────────────────────────────────────────────────────────
+router.get('/', requireAuth, async (req, res) => {
+  try {
+    const studentId = await getEffectiveStudentId(req);
+    const list = await relationalManager.getStudentCertificates(studentId);
+    res.json({
+      success: true,
+      data: list,
+      count: list.length
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 router.get('/my', requireAuth, async (req, res) => {
   try {
     const studentId = await getEffectiveStudentId(req);
