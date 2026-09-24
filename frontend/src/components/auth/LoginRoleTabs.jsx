@@ -31,8 +31,8 @@ export default function LoginRoleTabs({ activeRole, onSelectRole }) {
             }}
             onClick={() => onSelectRole && onSelectRole(r.id)}
           >
-            <Icon size={14} color={isActive ? r.color : '#94a3b8'} />
-            <span style={{ color: isActive ? '#f8fafc' : '#94a3b8', fontWeight: isActive ? 700 : 500 }}>
+            <Icon size={14} color={isActive ? r.color : '#94a3b8'} style={{ flexShrink: 0 }} />
+            <span style={{ color: isActive ? '#f8fafc' : '#94a3b8', fontWeight: isActive ? 700 : 500, lineHeight: 1 }}>
               {r.label}
             </span>
           </button>

@@ -19,6 +19,7 @@ import {
 import { authService } from '../services/authService';
 import SihDemoLoginSection, { SihDemoLoginBanner } from '../components/auth/SihDemoAccessBar';
 import LoginRoleTabs from '../components/auth/LoginRoleTabs';
+import GoogleAuthButton from '../components/auth/GoogleAuthButton';
 
 export default function AcademicianLogin({ onLoginSuccess, onBackToRoles, onNavigateToOtp, onNavigateToForgot, prefillCredentials, onSelectRole, onShowToast }) {
   const [email, setEmail] = useState(() => prefillCredentials?.email || '');
@@ -166,283 +167,315 @@ export default function AcademicianLogin({ onLoginSuccess, onBackToRoles, onNavi
       boxSizing: 'border-box',
       background: 'radial-gradient(ellipse at 50% 20%, rgba(99, 102, 241, 0.12) 0%, #070b14 70%)'
     }}>
-      {/* Back Button */}
-      <button
-        onClick={onBackToRoles}
-        style={{
-          position: 'absolute',
-          top: '28px',
-          left: '28px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: 'rgba(255, 255, 255, 0.05)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          color: '#e2e8f0',
-          padding: '8px 16px',
-          borderRadius: '8px',
-          fontSize: '13px',
-          fontWeight: 600,
-          cursor: 'pointer',
-          transition: 'all 0.2s'
-        }}
-      >
-        <ArrowLeft size={16} /> Select Portal
-      </button>
-
-      {/* Main Login Card */}
       <div style={{
-        width: '100%',
-        maxWidth: '460px',
-        background: 'rgba(15, 23, 42, 0.75)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        border: '1px solid rgba(99, 102, 241, 0.25)',
-        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(99, 102, 241, 0.15)',
-        borderRadius: '20px',
-        padding: '36px 32px'
+        display: 'grid',
+        gridTemplateColumns: 'minmax(340px, 460px) minmax(360px, 480px)',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        border: '1px solid rgba(245, 158, 11, 0.35)',
+        background: 'var(--bg-card, #0B1120)',
+        boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 30px rgba(245, 158, 11, 0.15)',
+        maxWidth: '960px',
+        width: '100%'
       }}>
-        {/* Header Badge & Title */}
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: 'rgba(99, 102, 241, 0.12)',
-            border: '1px solid rgba(99, 102, 241, 0.3)',
-            padding: '6px 14px',
-            borderRadius: '999px',
-            color: '#818cf8',
-            fontSize: '12px',
-            fontWeight: 700,
-            letterSpacing: '0.05em',
-            marginBottom: '14px'
-          }}>
-            <GraduationCap size={15} /> ACADEMICIAN PORTAL
+        {/* Left Hero Panel */}
+        <div style={{
+          background: 'linear-gradient(180deg, #1C1508 0%, #060913 100%)',
+          padding: '40px 36px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          borderRight: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))'
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '28px' }}>
+              <div style={{
+                width: '26px', height: '26px', borderRadius: '7px',
+                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', color: '#070B14', fontWeight: 900, fontSize: '14px'
+              }}>🎓</div>
+              <span style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '0.04em' }}>
+                SKILLNEXUS <span style={{ color: '#F59E0B' }}>AI</span>
+              </span>
+              <span style={{
+                fontSize: '9px', padding: '2px 7px', borderRadius: '999px',
+                background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.35)',
+                color: '#F59E0B', fontWeight: 800, letterSpacing: '0.05em'
+              }}>
+                ACADEMICIAN
+              </span>
+            </div>
+
+            <h1 style={{ fontSize: '28px', fontWeight: 800, lineHeight: 1.25, marginBottom: '14px', color: 'var(--text-primary, #F8FAFC)' }}>
+              Nurture Student Potential <br />
+              <span style={{ color: '#F59E0B' }}>With Skill Intelligence</span>
+            </h1>
+
+            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary, #94A3B8)', lineHeight: 1.6, marginBottom: '32px' }}>
+              Guide students through verified learning pathways, validate project competency, and track class cohort telemetry in real time.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {[
+                { title: 'Real-Time Cohort Telemetry', desc: 'Track curriculum proficiency across department cohorts and classes' },
+                { title: 'Competency Proof Verification', desc: 'Cryptographically endorse student milestone projects and achievements' },
+                { title: 'Corporate Career Advisory', desc: 'Direct vetted top students into curated industry placement pipelines' }
+              ].map((item, idx) => (
+                <div key={idx} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '12px',
+                  padding: '12px 14px', borderRadius: '10px',
+                  background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.15)'
+                }}>
+                  <div style={{
+                    width: '22px', height: '22px', borderRadius: '6px',
+                    background: 'rgba(245, 158, 11, 0.2)', border: '1px solid #F59E0B',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '11px', color: '#F59E0B', fontWeight: 800, flexShrink: 0, marginTop: '2px'
+                  }}>✓</div>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #F8FAFC)' }}>{item.title}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted, #64748B)' }}>{item.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#f8fafc', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
-            Academician Login
-          </h2>
-          <p style={{ fontSize: '13.5px', color: '#94a3b8', margin: 0 }}>
-            Mentor students, track skill progress, and view class cohort telemetry.
-          </p>
+
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            fontSize: '11px', color: 'var(--text-dim, #64748B)', borderTop: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))',
+            paddingTop: '20px', marginTop: '30px'
+          }}>
+            <ShieldCheck size={14} color="#F59E0B" />
+            <span>Verified Faculty Sovereign Node & Academic Credentials</span>
+          </div>
         </div>
 
-        {/* Role Switcher Tabs */}
-        <LoginRoleTabs activeRole="academician" onSelectRole={onSelectRole} />
+        {/* Right Login Panel */}
+        <div style={{ padding: '40px 36px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary, #F8FAFC)', marginBottom: '6px' }}>
+                Welcome Back, Academician 👋
+              </h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary, #94A3B8)' }}>
+                Mentor students and track cohort telemetry with SKILLNEXUS AI.
+              </p>
+            </div>
 
-        {/* SIH DEMO ACCESS QUICK FILL */}
-        <SihDemoLoginBanner role="academician" onFill={(em, pw) => { setEmail(em); setPassword(pw); setError(''); }} />
+            {error && (
+              <div style={{
+                padding: '10px 14px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.3)', color: '#F87171', fontSize: '12.5px',
+                marginBottom: '16px'
+              }}>
+                {error}
+              </div>
+            )}
 
-        {/* Feedback Messages */}
-        {error && (
-          <div style={{
-            background: 'rgba(239, 68, 68, 0.12)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: '10px',
-            padding: '10px 14px',
-            color: '#f87171',
-            fontSize: '13px',
-            marginBottom: '18px'
-          }}>
-            {error}
-          </div>
-        )}
+            {successMsg && (
+              <div style={{
+                padding: '10px 14px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.15)',
+                border: '1px solid rgba(245, 158, 11, 0.4)', color: '#F59E0B', fontSize: '12.5px',
+                marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px'
+              }}>
+                <CheckCircle2 size={14} />
+                <span>{successMsg}</span>
+              </div>
+            )}
 
-        {successMsg && (
-          <div style={{
-            background: 'rgba(16, 185, 129, 0.12)',
-            border: '1px solid rgba(16, 185, 129, 0.3)',
-            borderRadius: '10px',
-            padding: '10px 14px',
-            color: '#34d399',
-            fontSize: '13px',
-            marginBottom: '18px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <CheckCircle2 size={16} /> {successMsg}
-          </div>
-        )}
+            {/* Role Switcher Tabs */}
+            <LoginRoleTabs activeRole="academician" onSelectRole={onSelectRole} />
 
-        {/* Login Form */}
-        <form onSubmit={handleLogin}>
-          {/* Institutional Email */}
-          <div style={{ marginBottom: '18px' }}>
-            <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
-              Institutional Email
-            </label>
-            <div style={{ position: 'relative' }}>
-              <Mail size={16} color="#64748b" style={{ position: 'absolute', left: '14px', top: '14px' }} />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="professor@institution.edu.in"
-                required
+            {/* SIH DEMO ACCESS QUICK FILL */}
+            <SihDemoLoginBanner role="academician" onFill={(em, pw) => { setEmail(em); setPassword(pw); setError(''); }} />
+
+            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{
+                  display: 'block', fontSize: '11px', textTransform: 'uppercase',
+                  fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-secondary, #94A3B8)', marginBottom: '6px'
+                }}>
+                  INSTITUTIONAL EMAIL
+                </label>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  background: 'var(--bg-input, rgba(255, 255, 255, 0.04))', border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.12))',
+                  borderRadius: '8px', padding: '9px 12px'
+                }}>
+                  <Mail size={15} color="var(--text-muted, #64748B)" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="professor@institution.edu.in"
+                    style={{
+                      background: 'transparent', border: 'none',
+                      color: 'var(--text-primary, #F8FAFC)', fontSize: '13px', outline: 'none', width: '100%'
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{
+                    fontSize: '11px', textTransform: 'uppercase',
+                    fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-secondary, #94A3B8)'
+                  }}>
+                    PASSWORD
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onNavigateToForgot) {
+                        onNavigateToForgot('faculty');
+                      } else {
+                        setError('Please contact your institution admin to reset credentials.');
+                      }
+                    }}
+                    style={{ background: 'none', border: 'none', fontSize: '11.5px', color: '#F59E0B', cursor: 'pointer', padding: 0 }}
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  background: 'var(--bg-input, rgba(255, 255, 255, 0.04))', border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.12))',
+                  borderRadius: '8px', padding: '9px 12px'
+                }}>
+                  <Lock size={15} color="var(--text-muted, #64748B)" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    style={{
+                      background: 'transparent', border: 'none',
+                      color: 'var(--text-primary, #F8FAFC)', fontSize: '13px', outline: 'none', width: '100%'
+                    }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Remember Me & Node Status */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary, #94A3B8)', cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    style={{ accentColor: '#F59E0B', cursor: 'pointer', width: '15px', height: '15px' }}
+                  />
+                  <span>Remember me</span>
+                </label>
+                <span style={{
+                  color: 'var(--text-muted, #64748B)',
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '11px',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255, 255, 255, 0.06)'
+                }}>
+                  Node: Verified Faculty
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
                 style={{
                   width: '100%',
-                  boxSizing: 'border-box',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  borderRadius: '10px',
-                  padding: '12px 14px 12px 42px',
-                  color: '#f8fafc',
-                  fontSize: '13.5px',
-                  outline: 'none',
-                  transition: 'border 0.2s'
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Password */}
-          <div style={{ marginBottom: '22px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <label style={{ fontSize: '12.5px', fontWeight: 600, color: '#cbd5e1' }}>
-                Password
-              </label>
-              <button
-                type="button"
-                onClick={() => onNavigateToForgot ? onNavigateToForgot('faculty') : setError('Please contact institution admin to reset credentials.')}
-                style={{
-                  background: 'none',
+                  padding: '12px',
+                  fontSize: '14px',
+                  marginTop: '6px',
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                  color: '#070B14',
                   border: 'none',
-                  color: '#818cf8',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  padding: 0
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 16px rgba(245, 158, 11, 0.35)',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
                 }}
               >
-                Forgot?
+                <span>{loading ? 'Signing in...' : 'Sign In →'}</span>
               </button>
-            </div>
-            <div style={{ position: 'relative' }}>
-              <Lock size={16} color="#64748b" style={{ position: 'absolute', left: '14px', top: '14px' }} />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                required
-                style={{
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  borderRadius: '10px',
-                  padding: '12px 42px 12px 42px',
-                  color: '#f8fafc',
-                  fontSize: '13.5px',
-                  outline: 'none',
-                  transition: 'border 0.2s'
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute',
-                  right: '14px',
-                  top: '14px',
-                  background: 'none',
-                  border: 'none',
-                  color: '#64748b',
-                  cursor: 'pointer',
-                  padding: 0
-                }}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
+            </form>
 
-          {/* Remember Me Checkbox */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '22px' }}>
-            <input
-              type="checkbox"
-              id="academician-remember-me"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              style={{ cursor: 'pointer', accentColor: '#6366f1', width: '16px', height: '16px' }}
-            />
-            <label htmlFor="academician-remember-me" style={{ fontSize: '13px', color: '#cbd5e1', cursor: 'pointer' }}>
-              Remember me on this sovereign node
-            </label>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-              border: 'none',
-              color: '#ffffff',
-              padding: '13px',
-              borderRadius: '10px',
-              fontSize: '14px',
-              fontWeight: 700,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1,
-              boxShadow: '0 4px 16px rgba(99, 102, 241, 0.35)',
-              transition: 'all 0.2s',
+            {/* Optional SSO Divider */}
+            <div style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
-            }}
-          >
-            {loading ? (
-              <>
-                <div style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-                Signing in...
-              </>
-            ) : (
-              <>Login</>
-            )}
-          </button>
-        </form>
+              gap: '12px',
+              margin: '20px 0 16px',
+              width: '100%'
+            }}>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle, rgba(255, 255, 255, 0.08))' }}></div>
+              <span style={{
+                fontSize: '10.5px',
+                color: 'var(--text-muted, #64748B)',
+                fontFamily: 'var(--font-mono, monospace)',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap'
+              }}>
+                OR SIGN IN WITH
+              </span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle, rgba(255, 255, 255, 0.08))' }}></div>
+            </div>
 
-        {/* Links back to main role gateway & registration */}
-        <div style={{ marginTop: '20px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={onBackToRoles}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#94a3b8',
-              fontSize: '12.5px',
-              cursor: 'pointer',
-              textDecoration: 'underline'
-            }}
-          >
-            ← Back to Main Login & Role Selection
-          </button>
-        </div>
+            <GoogleAuthButton
+              role="faculty"
+              onLoginSuccess={onLoginSuccess}
+            />
+          </div>
 
-        {/* Footer: Register prompt */}
-        <div style={{ marginTop: '24px', textAlign: 'center', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '18px' }}>
-          <span style={{ fontSize: '13px', color: '#94a3b8' }}>New academician or faculty member? </span>
-          <button
-            type="button"
-            onClick={() => setShowRegisterModal(true)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#818cf8',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              padding: 0
-            }}
-          >
-            Register Profile
-          </button>
+          {/* Account & Back Links */}
+          <div style={{ textAlign: 'center', marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <span style={{ fontSize: '12.5px', color: 'var(--text-secondary, #94A3B8)' }}>
+              New academician or faculty member?{' '}
+              <button
+                type="button"
+                onClick={() => setShowRegisterModal(true)}
+                style={{
+                  background: 'none', border: 'none', color: '#F59E0B',
+                  cursor: 'pointer', fontWeight: 700, fontSize: '12.5px', padding: 0
+                }}
+              >
+                Register Faculty Profile
+              </button>
+            </span>
+
+            <button
+              type="button"
+              onClick={onBackToRoles}
+              style={{
+                background: 'none', border: 'none', color: 'var(--text-muted, #64748B)',
+                fontSize: '12px', cursor: 'pointer', display: 'inline-flex',
+                alignItems: 'center', justifyContent: 'center', gap: '6px',
+                transition: 'color 0.15s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary, #F8FAFC)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted, #64748B)'}
+            >
+              <ArrowLeft size={14} />
+              <span>Back to login selection</span>
+            </button>
+          </div>
         </div>
       </div>
 

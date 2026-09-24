@@ -61,7 +61,7 @@ export default function GoogleAuthButton({
           size: 'large',
           text: 'signin_with',
           shape: 'rectangular',
-          width: 250
+          width: 320
         });
       } catch (err) {
         console.warn('Failed to render Google button:', err);
@@ -165,18 +165,25 @@ export default function GoogleAuthButton({
             disabled={loading}
             className={className}
             style={{
-              fontSize: '12px',
-              padding: '9px',
+              fontSize: '13px',
+              fontWeight: 600,
+              padding: '10px 16px',
+              borderRadius: '8px',
+              width: '100%',
               justifyContent: 'center',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
               cursor: 'pointer',
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: 'var(--text-primary)',
+              transition: 'all 0.15s ease',
               ...style
             }}
             title={config.configured ? 'Sign in with Google' : 'Click to see Google OAuth status'}
           >
-            {loading ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} color="#EA4335" />}
+            {loading ? <Loader2 size={15} className="animate-spin" /> : <Globe size={15} color="#EA4335" />}
             <span>Continue with Google</span>
           </button>
         )}

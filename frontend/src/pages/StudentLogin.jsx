@@ -807,18 +807,26 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                 </div>
               </div>
 
-              {/* Remember Me */}
+              {/* Remember Me & 2FA */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    style={{ accentColor: 'var(--cyber-cyan)' }}
+                    style={{ accentColor: 'var(--cyber-cyan)', cursor: 'pointer', width: '15px', height: '15px' }}
                   />
                   <span>Remember me</span>
                 </label>
-                <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+                <span style={{
+                  color: 'var(--text-muted)',
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '11px',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255, 255, 255, 0.06)'
+                }}>
                   2FA: Biometric Ready
                 </span>
               </div>
@@ -827,22 +835,42 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                 type="submit"
                 disabled={loading}
                 className="btn-cyber-primary"
-                style={{ width: '100%', padding: '12px', fontSize: '14px', marginTop: '6px', fontWeight: 600 }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '14px',
+                  marginTop: '6px',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
               >
                 <span>{loading ? 'Signing in...' : 'Sign In →'}</span>
               </button>
             </form>
 
-            {/* Social SSO */}
-            <div style={{ margin: '20px 0 16px', textAlign: 'center', position: 'relative' }}>
-              <div style={{ height: '1px', background: 'var(--border-subtle)' }}></div>
+            {/* Social SSO Divider */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              margin: '20px 0 16px',
+              width: '100%'
+            }}>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle, rgba(255, 255, 255, 0.08))' }}></div>
               <span style={{
-                position: 'relative', top: '-10px', background: '#0B1120',
-                padding: '0 10px', fontSize: '10px', color: 'var(--text-muted)',
-                fontFamily: 'var(--font-mono)'
+                fontSize: '10.5px',
+                color: 'var(--text-muted)',
+                fontFamily: 'var(--font-mono, monospace)',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap'
               }}>
                 OR SIGN IN WITH
               </span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle, rgba(255, 255, 255, 0.08))' }}></div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -881,11 +909,14 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
               style={{
                 background: 'none', border: 'none', color: 'var(--text-muted)',
                 fontSize: '12px', cursor: 'pointer', display: 'inline-flex',
-                alignItems: 'center', justifyContent: 'center', gap: '6px'
+                alignItems: 'center', justifyContent: 'center', gap: '6px',
+                transition: 'color 0.15s ease'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
             >
-              <ArrowLeft size={13} />
-              <span>← Back to login selection</span>
+              <ArrowLeft size={14} />
+              <span>Back to login selection</span>
             </button>
           </div>
         </div>

@@ -304,69 +304,123 @@ export function SihDemoLoginBanner({ role, onFill }) {
   return (
     <div style={{
       background: demo.accentBg,
-      border: `1px dashed ${demo.accentBorder}`,
-      borderRadius: '10px',
-      padding: '10px 14px',
-      marginBottom: '18px',
+      border: `1px solid ${demo.accentBorder}`,
+      borderRadius: '12px',
+      padding: '12px 14px',
+      marginBottom: '20px',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: '12px'
+      flexDirection: 'column',
+      gap: '8px',
+      boxShadow: `0 4px 16px ${demo.accentBg}`
     }}>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-          <Sparkles size={13} color={demo.color || demo.badgeColor} />
-          <span style={{ fontSize: '11px', fontWeight: 800, color: demo.color || demo.badgeColor, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+      {/* Top Row: Role Badge + Action Buttons */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '8px',
+        flexWrap: 'wrap'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Sparkles size={14} color={demo.color || demo.badgeColor} />
+          <span style={{
+            fontSize: '11px',
+            fontWeight: 800,
+            color: demo.color || demo.badgeColor,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            fontFamily: 'var(--font-mono, monospace)'
+          }}>
             SIH {demo.roleLabel} Demo Account
           </span>
         </div>
-        <div style={{ fontSize: '12px', color: '#e2e8f0', fontFamily: 'var(--font-mono, monospace)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {demo.email} &bull; <strong>{demo.name}</strong>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button
+            type="button"
+            onClick={(e) => handleQuickCopy(e, `${demo.email} / ${demo.password}`)}
+            style={{
+              background: 'rgba(255, 255, 255, 0.08)',
+              color: '#cbd5e1',
+              border: '1px solid rgba(255, 255, 255, 0.16)',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.15s ease'
+            }}
+            title="Copy credentials"
+          >
+            {copied ? <Check size={11} color="#34d399" /> : <Copy size={11} />}
+            <span>{copied ? 'Copied' : 'Copy'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onFill(demo.email, demo.password)}
+            style={{
+              background: demo.color || demo.badgeColor,
+              color: '#070b14',
+              border: 'none',
+              padding: '4px 12px',
+              borderRadius: '6px',
+              fontSize: '11.5px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              boxShadow: `0 2px 8px ${demo.accentBorder}`,
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Key size={12} />
+            <span>Auto-fill Demo</span>
+          </button>
         </div>
       </div>
-      <div style={{ display: 'flex', gap: '6px' }}>
-        <button
-          type="button"
-          onClick={(e) => handleQuickCopy(e, `${demo.email} / ${demo.password}`)}
-          style={{
-            background: 'rgba(255, 255, 255, 0.08)',
-            color: '#cbd5e1',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            padding: '5px 10px',
-            borderRadius: '6px',
-            fontSize: '11px',
-            fontWeight: 700,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}
-          title="Copy credentials"
-        >
-          {copied ? <Check size={11} color="#34d399" /> : <Copy size={11} />}
-          <span>{copied ? 'Copied' : 'Copy'}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => onFill(demo.email, demo.password)}
-          style={{
-            background: demo.color || demo.badgeColor,
-            color: '#070b14',
-            border: 'none',
-            padding: '5px 12px',
-            borderRadius: '6px',
-            fontSize: '11.5px',
-            fontWeight: 800,
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}
-        >
-          <Key size={12} />
-          <span>Auto-fill Demo</span>
-        </button>
+
+      {/* Bottom Row: Full Credentials info - never truncated */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '6px',
+        paddingTop: '6px',
+        borderTop: '1px dashed rgba(255, 255, 255, 0.1)',
+        fontSize: '12px'
+      }}>
+        <div style={{
+          color: '#f8fafc',
+          fontFamily: 'var(--font-mono, monospace)',
+          fontWeight: 600,
+          wordBreak: 'break-all'
+        }}>
+          {demo.email}
+        </div>
+        <div style={{
+          color: '#94a3b8',
+          fontSize: '11px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
+          <span>{demo.name}</span>
+          <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+          <span style={{
+            background: 'rgba(255,255,255,0.06)',
+            padding: '1px 6px',
+            borderRadius: '4px',
+            fontFamily: 'var(--font-mono, monospace)',
+            color: '#cbd5e1'
+          }}>
+            {demo.password}
+          </span>
+        </div>
       </div>
     </div>
   );
