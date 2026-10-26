@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import {
   BarChart2,
   TrendingUp,
@@ -284,7 +284,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
 
   return (
     <div>
-      {/* ── TOP TELEMETRY HEADER ── */}
+      {/* â”€â”€ TOP TELEMETRY HEADER â”€â”€ */}
       <div className="glass-panel" style={{ padding: '22px 24px', marginBottom: '24px', borderLeft: '4px solid var(--cyber-cyan)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
@@ -338,7 +338,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
         </div>
       </div>
 
-      {/* ── 5 TOP METRICS CARDS ── */}
+      {/* â”€â”€ 5 TOP METRICS CARDS â”€â”€ */}
       <div className="metrics-row" style={{ marginBottom: '24px' }}>
         <div className="metric-stat-card accent-cyan">
           <div className="metric-stat-header">
@@ -388,8 +388,8 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
         </div>
       </div>
 
-      {/* ── COMMUNICATION SKILL INTELLIGENCE (DUOLINGO-INTEGRATED CAMPUS TELEMETRY) ── */}
-      <div className="glass-panel" style={{ padding: '22px 24px', marginBottom: '24px', border: '1px solid rgba(139, 92, 246, 0.3)', background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(26, 16, 50, 0.8))' }}>
+      {/* â”€â”€ COMMUNICATION SKILL INTELLIGENCE (DUOLINGO-INTEGRATED CAMPUS TELEMETRY) â”€â”€ */}
+      <div className="glass-panel" style={{ padding: '22px 24px', marginBottom: '24px', border: '1px solid rgba(139, 92, 246, 0.3)', background: 'linear-gradient(135deg, #F7F8FA, rgba(26, 16, 50, 0.8))' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(139, 92, 246, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(139, 92, 246, 0.4)' }}>
@@ -502,8 +502,8 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
         </div>
       </div>
 
-      {/* ── INSTITUTIONAL SKILL OFFERINGS & STUDENT INTELLIGENCE ── */}
-      <div className="glass-panel" style={{ padding: '22px 24px', marginBottom: '24px', border: '1px solid rgba(0, 242, 254, 0.3)', background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(11, 25, 44, 0.8))' }}>
+      {/* â”€â”€ INSTITUTIONAL SKILL OFFERINGS & STUDENT INTELLIGENCE â”€â”€ */}
+      <div className="glass-panel" style={{ padding: '22px 24px', marginBottom: '24px', border: '1px solid rgba(0, 242, 254, 0.3)', background: 'linear-gradient(135deg, #F7F8FA, rgba(11, 25, 44, 0.8))' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(0, 242, 254, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(0, 242, 254, 0.4)' }}>
@@ -562,7 +562,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
                     style={{
                       padding: '8px 16px',
                       borderRadius: '8px',
-                      background: isSelected ? 'rgba(0, 242, 254, 0.15)' : 'var(--bg-input)',
+                      background: isSelected ? 'rgba(0, 242, 254, 0.15)' : '#FFFFFF',
                       border: isSelected ? '1px solid var(--cyber-cyan)' : '1px solid var(--border-subtle)',
                       color: isSelected ? 'var(--cyber-cyan)' : 'var(--text-secondary)',
                       fontSize: '12px',
@@ -601,7 +601,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
                     <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--cyber-purple)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
                       {selectedSkillIntelligence.studentsActive || 0}
                     </div>
-                    <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)' }}>Completed ≥ 1 activity</div>
+                    <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)' }}>Completed â‰¥ 1 activity</div>
                   </div>
 
                   <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)' }}>
@@ -683,7 +683,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
                     Mapped Students Enrolled in this Skill ({selectedSkillStudents.length})
                   </div>
                   {selectedSkillStudents.length === 0 ? (
-                    <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px', background: 'var(--bg-input)', borderRadius: '6px' }}>
+                    <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px', background: '#FFFFFF', borderRadius: '6px' }}>
                       No students from your campus have enrolled in this skill yet.
                     </div>
                   ) : (
@@ -709,13 +709,13 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
                                 <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{std.regNo || std.studentId}</div>
                               </td>
                               <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
-                                {std.department} · {std.year}
+                                {std.department} Â· {std.year}
                               </td>
                               <td style={{ padding: '10px 12px' }}>
                                 <div style={{ fontWeight: 700, color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)' }}>
                                   {std.learningProgress}%
                                 </div>
-                                <div style={{ width: '80px', height: '4px', background: 'var(--bg-input)', borderRadius: '2px', overflow: 'hidden', marginTop: '3px' }}>
+                                <div style={{ width: '80px', height: '4px', background: '#FFFFFF', borderRadius: '2px', overflow: 'hidden', marginTop: '3px' }}>
                                   <div style={{ width: `${std.learningProgress}%`, height: '100%', background: 'var(--cyber-cyan)' }} />
                                 </div>
                               </td>
@@ -723,7 +723,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
                                 <div style={{ fontWeight: 700, color: 'var(--cyber-emerald)', fontFamily: 'var(--font-mono)' }}>
                                   {std.proficiency}%
                                 </div>
-                                <div style={{ width: '80px', height: '4px', background: 'var(--bg-input)', borderRadius: '2px', overflow: 'hidden', marginTop: '3px' }}>
+                                <div style={{ width: '80px', height: '4px', background: '#FFFFFF', borderRadius: '2px', overflow: 'hidden', marginTop: '3px' }}>
                                   <div style={{ width: `${std.proficiency}%`, height: '100%', background: 'var(--cyber-emerald)' }} />
                                 </div>
                               </td>
@@ -756,7 +756,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
         )}
       </div>
 
-      {/* ── FILTER CONTROLS (DEPT & YEAR) ── */}
+      {/* â”€â”€ FILTER CONTROLS (DEPT & YEAR) â”€â”€ */}
       <div className="glass-panel" style={{ padding: '14px 20px', marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
           {/* Department Pills */}
@@ -823,7 +823,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
         </div>
       </div>
 
-      {/* ── EMPTY STATE IF NO STUDENTS MATCH ── */}
+      {/* â”€â”€ EMPTY STATE IF NO STUDENTS MATCH â”€â”€ */}
       {filteredStudents.length === 0 ? (
         <div className="glass-panel" style={{ padding: '48px 24px', textAlign: 'center', marginBottom: '24px' }}>
           <div style={{
@@ -850,7 +850,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
         </div>
       ) : (
         <>
-          {/* ── 2-COLUMN GRID: TOP VERIFIED SKILLS & GAP HOTSPOTS ── */}
+          {/* â”€â”€ 2-COLUMN GRID: TOP VERIFIED SKILLS & GAP HOTSPOTS â”€â”€ */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', marginBottom: '24px' }}>
             {/* Column 1: Top 5 Verified Competencies */}
             <div className="glass-panel" style={{ padding: '22px' }}>
@@ -947,7 +947,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
                           }}
                           style={{ background: 'none', border: 'none', color: 'var(--cyber-amber)', cursor: 'pointer', fontWeight: 600 }}
                         >
-                          Launch Course →
+                          Launch Course â†’
                         </button>
                       </div>
                     </div>
@@ -957,7 +957,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
             </div>
           </div>
 
-          {/* ── DEPARTMENT-WISE SKILL STRENGTH MATRIX ── */}
+          {/* â”€â”€ DEPARTMENT-WISE SKILL STRENGTH MATRIX â”€â”€ */}
           <div className="glass-panel" style={{ padding: '22px', marginBottom: '24px' }}>
             <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Layers size={17} color="var(--cyber-cyan)" /> Department-Wise Core Competency Matrix
@@ -1027,7 +1027,7 @@ export default function InstitutionSkillAnalytics({ institution, onShowToast, se
             </div>
           </div>
 
-          {/* ── YEAR-WISE COMPETENCY PROGRESSION ── */}
+          {/* â”€â”€ YEAR-WISE COMPETENCY PROGRESSION â”€â”€ */}
           <div className="glass-panel" style={{ padding: '22px' }}>
             <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <TrendingUp size={17} color="var(--cyber-emerald)" /> 4-Year Competency Progression Timeline

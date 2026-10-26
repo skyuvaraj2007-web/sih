@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Search, Check, X } from 'lucide-react';
 
 /**
@@ -124,7 +124,7 @@ export default function CyberSelect({
         ...style
       }}
     >
-      {/* ── TRIGGER BUTTON ── */}
+      {/* â”€â”€ TRIGGER BUTTON â”€â”€ */}
       <button
         type="button"
         disabled={disabled}
@@ -201,7 +201,7 @@ export default function CyberSelect({
         />
       </button>
 
-      {/* ── FLOATING DROPDOWN MENU ── */}
+      {/* â”€â”€ FLOATING DROPDOWN MENU â”€â”€ */}
       {isOpen && (
         <div
           className="cyber-dropdown-menu"
@@ -227,7 +227,7 @@ export default function CyberSelect({
             <div style={{
               padding: '8px',
               borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-              background: 'rgba(15, 23, 42, 0.9)'
+              background: '#FFFFFF'
             }}>
               <div style={{
                 display: 'flex',

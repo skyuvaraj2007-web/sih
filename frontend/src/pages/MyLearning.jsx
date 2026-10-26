@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import {
   BookOpen, Play, CheckCircle2, Clock, Sparkles, ShieldCheck, Award,
   Flame, BarChart3, TrendingUp, Activity, Download, ExternalLink, Search,
@@ -238,7 +238,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
 
   return (
     <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 10px 40px" }}>
-      {/* ── TOP TELEMETRY & COMMAND CENTER HEADER ── */}
+      {/* â”€â”€ TOP TELEMETRY & COMMAND CENTER HEADER â”€â”€ */}
       <div className="page-top-telemetry" style={{ marginBottom: "24px" }}>
         <div className="page-title-group">
           <div className="telemetry-node-tag">
@@ -269,7 +269,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         </div>
       </div>
 
-      {/* ── 9 REAL METRICS GRID (ALL 0 FOR NEW STUDENTS) ── */}
+      {/* â”€â”€ 9 REAL METRICS GRID (ALL 0 FOR NEW STUDENTS) â”€â”€ */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
@@ -316,7 +316,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         })}
       </div>
 
-      {/* ── NAVIGATION TABS ── */}
+      {/* â”€â”€ NAVIGATION TABS â”€â”€ */}
       <div style={{
         display: "flex",
         gap: "4px",
@@ -348,7 +348,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         ))}
       </div>
 
-      {/* ── TAB 1: OVERVIEW ── */}
+      {/* â”€â”€ TAB 1: OVERVIEW â”€â”€ */}
       {activeTab === "Overview" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           {/* NEXUS AI Best Next Action Banner */}
@@ -378,7 +378,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                 </div>
                 <div>
                   <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--cyber-cyan, #00f2fe)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                    NEXUS AI • Best Next Learning Action
+                    NEXUS AI â€¢ Best Next Learning Action
                   </div>
                   <div style={{ fontSize: "16px", fontWeight: 700, color: "#ffffff", marginTop: "2px" }}>
                     {intelligence.recommendations[0].title}
@@ -416,7 +416,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                   onClick={() => setActiveTab("My Courses")}
                   style={{ background: "transparent", border: "none", color: "var(--cyber-cyan, #00f2fe)", fontSize: "12px", cursor: "pointer", fontWeight: 600 }}
                 >
-                  View All ({enrollments.length}) →
+                  View All ({enrollments.length}) â†’
                 </button>
               </div>
 
@@ -448,7 +448,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                             {course.courseTitle || course.skillName || course.title}
                           </div>
                           <div style={{ fontSize: "11px", color: "var(--text-muted, #64748b)", marginTop: "3px" }}>
-                            Progress: {prog}% • Lessons: {course.completedLessons || 0}/{course.totalLessons || 4}
+                            Progress: {prog}% â€¢ Lessons: {course.completedLessons || 0}/{course.totalLessons || 4}
                           </div>
                         </div>
                         <button
@@ -515,7 +515,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── TAB 2: SELF-ASSESSED SKILLS ── */}
+      {/* â”€â”€ TAB 2: SELF-ASSESSED SKILLS â”€â”€ */}
       {activeTab === "Self-Assessed Skills" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {/* Section Banner Explaining Self-Assessment vs Verified Proficiency */}
@@ -537,7 +537,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                   Self-Assessment vs. Verified Skill Proficiency
                 </h4>
                 <p style={{ margin: "4px 0 0", fontSize: "12.5px", color: "var(--text-secondary, #94a3b8)", lineHeight: 1.5 }}>
-                  Self-assessments capture your subjective appraisal of your current technical capability. <strong>Verified proficiency (0–100%)</strong> is calculated strictly from completed lessons, practice accuracy, assessments, and capstone project proofs.
+                  Self-assessments capture your subjective appraisal of your current technical capability. <strong>Verified proficiency (0â€“100%)</strong> is calculated strictly from completed lessons, practice accuracy, assessments, and capstone project proofs.
                 </p>
               </div>
             </div>
@@ -645,7 +645,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                         padding: "12px",
                         borderRadius: "10px",
                         background: "rgba(0, 0, 0, 0.25)",
-                        border: "1px solid rgba(255, 255, 255, 0.05)"
+                        border: "1px solid #E2E5E9"
                       }}>
                         <div>
                           <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-muted, #64748b)", textTransform: "uppercase" }}>
@@ -704,7 +704,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                           className="btn-cyber-outline"
                           style={{ padding: "5px 10px", fontSize: "11px" }}
                         >
-                          Find Course →
+                          Find Course â†’
                         </button>
                       )}
                     </div>
@@ -716,7 +716,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── TAB 3: MY COURSES ── */}
+      {/* â”€â”€ TAB 3: MY COURSES â”€â”€ */}
       {activeTab === "My Courses" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {/* Search and Filters */}
@@ -731,7 +731,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                 style={{
                   padding: "8px 12px 8px 36px",
                   borderRadius: "8px",
-                  background: "rgba(255, 255, 255, 0.05)",
+                  background: "#E2E5E9",
                   border: "1px solid rgba(255, 255, 255, 0.1)",
                   color: "#ffffff",
                   fontSize: "13px"
@@ -930,7 +930,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── TAB: ASSIGNED COURSES ── */}
+      {/* â”€â”€ TAB: ASSIGNED COURSES â”€â”€ */}
       {activeTab === "Assigned Courses" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {/* Information Card */}
@@ -1119,7 +1119,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── TAB 4: QUIZZES & TESTS ── */}
+      {/* â”€â”€ TAB 4: QUIZZES & TESTS â”€â”€ */}
       {activeTab === "Quizzes & Tests" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {quizzes.length === 0 ? (
@@ -1154,7 +1154,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                       <span style={{ fontSize: "11px", fontWeight: 700, color: "#a78bfa", textTransform: "uppercase" }}>
                         QUIZ CHECKPOINT
                       </span>
-                      <span style={{ fontSize: "11px", color: "var(--text-muted, #64748b)" }}>•</span>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted, #64748b)" }}>â€¢</span>
                       <span style={{ fontSize: "11px", color: "var(--text-muted, #64748b)" }}>Attempt #{q.attempt || 1}</span>
                     </div>
                     <h4 style={{ margin: "4px 0 2px", fontSize: "15.5px", fontWeight: 700, color: "#ffffff" }}>
@@ -1192,7 +1192,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── TAB 5: PROJECTS ── */}
+      {/* â”€â”€ TAB 5: PROJECTS â”€â”€ */}
       {activeTab === "Projects" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {projects.length === 0 ? (
@@ -1274,7 +1274,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── TAB 6: CERTIFICATIONS ── */}
+      {/* â”€â”€ TAB 6: CERTIFICATIONS â”€â”€ */}
       {activeTab === "Certifications" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {/* Header Action Bar */}
@@ -1417,7 +1417,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                     </div>
                     {cert.verifiedBy && (
                       <div style={{ fontSize: "11px", color: "var(--cyber-emerald, #10b981)", fontWeight: 600 }}>
-                        ✓ Verified by {cert.verifiedBy}
+                        âœ“ Verified by {cert.verifiedBy}
                       </div>
                     )}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px", fontSize: "11px", color: "var(--text-muted, #64748b)" }}>
@@ -1434,10 +1434,10 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── TAB 7: LEARNING INTELLIGENCE & AI ── */}
+      {/* â”€â”€ TAB 7: LEARNING INTELLIGENCE & AI â”€â”€ */}
       {activeTab === "Learning Intelligence & AI" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-          {/* Section 1: Comparative Matrix — What You Think vs What You Have Proven */}
+          {/* Section 1: Comparative Matrix â€” What You Think vs What You Have Proven */}
           <div className="glass-panel" style={{ padding: "24px", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
               <div>
@@ -1485,7 +1485,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                           <span style={{
                             padding: "3px 8px",
                             borderRadius: "4px",
-                            background: (c.verifiedSkill?.proficiency || 0) >= 70 ? "rgba(16, 185, 129, 0.12)" : "rgba(255, 255, 255, 0.05)",
+                            background: (c.verifiedSkill?.proficiency || 0) >= 70 ? "rgba(16, 185, 129, 0.12)" : "#E2E5E9",
                             color: (c.verifiedSkill?.proficiency || 0) >= 70 ? "#10b981" : "var(--text-secondary, #94a3b8)",
                             fontWeight: 700,
                             fontFamily: "monospace"
@@ -1555,7 +1555,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
                         </span>
                       </div>
                       <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--text-secondary, #94a3b8)" }}>
-                        {g.gap} • Action: <strong>{g.nextAction}</strong>
+                        {g.gap} â€¢ Action: <strong>{g.nextAction}</strong>
                       </p>
                     </div>
                   ))}
@@ -1566,7 +1566,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── MODALS ── */}
+      {/* â”€â”€ MODALS â”€â”€ */}
       {/* 1. Self-Assessment Modal */}
       <SelfAssessmentModal
         isOpen={isSelfModalOpen}
@@ -1710,7 +1710,7 @@ export default function MyLearning({ setActivePage, onShowToast, user }) {
               lineHeight: "1.4",
               marginBottom: "18px"
             }}>
-              ⚠️ If you discontinue this course, your enrollment status will be updated to <strong>Discontinued</strong> and the relevant institution and collaborating industry may be notified. Historical progress is safely preserved.
+              âš ï¸ If you discontinue this course, your enrollment status will be updated to <strong>Discontinued</strong> and the relevant institution and collaborating industry may be notified. Historical progress is safely preserved.
             </div>
 
             <div style={{ marginBottom: "16px" }}>

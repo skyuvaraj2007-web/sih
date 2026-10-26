@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Award, CheckCircle2, XCircle, Clock, ShieldCheck, Search, Filter, BookOpen, Building2, UserCheck, AlertCircle } from 'lucide-react';
 import { academicService } from '../../services/academicService';
 
@@ -119,7 +119,7 @@ export default function InstitutionCourseCertificates({ onShowToast }) {
             style={{
               width: '100%',
               padding: '10px 12px 10px 36px',
-              background: 'rgba(15, 23, 42, 0.6)',
+              background: '#F7F8FA',
               border: '1px solid rgba(255, 255, 255, 0.12)',
               borderRadius: '8px',
               color: '#fff',
@@ -133,7 +133,7 @@ export default function InstitutionCourseCertificates({ onShowToast }) {
           onChange={e => setFilterStatus(e.target.value)}
           style={{
             padding: '10px 16px',
-            background: 'rgba(15, 23, 42, 0.8)',
+            background: '#FFFFFF',
             border: '1px solid rgba(255, 255, 255, 0.12)',
             borderRadius: '8px',
             color: '#fff',
@@ -170,7 +170,7 @@ export default function InstitutionCourseCertificates({ onShowToast }) {
             </thead>
             <tbody>
               {filteredCerts.map(cert => (
-                <tr key={cert.certificateId} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', transition: 'background 0.2s' }}>
+                <tr key={cert.certificateId} style={{ borderBottom: '1px solid #E2E5E9', transition: 'background 0.2s' }}>
                   <td style={{ padding: '14px 12px' }}>
                     <div style={{ fontWeight: '700', color: '#fff' }}>{cert.studentName}</div>
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>ID: {cert.studentId}</div>
@@ -290,7 +290,7 @@ export default function InstitutionCourseCertificates({ onShowToast }) {
               style={{
                 width: '100%',
                 padding: '10px',
-                background: 'rgba(15, 23, 42, 0.8)',
+                background: '#FFFFFF',
                 border: '1px solid rgba(255, 255, 255, 0.15)',
                 borderRadius: '8px',
                 color: '#fff',

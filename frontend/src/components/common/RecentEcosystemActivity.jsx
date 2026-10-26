@@ -37,41 +37,42 @@ export default function RecentEcosystemActivity({ compact = false }) {
   const getRoleBadge = (role) => {
     switch (role) {
       case 'industry':
-        return { label: 'INDUSTRY', bg: 'rgba(0, 212, 255, 0.12)', border: '#00D4FF', text: '#00D4FF', icon: Briefcase };
+        return { label: 'INDUSTRY', bg: '#EFF6FF', border: '#BFDBFE', text: '#1D4ED8', icon: Briefcase };
       case 'institution':
-        return { label: 'INSTITUTION', bg: 'rgba(16, 185, 129, 0.12)', border: '#10B981', text: '#10B981', icon: BookOpen };
+        return { label: 'INSTITUTION', bg: '#F0FDF4', border: '#BBF7D0', text: '#15803D', icon: BookOpen };
       case 'academician':
-        return { label: 'FACULTY', bg: 'rgba(139, 92, 246, 0.12)', border: '#8B5CF6', text: '#8B5CF6', icon: Award };
+        return { label: 'FACULTY', bg: '#FAF5FF', border: '#E9D5FF', text: '#7E22CE', icon: Award };
       case 'student':
-        return { label: 'STUDENT', bg: 'rgba(245, 158, 11, 0.12)', border: '#F59E0B', text: '#F59E0B', icon: Star };
+        return { label: 'STUDENT', bg: '#FFFBEB', border: '#FDE68A', text: '#B45309', icon: Star };
       default:
-        return { label: 'NETWORK', bg: 'rgba(255, 255, 255, 0.08)', border: '#64748B', text: '#94A3B8', icon: Activity };
+        return { label: 'NETWORK', bg: '#F1F3F5', border: '#E2E5E9', text: '#5F6B76', icon: Activity };
     }
   };
 
   return (
     <div style={{
-      background: 'rgba(21, 31, 53, 0.85)',
-      border: '1px solid #263452',
-      borderRadius: '12px',
+      background: '#FFFFFF',
+      border: '1px solid #E2E5E9',
+      borderRadius: '8px',
       padding: compact ? '16px' : '20px',
-      position: 'relative'
+      position: 'relative',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)'
     }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
-            width: '28px', height: '28px', borderRadius: '8px',
-            background: 'rgba(0, 212, 255, 0.1)', border: '1px solid rgba(0, 212, 255, 0.3)',
+            width: '28px', height: '28px', borderRadius: '6px',
+            background: '#EFF6FF', border: '1px solid #BFDBFE',
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
-            <Activity size={15} color="#00D4FF" />
+            <Activity size={15} color="#315CFF" />
           </div>
           <div>
-            <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.01em' }}>
+            <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#17202A' }}>
               Live Connected Ecosystem Activity
             </h4>
-            <span style={{ fontSize: '11px', color: '#94A3B8' }}>
+            <span style={{ fontSize: '12px', color: '#5F6B76' }}>
               Real cross-role database events in PostgreSQL
             </span>
           </div>
@@ -81,16 +82,17 @@ export default function RecentEcosystemActivity({ compact = false }) {
           onClick={handleRefresh}
           title="Refresh live activity"
           style={{
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid #263452',
+            background: '#FFFFFF',
+            border: '1px solid #E2E5E9',
             borderRadius: '6px',
-            padding: '5px 8px',
+            padding: '5px 10px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            color: '#94A3B8',
-            fontSize: '11px'
+            gap: '5px',
+            color: '#5F6B76',
+            fontSize: '12px',
+            fontWeight: 500
           }}
         >
           <RefreshCw size={12} className={refreshing ? 'spin-anim' : ''} />
@@ -100,12 +102,12 @@ export default function RecentEcosystemActivity({ compact = false }) {
 
       {/* Activity List */}
       {loading ? (
-        <div style={{ padding: '24px', textAlign: 'center', color: '#94A3B8', fontSize: '12px' }}>
-          <Activity size={20} className="spin-anim" style={{ margin: '0 auto 8px', color: '#00D4FF' }} />
+        <div style={{ padding: '24px', textAlign: 'center', color: '#5F6B76', fontSize: '13px' }}>
+          <Activity size={18} className="spin-anim" style={{ margin: '0 auto 8px', color: '#315CFF' }} />
           Streaming connected events from Supabase...
         </div>
       ) : activities.length === 0 ? (
-        <div style={{ padding: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '12px' }}>
+        <div style={{ padding: '16px', textAlign: 'center', color: '#8A949E', fontSize: '13px' }}>
           No recent ecosystem events recorded yet.
         </div>
       ) : (
@@ -122,16 +124,16 @@ export default function RecentEcosystemActivity({ compact = false }) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  background: 'rgba(11, 18, 32, 0.65)',
-                  border: '1px solid rgba(38, 52, 82, 0.6)',
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  background: '#F7F8FA',
+                  border: '1px solid #E2E5E9',
                   gap: '12px'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
                   <div style={{
-                    width: '26px', height: '26px', borderRadius: '6px',
+                    width: '26px', height: '26px', borderRadius: '4px',
                     background: badge.bg, border: `1px solid ${badge.border}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     flexShrink: 0
@@ -140,10 +142,10 @@ export default function RecentEcosystemActivity({ compact = false }) {
                   </div>
 
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontSize: '12.5px', color: '#F8FAFC', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      <span style={{ color: badge.text, fontWeight: 700 }}>{act.actor}</span>
-                      {' '}{act.action}{' '}
-                      <span style={{ color: '#E2E8F0', fontWeight: 700 }}>"{act.target}"</span>
+                    <div style={{ fontSize: '13px', color: '#17202A', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ color: badge.text, fontWeight: 600 }}>{act.actor}</span>
+                      {' '}<span style={{ color: '#5F6B76' }}>{act.action}</span>{' '}
+                      <span style={{ color: '#17202A', fontWeight: 600 }}>"{act.target}"</span>
                     </div>
                   </div>
                 </div>
@@ -152,12 +154,11 @@ export default function RecentEcosystemActivity({ compact = false }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  color: '#64748B',
-                  fontSize: '11px',
-                  fontFamily: 'var(--font-mono, monospace)',
+                  color: '#8A949E',
+                  fontSize: '11.5px',
                   flexShrink: 0
                 }}>
-                  <Clock size={11} />
+                  <Clock size={12} />
                   <span>{timeAgoStr}</span>
                 </div>
               </div>

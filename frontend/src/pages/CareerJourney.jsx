@@ -24,9 +24,14 @@ import {
 } from 'lucide-react';
 import './CareerJourney.css';
 
+/* -- Module-level data cache (persists between navigations) -- */
+let _cjCache = null;
+let _cjCacheAt = 0;
+const CJ_CACHE_TTL = 5 * 60 * 1000;
+
 export default function CareerJourney({ setActivePage, onShowToast, user }) {
-  const [journey, setJourney] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [journey, setJourney] = useState(() => _cjCache?.journey ?? null);
+  const [loading, setLoading] = useState(!_cjCache);
   const [error, setError] = useState(null);
 
   const fetchJourney = async () => {
@@ -65,24 +70,44 @@ export default function CareerJourney({ setActivePage, onShowToast, user }) {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '60vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '16px',
-        color: 'var(--text-secondary)'
-      }}>
-        <div style={{
-          width: '44px',
-          height: '44px',
-          borderRadius: '50%',
-          border: '3px solid rgba(99, 102, 241, 0.2)',
-          borderTopColor: '#6366F1',
-          animation: 'spin 1s linear infinite'
-        }} />
-        <p style={{ fontSize: '15px', fontWeight: '500' }}>Retrieving your verified Career Journey...</p>
+      <div style={{ paddingBottom: '40px' }}>
+        {/* Header skeleton */}
+        <div className="skeleton-card" style={{ marginBottom: '20px', padding: '28px 32px', display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <div className="skeleton-box" style={{ width: '64px', height: '64px', borderRadius: '50%', flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div className="skeleton-line" style={{ width: '200px', height: '22px', marginBottom: '10px' }} />
+            <div className="skeleton-line" style={{ width: '320px', height: '13px' }} />
+          </div>
+          <div className="skeleton-box" style={{ width: '130px', height: '36px', borderRadius: '8px' }} />
+        </div>
+        {/* Score bar skeleton */}
+        <div className="skeleton-card" style={{ marginBottom: '20px', padding: '20px 28px' }}>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            {[1,2,3,4].map(i => (
+              <div key={i} style={{ flex: 1 }}>
+                <div className="skeleton-line" style={{ width: '50%', height: '11px' }} />
+                <div className="skeleton-box" style={{ height: '6px', borderRadius: '3px', marginTop: '6px' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Timeline skeleton */}
+        <div className="skeleton-card" style={{ padding: '24px 28px' }}>
+          <div className="skeleton-line" style={{ width: '160px', height: '16px', marginBottom: '20px' }} />
+          {[1,2,3,4].map(i => (
+            <div key={i} style={{ display: 'flex', gap: '16px', marginBottom: i < 4 ? '24px' : 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                <div className="skeleton-box" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                {i < 4 && <div style={{ width: '2px', flex: 1, background: '#E2E5E9', marginTop: '6px', minHeight: '28px' }} />}
+              </div>
+              <div style={{ flex: 1, paddingTop: '4px' }}>
+                <div className="skeleton-line" style={{ width: '180px', height: '14px' }} />
+                <div className="skeleton-line" style={{ width: '280px', height: '12px' }} />
+              </div>
+              <div className="skeleton-box" style={{ width: '80px', height: '24px', borderRadius: '12px', flexShrink: 0 }} />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -193,7 +218,7 @@ export default function CareerJourney({ setActivePage, onShowToast, user }) {
                 </span>
               </div>
               <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                {profile.department} • {profile.institutionName} • Class of {profile.batch}
+                {profile.department} â€¢ {profile.institutionName} â€¢ Class of {profile.batch}
               </p>
             </div>
           </div>
@@ -211,7 +236,7 @@ export default function CareerJourney({ setActivePage, onShowToast, user }) {
                 cursor: 'pointer'
               }}
             >
-              <Bot size={16} /> Open AI Copilot →
+              <Bot size={16} /> Open AI Copilot â†’
             </button>
           </div>
         </div>
@@ -282,7 +307,7 @@ export default function CareerJourney({ setActivePage, onShowToast, user }) {
                 <span style={{ fontSize: '11px', fontWeight: '800', color: '#4F46E5', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   Next Best Action
                 </span>
-                <span style={{ color: 'var(--text-tertiary)' }}>•</span>
+                <span style={{ color: 'var(--text-tertiary)' }}>â€¢</span>
                 <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>
                   {nextBestAction.title}
                 </span>
@@ -339,7 +364,7 @@ export default function CareerJourney({ setActivePage, onShowToast, user }) {
           icon={User}
           title="Student Profile"
           status={profile.name ? 'COMPLETED' : 'IN_PROGRESS'}
-          summary={`${profile.name} • ${profile.email}`}
+          summary={`${profile.name} â€¢ ${profile.email}`}
         >
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginTop: '10px' }}>
             <InfoItem label="Target Career" value={profile.desiredRole} />
@@ -410,10 +435,10 @@ export default function CareerJourney({ setActivePage, onShowToast, user }) {
                 "{skillGap.aiExplanation || 'Evaluated verified proficiencies against benchmark requirements.'}"
               </p>
               <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px' }}>
-                <span style={{ color: '#10B981', fontWeight: '600' }}>✓ {skillGap.strongCount || 0} Strong</span>
-                <span style={{ color: '#3B82F6', fontWeight: '600' }}>• {skillGap.goodCount || 0} Good</span>
-                <span style={{ color: '#F59E0B', fontWeight: '600' }}>⚠ {skillGap.improveCount || 0} Need Work</span>
-                <span style={{ color: '#EF4444', fontWeight: '600' }}>✕ {skillGap.missingCount || 0} Missing</span>
+                <span style={{ color: '#10B981', fontWeight: '600' }}>âœ“ {skillGap.strongCount || 0} Strong</span>
+                <span style={{ color: '#3B82F6', fontWeight: '600' }}>â€¢ {skillGap.goodCount || 0} Good</span>
+                <span style={{ color: '#F59E0B', fontWeight: '600' }}>âš  {skillGap.improveCount || 0} Need Work</span>
+                <span style={{ color: '#EF4444', fontWeight: '600' }}>âœ• {skillGap.missingCount || 0} Missing</span>
               </div>
             </div>
           ) : (
@@ -499,7 +524,7 @@ export default function CareerJourney({ setActivePage, onShowToast, user }) {
                     fontWeight: '700',
                     color: p.verified ? '#10B981' : 'var(--text-secondary)'
                   }}>
-                    {p.verified ? '✓ VERIFIED PROOF' : (p.status || 'DRAFT')}
+                    {p.verified ? 'âœ“ VERIFIED PROOF' : (p.status || 'DRAFT')}
                   </span>
                 </div>
               ))}
@@ -534,10 +559,10 @@ export default function CareerJourney({ setActivePage, onShowToast, user }) {
                   alignItems: 'center'
                 }}>
                   <span style={{ fontSize: '13px', fontWeight: '600' }}>
-                    {c.title} — <span style={{ fontWeight: '400', color: 'var(--text-secondary)' }}>{c.issuer}</span>
+                    {c.title} â€” <span style={{ fontWeight: '400', color: 'var(--text-secondary)' }}>{c.issuer}</span>
                   </span>
                   <span style={{ fontSize: '11.5px', fontWeight: '700', color: c.verified ? '#10B981' : '#F59E0B' }}>
-                    {c.verified ? '✓ VERIFIED' : 'PENDING'}
+                    {c.verified ? 'âœ“ VERIFIED' : 'PENDING'}
                   </span>
                 </div>
               ))}
@@ -570,7 +595,7 @@ export default function CareerJourney({ setActivePage, onShowToast, user }) {
                 fontSize: '12px',
                 fontWeight: '700'
               }}>
-                ✓ OFFICIAL VERIFICATION SEAL
+                âœ“ OFFICIAL VERIFICATION SEAL
               </div>
               <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
                 Badge Tier: <strong>{passport.badgeLevel || 'ADVANCED'}</strong>
@@ -606,7 +631,7 @@ export default function CareerJourney({ setActivePage, onShowToast, user }) {
                   border: '1px solid var(--border-subtle)'
                 }}>
                   <div style={{ fontWeight: '700', fontSize: '13.5px', color: 'var(--text-primary)' }}>{opp.title}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{opp.company} • {opp.location}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{opp.company} â€¢ {opp.location}</div>
                   <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                     <span style={{ color: '#4F46E5', fontWeight: '700' }}>Match: {opp.matchScore}%</span>
                     <span style={{ color: 'var(--text-tertiary)' }}>{opp.type}</span>
@@ -767,7 +792,7 @@ export default function CareerJourney({ setActivePage, onShowToast, user }) {
               fontWeight: '700',
               fontSize: '14px'
             }}>
-              🎉 Official Corporate Placement Confirmed: {placement.role} at {placement.company}
+              ðŸŽ‰ Official Corporate Placement Confirmed: {placement.role} at {placement.company}
             </div>
           ) : (
             <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>

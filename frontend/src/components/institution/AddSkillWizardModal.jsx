@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   X,
   ArrowRight,
@@ -108,7 +108,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
     numberOfAssessments: 2,
     benchmarks: { bronze: 60, silver: 75, gold: 85, expert: 95 },
     certificateAvailable: true,
-    certificateCriteria: 'Score ≥ 75% on proctored benchmark test and completed capstone project.',
+    certificateCriteria: 'Score â‰¥ 75% on proctored benchmark test and completed capstone project.',
     finalSkillScore: 85,
 
     // Step 6: Student Eligibility
@@ -376,7 +376,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
                 Offer New Skill / Course
               </h2>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary, #6B7280)', margin: 0 }}>
-                Step {currentStep} of 10 — {WIZARD_STEPS[currentStep - 1].label}
+                Step {currentStep} of 10 â€” {WIZARD_STEPS[currentStep - 1].label}
               </p>
             </div>
           </div>
@@ -606,7 +606,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {formData.learningObjectives.map((obj, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--bg-input)', borderRadius: '8px', fontSize: '12.5px' }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#FFFFFF', borderRadius: '8px', fontSize: '12.5px' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Check size={14} color="#10B981" /> {obj}
                       </span>
@@ -924,7 +924,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
               </div>
 
               {/* Benchmark Thresholds */}
-              <div style={{ padding: '14px', background: 'var(--bg-input)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ padding: '14px', background: '#FFFFFF', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '10px' }}>
                   Skill Benchmark Thresholds
                 </label>
@@ -972,7 +972,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
               <div style={{ padding: '14px', background: 'rgba(16, 185, 129, 0.06)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-heading)' }}>
-                    🏆 Institutional Certificate Available
+                    ðŸ† Institutional Certificate Available
                   </span>
                   <input
                     type="checkbox"
@@ -1024,7 +1024,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
                           padding: '6px 14px',
                           borderRadius: '20px',
                           border: isSelected ? '1.5px solid #7C3AED' : '1px solid var(--border-subtle)',
-                          background: isSelected ? 'rgba(124, 58, 237, 0.15)' : 'var(--bg-input)',
+                          background: isSelected ? 'rgba(124, 58, 237, 0.15)' : '#FFFFFF',
                           color: isSelected ? '#7C3AED' : 'var(--text-primary)',
                           fontSize: '12px',
                           fontWeight: 700,
@@ -1067,7 +1067,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
                             padding: '6px 8px',
                             borderRadius: '8px',
                             border: isSelected ? '1.5px solid #3B82F6' : '1px solid var(--border-subtle)',
-                            background: isSelected ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-input)',
+                            background: isSelected ? 'rgba(59, 130, 246, 0.15)' : '#FFFFFF',
                             color: isSelected ? '#3B82F6' : 'var(--text-primary)',
                             fontSize: '12px',
                             fontWeight: 700,
@@ -1153,7 +1153,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
               <div style={{
                 padding: '16px',
                 borderRadius: '14px',
-                background: formData.industryVisible ? 'rgba(59, 130, 246, 0.08)' : 'var(--bg-input)',
+                background: formData.industryVisible ? 'rgba(59, 130, 246, 0.08)' : '#FFFFFF',
                 border: formData.industryVisible ? '1.5px solid #3B82F6' : '1px solid var(--border-subtle)',
                 display: 'flex',
                 alignItems: 'center',
@@ -1192,7 +1192,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
                     ].map(f => {
                       const isChecked = formData.sharedFields.includes(f.key);
                       return (
-                        <label key={f.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', background: 'var(--bg-input)', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                        <label key={f.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', background: '#FFFFFF', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
                           <input
                             type="checkbox"
                             checked={isChecked}
@@ -1231,7 +1231,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
                         padding: '14px 16px',
                         borderRadius: '12px',
                         border: isSelected ? '2px solid #7C3AED' : '1px solid var(--border-subtle)',
-                        background: isSelected ? 'rgba(124, 58, 237, 0.08)' : 'var(--bg-input)',
+                        background: isSelected ? 'rgba(124, 58, 237, 0.08)' : '#FFFFFF',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -1314,18 +1314,18 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
               </p>
 
               {[
-                { key: 'notifyOnPublish', label: '🔔 Notify Eligible Students upon Publishing', desc: 'Dispatches high-priority "New Skill Available" alert with 1-click details link.' },
-                { key: 'notifyEnrollmentConfirmation', label: '✓ Enrollment Confirmation', desc: 'Alerts student immediately when approved or enrolled.' },
-                { key: 'notifySessionReminder', label: '⏰ Upcoming Session & Class Reminders', desc: 'Notifies enrolled cohort 24h prior to live session dates.' },
-                { key: 'notifyAssessmentReminder', label: '📝 Proctored Assessment Reminders', desc: 'Reminds enrolled students to take benchmark assessment.' },
-                { key: 'notifyCourseCompletion', label: '🏆 Certificate & Benchmark Announcement', desc: 'Sends celebratory badge and cryptographic credential notification.' }
+                { key: 'notifyOnPublish', label: 'ðŸ”” Notify Eligible Students upon Publishing', desc: 'Dispatches high-priority "New Skill Available" alert with 1-click details link.' },
+                { key: 'notifyEnrollmentConfirmation', label: 'âœ“ Enrollment Confirmation', desc: 'Alerts student immediately when approved or enrolled.' },
+                { key: 'notifySessionReminder', label: 'â° Upcoming Session & Class Reminders', desc: 'Notifies enrolled cohort 24h prior to live session dates.' },
+                { key: 'notifyAssessmentReminder', label: 'ðŸ“ Proctored Assessment Reminders', desc: 'Reminds enrolled students to take benchmark assessment.' },
+                { key: 'notifyCourseCompletion', label: 'ðŸ† Certificate & Benchmark Announcement', desc: 'Sends celebratory badge and cryptographic credential notification.' }
               ].map(n => (
                 <div
                   key={n.key}
                   style={{
                     padding: '12px 16px',
                     borderRadius: '12px',
-                    background: 'var(--bg-input)',
+                    background: '#FFFFFF',
                     border: '1px solid var(--border-subtle)',
                     display: 'flex',
                     alignItems: 'center',
@@ -1379,7 +1379,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
                       {formData.name || 'Untitled Skill'}
                     </h3>
                     <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                      Offered by {institution?.institutionName || 'Institution'} • Instructor: {formData.instructorName}
+                      Offered by {institution?.institutionName || 'Institution'} â€¢ Instructor: {formData.instructorName}
                     </p>
                   </div>
 
@@ -1415,7 +1415,7 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
                 </div>
 
                 <div style={{ marginTop: '14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                  <strong>Eligible Departments:</strong> {formData.eligibleDepartments.join(', ')} • <strong>Years:</strong> {formData.eligibleYears.join(', ')} • <strong>Min CGPA:</strong> {formData.minCgpa || 'None'}
+                  <strong>Eligible Departments:</strong> {formData.eligibleDepartments.join(', ')} â€¢ <strong>Years:</strong> {formData.eligibleYears.join(', ')} â€¢ <strong>Min CGPA:</strong> {formData.minCgpa || 'None'}
                 </div>
               </div>
 

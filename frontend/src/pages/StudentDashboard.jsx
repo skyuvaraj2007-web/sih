@@ -23,9 +23,9 @@ function CircularProgress({ size, strokeWidth, progress, color, bgColor }) {
   return (
     <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
       <circle cx={size / 2} cy={size / 2} r={radius} fill="none"
-        stroke={bgColor || 'rgba(255,255,255,0.06)'} strokeWidth={strokeWidth} />
+        stroke={bgColor || '#E2E5E9'} strokeWidth={strokeWidth} />
       <circle cx={size / 2} cy={size / 2} r={radius} fill="none"
-        stroke={color || '#28D7FF'} strokeWidth={strokeWidth}
+        stroke={color || '#315CFF'} strokeWidth={strokeWidth}
         strokeDasharray={circumference} strokeDashoffset={offset}
         strokeLinecap="round"
         style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)' }} />
@@ -50,38 +50,38 @@ function SkillBar({ label, value, color, isGap, onClick }) {
         marginBottom: '12px',
         cursor: onClick ? 'pointer' : 'default',
         padding: onClick ? '6px 8px' : '0',
-        borderRadius: onClick ? '8px' : '0',
-        transition: 'background 0.2s ease',
+        borderRadius: onClick ? '6px' : '0',
+        transition: 'background 0.15s ease',
         background: 'transparent'
       }}
-      onMouseEnter={e => { if (onClick) e.currentTarget.style.background = 'rgba(139, 92, 246, 0.08)'; }}
+      onMouseEnter={e => { if (onClick) e.currentTarget.style.background = '#F1F3F5'; }}
       onMouseLeave={e => { if (onClick) e.currentTarget.style.background = 'transparent'; }}
       title={onClick ? `Click to launch ${label} learning module` : undefined}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-        <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <span style={{ fontSize: '13px', color: '#17202A', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
           {label}
-          {onClick && <span style={{ fontSize: '11px', color: '#8B5CF6', fontWeight: 700 }}>↗</span>}
+          {onClick && <span style={{ fontSize: '11px', color: '#315CFF', fontWeight: 700 }}>â†—</span>}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: isGap ? '#FF9D4D' : color || 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
+          <span style={{ fontSize: '12px', fontWeight: 600, color: isGap ? '#A66A00' : color || '#17202A' }}>
             {value}%
           </span>
           {isGap && (
             <span style={{
-              fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px',
-              background: 'rgba(255, 157, 77, 0.15)', color: '#FF9D4D',
-              border: '1px solid rgba(255, 157, 77, 0.3)', letterSpacing: '0.05em'
+              fontSize: '10px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px',
+              background: '#FFFBEB', color: '#B45309',
+              border: '1px solid #FDE68A', letterSpacing: '0.03em'
             }}>GAP</span>
           )}
         </div>
       </div>
-      <div style={{ height: '7px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+      <div style={{ height: '6px', background: '#E2E5E9', borderRadius: '3px', overflow: 'hidden' }}>
         <div style={{
-          height: '100%', width: `${animated}%`, borderRadius: '4px',
-          background: isGap ? 'linear-gradient(90deg, #FF9D4D, #F59E0B)' : (color || 'linear-gradient(90deg, #28D7FF, #3478FF)'),
+          height: '100%', width: `${animated}%`, borderRadius: '3px',
+          background: isGap ? '#A66A00' : (color || '#315CFF'),
           transition: 'width 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: isGap ? '0 0 8px rgba(255, 157, 77, 0.3)' : `0 0 8px ${color || 'rgba(40, 215, 255, 0.3)'}`
+          boxShadow: 'none'
         }} />
       </div>
     </div>
@@ -99,7 +99,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [skillProfile, setSkillProfile] = useState(user?.skillProfile || null);
 
-  // ── AI Intelligence Layer States ──────────────────────────────────────────
+  // â”€â”€ AI Intelligence Layer States â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [aiSkillGap, setAiSkillGap] = useState(null);
   const [aiCourseRecs, setAiCourseRecs] = useState([]);
   const [aiLearningPath, setAiLearningPath] = useState(null);
@@ -107,7 +107,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
   const [aiActiveTab, setAiActiveTab] = useState('gap'); // 'gap' | 'courses' | 'path' | 'career'
   const [aiLoading, setAiLoading] = useState(true);
 
-  // ── Unified dashboard data — ALL data from /api/students/dashboard ──────────
+  // â”€â”€ Unified dashboard data â€” ALL data from /api/students/dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Zero-state is genuine; no demo flags, no hardcoded arrays.
   const [dashboardData, setDashboardData] = useState({
     skillsVerified: 0, skillsSelfAssessed: 0,
@@ -131,7 +131,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
     loading: true
   });
 
-  // ── SIH Demo Ecosystem Connected State ────────────────────────────────────
+  // â”€â”€ SIH Demo Ecosystem Connected State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [showMentorModal, setShowMentorModal] = useState(false);
   const [showEligibilityModal, setShowEligibilityModal] = useState(false);
   const [enrollingSkill, setEnrollingSkill] = useState(false);
@@ -224,7 +224,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
     return () => { isMounted = false; };
   }, [user]);
 
-  // ── AI Intelligence Layer: Fast On-Demand Tab Loading ─────────────────────
+  // â”€â”€ AI Intelligence Layer: Fast On-Demand Tab Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     let isMounted = true;
     const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
@@ -434,10 +434,10 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
     vue: '#42B883', go: '#00ADD8', rust: '#DEA584', swift: '#FA7343', kotlin: '#7F52FF'
   };
   const TECH_ICONS = {
-    python: '🐍', javascript: 'JS', react: '⚛️', aws: '☁️', tensorflow: '🧠',
-    git: '⌥', node: 'N', nodejs: 'N', java: '☕', typescript: 'TS', docker: '🐳',
-    kubernetes: '⎈', sql: '🗄️', postgresql: '🐘', django: '🎸', angular: '🔺',
-    vue: '💚', go: 'Go', rust: '🦀', swift: '🐦', kotlin: 'K'
+    python: 'ðŸ', javascript: 'JS', react: 'âš›ï¸', aws: 'â˜ï¸', tensorflow: 'ðŸ§ ',
+    git: 'âŒ¥', node: 'N', nodejs: 'N', java: 'â˜•', typescript: 'TS', docker: 'ðŸ³',
+    kubernetes: 'âŽˆ', sql: 'ðŸ—„ï¸', postgresql: 'ðŸ˜', django: 'ðŸŽ¸', angular: 'ðŸ”º',
+    vue: 'ðŸ’š', go: 'Go', rust: 'ðŸ¦€', swift: 'ðŸ¦', kotlin: 'K'
   };
   const passportTechs = ((dashboardData.passport?.technologies) || []).map(tech => {
     const name = tech?.name || '';
@@ -570,131 +570,159 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
   return (
     <div style={{ padding: '20px 24px 40px', maxWidth: '1400px', width: '100%', margin: '0 auto' }}>
 
-      {/* ── SIH DEMO ENVIRONMENT BADGE ── */}
+      {/* â”€â”€ DEMO ENVIRONMENT CONTEXT â”€â”€ */}
       {isDemoUser && (
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '10px 18px', borderRadius: '12px',
-          background: 'rgba(56, 189, 248, 0.08)',
-          border: '1px solid rgba(56, 189, 248, 0.25)',
-          marginBottom: '20px', flexWrap: 'wrap', gap: '8px'
+          padding: '10px 16px', borderRadius: '6px',
+          background: '#FFFFFF',
+          border: '1px solid #E2E5E9',
+          borderLeft: '4px solid #315CFF',
+          marginBottom: '20px', flexWrap: 'wrap', gap: '8px',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{
-              display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%',
-              background: '#38bdf8', boxShadow: '0 0 8px #38bdf8'
-            }} />
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#38bdf8', letterSpacing: '0.04em' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#315CFF', letterSpacing: '0.04em' }}>
               SIH DEMO ENVIRONMENT
             </span>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>|</span>
-            <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-              Connected Demo Ecosystem • ABC Engineering College
+            <span style={{ fontSize: '12px', color: '#CBD5E1' }}>|</span>
+            <span style={{ fontSize: '13px', color: '#5F6B76' }}>
+              Connected Demo Ecosystem â€¢ ABC Engineering College
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#5F6B76' }}>
             <span>Roll: 23CSE042</span>
-            <span>•</span>
+            <span>â€¢</span>
             <span>Class: CSE III-A</span>
-            <span>•</span>
+            <span>â€¢</span>
             <span>CGPA: 8.85</span>
           </div>
         </div>
       )}
 
       {/* =====================================================================
-          SECTION 1: SPATIAL AI HERO BANNER
+          SECTION 1: WORKSPACE HEADER & CAREER READINESS
           ===================================================================== */}
       <div style={{
-        borderRadius: '20px',
+        borderRadius: '8px',
         overflow: 'hidden',
         position: 'relative',
         marginBottom: '24px',
-        background: 'var(--grad-hero-banner)',
-        border: '1px solid var(--border-subtle)',
-        padding: '32px',
+        background: '#FFFFFF',
+        border: '1px solid #E2E5E9',
+        padding: '28px 32px',
         display: 'grid',
         gridTemplateColumns: '1.2fr 1fr',
         gap: '24px',
         alignItems: 'center',
-        boxShadow: 'var(--shadow-card)'
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
       }}>
-        {/* Hero Left - Spatial Visual Story */}
+        {/* Hero Left - Student Information */}
         <div>
-          <div className="cyber-badge badge-purple" style={{ marginBottom: '12px', fontSize: '10px' }}>
-            <Sparkles size={12} /> SKILLNEXUS AI 2.0 ECOSYSTEM
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '3px 8px',
+            borderRadius: '4px',
+            background: '#EFF6FF',
+            border: '1px solid #BFDBFE',
+            color: '#1D4ED8',
+            fontSize: '11px',
+            fontWeight: 600,
+            marginBottom: '10px'
+          }}>
+            ACADEMIC & CAREER WORKSPACE
           </div>
           <h1 style={{
-            fontSize: '34px', fontWeight: 800, color: 'var(--text-heading)',
-            letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: '10px'
+            fontSize: '28px', fontWeight: 700, color: '#17202A',
+            letterSpacing: '-0.02em', lineHeight: 1.25, marginBottom: '8px'
           }}>
-            {greeting}, {studentName} 👋
+            {greeting}, {studentName}
           </h1>
-          <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: 500, lineHeight: 1.5, marginBottom: '20px' }}>
-            Build your next career advantage. Continuous skill verification, AI guidance, and direct algorithmic matching.
+          <p style={{ fontSize: '14px', color: '#5F6B76', fontWeight: 400, lineHeight: 1.5, marginBottom: '20px' }}>
+            Continuous skill verification, academic progression, and direct algorithmic opportunities.
           </p>
 
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <button
               onClick={() => setActivePage('learning')}
-              className="btn-cyber-primary"
-              style={{ padding: '10px 20px', fontSize: '13.5px' }}
+              style={{
+                padding: '9px 18px',
+                fontSize: '13px',
+                fontWeight: 600,
+                borderRadius: '6px',
+                background: '#315CFF',
+                color: '#FFFFFF',
+                border: '1px solid #315CFF',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
             >
               Continue Learning <ArrowRight size={14} />
             </button>
             <button
               onClick={() => setActivePage('skills')}
-              className="btn-cyber-outline"
-              style={{ padding: '9px 18px', fontSize: '13px' }}
+              style={{
+                padding: '9px 16px',
+                fontSize: '13px',
+                fontWeight: 500,
+                borderRadius: '6px',
+                background: '#FFFFFF',
+                color: '#17202A',
+                border: '1px solid #E2E5E9',
+                cursor: 'pointer'
+              }}
             >
               Skill Intelligence Center
             </button>
           </div>
         </div>
 
-        {/* Hero Right - Career Readiness Gauge & AI Recommendation Box */}
+        {/* Hero Right - Career Readiness Gauge & Recommendation */}
         <div style={{
-          background: 'var(--bg-card)',
-          borderRadius: '16px',
-          border: '1px solid var(--border-subtle)',
-          padding: '24px',
+          background: '#F7F8FA',
+          borderRadius: '6px',
+          border: '1px solid #E2E5E9',
+          padding: '20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px',
-          boxShadow: 'var(--shadow-subtle)'
+          gap: '14px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: '11px', color: '#5F6B76', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                 CAREER READINESS SCORE
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: '28px', fontWeight: 800, color: '#17202A', marginTop: '2px' }}>
                 {Number.isFinite(liveStats.careerJourney) ? liveStats.careerJourney : 0}%
               </div>
             </div>
-            <div style={{ position: 'relative', width: '64px', height: '64px' }}>
+            <div style={{ position: 'relative', width: '56px', height: '56px' }}>
               <CircularProgress
-                size={64}
-                strokeWidth={6}
+                size={56}
+                strokeWidth={5}
                 progress={Number.isFinite(liveStats.careerJourney) ? liveStats.careerJourney : 0}
-                color="var(--cyber-cyan)"
+                color="#315CFF"
               />
             </div>
           </div>
 
           <div style={{
-            padding: '12px 14px',
-            borderRadius: '10px',
-            background: 'var(--cyber-purple-dim)',
-            border: '1px solid var(--cyber-purple-dim)'
+            padding: '10px 12px',
+            borderRadius: '4px',
+            background: '#EFF6FF',
+            border: '1px solid #BFDBFE'
           }}>
-            <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--cyber-purple)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>
-              ✦ AI RECOMMENDATION
+            <div style={{ fontSize: '11px', fontWeight: 700, color: '#1D4ED8', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '2px' }}>
+              RECOMMENDED NEXT ACTION
             </div>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#17202A' }}>
               Complete Cloud Security Module 7
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+            <div style={{ fontSize: '12px', color: '#5F6B76', marginTop: '2px' }}>
               Closes key gap for 4 high-match cloud opportunities.
             </div>
           </div>
@@ -706,33 +734,32 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
           ===================================================================== */}
       {(!dashboardData.hasCompletedQuestionnaire && !skillProfile) && (
         <div style={{
-          background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.15) 0%, rgba(6, 182, 212, 0.12) 100%)',
-          border: '1px solid rgba(99, 102, 241, 0.35)',
-          borderRadius: '14px',
+          background: '#FFFFFF',
+          border: '1px solid #E2E5E9',
+          borderRadius: '8px',
           padding: '18px 22px',
           marginBottom: '20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '16px',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2), 0 0 15px rgba(99, 102, 241, 0.1)'
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{
-              width: '44px', height: '44px', borderRadius: '10px',
-              background: 'linear-gradient(135deg, #4f46e5, #06b6d4)',
+              width: '40px', height: '40px', borderRadius: '6px',
+              background: '#EFF6FF', border: '1px solid #BFDBFE',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 15px rgba(99, 102, 241, 0.5)',
               flexShrink: 0
             }}>
-              <Sparkles size={22} color="#fff" />
+              <Award size={20} color="#315CFF" />
             </div>
             <div>
-              <div style={{ fontSize: '14.5px', fontWeight: 700, color: '#f8fafc', marginBottom: '2px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#17202A', marginBottom: '2px' }}>
                 Complete Your Skills Assessment Questionnaire
               </div>
-              <div style={{ fontSize: '12.5px', color: '#94a3b8' }}>
-                Specify your target role and technical skills to generate your AI skill gap profile, unlock pre-qualified internship matches, and compute your baseline Readiness Index.
+              <div style={{ fontSize: '13px', color: '#5F6B76' }}>
+                Specify your target role and technical skills to generate your skill gap profile, unlock pre-qualified internship matches, and compute your baseline Readiness Index.
               </div>
             </div>
           </div>
@@ -751,13 +778,13 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
               boxShadow: '0 2px 10px rgba(79, 70, 229, 0.4)'
             }}
           >
-            Start Questionnaire ⚡
+            Start Questionnaire
           </button>
         </div>
       )}
 
       {/* =====================================================================
-          CONNECTED SIH DEMO ECOSYSTEM — LIVE SKILL BANNER & ACADEMIC NETWORK
+          CONNECTED SIH DEMO ECOSYSTEM â€” LIVE SKILL BANNER & ACADEMIC NETWORK
           ===================================================================== */}
       {/* 0. Connected 4-Role Visualization (Section 23) */}
       <ConnectedEcosystemCard activeRole="student" />
@@ -792,14 +819,14 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                 INSTITUTION OFFERING
               </span>
               <span style={{ fontSize: '12px', color: '#10B981', fontWeight: 700 }}>
-                ● Eligible for CSE III-A
+                â— Eligible for CSE III-A
               </span>
             </div>
             <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-heading)' }}>
               Advanced React.js & State Architecture
             </div>
             <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              Offered by <strong>{dashboardData.academicNetwork?.institution || 'ABC Engineering College'}</strong> • 6 Weeks • Hybrid • 50 Seats
+              Offered by <strong>{dashboardData.academicNetwork?.institution || 'ABC Engineering College'}</strong> â€¢ 6 Weeks â€¢ Hybrid â€¢ 50 Seats
             </div>
           </div>
         </div>
@@ -820,7 +847,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                 onClick={() => setShowEligibilityModal(true)}
                 style={{
                   padding: '9px 18px', borderRadius: '8px',
-                  background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-subtle)',
+                  background: '#E2E5E9', border: '1px solid var(--border-subtle)',
                   color: 'var(--text-primary)', fontWeight: 600, fontSize: '12.5px', cursor: 'pointer'
                 }}
               >
@@ -837,7 +864,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                   boxShadow: '0 0 15px rgba(56, 189, 248, 0.35)'
                 }}
               >
-                {enrollingSkill ? 'Enrolling...' : 'Enroll Now →'}
+                {enrollingSkill ? 'Enrolling...' : 'Enroll Now â†’'}
               </button>
             </>
           )}
@@ -896,7 +923,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
               <span style={{ padding: '2px 8px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', fontWeight: 600 }}>
                 CGPA: {dashboardData.academicNetwork?.cgpa || 8.85}
               </span>
-              <span style={{ padding: '2px 8px', borderRadius: '4px', background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-muted)' }}>
+              <span style={{ padding: '2px 8px', borderRadius: '4px', background: '#E2E5E9', color: 'var(--text-muted)' }}>
                 Batch: {dashboardData.academicNetwork?.batch || '2023-2027'}
               </span>
             </div>
@@ -915,7 +942,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                 {dashboardData.academicNetwork?.mentor?.name || 'Dr. Ramesh Sundaram'}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                {dashboardData.academicNetwork?.mentor?.designation || 'HOD & Professor'} • CSE Department
+                {dashboardData.academicNetwork?.mentor?.designation || 'HOD & Professor'} â€¢ CSE Department
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                 {dashboardData.academicNetwork?.mentor?.email || 'academician.demo@skillnexus.ai'}
@@ -947,7 +974,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                 {dashboardData.academicNetwork?.industryPartner?.name || 'SBT TECH Innovations'}
               </div>
               <div style={{ fontSize: '12px', color: '#10B981', fontWeight: 600, marginBottom: '4px' }}>
-                ✓ Enterprise Placement Partner
+                âœ“ Enterprise Placement Partner
               </div>
               <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>
                 Requisition: Associate Full Stack AI Developer (React.js, Python, SQL, DSA)
@@ -973,7 +1000,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
         <RecentEcosystemActivity compact={false} />
       </div>
 
-      {/* 3. My Skills — Actual Database Verified Competencies */}
+      {/* 3. My Skills â€” Actual Database Verified Competencies */}
       <div style={{
         background: 'var(--bg-card)',
         border: '1px solid var(--border-subtle)',
@@ -995,7 +1022,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
             onClick={() => setActivePage('skills')}
             style={{ ...s.viewAll, fontSize: '11.5px' }}
           >
-            Manage Skills Ledger →
+            Manage Skills Ledger â†’
           </button>
         </div>
 
@@ -1102,18 +1129,18 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
       {/* =====================================================================
           SKILLNEXUS AI INTELLIGENCE & CAREER ROADMAP (Phase 13 Integration)
           ===================================================================== */}
-      <div style={{ ...s.card, marginBottom: '24px', borderColor: 'rgba(139, 92, 246, 0.3)', background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.04) 0%, rgba(10, 15, 28, 0.95) 100%)' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #8B5CF6, #28D7FF, #2FE0A1)', opacity: 0.9 }} />
+      <div style={{ ...s.card, marginBottom: '24px', borderColor: '#E2E5E9', background: '#FFFFFF' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: '#315CFF', borderRadius: '12px 12px 0 0' }} />
 
         {/* AI Suite Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'linear-gradient(135deg, #8B5CF6, #28D7FF)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Sparkles size={16} color="#060B14" />
+              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(49,92,255,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Brain size={16} color="#315CFF" />
               </div>
               <span style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-heading)' }}>NEXUS AI Career Intelligence</span>
-              <span style={{ ...s.badge, background: 'rgba(139, 92, 246, 0.15)', color: '#A78BFA', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+              <span style={{ ...s.badge, background: 'rgba(49,92,255,0.08)', color: '#315CFF', border: '1px solid rgba(49,92,255,0.2)' }}>
                 Target: {aiSkillGap?.targetRole || 'Full Stack Developer'}
               </span>
             </div>
@@ -1128,13 +1155,13 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '7px 14px', borderRadius: '8px',
-                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(40, 215, 255, 0.2))',
-                border: '1px solid rgba(139, 92, 246, 0.4)',
-                color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                background: '#315CFF',
+                border: '1px solid #315CFF',
+                color: '#FFFFFF', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
             >
-              <Brain size={14} color="var(--cyber-cyan)" />
+              <Brain size={14} color="#FFFFFF" />
               Ask NEXUS AI
             </button>
           </div>
@@ -1153,9 +1180,9 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
               onClick={() => setAiActiveTab(t.id)}
               style={{
                 padding: '6px 14px', borderRadius: '6px',
-                background: aiActiveTab === t.id ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
-                border: aiActiveTab === t.id ? '1px solid #8B5CF6' : '1px solid transparent',
-                color: aiActiveTab === t.id ? '#A78BFA' : 'var(--text-secondary)',
+                background: aiActiveTab === t.id ? 'rgba(49,92,255,0.08)' : 'transparent',
+                border: aiActiveTab === t.id ? '1px solid rgba(49,92,255,0.3)' : '1px solid transparent',
+                color: aiActiveTab === t.id ? '#315CFF' : '#5F6B76',
                 fontWeight: aiActiveTab === t.id ? 700 : 500, fontSize: '12.5px',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
                 whiteSpace: 'nowrap'
@@ -1163,7 +1190,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
             >
               {t.label}
               {t.count > 0 && (
-                <span style={{ fontSize: '10.5px', padding: '1px 6px', borderRadius: '10px', background: aiActiveTab === t.id ? '#8B5CF6' : 'rgba(255,255,255,0.08)', color: '#fff' }}>
+                <span style={{ fontSize: '10.5px', padding: '1px 6px', borderRadius: '10px', background: aiActiveTab === t.id ? '#315CFF' : '#E2E5E9', color: aiActiveTab === t.id ? '#fff' : '#5F6B76' }}>
                   {t.count}
                 </span>
               )}
@@ -1175,7 +1202,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
         {aiActiveTab === 'gap' && (
           !aiSkillGap ? (
             <div style={{ padding: '32px 20px', textAlign: 'center', background: 'var(--bg-card)', borderRadius: '12px', border: '1px dashed var(--border-subtle)' }}>
-              <div style={{ fontSize: '28px', marginBottom: '8px' }}>🎯</div>
+              <div style={{ fontSize: '28px', marginBottom: '8px' }}>ðŸŽ¯</div>
               <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '6px' }}>
                 No skill data yet
               </div>
@@ -1184,9 +1211,9 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
               </div>
               <button
                 onClick={() => setActivePage('assessments')}
-                style={{ padding: '8px 18px', borderRadius: '8px', background: 'var(--cyber-cyan)', color: '#060B14', border: 'none', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer' }}
+                style={{ padding: '8px 18px', borderRadius: '8px', background: '#315CFF', color: '#FFFFFF', border: 'none', fontWeight: 600, fontSize: '12.5px', cursor: 'pointer' }}
               >
-                Complete First Assessment →
+                Complete First Assessment â†’
               </button>
             </div>
           ) : (
@@ -1194,7 +1221,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '16px' }}>
                 <div style={{ padding: '12px 14px', borderRadius: '10px', background: 'rgba(46, 224, 161, 0.05)', border: '1px solid rgba(46, 224, 161, 0.2)' }}>
                   <div style={{ fontSize: '11px', color: '#2FE0A1', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>
-                    ✓ Mastered Competencies ({(aiSkillGap?.masteredSkills || []).length})
+                    âœ“ Mastered Competencies ({(aiSkillGap?.masteredSkills || []).length})
                   </div>
                   {(aiSkillGap?.masteredSkills || []).length > 0 ? (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -1211,7 +1238,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
 
                 <div style={{ padding: '12px 14px', borderRadius: '10px', background: 'rgba(255, 157, 77, 0.05)', border: '1px solid rgba(255, 157, 77, 0.2)' }}>
                   <div style={{ fontSize: '11px', color: '#FF9D4D', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>
-                    ⚠ Priority Missing Gaps ({(aiSkillGap?.priorityGaps || []).length})
+                    âš  Priority Missing Gaps ({(aiSkillGap?.priorityGaps || []).length})
                   </div>
                   {(aiSkillGap?.priorityGaps || []).length > 0 ? (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -1228,7 +1255,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
 
                 <div style={{ padding: '12px 14px', borderRadius: '10px', background: 'rgba(52, 120, 255, 0.05)', border: '1px solid rgba(52, 120, 255, 0.2)' }}>
                   <div style={{ fontSize: '11px', color: '#3478FF', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>
-                    ⚡ In-Progress / Partial ({(aiSkillGap?.partialSkills || []).length})
+                    In-Progress / Partial ({(aiSkillGap?.partialSkills || []).length})
                   </div>
                   {(aiSkillGap?.partialSkills || []).length > 0 ? (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -1245,8 +1272,8 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
               </div>
 
               {aiSkillGap?.explanation && (
-                <div style={{ padding: '12px 16px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                  <strong style={{ color: 'var(--cyber-cyan)' }}>AI Synthesis: </strong>{aiSkillGap.explanation}
+                <div style={{ padding: '12px 16px', borderRadius: '8px', background: 'rgba(49,92,255,0.04)', border: '1px solid rgba(49,92,255,0.15)', fontSize: '12.5px', color: '#5F6B76', lineHeight: 1.6 }}>
+                  <strong style={{ color: '#315CFF' }}>AI Synthesis: </strong>{aiSkillGap.explanation}
                 </div>
               )}
             </div>
@@ -1275,7 +1302,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                   onClick={() => setActivePage('learning')}
                   style={{ width: '100%', padding: '7px 0', borderRadius: '6px', background: 'var(--cyber-cyan)', border: 'none', color: '#060B14', fontWeight: 700, fontSize: '11.5px', cursor: 'pointer', textAlign: 'center' }}
                 >
-                  Enroll / View Module →
+                  Enroll / View Module â†’
                 </button>
               </div>
             )) : (
@@ -1300,7 +1327,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                       {step.step}
                     </div>
                     <div>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-heading)' }}>{step.skill} — <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{step.courseTitle}</span></div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-heading)' }}>{step.skill} â€” <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{step.courseTitle}</span></div>
                       <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{step.reason}</div>
                     </div>
                   </div>
@@ -1362,7 +1389,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
             </div>
           </div>
           <button onClick={() => setActivePage('skills')} style={{ ...s.viewAll, fontSize: '11.5px' }}>
-            View Skill Ledger & Evidence →
+            View Skill Ledger & Evidence â†’
           </button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', padding: '10px 0' }}>
@@ -1380,7 +1407,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
         {capabilities.every(c => c.value === 0) && (
           <div style={{ marginTop: '10px', padding: '12px 16px', borderRadius: '10px', background: 'rgba(40, 215, 255, 0.04)', border: '1px solid rgba(40, 215, 255, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
             <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              ✦ <strong>Baseline State</strong>: No meaningful activity recorded yet. Complete a diagnostic assessment or add skills to record your first progress.
+              â€¢ <strong>Baseline State</strong>: No meaningful activity recorded yet. Complete a diagnostic assessment or add skills to record your first progress.
             </span>
             <button onClick={() => setActivePage('skills')} className="btn-cyber-primary" style={{ padding: '6px 14px', fontSize: '11.5px' }}>
               Start Assessment
@@ -1535,7 +1562,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                 </div>
 
                 <div style={{ fontSize: '12px', color: 'var(--cyber-cyan)', fontWeight: 600, marginBottom: '10px' }}>
-                  {opp.company} • {opp.type || 'Internship'}
+                  {opp.company} â€¢ {opp.type || 'Internship'}
                 </div>
 
                 {/* Candidate Pipeline Progress (Section 10) */}
@@ -1545,16 +1572,16 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   marginBottom: '12px', fontSize: '10px', fontFamily: 'var(--font-mono)'
                 }}>
-                  <span style={{ color: '#10B981', fontWeight: 700 }}>✓ Eligible</span>
-                  <span style={{ color: '#64748B' }}>→</span>
+                  <span style={{ color: '#10B981', fontWeight: 700 }}>âœ“ Eligible</span>
+                  <span style={{ color: '#64748B' }}>â†’</span>
                   <span style={{ color: isShortlisted ? '#C084FC' : '#64748B', fontWeight: isShortlisted ? 800 : 500 }}>
-                    {isShortlisted ? '★ Shortlisted' : 'Shortlisted'}
+                    {isShortlisted ? 'â˜… Shortlisted' : 'Shortlisted'}
                   </span>
-                  <span style={{ color: '#64748B' }}>→</span>
+                  <span style={{ color: '#64748B' }}>â†’</span>
                   <span style={{ color: isApplied ? '#22D3EE' : '#64748B', fontWeight: isApplied ? 800 : 500 }}>
-                    {isApplied ? '✓ Applied' : 'Applied'}
+                    {isApplied ? 'âœ“ Applied' : 'Applied'}
                   </span>
-                  <span style={{ color: '#64748B' }}>→</span>
+                  <span style={{ color: '#64748B' }}>â†’</span>
                   <span style={{ color: '#64748B' }}>Under Review</span>
                 </div>
 
@@ -1595,12 +1622,12 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
                   {(opp.strongSkills || opp.matchedSkills || ['React.js', 'Python', 'SQL', 'Data Structures']).slice(0, 4).map((sk, i) => (
                     <span key={i} style={{ fontSize: '10.5px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.1)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.25)', fontWeight: 600 }}>
-                      ✓ {sk}
+                      âœ“ {sk}
                     </span>
                   ))}
                   {(opp.missingSkills || []).slice(0, 1).map((sk, i) => (
                     <span key={`mis-${i}`} style={{ fontSize: '10.5px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(245, 158, 11, 0.1)', color: '#F59E0B', border: '1px solid rgba(245, 158, 11, 0.25)', fontWeight: 600 }}>
-                      ⚠ Gap: {sk}
+                      âš  Gap: {sk}
                     </span>
                   ))}
                 </div>
@@ -1661,7 +1688,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                       className="btn-cyber-primary"
                       style={{ padding: '8px 14px', fontSize: '12px', fontWeight: 800 }}
                     >
-                      Apply Now →
+                      Apply Now â†’
                     </button>
                   )}
                 </div>
@@ -1768,7 +1795,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                   className="btn-cyber-primary"
                   style={{ flex: 1.2, padding: '6px 8px', fontSize: '10.5px', justifyContent: 'center' }}
                 >
-                  {course.enrolled ? 'Resume Course →' : 'Enroll / View →'}
+                  {course.enrolled ? 'Resume Course â†’' : 'Enroll / View â†’'}
                 </button>
               </div>
             </div>
@@ -1842,7 +1869,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                   className="btn-cyber-outline"
                   style={{ flex: 1, padding: '6px 8px', fontSize: '10.5px', justifyContent: 'center' }}
                 >
-                  Deep Dive →
+                  Deep Dive â†’
                 </button>
               </div>
             </div>
@@ -1908,7 +1935,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                   className="btn-cyber-primary"
                   style={{ flex: 1, padding: '6px 8px', fontSize: '10.5px', justifyContent: 'center' }}
                 >
-                  Explore Radar →
+                  Explore Radar â†’
                 </button>
               </div>
             </div>
@@ -2144,7 +2171,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>Daily Usage Calendar</span>
-                <span className="cyber-badge badge-cyan" style={{ fontSize: '9px', padding: '1px 6px' }}>⚡ Active Today</span>
+                <span className="cyber-badge badge-cyan" style={{ fontSize: '9px', padding: '1px 6px' }}>Active Today</span>
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>Colored by your daily login and learning activity</div>
             </div>
@@ -2270,7 +2297,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                     : 'No activity yet this month'}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  {isActive ? 'Keep it up! 🚀' : 'Complete your first assessment to begin!'}
+                  {isActive ? 'Keep it up!' : 'Complete your first assessment to begin!'}
                 </div>
               </div>
             );
@@ -2344,7 +2371,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
         marginTop: '24px', textAlign: 'right',
         fontSize: '11px', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)'
       }}>
-        ✦ Skills for today. Opportunities for tomorrow.
+        Skills for today. Opportunities for tomorrow.
       </div>
 
       {/* Skill Assessment Questionnaire Modal */}
@@ -2364,7 +2391,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
         }}
       />
 
-      {/* ── ACADEMIC MENTOR DOSSIER MODAL ── */}
+      {/* â”€â”€ ACADEMIC MENTOR DOSSIER MODAL â”€â”€ */}
       {showMentorModal && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
@@ -2405,7 +2432,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                   {dashboardData.academicNetwork?.mentor?.name || 'Dr. Ramesh Sundaram'}
                 </h3>
                 <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: 0 }}>
-                  {dashboardData.academicNetwork?.mentor?.designation || 'HOD & Professor'} • CSE Department
+                  {dashboardData.academicNetwork?.mentor?.designation || 'HOD & Professor'} â€¢ CSE Department
                 </p>
               </div>
             </div>
@@ -2420,7 +2447,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
               <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Mentored Class & Cohort</div>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
-                  CSE III-A (Batch 2023-2027) • Direct Mentorship Active
+                  CSE III-A (Batch 2023-2027) â€¢ Direct Mentorship Active
                 </div>
               </div>
               <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)' }}>
@@ -2448,7 +2475,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
         </div>
       )}
 
-      {/* ── SKILL ELIGIBILITY & ENROLLMENT MODAL ── */}
+      {/* â”€â”€ SKILL ELIGIBILITY & ENROLLMENT MODAL â”€â”€ */}
       {showEligibilityModal && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
@@ -2479,7 +2506,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
               Advanced React.js & State Architecture
             </h3>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '0 0 20px' }}>
-              Offered by {dashboardData.academicNetwork?.institution || 'ABC Engineering College'} • 6 Weeks Program
+              Offered by {dashboardData.academicNetwork?.institution || 'ABC Engineering College'} â€¢ 6 Weeks Program
             </p>
 
             {/* Verification Checklist */}
@@ -2503,10 +2530,10 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                     <CheckCircle2 size={16} color="#10B981" />
                     <div>
                       <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>{item.label}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Required: {item.requirement} • Current: {item.current}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Required: {item.requirement} â€¢ Current: {item.current}</div>
                     </div>
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', fontFamily: 'var(--font-mono)' }}>PASS ✓</span>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', fontFamily: 'var(--font-mono)' }}>PASS âœ“</span>
                 </div>
               ))}
             </div>
@@ -2533,7 +2560,7 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
                   boxShadow: '0 0 15px rgba(16, 185, 129, 0.35)'
                 }}
               >
-                {enrollingSkill ? 'Processing...' : 'Confirm & Enroll Now →'}
+                {enrollingSkill ? 'Processing...' : 'Confirm & Enroll Now â†’'}
               </button>
             </div>
           </div>

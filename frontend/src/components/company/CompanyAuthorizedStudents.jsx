@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Users,
   Search,
@@ -55,7 +55,7 @@ export default function CompanyAuthorizedStudents({ onShowToast }) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9))',
+        background: '#FFFFFF',
         padding: '24px',
         borderRadius: '14px',
         border: '1px solid rgba(0, 212, 255, 0.25)',
@@ -99,7 +99,7 @@ export default function CompanyAuthorizedStudents({ onShowToast }) {
             width: '100%',
             padding: '10px 14px 10px 42px',
             borderRadius: '10px',
-            background: 'rgba(15, 23, 42, 0.7)',
+            background: '#F7F8FA',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             color: '#f8fafc',
             fontSize: '14px'
@@ -114,7 +114,7 @@ export default function CompanyAuthorizedStudents({ onShowToast }) {
         <div style={{
           textAlign: 'center',
           padding: '60px',
-          background: 'rgba(15, 23, 42, 0.5)',
+          background: '#F7F8FA',
           borderRadius: '12px',
           border: '1px dashed rgba(255, 255, 255, 0.1)'
         }}>
@@ -130,7 +130,7 @@ export default function CompanyAuthorizedStudents({ onShowToast }) {
             <div
               key={s.studentId || s.id}
               style={{
-                background: 'rgba(15, 23, 42, 0.75)',
+                background: '#F7F8FA',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
                 borderRadius: '12px',
                 padding: '20px',
@@ -223,7 +223,7 @@ export default function CompanyAuthorizedStudents({ onShowToast }) {
                 }}
               >
                 <Compass style={{ width: '15px', height: '15px' }} />
-                View 360° Developmental Profile
+                View 360Â° Developmental Profile
               </button>
             </div>
           ))}

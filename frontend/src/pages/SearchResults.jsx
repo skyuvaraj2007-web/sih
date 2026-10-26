@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
   Search,
   BookOpen,
@@ -119,7 +119,7 @@ export default function SearchResults({ setActivePage }) {
         <div style={{
           display: 'flex',
           gap: '12px',
-          background: 'var(--bg-input)',
+          background: '#FFFFFF',
           backdropFilter: 'blur(12px)',
           padding: '8px 16px',
           borderRadius: '12px',
@@ -209,7 +209,7 @@ export default function SearchResults({ setActivePage }) {
                     <div>
                       <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{res.title}</div>
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                        {res.category || 'Curriculum Course'} • {res.difficulty || 'Intermediate'}
+                        {res.category || 'Curriculum Course'} â€¢ {res.difficulty || 'Intermediate'}
                       </div>
                     </div>
                   </div>
@@ -246,7 +246,7 @@ export default function SearchResults({ setActivePage }) {
                     <div>
                       <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{res.title}</div>
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                        {res.type || 'Internship'} • {res.location || 'Chennai, India'}
+                        {res.type || 'Internship'} â€¢ {res.location || 'Chennai, India'}
                       </div>
                     </div>
                   </div>
@@ -283,7 +283,7 @@ export default function SearchResults({ setActivePage }) {
                     <div>
                       <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{res.title}</div>
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                        Category: <span style={{ color: 'var(--cyber-cyan)' }}>{res.category || 'Technical'}</span> • Demand: {res.difficulty || 'High'}
+                        Category: <span style={{ color: 'var(--cyber-cyan)' }}>{res.category || 'Technical'}</span> â€¢ Demand: {res.difficulty || 'High'}
                       </div>
                     </div>
                   </div>
@@ -320,7 +320,7 @@ export default function SearchResults({ setActivePage }) {
                     <div>
                       <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{res.title}</div>
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                        {res.industry || 'Technology'} • {res.match || 'Enterprise'}
+                        {res.industry || 'Technology'} â€¢ {res.match || 'Enterprise'}
                       </div>
                     </div>
                   </div>

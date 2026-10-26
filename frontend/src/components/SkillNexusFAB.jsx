@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, Mic, MicOff, X, MessageSquare, Brain } from 'lucide-react';
+import { Bot, Mic, MicOff, X, MessageSquare, Brain } from 'lucide-react';
 
 export default function SkillNexusFAB({ onOpenAI, onVoiceQuery }) {
   const [isListening, setIsListening] = useState(false);
@@ -83,39 +83,25 @@ export default function SkillNexusFAB({ onOpenAI, onVoiceQuery }) {
   };
 
   const fabCss = [
-    "@keyframes nexus-fab-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }",
-    "@keyframes nexus-fab-pulse-ring { 0% { transform: scale(1); opacity: 0.55; } 70% { transform: scale(1.65); opacity: 0; } 100% { transform: scale(1.65); opacity: 0; } }",
-    "@keyframes nexus-fab-listen-ring { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.4); opacity: 0.3; } }",
-    "@keyframes nexus-fab-orbit1 { from { transform: rotate(0deg) translateX(34px) rotate(0deg); } to { transform: rotate(360deg) translateX(34px) rotate(-360deg); } }",
-    "@keyframes nexus-fab-orbit2 { from { transform: rotate(180deg) translateX(28px) rotate(-180deg); } to { transform: rotate(540deg) translateX(28px) rotate(-540deg); } }",
-    "@keyframes nexus-fab-float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-5px); } }",
-    "@keyframes nexus-fab-glow { 0%, 100% { box-shadow: 0 0 22px rgba(0,217,255,0.45), 0 0 55px rgba(124,58,237,0.25), 0 8px 32px rgba(0,0,0,0.55); } 50% { box-shadow: 0 0 36px rgba(0,217,255,0.7), 0 0 80px rgba(124,58,237,0.45), 0 8px 32px rgba(0,0,0,0.55); } }",
-    "@keyframes nexus-menu-in { from { opacity: 0; transform: scale(0.85) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }",
-    "@keyframes nexus-voice-bar { 0%, 100% { height: 8px; } 50% { height: 22px; } }",
-    ".nexus-fab-root { position: fixed; right: 22px; bottom: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; pointer-events: none; }",
+    "@keyframes nexus-menu-in { from { opacity: 0; transform: scale(0.92) translateY(6px); } to { opacity: 1; transform: scale(1) translateY(0); } }",
+    "@keyframes nexus-voice-bar { 0%, 100% { height: 6px; } 50% { height: 18px; } }",
+    ".nexus-fab-root { position: fixed; right: 24px; bottom: 28px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; pointer-events: none; }",
     ".nexus-fab-root * { pointer-events: auto; }",
-    ".nexus-fab-menu { display: flex; flex-direction: column; gap: 10px; align-items: flex-end; animation: nexus-menu-in 0.22s cubic-bezier(0.16,1,0.3,1) forwards; }",
-    ".nexus-fab-menu-item { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }",
-    ".nexus-fab-menu-label { background: rgba(6,26,51,0.94); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(0,217,255,0.25); border-radius: 20px; padding: 7px 15px; font-size: 12.5px; font-weight: 700; color: #D7E7FF; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }",
-    ".nexus-fab-menu-btn { width: 44px; height: 44px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s ease; flex-shrink: 0; }",
-    ".nexus-fab-menu-btn:hover { transform: scale(1.1); }",
-    ".nexus-fab-btn { position: relative; width: 62px; height: 62px; border-radius: 50%; border: none; cursor: pointer; outline: none; background: linear-gradient(135deg, #00D9FF 0%, #00539C 45%, #7C3AED 100%); display: flex; align-items: center; justify-content: center; transition: transform 0.25s cubic-bezier(0.16,1,0.3,1); animation: nexus-fab-glow 3s ease-in-out infinite, nexus-fab-float 4s ease-in-out infinite; flex-shrink: 0; user-select: none; }",
-    ".nexus-fab-btn:hover { transform: scale(1.1); }",
-    ".nexus-fab-btn.listening { background: linear-gradient(135deg, #FF2D78 0%, #FF6B35 100%); animation: nexus-fab-float 4s ease-in-out infinite; }",
-    ".nexus-fab-orbit-dot { position: absolute; top: 50%; left: 50%; width: 7px; height: 7px; border-radius: 50%; margin-top: -3.5px; margin-left: -3.5px; }",
-    ".nexus-fab-orb1 { background: rgba(0,217,255,0.9); box-shadow: 0 0 8px rgba(0,217,255,0.9); animation: nexus-fab-orbit1 3.2s linear infinite; }",
-    ".nexus-fab-orb2 { background: rgba(124,58,237,0.9); box-shadow: 0 0 8px rgba(124,58,237,0.9); animation: nexus-fab-orbit2 4.8s linear infinite; }",
-    ".nexus-fab-pulse-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(0,217,255,0.6); pointer-events: none; }",
-    ".nexus-fab-pulse-ring.active { animation: nexus-fab-pulse-ring 1.4s ease-out forwards; }",
-    ".nexus-fab-listen-ring { position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(255,45,120,0.7); pointer-events: none; animation: nexus-fab-listen-ring 1.2s ease-in-out infinite; }",
-    ".nexus-fab-arc-ring { position: absolute; inset: -6px; border-radius: 50%; border: 2px solid transparent; border-top-color: rgba(0,217,255,0.5); border-right-color: rgba(124,58,237,0.3); animation: nexus-fab-spin 3s linear infinite; pointer-events: none; }",
-    ".nexus-fab-transcript { position: absolute; bottom: 74px; right: 0; background: rgba(6,26,51,0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,45,120,0.4); border-radius: 16px; padding: 10px 14px; max-width: 240px; font-size: 12.5px; color: #D7E7FF; box-shadow: 0 6px 28px rgba(0,0,0,0.6); word-break: break-word; pointer-events: none; min-width: 160px; }",
-    ".nexus-fab-waveform { display: flex; align-items: center; gap: 3px; height: 24px; }",
-    ".nexus-fab-wave-bar { width: 3px; border-radius: 2px; background: #FF2D78; animation: nexus-voice-bar 0.6s ease-in-out infinite; }",
+    ".nexus-fab-menu { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; animation: nexus-menu-in 0.18s ease-out forwards; }",
+    ".nexus-fab-menu-item { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }",
+    ".nexus-fab-menu-label { background: #FFFFFF; border: 1px solid #E2E5E9; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: #17202A; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }",
+    ".nexus-fab-menu-btn { width: 40px; height: 40px; border-radius: 8px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s ease; flex-shrink: 0; }",
+    ".nexus-fab-menu-btn:hover { transform: translateY(-1px); }",
+    ".nexus-fab-btn { position: relative; width: 52px; height: 52px; border-radius: 26px; border: none; cursor: pointer; outline: none; background: #315CFF; display: flex; align-items: center; justify-content: center; transition: background 0.2s ease, transform 0.15s ease; box-shadow: 0 4px 14px rgba(49,92,255,0.3); flex-shrink: 0; user-select: none; }",
+    ".nexus-fab-btn:hover { background: #2347D5; transform: translateY(-1px); }",
+    ".nexus-fab-btn.listening { background: #DC2626; box-shadow: 0 4px 14px rgba(220,38,38,0.35); }",
+    ".nexus-fab-transcript { position: absolute; bottom: 64px; right: 0; background: #FFFFFF; border: 1px solid #E2E5E9; border-radius: 10px; padding: 12px 14px; max-width: 260px; font-size: 13px; color: #17202A; box-shadow: 0 4px 16px rgba(0,0,0,0.1); word-break: break-word; pointer-events: none; min-width: 180px; }",
+    ".nexus-fab-waveform { display: flex; align-items: center; gap: 3px; height: 20px; }",
+    ".nexus-fab-wave-bar { width: 3px; border-radius: 2px; background: #DC2626; animation: nexus-voice-bar 0.6s ease-in-out infinite; }",
     ".nexus-fab-wave-bar:nth-child(2) { animation-delay: 0.1s; }",
     ".nexus-fab-wave-bar:nth-child(3) { animation-delay: 0.2s; }",
     ".nexus-fab-wave-bar:nth-child(4) { animation-delay: 0.1s; }",
-    ".nexus-fab-tooltip { position: absolute; bottom: 74px; right: 0; background: rgba(6,26,51,0.94); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(0,217,255,0.25); border-radius: 16px; padding: 10px 16px; font-size: 12px; color: #D7E7FF; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.55); pointer-events: none; animation: nexus-menu-in 0.2s ease forwards; }"
+    ".nexus-fab-tooltip { position: absolute; bottom: 64px; right: 0; background: #FFFFFF; border: 1px solid #E2E5E9; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #4B5563; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,0.08); pointer-events: none; animation: nexus-menu-in 0.18s ease forwards; }"
   ].join("\n");
 
   return (
@@ -125,23 +111,23 @@ export default function SkillNexusFAB({ onOpenAI, onVoiceQuery }) {
         {menuOpen && !isListening && (
           <div className="nexus-fab-menu">
             <div className="nexus-fab-menu-item" onClick={() => { setMenuOpen(false); if (onOpenAI) onOpenAI(); }}>
-              <span className="nexus-fab-menu-label">💬 Open AI Chat</span>
-              <button className="nexus-fab-menu-btn" style={{ background: 'linear-gradient(135deg, #00539C 0%, #1688FF 100%)', boxShadow: '0 4px 18px rgba(0,83,156,0.5)' }}>
-                <MessageSquare size={20} color="#fff" />
+              <span className="nexus-fab-menu-label">AI Assistant</span>
+              <button className="nexus-fab-menu-btn" style={{ background: '#315CFF' }}>
+                <MessageSquare size={18} color="#fff" />
               </button>
             </div>
             {isSpeechSupported && (
               <div className="nexus-fab-menu-item" onClick={() => { setMenuOpen(false); startListening(); }}>
-                <span className="nexus-fab-menu-label">🎙️ Voice Assistant</span>
-                <button className="nexus-fab-menu-btn" style={{ background: 'linear-gradient(135deg, #FF2D78 0%, #FF6B35 100%)', boxShadow: '0 4px 18px rgba(255,45,120,0.5)' }}>
-                  <Mic size={20} color="#fff" />
+                <span className="nexus-fab-menu-label">Voice Query</span>
+                <button className="nexus-fab-menu-btn" style={{ background: '#0D9488' }}>
+                  <Mic size={18} color="#fff" />
                 </button>
               </div>
             )}
             <div className="nexus-fab-menu-item" onClick={() => { setMenuOpen(false); if (onVoiceQuery) onVoiceQuery('What are my top skill gaps?'); else if (onOpenAI) onOpenAI('What are my top skill gaps?'); }}>
-              <span className="nexus-fab-menu-label">⚡ Quick Skill Insight</span>
-              <button className="nexus-fab-menu-btn" style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)', boxShadow: '0 4px 18px rgba(124,58,237,0.5)' }}>
-                <Brain size={20} color="#fff" />
+              <span className="nexus-fab-menu-label">Quick Skill Insight</span>
+              <button className="nexus-fab-menu-btn" style={{ background: '#4F46E5' }}>
+                <Brain size={18} color="#fff" />
               </button>
             </div>
           </div>
@@ -152,12 +138,12 @@ export default function SkillNexusFAB({ onOpenAI, onVoiceQuery }) {
             {transcript ? (
               <span>{transcript}</span>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <span style={{ color: '#FF2D78', fontWeight: 700, fontSize: '11px', letterSpacing: '0.05em' }}>LISTENING...</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ color: '#DC2626', fontWeight: 600, fontSize: '11px', letterSpacing: '0.04em' }}>LISTENING...</span>
                 <div className="nexus-fab-waveform">
                   {[1,2,3,4,5].map(i => <div key={i} className="nexus-fab-wave-bar" />)}
                 </div>
-                <span style={{ fontSize: '11px', color: 'rgba(215,231,255,0.6)' }}>Speak your query...</span>
+                <span style={{ fontSize: '11px', color: '#6B7280' }}>Speak your query...</span>
               </div>
             )}
           </div>
@@ -165,8 +151,8 @@ export default function SkillNexusFAB({ onOpenAI, onVoiceQuery }) {
 
         {showTooltip && !isListening && !menuOpen && (
           <div className="nexus-fab-tooltip">
-            <strong style={{ color: '#00D9FF', display: 'block', marginBottom: '2px' }}>✦ Skill Nexus AI</strong>
-            Tap to chat or use voice
+            <strong style={{ color: '#17202A', display: 'block', marginBottom: '2px', fontWeight: 600 }}>SkillNexus Assistant</strong>
+            Click to open assistant or voice search
           </div>
         )}
 
@@ -174,24 +160,15 @@ export default function SkillNexusFAB({ onOpenAI, onVoiceQuery }) {
           id="skill-nexus-fab"
           className={"nexus-fab-btn" + (isListening ? " listening" : "")}
           onClick={handleMainClick}
-          title={isListening ? "Stop listening" : "Skill Nexus AI"}
-          aria-label={isListening ? "Stop voice input" : "Open Skill Nexus AI"}
+          title={isListening ? "Stop listening" : "SkillNexus Assistant"}
+          aria-label={isListening ? "Stop voice input" : "Open SkillNexus Assistant"}
         >
-          <div className="nexus-fab-arc-ring" />
-          {!isListening && (
-            <>
-              <div className="nexus-fab-orbit-dot nexus-fab-orb1" />
-              <div className="nexus-fab-orbit-dot nexus-fab-orb2" />
-            </>
-          )}
-          <div className={"nexus-fab-pulse-ring" + (pulseActive ? " active" : "")} />
-          {isListening && <div className="nexus-fab-listen-ring" />}
           {isListening ? (
-            <MicOff size={26} color="#fff" strokeWidth={2.5} />
+            <MicOff size={22} color="#fff" strokeWidth={2} />
           ) : menuOpen ? (
-            <X size={24} color="#fff" strokeWidth={2.5} />
+            <X size={20} color="#fff" strokeWidth={2} />
           ) : (
-            <Sparkles size={26} color="#fff" strokeWidth={2} />
+            <Bot size={22} color="#fff" strokeWidth={2} />
           )}
         </button>
       </div>

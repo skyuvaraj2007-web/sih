@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import {
   MessageSquare,
   Sparkles,
@@ -26,9 +26,9 @@ import {
   Target
 } from 'lucide-react';
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // NATIVE WEB AUDIO SOUND EFFECTS (Pleasant gamified chimes, zero external assets)
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function playChime(type) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -81,9 +81,9 @@ function playChime(type) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // TEXT TO SPEECH (For listening drills)
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function speakText(text) {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
@@ -139,7 +139,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
 
   const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
 
-  // ── Fetch Telemetry & Curriculum ───────────────────────────────────────────
+  // â”€â”€ Fetch Telemetry & Curriculum â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const fetchCommunicationData = async () => {
     try {
       const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
@@ -174,7 +174,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
     fetchCommunicationData();
   }, [user]);
 
-  // ── Start Lesson ───────────────────────────────────────────────────────────
+  // â”€â”€ Start Lesson â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const startLesson = (lesson) => {
     setCurrentLesson(lesson);
     setExerciseIndex(0);
@@ -222,7 +222,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
     }
   }, [exerciseIndex, currentLesson]);
 
-  // ── Token Click Handler (Arrange Sentence) ─────────────────────────────────
+  // â”€â”€ Token Click Handler (Arrange Sentence) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleTokenSelect = (token) => {
     if (feedbackState) return;
     setArrangedTokens([...arrangedTokens, token]);
@@ -235,7 +235,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
     setAvailableTokens([...availableTokens, token]);
   };
 
-  // ── Pair Matching Handler ──────────────────────────────────────────────────
+  // â”€â”€ Pair Matching Handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleSelectPairTerm = (term) => {
     if (feedbackState) return;
     setSelectedPairTerm(term);
@@ -247,7 +247,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
     setSelectedPairTerm(null);
   };
 
-  // ── Speech Recognition (Speaking Practice) ─────────────────────────────────
+  // â”€â”€ Speech Recognition (Speaking Practice) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const toggleSpeechRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -282,7 +282,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
     }
   };
 
-  // ── Check Answer ───────────────────────────────────────────────────────────
+  // â”€â”€ Check Answer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const checkAnswer = () => {
     if (!currentLesson) return;
     const currentEx = currentLesson.exercises[exerciseIndex];
@@ -319,7 +319,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
     }
   };
 
-  // ── Next Exercise / Complete Lesson ────────────────────────────────────────
+  // â”€â”€ Next Exercise / Complete Lesson â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const nextExercise = async () => {
     if (exerciseIndex + 1 < currentLesson.exercises.length) {
       setExerciseIndex(prev => prev + 1);
@@ -392,7 +392,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
   return (
     <div style={{ padding: '24px', maxWidth: '1280px', margin: '0 auto', color: 'var(--text-primary)' }}>
 
-      {/* ── HEADER TELEMETRY STRIP (DUOLINGO-STYLE GAMIFIED STATUS) ── */}
+      {/* â”€â”€ HEADER TELEMETRY STRIP (DUOLINGO-STYLE GAMIFIED STATUS) â”€â”€ */}
       <div className="glass-panel" style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: '16px 24px', borderRadius: '14px', marginBottom: '22px',
@@ -414,7 +414,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
                 Communication Mastery
               </h1>
               <span className="cyber-badge badge-purple" style={{ fontSize: '10px' }}>
-                LEVEL {profile.level} • {profile.level === 1 ? 'Novice' : profile.level === 2 ? 'Developing' : profile.level === 3 ? 'Competent' : profile.level === 4 ? 'Proficient' : 'Master'}
+                LEVEL {profile.level} â€¢ {profile.level === 1 ? 'Novice' : profile.level === 2 ? 'Developing' : profile.level === 3 ? 'Competent' : profile.level === 4 ? 'Proficient' : 'Master'}
               </span>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
@@ -482,7 +482,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
         </div>
       </div>
 
-      {/* ── ACTIVE LESSON PLAYER (MODAL OVERLAY) ── */}
+      {/* â”€â”€ ACTIVE LESSON PLAYER (MODAL OVERLAY) â”€â”€ */}
       {currentLesson && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
@@ -504,7 +504,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
                 cursor: 'pointer', fontSize: '13px', fontWeight: 600
               }}
             >
-              Exit Lesson ✕
+              Exit Lesson âœ•
             </button>
 
             {/* Session Completed State */}
@@ -640,7 +640,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
                 {currentEx?.prompt && (
                   <div style={{
                     fontSize: '15px', color: 'var(--text-primary)', fontWeight: 500,
-                    marginBottom: '20px', padding: '12px 16px', background: 'var(--bg-input)',
+                    marginBottom: '20px', padding: '12px 16px', background: '#FFFFFF',
                     borderRadius: '8px', border: '1px solid var(--border-subtle)'
                   }}>
                     {currentEx.prompt}
@@ -661,7 +661,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
                             padding: '14px 18px', borderRadius: '10px', textAlign: 'left',
                             fontSize: '13.5px', fontWeight: 500, cursor: feedbackState ? 'default' : 'pointer',
                             transition: 'all 0.2s ease',
-                            background: isSelected ? 'rgba(0, 212, 255, 0.12)' : 'var(--bg-input)',
+                            background: isSelected ? 'rgba(0, 212, 255, 0.12)' : '#FFFFFF',
                             border: isSelected ? '1.5px solid var(--cyber-cyan)' : '1px solid var(--border-subtle)',
                             color: isSelected ? '#fff' : 'var(--text-secondary)'
                           }}
@@ -717,7 +717,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
                           onClick={() => handleTokenSelect(token)}
                           style={{
                             padding: '8px 14px', borderRadius: '6px',
-                            background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
+                            background: '#FFFFFF', border: '1px solid var(--border-subtle)',
                             color: 'var(--text-primary)', fontSize: '12.5px', fontWeight: 500, cursor: 'pointer'
                           }}
                         >
@@ -743,12 +743,12 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
                             onClick={() => handleSelectPairTerm(p.term)}
                             style={{
                               padding: '10px 12px', borderRadius: '8px', textAlign: 'left',
-                              background: isSelected ? 'rgba(0, 212, 255, 0.2)' : isMatched ? 'rgba(46, 224, 161, 0.12)' : 'var(--bg-input)',
+                              background: isSelected ? 'rgba(0, 212, 255, 0.2)' : isMatched ? 'rgba(46, 224, 161, 0.12)' : '#FFFFFF',
                               border: isSelected ? '1.5px solid var(--cyber-cyan)' : isMatched ? '1px solid var(--cyber-emerald)' : '1px solid var(--border-subtle)',
                               color: '#fff', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer'
                             }}
                           >
-                            {p.term} {isMatched && '✓'}
+                            {p.term} {isMatched && 'âœ“'}
                           </button>
                         );
                       })}
@@ -765,7 +765,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
                             onClick={() => handleSelectPairMeaning(p.meaning)}
                             style={{
                               padding: '10px 12px', borderRadius: '8px', textAlign: 'left',
-                              background: isAssigned ? 'rgba(46, 224, 161, 0.12)' : 'var(--bg-input)',
+                              background: isAssigned ? 'rgba(46, 224, 161, 0.12)' : '#FFFFFF',
                               border: isAssigned ? '1px solid var(--cyber-emerald)' : '1px solid var(--border-subtle)',
                               color: isAssigned ? 'var(--cyber-emerald)' : 'var(--text-secondary)',
                               fontSize: '12px', cursor: 'pointer'
@@ -796,7 +796,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
                       <button
                         onClick={() => speakText(currentEx.targetPhrase)}
                         style={{
-                          padding: '8px 14px', borderRadius: '8px', background: 'var(--bg-input)',
+                          padding: '8px 14px', borderRadius: '8px', background: '#FFFFFF',
                           border: '1px solid var(--border-subtle)', color: 'var(--text-primary)',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px'
                         }}
@@ -877,7 +877,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
                         background: feedbackState === 'correct' ? 'linear-gradient(135deg, #10B981, #06B6D4)' : 'linear-gradient(135deg, #3B82F6, #8B5CF6)'
                       }}
                     >
-                      {exerciseIndex + 1 < currentLesson.exercises.length ? 'Next Question →' : 'Complete Lesson 🎉'}
+                      {exerciseIndex + 1 < currentLesson.exercises.length ? 'Next Question â†’' : 'Complete Lesson ðŸŽ‰'}
                     </button>
                   )}
                 </div>
@@ -887,7 +887,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
         </div>
       )}
 
-      {/* ── TABS NAVIGATION ── */}
+      {/* â”€â”€ TABS NAVIGATION â”€â”€ */}
       <div style={{
         display: 'flex', gap: '6px', borderBottom: '1px solid var(--border-subtle)',
         marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px'
@@ -921,9 +921,9 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
         })}
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           TAB 1: DAILY PRACTICE (SPEED SPRINT)
-          ═══════════════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {activeTab === 'daily' && (
         <div>
           <div className="glass-panel" style={{
@@ -993,7 +993,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
                   className="btn-cyber-primary"
                   style={{ width: '100%', padding: '8px 12px', fontSize: '12px' }}
                 >
-                  Start Drill →
+                  Start Drill â†’
                 </button>
               </div>
             ))}
@@ -1001,9 +1001,9 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           TABS 2-7: CATEGORIZED MODULES (Vocabulary, Grammar, Reading, Listening, Speaking, Conversation)
-          ═══════════════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {['vocabulary', 'grammar', 'reading', 'listening', 'speaking', 'conversation'].includes(activeTab) && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
@@ -1059,7 +1059,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
                     className={lesson.isCompleted ? 'btn-cyber-outline' : 'btn-cyber-primary'}
                     style={{ padding: '8px 16px', fontSize: '12px' }}
                   >
-                    {lesson.isCompleted ? 'Review Lesson' : 'Start Lesson →'}
+                    {lesson.isCompleted ? 'Review Lesson' : 'Start Lesson â†’'}
                   </button>
                 </div>
               </div>
@@ -1068,9 +1068,9 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           TAB 8: PROGRESS & ANALYTICS
-          ═══════════════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {activeTab === 'progress' && (
         <div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '24px' }}>
@@ -1120,7 +1120,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
               {/* Strengths */}
               <div style={{ marginBottom: '18px' }}>
                 <div style={{ fontSize: '11.5px', color: 'var(--cyber-emerald)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
-                  ✓ Validated Strengths
+                  âœ“ Validated Strengths
                 </div>
                 {profile.strengths && profile.strengths.length > 0 ? (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -1140,7 +1140,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
               {/* Priority Improvement Areas */}
               <div style={{ marginBottom: '18px' }}>
                 <div style={{ fontSize: '11.5px', color: '#FF9D4D', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
-                  • Priority Improvement Areas
+                  â€¢ Priority Improvement Areas
                 </div>
                 {profile.areasToImprove && profile.areasToImprove.length > 0 ? (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -1160,7 +1160,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
               {/* Badges Earned */}
               <div>
                 <div style={{ fontSize: '11.5px', color: 'var(--cyber-cyan)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
-                  🏆 Earned Badges ({profile.badges?.length || 0})
+                  ðŸ† Earned Badges ({profile.badges?.length || 0})
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {(profile.badges || []).length > 0 ? (
@@ -1207,7 +1207,7 @@ export default function CommunicationLearning({ setActivePage, user, onShowToast
                         </span>
                       </div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        {new Date(act.completedAt).toLocaleString()} • {act.timeSpent || 30}s duration
+                        {new Date(act.completedAt).toLocaleString()} â€¢ {act.timeSpent || 30}s duration
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>

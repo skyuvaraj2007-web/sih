@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Cpu,
   Search,
@@ -35,7 +35,7 @@ export default function AdvancedTech({ setActivePage }) {
       industryDemand: 98,
       difficulty: "Intermediate",
       rating: "5.0 / 5.0",
-      status: "In Progress (Enrolled • 42%)",
+      status: "In Progress (Enrolled â€¢ 42%)",
       statusClass: "badge-cyan",
       slug: "generative-ai",
       category: "AI & ML",
@@ -149,7 +149,7 @@ export default function AdvancedTech({ setActivePage }) {
         <div className="page-title-group">
           <div className="telemetry-node-tag">
             <span>06 // TECH FRONTIER RADAR</span>
-            <span>•</span>
+            <span>â€¢</span>
             <span>LIVE TELEMETRY</span>
           </div>
           <h1>Advanced Technologies</h1>
@@ -193,14 +193,14 @@ export default function AdvancedTech({ setActivePage }) {
           </p>
 
           <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-            Inferred <strong style={{ color: 'var(--cyber-emerald)' }}>14,200+</strong> industry job descriptions this week. • <span style={{ color: 'var(--cyber-cyan)' }}>ST Enterprise Skill Synced</span>
+            Inferred <strong style={{ color: 'var(--cyber-emerald)' }}>14,200+</strong> industry job descriptions this week. â€¢ <span style={{ color: 'var(--cyber-cyan)' }}>ST Enterprise Skill Synced</span>
           </div>
         </div>
 
         {/* Frontier Readiness Gauge */}
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
-          padding: '16px', borderRadius: '12px', background: 'var(--bg-input)',
+          padding: '16px', borderRadius: '12px', background: '#FFFFFF',
           border: '1px solid var(--border-subtle)', textAlign: 'center'
         }}>
           <div style={{
@@ -226,7 +226,7 @@ export default function AdvancedTech({ setActivePage }) {
       {/* Search Input Box */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '10px',
-        background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
+        background: '#FFFFFF', border: '1px solid var(--border-subtle)',
         borderRadius: '10px', padding: '10px 16px', marginBottom: '16px'
       }}>
         <Search size={16} color="var(--text-muted)" />
@@ -240,7 +240,7 @@ export default function AdvancedTech({ setActivePage }) {
             color: 'var(--text-primary)', fontSize: '13px', outline: 'none', width: '100%'
           }}
         />
-        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>⌘K</span>
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>âŒ˜K</span>
       </div>
 
       {/* Filter Category Pills */}
@@ -306,14 +306,14 @@ export default function AdvancedTech({ setActivePage }) {
               </p>
 
               {/* Demand & Difficulty */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '10px 12px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '16px', fontSize: '11.5px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '10px 12px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '16px', fontSize: '11.5px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Industry Demand</span>
                   <strong style={{ color: 'var(--cyber-emerald)', fontFamily: 'var(--font-mono)' }}>{tech.industryDemand}%</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Diff: {tech.difficulty}</span>
-                  <span style={{ color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)' }}>★ {tech.rating}</span>
+                  <span style={{ color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)' }}>â˜… {tech.rating}</span>
                 </div>
               </div>
 
@@ -344,7 +344,7 @@ export default function AdvancedTech({ setActivePage }) {
                   padding: '4px 0'
                 }}
               >
-                <span>Learn More →</span>
+                <span>Learn More â†’</span>
               </button>
 
               <button
@@ -394,11 +394,11 @@ export default function AdvancedTech({ setActivePage }) {
             background: 'var(--grad-purple-indigo)', display: 'flex',
             alignItems: 'center', justifyContent: 'center', color: '#FFF'
           }}>
-            ⚡
+            <TrendingUp size={18} />
           </div>
           <div>
             <div style={{ fontSize: '11px', color: 'var(--cyber-purple)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', fontWeight: 700 }}>
-              NEXUS TECH FORECAST • Empirical Placement Data
+              NEXUS TECH FORECAST â€¢ Empirical Placement Data
             </div>
             <div style={{ fontSize: '13.5px', color: 'var(--text-primary)', fontWeight: 600 }}>
               Students with 2+ validated emerging technologies see a <strong>3.4x higher interview callback rate</strong> in data science and frontier engineering roles.
@@ -411,7 +411,7 @@ export default function AdvancedTech({ setActivePage }) {
           className="btn-cyber-primary"
           style={{ padding: '9px 18px', fontSize: '13px', whiteSpace: 'nowrap' }}
         >
-          Enroll in Emerging Cohort →
+          Enroll in Emerging Cohort â†’
         </button>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { UserPlus, X, CheckCircle, AlertCircle, RefreshCw, Mail, Copy, Check } from 'lucide-react';
 import { academicService } from '../../services/academicService';
 
@@ -97,7 +97,7 @@ export default function ManualStudentModal({ institution, onClose, onSuccess, on
       <div className="glass-panel" style={{
         width: '100%',
         maxWidth: '560px',
-        background: 'linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(11, 17, 32, 0.96))',
+        background: 'linear-gradient(145deg, #F7F8FA, rgba(11, 17, 32, 0.96))',
         border: '1px solid rgba(168, 85, 247, 0.3)',
         borderRadius: '16px',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(168, 85, 247, 0.15)',
@@ -276,12 +276,12 @@ export default function ManualStudentModal({ institution, onClose, onSuccess, on
                     value={form.departmentId}
                     onChange={(e) => setForm({ ...form, departmentId: e.target.value })}
                     className="cyber-input"
-                    style={{ width: '100%', background: '#0B1120' }}
+                    style={{ width: '100%', background: '#FFFFFF' }}
                     required
                   >
                     {departments.map((d) => (
                       <option key={d.id} value={d.id}>
-                        {d.code} — {d.name}
+                        {d.code} â€” {d.name}
                       </option>
                     ))}
                   </select>

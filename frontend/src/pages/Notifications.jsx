@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Bell,
   CheckCircle2,
@@ -374,7 +374,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
             {/* Preview Banner */}
             <div style={{
               padding: '14px 18px', borderRadius: '8px',
-              background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
+              background: '#FFFFFF', border: '1px solid var(--border-subtle)',
               fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '24px'
             }}>
               {selectedNotification.preview}
@@ -401,9 +401,9 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
-                    <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(6, 11, 20, 0.65)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ fontSize: '10px', color: 'var(--cyber-cyan)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                        👤 SELECTED CANDIDATE (STUDENT)
+                        ðŸ‘¤ SELECTED CANDIDATE (STUDENT)
                       </div>
                       <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>
                         {selectedNotification.details?.candidateName || 'Alex Johnson'}
@@ -413,9 +413,9 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                       </div>
                     </div>
 
-                    <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(6, 11, 20, 0.65)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ fontSize: '10px', color: '#10B981', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                        🏛️ CAMPUS & PLACEMENT OFFICE
+                        ðŸ›ï¸ CAMPUS & PLACEMENT OFFICE
                       </div>
                       <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>
                         {selectedNotification.details?.institutionName || 'PSG College of Technology'}
@@ -425,9 +425,9 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                       </div>
                     </div>
 
-                    <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(6, 11, 20, 0.65)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ fontSize: '10px', color: '#F59E0B', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                        👨‍🏫 ACADEMICIAN / FACULTY MENTOR
+                        ðŸ‘¨â€ðŸ« ACADEMICIAN / FACULTY MENTOR
                       </div>
                       <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>
                         {selectedNotification.details?.academicianName || 'Dr. K. Ramanathan'}
@@ -437,34 +437,34 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                       </div>
                     </div>
 
-                    <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(6, 11, 20, 0.65)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ fontSize: '10px', color: '#8B5CF6', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                        🏢 CORPORATE HIRING PARTNER
+                        ðŸ¢ CORPORATE HIRING PARTNER
                       </div>
                       <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>
                         {selectedNotification.details?.companyName || 'Google Cloud India'}
                       </div>
                       <div style={{ fontSize: '12px', color: 'var(--cyber-emerald)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                        {selectedNotification.details?.ctcOrStipend || '₹14.50 LPA'}
+                        {selectedNotification.details?.ctcOrStipend || 'â‚¹14.50 LPA'}
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                  <div style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>TARGET ROLE</div>
                     <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginTop: '2px' }}>
                       {selectedNotification.details?.roleTitle || 'Cloud Infrastructure Solutions Engineer'}
                     </div>
                   </div>
-                  <div style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>OFFER LETTER STATUS</div>
                     <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--cyber-cyan)', marginTop: '2px' }}>
                       {selectedNotification.details?.offerStatus || 'OFFER LETTER RELEASED'}
                     </div>
                   </div>
-                  <div style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>ONBOARDING SCHEDULE</div>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--cyber-amber)', marginTop: '2px' }}>
                       {selectedNotification.details?.onboardingDate || 'July 15, 2026'}
@@ -536,9 +536,9 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
-                    <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(6, 11, 20, 0.65)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ fontSize: '10px', color: 'var(--cyber-purple)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                        🏛️ TARGET COLLEGE CAMPUS
+                        ðŸ›ï¸ TARGET COLLEGE CAMPUS
                       </div>
                       <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>
                         {selectedNotification.details?.institutionName || 'PSG College of Technology'}
@@ -548,9 +548,9 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                       </div>
                     </div>
 
-                    <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(6, 11, 20, 0.65)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ fontSize: '10px', color: 'var(--cyber-cyan)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                        🏢 INDUSTRY PARTNER
+                        ðŸ¢ INDUSTRY PARTNER
                       </div>
                       <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>
                         {selectedNotification.details?.companyName || 'Google Cloud India'}
@@ -560,9 +560,9 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                       </div>
                     </div>
 
-                    <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(6, 11, 20, 0.65)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ fontSize: '10px', color: '#10B981', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                        📚 ELIGIBLE DEPARTMENTS & BATCH
+                        ðŸ“š ELIGIBLE DEPARTMENTS & BATCH
                       </div>
                       <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>
                         {Array.isArray(selectedNotification.details?.departments)
@@ -644,9 +644,9 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
-                    <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(6, 11, 20, 0.65)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ fontSize: '10px', color: 'var(--cyber-cyan)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                        🏢 ASSIGNING COMPANY
+                        ASSIGNING COMPANY
                       </div>
                       <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>
                         {selectedNotification.details?.companyName || 'Enterprise Partner'}
@@ -656,9 +656,9 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                       </div>
                     </div>
 
-                    <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(6, 11, 20, 0.65)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ fontSize: '10px', color: '#A855F7', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                        ⚡ PROGRAMMING LANGUAGE
+                        PROGRAMMING LANGUAGE
                       </div>
                       <div style={{ fontSize: '14px', fontWeight: 700, color: '#C084FC', fontFamily: 'var(--font-mono)' }}>
                         {selectedNotification.details?.programmingLanguage || 'JavaScript'}
@@ -668,9 +668,9 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                       </div>
                     </div>
 
-                    <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(6, 11, 20, 0.65)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ fontSize: '10px', color: '#10B981', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                        📁 RELATED PROJECT / CAPSTONE
+                        RELATED PROJECT / CAPSTONE
                       </div>
                       <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#fff' }}>
                         {selectedNotification.details?.projectTitle || 'Applied Industry Project'}
@@ -683,7 +683,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                 </div>
 
                 {selectedNotification.details?.projectDescription && (
-                  <div style={{ padding: '14px 18px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ padding: '14px 18px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '11px', color: 'var(--cyber-cyan)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
                       PROJECT SPECIFICATIONS & DELIVERABLES
                     </div>
@@ -715,7 +715,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                       }}
                     >
                       <Award size={16} />
-                      <span>Attend Assessment Test Now →</span>
+                      <span>Attend Assessment Test Now â†’</span>
                     </button>
                   )}
 
@@ -796,12 +796,12 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div style={{ padding: '16px', borderRadius: '8px', background: 'rgba(47, 224, 161, 0.04)', border: '1px solid rgba(47, 224, 161, 0.2)' }}>
                     <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--cyber-emerald)', marginBottom: '8px' }}>
-                      ✓ Matched Competencies
+                      âœ“ Matched Competencies
                     </div>
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       {selectedNotification.details.matchedSkills?.map(sk => (
                         <span key={sk} className="cyber-badge badge-emerald" style={{ fontSize: '10px' }}>
-                          ✓ {sk}
+                          âœ“ {sk}
                         </span>
                       ))}
                     </div>
@@ -809,7 +809,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
 
                   <div style={{ padding: '16px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.04)', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
                     <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--cyber-amber)', marginBottom: '8px' }}>
-                      ⚠ Recommended Skill to Bridge
+                      âš  Recommended Skill to Bridge
                     </div>
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       {selectedNotification.details.criticalGaps?.map(sk => (
@@ -885,7 +885,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     {selectedNotification.details.validatedSkills?.map(sk => (
                       <span key={sk} className="cyber-badge badge-emerald" style={{ fontSize: '11px', padding: '4px 10px' }}>
-                        ✓ {sk}
+                        âœ“ {sk}
                       </span>
                     ))}
                   </div>
@@ -894,7 +894,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   </div>
                 </div>
 
-                <div style={{ padding: '14px 16px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+                <div style={{ padding: '14px 16px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
                   <strong style={{ color: 'var(--text-primary)' }}>Impact on Profile:</strong> {selectedNotification.details.impact}
                 </div>
 
@@ -917,7 +917,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
             {/* 3. COMPANY / INTERNSHIP DETAILS */}
             {selectedNotification.type === 'company_internship' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                <div style={{ padding: '16px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ padding: '16px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
                     About {selectedNotification.details.company}
                   </div>
@@ -985,14 +985,14 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                  <div style={{ padding: '14px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ padding: '14px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>NEXT ACTIVE MODULE</div>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>
                       {selectedNotification.details.nextModule}
                     </div>
                   </div>
 
-                  <div style={{ padding: '14px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ padding: '14px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>RECOMMENDED COMPLETION</div>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--cyber-purple)', marginTop: '4px' }}>
                       {selectedNotification.details.recommendedCompletion}
@@ -1038,7 +1038,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   </div>
                 </div>
 
-                <div style={{ padding: '16px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ padding: '16px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
                     Nexus AI Recommended Action Plan:
                   </div>
@@ -1090,7 +1090,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div style={{ padding: '16px', borderRadius: '8px', background: 'rgba(47, 224, 161, 0.04)', border: '1px solid rgba(47, 224, 161, 0.2)' }}>
                     <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--cyber-emerald)', marginBottom: '8px' }}>
-                      ✓ Strong Competencies Proven
+                      âœ“ Strong Competencies Proven
                     </div>
                     <ul style={{ paddingLeft: '16px', margin: 0, fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                       {selectedNotification.details.strongAreas?.map(s => (
@@ -1101,7 +1101,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
 
                   <div style={{ padding: '16px', borderRadius: '8px', background: 'rgba(244, 63, 94, 0.04)', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
                     <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--cyber-rose)', marginBottom: '8px' }}>
-                      ⚠ Focus Topics for Next Sprint
+                      âš  Focus Topics for Next Sprint
                     </div>
                     <ul style={{ paddingLeft: '16px', margin: 0, fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                       {selectedNotification.details.weakAreas?.map(w => (
@@ -1111,7 +1111,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   </div>
                 </div>
 
-                <div style={{ padding: '14px 16px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+                <div style={{ padding: '14px 16px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
                   <strong style={{ color: 'var(--text-primary)' }}>Recommended Next Step:</strong> {selectedNotification.details.recommendedNextStep}
                 </div>
 
@@ -1201,7 +1201,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   </p>
                 </div>
                 <button onClick={() => setActivePage('learning')} className="btn-cyber-primary" style={{ padding: '10px 20px', fontSize: '13px', alignSelf: 'flex-start' }}>
-                  <span>Go to My Learning Sprint →</span>
+                  <span>Go to My Learning Sprint â†’</span>
                 </button>
               </div>
             )}
@@ -1218,12 +1218,12 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   </p>
                 </div>
                 <button onClick={() => setActivePage('learning')} className="btn-cyber-outline" style={{ padding: '10px 20px', fontSize: '13px', alignSelf: 'flex-start' }}>
-                  <span>Browse Other Courses →</span>
+                  <span>Browse Other Courses â†’</span>
                 </button>
               </div>
             )}
 
-            {/* ── INSTITUTION: NEW STUDENT REGISTERED ── */}
+            {/* â”€â”€ INSTITUTION: NEW STUDENT REGISTERED â”€â”€ */}
             {selectedNotification.type === 'new_student' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
@@ -1241,12 +1241,12 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   </div>
                 </div>
                 <button onClick={() => setActivePage('institution-students')} className="btn-cyber-primary" style={{ padding: '10px 20px', fontSize: '13px', alignSelf: 'flex-start' }}>
-                  <span>View Student Profile →</span>
+                  <span>View Student Profile â†’</span>
                 </button>
               </div>
             )}
 
-            {/* ── INSTITUTION: PROJECT PROOF SUBMITTED ── */}
+            {/* â”€â”€ INSTITUTION: PROJECT PROOF SUBMITTED â”€â”€ */}
             {selectedNotification.type === 'proof_submitted' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {[['STUDENT', selectedNotification.details.student], ['PROJECT', selectedNotification.details.project], ['DEPARTMENT', selectedNotification.details.department], ['STATUS', selectedNotification.details.status]].map(([label, val]) => (
@@ -1256,12 +1256,12 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   </div>
                 ))}
                 <button onClick={() => setActivePage('institution-proofs')} className="btn-cyber-primary" style={{ padding: '10px 20px', fontSize: '13px', alignSelf: 'flex-start' }}>
-                  <span>Review Proof →</span>
+                  <span>Review Proof â†’</span>
                 </button>
               </div>
             )}
 
-            {/* ── INSTITUTION: HIGH-READINESS / ASSESSMENT / COURSE / PLACEMENT ── */}
+            {/* â”€â”€ INSTITUTION: HIGH-READINESS / ASSESSMENT / COURSE / PLACEMENT â”€â”€ */}
             {['high_readiness','assessment_completed','course_enrollment','placement_candidate'].includes(selectedNotification.type) && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ padding: '20px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)' }}>
@@ -1273,12 +1273,12 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   ))}
                 </div>
                 <button onClick={() => setActivePage(selectedNotification.details.action || 'institution-console')} className="btn-cyber-primary" style={{ padding: '10px 20px', fontSize: '13px', alignSelf: 'flex-start' }}>
-                  <span>View Details →</span>
+                  <span>View Details â†’</span>
                 </button>
               </div>
             )}
 
-            {/* ── INDUSTRY: NEW CANDIDATE ── */}
+            {/* â”€â”€ INDUSTRY: NEW CANDIDATE â”€â”€ */}
             {selectedNotification.type === 'new_candidate' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
@@ -1296,12 +1296,12 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   </div>
                 </div>
                 <button onClick={() => setActivePage('industry-portal')} className="btn-cyber-primary" style={{ padding: '10px 20px', fontSize: '13px', alignSelf: 'flex-start' }}>
-                  <span>View Candidate Profile →</span>
+                  <span>View Candidate Profile â†’</span>
                 </button>
               </div>
             )}
 
-            {/* ── INDUSTRY: APPLICATION RECEIVED ── */}
+            {/* â”€â”€ INDUSTRY: APPLICATION RECEIVED â”€â”€ */}
             {selectedNotification.type === 'application_received' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 {[['CANDIDATE', selectedNotification.details.candidate], ['APPLIED FOR', selectedNotification.details.role], ['MATCH', selectedNotification.details.match]].map(([label, val]) => (
@@ -1314,12 +1314,12 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   {selectedNotification.details.skills?.map(sk => <span key={sk} className="cyber-badge badge-emerald" style={{ fontSize: '10px' }}>{sk}</span>)}
                 </div>
                 <button onClick={() => setActivePage('industry-portal')} className="btn-cyber-primary" style={{ padding: '10px 20px', fontSize: '13px', alignSelf: 'flex-start' }}>
-                  <span>Review Application →</span>
+                  <span>Review Application â†’</span>
                 </button>
               </div>
             )}
 
-            {/* ── INDUSTRY: SKILL UPDATED / INTERVIEW / PROJECT EVIDENCE ── */}
+            {/* â”€â”€ INDUSTRY: SKILL UPDATED / INTERVIEW / PROJECT EVIDENCE â”€â”€ */}
             {['skill_updated','interview_reminder','project_evidence'].includes(selectedNotification.type) && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ padding: '20px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)' }}>
@@ -1331,7 +1331,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                   ))}
                 </div>
                 <button onClick={() => setActivePage('industry-portal')} className="btn-cyber-primary" style={{ padding: '10px 20px', fontSize: '13px', alignSelf: 'flex-start' }}>
-                  <span>View in Talent Portal →</span>
+                  <span>View in Talent Portal â†’</span>
                 </button>
               </div>
             )}
@@ -1346,7 +1346,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             padding: '16px 24px', borderBottom: '1px solid var(--border-subtle)',
-            background: 'var(--bg-input)', flexWrap: 'wrap', gap: '12px'
+            background: '#FFFFFF', flexWrap: 'wrap', gap: '12px'
           }}>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {getFilterTabs().map(tab => (
@@ -1456,7 +1456,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span style={{ fontSize: '11.5px', color: 'var(--cyber-cyan)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '3px' }}>
-                            Inspect details & actions →
+                            Inspect details & actions â†’
                           </span>
 
                           {((notif.type === 'NEW_SKILL' || notif.type === 'new_skill') || notif.details?.skillId) && (
@@ -1513,7 +1513,7 @@ export default function Notifications({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── SKILL DETAILS & ELIGIBILITY MODAL ── */}
+      {/* â”€â”€ SKILL DETAILS & ELIGIBILITY MODAL â”€â”€ */}
       {modalSkillId && (
         <SkillDetailsModal
           isOpen={Boolean(modalSkillId)}

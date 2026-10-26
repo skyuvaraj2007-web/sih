@@ -1001,7 +1001,7 @@ export default function App() {
       <div className="cyber-grid-overlay"></div>
 
       {isAuthPage ? (
-        <main style={{ position: 'relative', zIndex: 10, flex: 1, overflowY: 'auto', height: '100%', WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth', overscrollBehavior: 'contain' }}>
+        <main style={{ position: 'relative', zIndex: 10, flex: 1, width: '100%', overflowY: 'visible', WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}>
           {activePage === 'landing' && (
             <LandingPage onGetStarted={() => navigateGuarded('role-select')} onSelectRole={handleRoleSelect} />
           )}
@@ -1109,7 +1109,7 @@ export default function App() {
             />
 
             {/* Viewport Render matching role dashboards */}
-            <main className="main-viewport" style={activePage === 'home' || activePage === 'industry-portal' ? { padding: 0, maxWidth: 'none' } : {}}>
+            <main key={activePage} className={`main-viewport page-enter`} style={activePage === 'home' || activePage === 'industry-portal' ? { padding: 0, maxWidth: 'none' } : {}}>
               {/* Student Workspace */}
               {activePage === 'home' && normalizeRole(user?.role) === 'student' && (
                 <ErrorBoundary title="Student Home">

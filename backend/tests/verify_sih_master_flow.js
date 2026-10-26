@@ -151,16 +151,17 @@ async function runSihMasterVerification() {
 
     // 10 & 11. ACADEMICIAN CREATES ACTIVITY & STUDENT RECEIVES NOTIFICATION
     console.log('\n--- TEST 10 & 11: Academician Assigns Activity & Notification ---');
+    const trackCode = `CSE3A-REACT-${Date.now().toString().slice(-6)}`;
     const asmtIns = await pool.query(`
       INSERT INTO assessments (
         track_code, domain, title, description, duration_minutes, total_marks, passing_score,
         difficulty, target_audience, status, created_at, academician_id
       ) VALUES (
-        'CSE3A-REACT-01', 'Web Development', 'React.js Mini Project',
+        $1, 'Web Development', 'React.js Mini Project',
         'Component architecture and custom hooks implementation for CSE III-A',
-        45, 100, 70, 'Intermediate', $1, 'PUBLISHED', NOW(), $2
+        45, 100, 70, 'Intermediate', $2, 'PUBLISHED', NOW(), $3
       ) RETURNING id, title
-    `, [JSON.stringify({ scope: 'entire_class' }), acdAuth.user.id]);
+    `, [trackCode, JSON.stringify({ scope: 'entire_class' }), acdAuth.user.id]);
     const createdActivity = asmtIns.rows[0];
     console.log(`✅ Academician Activity Created: "${createdActivity.title}" (ID: ${createdActivity.id})`);
 

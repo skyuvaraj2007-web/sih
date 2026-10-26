@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
   FolderGit2,
   CheckCircle2,
@@ -202,7 +202,7 @@ export default function InstitutionProjectVerification({ onShowToast }) {
         return (
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '4px',
-            background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-muted, #94a3b8)',
+            background: '#E2E5E9', color: 'var(--text-muted, #94a3b8)',
             padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700
           }}>
             {status}
@@ -222,7 +222,7 @@ export default function InstitutionProjectVerification({ onShowToast }) {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--cyber-cyan)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             <FolderGit2 size={16} />
-            <span>Academic Validation Portal • Strict Multi-Tenant Isolation</span>
+            <span>Academic Validation Portal â€¢ Strict Multi-Tenant Isolation</span>
           </div>
           <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0 2px' }}>
             Student Project Verification Queue
@@ -352,9 +352,9 @@ export default function InstitutionProjectVerification({ onShowToast }) {
                   <span style={{ fontWeight: 600, color: '#fff' }}>
                     Student: {proj.studentName || 'Student'} ({proj.studentId})
                   </span>
-                  <span>•</span>
+                  <span>â€¢</span>
                   <span>{proj.role || 'Developer'}</span>
-                  <span>•</span>
+                  <span>â€¢</span>
                   <span style={{ color: 'var(--text-muted)' }}>
                     Activities: {proj.activities?.length || 0} recorded
                   </span>
@@ -375,7 +375,7 @@ export default function InstitutionProjectVerification({ onShowToast }) {
                       padding: '2px 8px', borderRadius: '4px', background: 'rgba(168, 85, 247, 0.08)',
                       fontSize: '11px', color: 'var(--cyber-purple, #a855f7)', border: '1px solid rgba(168, 85, 247, 0.2)'
                     }}>
-                      ✓ {sk}
+                      âœ“ {sk}
                     </span>
                   ))}
                 </div>

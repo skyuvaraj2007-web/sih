@@ -5,6 +5,7 @@ import {
   GraduationCap,
   Building2,
   Briefcase,
+  BookOpen,
   ShieldCheck,
   TrendingUp,
   Cpu,
@@ -21,12 +22,6 @@ import {
 } from 'lucide-react';
 import './LandingPage.css';
 
-// Import our 3D illustrations
-import studentImg from '../assets/illus/student_card.jpg';
-import institutionImg from '../assets/illus/institution_card.jpg';
-import industryImg from '../assets/illus/industry_card.jpg';
-import facultyImg from '../assets/illus/faculty_card.jpg';
-
 export default function LandingPage({ onGetStarted, onSelectRole }) {
   const [activeTab, setActiveTab] = useState('all');
 
@@ -42,9 +37,11 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
       id: 'student',
       role: 'Student',
       badge: 'STUDENT',
-      color: '#00D9FF',
-      gradientBorder: 'linear-gradient(135deg, rgba(0, 217, 255, 0.6), rgba(0, 83, 156, 0.2))',
-      image: studentImg,
+      icon: GraduationCap,
+      color: '#2563EB',
+      panelBg: '#EFF6FF',
+      panelBorder: '#DBEAFE',
+      accentColor: '#2563EB',
       tagline: 'Build your skills. Track your progress. Discover opportunities.',
       description: 'Unlock personalized AI learning paths, verify your practical competencies, and match with verified internships and full-time careers.',
       features: [
@@ -58,9 +55,11 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
       id: 'institution',
       role: 'Institution',
       badge: 'INSTITUTION',
-      color: '#19D3AE',
-      gradientBorder: 'linear-gradient(135deg, rgba(25, 211, 174, 0.6), rgba(0, 180, 216, 0.2))',
-      image: institutionImg,
+      icon: Building2,
+      color: '#0D9488',
+      panelBg: '#F0FDFA',
+      panelBorder: '#CCFBF1',
+      accentColor: '#0D9488',
       tagline: 'Manage student talent. Build skills. Connect with industry.',
       description: 'Equip educators and placement cells with real-time cohort analytics, automated curriculum-market alignment, and campus recruitment pipelines.',
       features: [
@@ -74,9 +73,11 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
       id: 'industry',
       role: 'Industry',
       badge: 'INDUSTRY',
-      color: '#E879F9',
-      gradientBorder: 'linear-gradient(135deg, rgba(232, 121, 249, 0.6), rgba(124, 58, 237, 0.2))',
-      image: industryImg,
+      icon: Briefcase,
+      color: '#7C3AED',
+      panelBg: '#FAF5FF',
+      panelBorder: '#F3E8FF',
+      accentColor: '#7C3AED',
       tagline: 'Discover verified talent. Post opportunities. Build stronger teams.',
       description: 'Eliminate hiring friction with tamper-evident student skill proofs, AI candidate matching, and automated university recruitment drives.',
       features: [
@@ -90,9 +91,11 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
       id: 'faculty',
       role: 'Faculty',
       badge: 'FACULTY',
-      color: '#F59E0B',
-      gradientBorder: 'linear-gradient(135deg, rgba(245, 158, 11, 0.6), rgba(217, 119, 6, 0.2))',
-      image: facultyImg,
+      icon: BookOpen,
+      color: '#D97706',
+      panelBg: '#FFFBEB',
+      panelBorder: '#FEF3C7',
+      accentColor: '#D97706',
       tagline: 'Teach courses. Mentor students. Bridge skill gaps.',
       description: 'Equip faculty with student progress telemetry, automated skill gap diagnostics, course & assessment authoring, and structured mentorship tools.',
       features: [
@@ -205,15 +208,7 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
           {/* Brand Logo */}
           <div className="lp-brand-unit" onClick={onGetStarted} role="button" tabIndex={0}>
             <div className="lp-logo-symbol">
-              <svg viewBox="0 0 24 24" fill="none" className="lp-bolt-svg">
-                <path
-                  d="M13 2L3 14H12L11 22L21 10H12L13 2Z"
-                  fill="#FFFFFF"
-                  stroke="#FFFFFF"
-                  strokeWidth="1.2"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <GraduationCap size={18} color="#FFFFFF" />
             </div>
             <div className="lp-brand-words">
               <span className="lp-brand-skillnexus">SKILLNEXUS</span>
@@ -230,7 +225,7 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
               AI Ecosystem
             </button>
             <button type="button" onClick={() => scrollToSection('roles')} className="lp-nav-link">
-              For Roles
+              Workspaces
             </button>
             <button type="button" onClick={() => scrollToSection('impact')} className="lp-nav-link">
               Impact
@@ -240,8 +235,7 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
           {/* Right Action Bar */}
           <div className="lp-nav-actions">
             <div className="lp-nav-pill-tagline">
-              <Sparkles size={13} className="lp-pill-sparkle" />
-              <span>Where Skills Meet Opportunities</span>
+              <span>Academic & Industry Platform</span>
             </div>
 
             <button
@@ -249,7 +243,7 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
               className="lp-btn-get-started"
               onClick={onGetStarted}
             >
-              <span>Get Started</span>
+              <span>Access Platform</span>
               <ArrowRight size={15} />
             </button>
           </div>
@@ -262,7 +256,7 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
       <section className="lp-hero-zone">
         <div className="lp-hero-inner">
           <div className="lp-hero-kicker">
-            <span className="lp-kicker-dash">—</span> WELCOME TO <span className="lp-kicker-dash">—</span>
+            UNIFIED SKILL &amp; EMPLOYMENT NETWORK
           </div>
 
           <h1 className="lp-hero-headline">
@@ -270,25 +264,16 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
           </h1>
 
           <p className="lp-hero-subhead">
-            Bridge the gap between skills, education and industry.
+            Connecting students, higher education institutions, and industry through verified competencies and transparent placement pipelines.
           </p>
 
           {/* Three Value Propositions */}
           <div className="lp-value-bar">
-            <div className="lp-vp-unit">
-              <span className="lp-vp-icon">🎓</span>
-              <span className="lp-vp-txt">Learn</span>
-            </div>
-            <span className="lp-vp-sep">|</span>
-            <div className="lp-vp-unit">
-              <span className="lp-vp-icon">📈</span>
-              <span className="lp-vp-txt">Grow</span>
-            </div>
-            <span className="lp-vp-sep">|</span>
-            <div className="lp-vp-unit">
-              <span className="lp-vp-icon">🤝</span>
-              <span className="lp-vp-txt">Get Hired</span>
-            </div>
+            <span className="lp-vp-txt">Verified Skill Passport</span>
+            <span className="lp-vp-sep">•</span>
+            <span className="lp-vp-txt">Cohort Telemetry</span>
+            <span className="lp-vp-sep">•</span>
+            <span className="lp-vp-txt">Algorithmic Talent Matching</span>
           </div>
 
           {/* Hero CTAs */}
@@ -298,7 +283,7 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
               className="lp-hero-cta-primary"
               onClick={onGetStarted}
             >
-              <span>Launch Experience</span>
+              <span>Access Platform</span>
               <ArrowRight size={18} />
             </button>
 
@@ -307,7 +292,7 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
               className="lp-hero-cta-secondary"
               onClick={() => scrollToSection('roles')}
             >
-              <span>Explore Roles</span>
+              <span>Explore Workspaces</span>
               <ChevronRight size={18} />
             </button>
           </div>
@@ -332,22 +317,29 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
         </div>
 
         <div className="lp-roles-grid">
-          {roleCards.map((card) => (
-            <div
-              key={card.id}
-              className={`lp-role-entry-card lp-card-${card.id}`}
-              onClick={() => onSelectRole ? onSelectRole(card.id) : onGetStarted()}
-            >
+          {roleCards.map((card) => {
+            const CardIcon = card.icon;
+            return (
+              <div
+                key={card.id}
+                className={`lp-role-entry-card lp-card-${card.id}`}
+                onClick={() => onSelectRole ? onSelectRole(card.id) : onGetStarted()}
+              >
               {/* Top Row: Illustration & Role Badge */}
               <div className="lp-rec-header">
-                <div className="lp-rec-image-box">
-                  <img
-                    src={card.image}
-                    alt={`${card.role} 3D Visual`}
-                    className="lp-rec-img"
-                    loading="lazy"
-                  />
-                  <div className="lp-rec-glow" />
+                <div className="lp-rec-image-box" style={{
+                  width: '54px',
+                  height: '54px',
+                  borderRadius: '12px',
+                  background: card.panelBg,
+                  border: `1px solid ${card.panelBorder}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: card.accentColor,
+                  flexShrink: 0
+                }}>
+                  <CardIcon size={26} strokeWidth={2} />
                 </div>
 
                 <div className="lp-rec-badge-area">
@@ -385,7 +377,8 @@ export default function LandingPage({ onGetStarted, onSelectRole }) {
                 <ArrowRight size={16} />
               </button>
             </div>
-          ))}
+          );
+        })}
         </div>
       </section>
 

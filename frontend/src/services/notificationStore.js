@@ -695,7 +695,7 @@ export function dispatchAssessmentAssignedNotification({
   // 4. Company (Confirmation of assessment posted)
   addRoleNotification('company', {
     type: 'assessment_published',
-    title: `🚀 Assessment Dispatched: ${title}`,
+    title: `Assessment Dispatched: ${title}`,
     message: `Assessment test in ${programmingLanguage} for project "${projectTitle}" dispatched to ${studentName} and ${institutionName}.`,
     urgency: 'medium',
     color: '#8B5CF6',

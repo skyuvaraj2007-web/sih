@@ -357,7 +357,6 @@ router.get('/match-company/:companyId/:studentId', async (req, res) => {
     res.status(err.message.includes('not found') ? 404 : 500).json({ success: false, message: err.message });
   }
 });
-
 // ══════════════════════════════════════════════════════════════════════════
 // 9. RECENT ECOSYSTEM ACTIVITY STREAM (Section 20 & 21 Database-Backed)
 // ══════════════════════════════════════════════════════════════════════════

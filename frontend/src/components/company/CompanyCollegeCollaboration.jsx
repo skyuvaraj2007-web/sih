@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import {
   Building2,
   Building,
@@ -119,7 +119,7 @@ export default function CompanyCollegeCollaboration({
       studentCount: 1450,
       placementRate: '96.4%',
       departments: ['Computer Science & Engineering', 'Information Technology', 'AI & Data Science', 'ECE', 'Mechanical'],
-      tier: 'Autonomous • Tier 1 Institution',
+      tier: 'Autonomous â€¢ Tier 1 Institution',
       email: 'placements@psgtech.edu',
       status: 'ACTIVE PARTNER',
       isPartnered: true
@@ -167,7 +167,7 @@ export default function CompanyCollegeCollaboration({
       studentCount: 1250,
       placementRate: '95.2%',
       departments: ['CSE', 'IT', 'ECE', 'EEE', 'Biomedical'],
-      tier: 'Autonomous • Sovereign Node',
+      tier: 'Autonomous â€¢ Sovereign Node',
       email: 'placement@ssn.edu.in',
       status: 'DISCOVERABLE',
       isPartnered: false
@@ -351,14 +351,14 @@ export default function CompanyCollegeCollaboration({
 
   return (
     <div style={{ maxWidth: '1440px', margin: '0 auto', paddingBottom: '48px', color: '#e2e8f0' }}>
-      {/* ── TOP TELEMETRY & HERO HEADER ── */}
+      {/* â”€â”€ TOP TELEMETRY & HERO HEADER â”€â”€ */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '24px 28px',
         borderRadius: '16px',
-        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(6, 11, 20, 0.95) 100%)',
+        background: '#FFFFFF',
         border: '1px solid var(--border-subtle)',
         marginBottom: '24px',
         boxShadow: 'var(--shadow-card)',
@@ -407,7 +407,7 @@ export default function CompanyCollegeCollaboration({
         </div>
       </div>
 
-      {/* ── HIGH-LEVEL TELEMETRY STATS ── */}
+      {/* â”€â”€ HIGH-LEVEL TELEMETRY STATS â”€â”€ */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
@@ -463,7 +463,7 @@ export default function CompanyCollegeCollaboration({
         </div>
       </div>
 
-      {/* ── WORKSPACE SUB-NAVIGATION TABS ── */}
+      {/* â”€â”€ WORKSPACE SUB-NAVIGATION TABS â”€â”€ */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -559,7 +559,7 @@ export default function CompanyCollegeCollaboration({
         )}
       </div>
 
-      {/* ── TAB 1: ACCREDITED CAMPUS DIRECTORY ── */}
+      {/* â”€â”€ TAB 1: ACCREDITED CAMPUS DIRECTORY â”€â”€ */}
       {activeSubTab === 'directory' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{
@@ -578,7 +578,7 @@ export default function CompanyCollegeCollaboration({
                   justifyContent: 'space-between',
                   borderRadius: '12px',
                   border: col.isPartnered ? '1px solid rgba(0, 212, 255, 0.3)' : '1px solid var(--border-subtle)',
-                  background: col.isPartnered ? 'linear-gradient(135deg, rgba(0, 212, 255, 0.04) 0%, rgba(15, 23, 42, 0.7) 100%)' : 'var(--bg-card)',
+                  background: col.isPartnered ? 'linear-gradient(135deg, rgba(0, 212, 255, 0.04) 0%, #F7F8FA 100%)' : 'var(--bg-card)',
                   transition: 'all 0.2s ease'
                 }}
               >
@@ -602,7 +602,7 @@ export default function CompanyCollegeCollaboration({
                           <span style={{ fontSize: '11px', color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)' }}>
                             {col.collegeCode}
                           </span>
-                          <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>•</span>
+                          <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>â€¢</span>
                           <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
                             <MapPin size={11} color="var(--text-muted)" /> {col.city}, {col.state}
                           </span>
@@ -624,7 +624,7 @@ export default function CompanyCollegeCollaboration({
                   {/* Highlights Grid */}
                   <div style={{
                     display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px',
-                    padding: '10px 12px', borderRadius: '8px', background: 'rgba(6, 11, 20, 0.5)',
+                    padding: '10px 12px', borderRadius: '8px', background: '#F7F8FA',
                     border: '1px solid var(--border-subtle)', marginBottom: '14px'
                   }}>
                     <div>
@@ -725,7 +725,7 @@ export default function CompanyCollegeCollaboration({
         </div>
       )}
 
-      {/* ── TAB 2: ACCESS REQUESTS & STATUS TRACKING ── */}
+      {/* â”€â”€ TAB 2: ACCESS REQUESTS & STATUS TRACKING â”€â”€ */}
       {activeSubTab === 'requests' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{
@@ -776,7 +776,7 @@ export default function CompanyCollegeCollaboration({
                             {req.institutionName}
                           </div>
                           <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                            ID: {req.id} • {req.collegeCode}
+                            ID: {req.id} â€¢ {req.collegeCode}
                           </div>
                         </div>
                       </div>
@@ -787,7 +787,7 @@ export default function CompanyCollegeCollaboration({
                         {req.partnershipType}
                       </div>
                       <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                        Min CGPA: {req.minCgpa} • {req.studentCount} Students
+                        Min CGPA: {req.minCgpa} â€¢ {req.studentCount} Students
                       </div>
                     </td>
 
@@ -849,7 +849,7 @@ export default function CompanyCollegeCollaboration({
                         className="company-btn-outline-cyan"
                         style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '5px' }}
                       >
-                        {req.status === 'ACCEPTED' ? 'View Cohort →' : 'Check Status'}
+                        {req.status === 'ACCEPTED' ? 'View Cohort â†’' : 'Check Status'}
                       </button>
                     </td>
                   </tr>
@@ -860,7 +860,7 @@ export default function CompanyCollegeCollaboration({
         </div>
       )}
 
-      {/* ── TAB 3: AUTHORIZED STUDENT COHORTS ── */}
+      {/* â”€â”€ TAB 3: AUTHORIZED STUDENT COHORTS â”€â”€ */}
       {activeSubTab === 'authorized' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{
@@ -910,7 +910,7 @@ export default function CompanyCollegeCollaboration({
                         {stu.name}
                       </h4>
                       <div style={{ fontSize: '11px', color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
-                        {stu.studentId} • {stu.cgpa} CGPA
+                        {stu.studentId} â€¢ {stu.cgpa} CGPA
                       </div>
                     </div>
 
@@ -924,10 +924,10 @@ export default function CompanyCollegeCollaboration({
                   </div>
 
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                    🏛️ <strong>{stu.college}</strong>
+                    ðŸ›ï¸ <strong>{stu.college}</strong>
                   </div>
                   <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                    Dept: {stu.department} • Mentor: <span style={{ color: '#F59E0B' }}>{stu.mentor}</span>
+                    Dept: {stu.department} â€¢ Mentor: <span style={{ color: '#F59E0B' }}>{stu.mentor}</span>
                   </div>
 
                   <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '16px' }}>
@@ -972,7 +972,7 @@ export default function CompanyCollegeCollaboration({
         </div>
       )}
 
-      {/* ── MODAL: INITIATE COLLEGE COLLABORATION & TALENT ACCESS ── */}
+      {/* â”€â”€ MODAL: INITIATE COLLEGE COLLABORATION & TALENT ACCESS â”€â”€ */}
       {isCollabModalOpen && (
         <div
           style={{
@@ -1050,7 +1050,7 @@ export default function CompanyCollegeCollaboration({
                 >
                   {colleges.map(c => (
                     <option key={c.institutionId} value={c.collegeName}>
-                      {c.collegeName} ({c.collegeCode}) — {c.city}, {c.naac}
+                      {c.collegeName} ({c.collegeCode}) â€” {c.city}, {c.naac}
                     </option>
                   ))}
                 </select>
@@ -1204,7 +1204,7 @@ export default function CompanyCollegeCollaboration({
         </div>
       )}
 
-      {/* ── MODAL: CAMPUS INTELLIGENCE MODAL ── */}
+      {/* â”€â”€ MODAL: CAMPUS INTELLIGENCE MODAL â”€â”€ */}
       {selectedCollegeDetail && (
         <div
           style={{
@@ -1228,7 +1228,7 @@ export default function CompanyCollegeCollaboration({
                   {selectedCollegeDetail.collegeName}
                 </h3>
                 <div style={{ fontSize: '12px', color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
-                  {selectedCollegeDetail.collegeCode} • {selectedCollegeDetail.tier}
+                  {selectedCollegeDetail.collegeCode} â€¢ {selectedCollegeDetail.tier}
                 </div>
               </div>
               <button
@@ -1241,25 +1241,25 @@ export default function CompanyCollegeCollaboration({
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-              <div style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ padding: '10px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>LOCATION</div>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', marginTop: '2px' }}>
                   {selectedCollegeDetail.city}, {selectedCollegeDetail.state}
                 </div>
               </div>
-              <div style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ padding: '10px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>ACCREDITATION & RANK</div>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--cyber-cyan)', marginTop: '2px' }}>
-                  {selectedCollegeDetail.naac} • {selectedCollegeDetail.nirf}
+                  {selectedCollegeDetail.naac} â€¢ {selectedCollegeDetail.nirf}
                 </div>
               </div>
-              <div style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ padding: '10px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>HISTORIC PLACEMENT RATE</div>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: '#10B981', marginTop: '2px' }}>
                   {selectedCollegeDetail.placementRate}
                 </div>
               </div>
-              <div style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ padding: '10px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>TOTAL CANDIDATES AVAILABLE</div>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginTop: '2px' }}>
                   {selectedCollegeDetail.studentCount.toLocaleString()} Students

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   GraduationCap,
   ShieldCheck,
@@ -113,7 +113,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
           fontSize: '11.5px', fontFamily: 'var(--font-mono)'
         }}>
           <span style={{ color: 'var(--text-muted)' }}>CANDIDATE PROFILE:</span>
-          <strong style={{ color: 'var(--cyber-cyan)' }}>{user?.name || user?.full_name || 'Enrolled Student'} • {user?.department || 'Verified Academic'}</strong>
+          <strong style={{ color: 'var(--cyber-cyan)' }}>{user?.name || user?.full_name || 'Enrolled Student'} â€¢ {user?.department || 'Verified Academic'}</strong>
         </div>
       </div>
 
@@ -140,7 +140,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
 
           <div style={{
             display: 'flex', gap: '20px', padding: '10px 16px',
-            background: 'var(--bg-input)', borderRadius: '10px',
+            background: '#FFFFFF', borderRadius: '10px',
             border: '1px solid var(--border-subtle)', fontSize: '11.5px', fontFamily: 'var(--font-mono)'
           }}>
             <div>
@@ -158,13 +158,13 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px', flexWrap: 'wrap' }}>
-          <span>⏱ 6 Weeks Duration</span>
-          <span>•</span>
-          <span>⚡ Beginner to Intermediate</span>
-          <span>•</span>
-          <span>🛡 Verified Digital Certificate</span>
-          <span>•</span>
+        <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Clock size={13} /> 6 Weeks Duration</span>
+          <span>â€¢</span>
+          <span>Beginner to Intermediate</span>
+          <span>â€¢</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><ShieldCheck size={13} /> Verified Digital Certificate</span>
+          <span>â€¢</span>
           <span style={{ color: 'var(--cyber-cyan)', fontWeight: 600 }}>Fast-Track to 12 Job Opportunities</span>
         </div>
 
@@ -210,7 +210,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
 
@@ -222,7 +222,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
 
@@ -234,7 +234,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                   type="text"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
 
@@ -246,7 +246,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                   type="text"
                   value={formData.college}
                   onChange={(e) => setFormData({ ...formData, college: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
 
@@ -258,7 +258,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                   type="text"
                   value={formData.degree}
                   onChange={(e) => setFormData({ ...formData, degree: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
 
@@ -270,7 +270,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                   type="text"
                   value={formData.gradYear}
                   onChange={(e) => setFormData({ ...formData, gradYear: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
             </div>
@@ -284,7 +284,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                 2. Learning Goals & Motivation
               </h3>
               <span style={{ fontSize: '11px', color: 'var(--cyber-cyan)', marginLeft: 'auto', fontFamily: 'var(--font-mono)' }}>
-                • Analyzed by Nexus AI
+                â€¢ Analyzed by Nexus AI
               </span>
             </div>
 
@@ -296,7 +296,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
               value={formData.motivation}
               onChange={(e) => setFormData({ ...formData, motivation: e.target.value })}
               style={{
-                width: '100%', padding: '12px', background: 'var(--bg-input)',
+                width: '100%', padding: '12px', background: '#FFFFFF',
                 border: '1px solid var(--border-subtle)', borderRadius: '8px',
                 color: 'var(--text-primary)', fontSize: '12.5px', lineHeight: 1.5,
                 outline: 'none', resize: 'vertical'
@@ -354,7 +354,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                   <label key={item.key} style={{
                     display: 'flex', alignItems: 'center', gap: '6px',
                     padding: '8px 10px', borderRadius: '6px',
-                    background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
+                    background: '#FFFFFF', border: '1px solid var(--border-subtle)',
                     fontSize: '11px', color: 'var(--text-secondary)', cursor: 'pointer'
                   }}>
                     <input
@@ -390,7 +390,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                 <select
                   value={formData.deliveryFormat}
                   onChange={(e) => setFormData({ ...formData, deliveryFormat: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 >
                   <option>Self-Paced with AI</option>
                   <option>Live Cohort</option>
@@ -405,7 +405,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                 <select
                   value={formData.dailySlot}
                   onChange={(e) => setFormData({ ...formData, dailySlot: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 >
                   <option>Morning (8 AM - 10 AM)</option>
                   <option>Evening (6 PM - 8 PM)</option>
@@ -436,7 +436,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                   type="text"
                   value={formData.targetRole}
                   onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
 
@@ -448,7 +448,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                   type="text"
                   value={formData.targetHorizon}
                   onChange={(e) => setFormData({ ...formData, targetHorizon: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
             </div>
@@ -497,10 +497,10 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                 100% SPONSORED
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                Institutional Subsidy: -₹24,000
+                Institutional Subsidy: -â‚¹24,000
               </div>
               <div style={{ fontSize: '11px', color: 'var(--cyber-cyan)', marginTop: '2px' }}>
-                Student Due: ₹0.00
+                Student Due: â‚¹0.00
               </div>
             </div>
 
@@ -510,7 +510,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
               className="btn-cyber-primary"
               style={{ width: '100%', padding: '12px', fontSize: '14px', marginBottom: '10px' }}
             >
-              <span>{isSubmitting ? 'Confirming Ledger Proof...' : 'Confirm & Enroll Now →'}</span>
+              <span>{isSubmitting ? 'Confirming Ledger Proof...' : 'Confirm & Enroll Now â†’'}</span>
             </button>
 
             <button
@@ -527,9 +527,9 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                 IMMEDIATE PRIVILEGES
               </div>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
-                <li>• Instant access to GPU sandboxes</li>
-                <li>• NEXUS AI companion assistance</li>
-                <li>• Automated verification tracking</li>
+                <li>â€¢ Instant access to GPU sandboxes</li>
+                <li>â€¢ NEXUS AI companion assistance</li>
+                <li>â€¢ Automated verification tracking</li>
               </ul>
             </div>
 
@@ -542,7 +542,7 @@ export default function CourseEnrollment({ setActivePage, onShowToast, user }) {
                 Career Calibration Match
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                Enrolling closes 1 high-priority skill gap in your target Data Scientist matrix. Your callback rate increases from 68% → 91%.
+                Enrolling closes 1 high-priority skill gap in your target Data Scientist matrix. Your callback rate increases from 68% â†’ 91%.
               </div>
             </div>
 

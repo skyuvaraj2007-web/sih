@@ -1,59 +1,37 @@
 // ==============================================================================
-// SKILLNEXUS AI - THEME MANAGEMENT SYSTEM (LIGHT / DARK / SYSTEM MODE)
+// SKILLNEXUS AI - THEME MANAGEMENT SYSTEM (LIGHT MODE ONLY)
 // ==============================================================================
 
 export const getTheme = () => {
-  if (typeof window === 'undefined') return 'dark';
-  const saved = localStorage.getItem('skillnexus_theme');
-  if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
-  return 'dark';
+  return 'light';
 };
 
-export const getResolvedTheme = (pref) => {
-  const themePref = pref || getTheme();
-  if (themePref === 'system') {
-    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    return 'dark';
-  }
-  return themePref === 'light' ? 'light' : 'dark';
+export const getResolvedTheme = () => {
+  return 'light';
 };
 
-export const setTheme = (theme) => {
-  if (typeof window === 'undefined') return;
-  const targetPref = (theme === 'light' || theme === 'dark' || theme === 'system') ? theme : 'dark';
-  localStorage.setItem('skillnexus_theme', targetPref);
+export const setTheme = () => {
+  if (typeof window === 'undefined') return 'light';
+  localStorage.setItem('skillnexus_theme', 'light');
   
-  const effectiveTheme = getResolvedTheme(targetPref);
   const root = document.documentElement;
-  
-  root.setAttribute('data-theme', effectiveTheme);
-  root.setAttribute('data-theme-preference', targetPref);
-  
-  if (effectiveTheme === 'dark') {
-    root.classList.add('dark');
-    root.classList.remove('light');
-  } else {
-    root.classList.add('light');
-    root.classList.remove('dark');
-  }
+  root.setAttribute('data-theme', 'light');
+  root.setAttribute('data-theme-preference', 'light');
+  root.classList.add('light');
+  root.classList.remove('dark');
 
   window.dispatchEvent(new CustomEvent('nexus_theme_changed', { 
     detail: { 
-      theme: effectiveTheme, 
-      preference: targetPref 
+      theme: 'light', 
+      preference: 'light' 
     } 
   }));
   
-  return targetPref;
+  return 'light';
 };
 
 export const toggleTheme = () => {
-  const currentPref = getTheme();
-  const resolved = getResolvedTheme(currentPref);
-  const next = resolved === 'dark' ? 'light' : 'dark';
-  return setTheme(next);
+  return setTheme('light');
 };
 
 let systemMediaListener = null;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Brain, Sparkles, Target, CheckCircle2, ChevronRight,
   ChevronLeft, Award, AlertCircle, Zap, X, Code, Cpu, Database
@@ -344,7 +344,7 @@ export default function StudentSkillQuestionnaireModal({ isOpen, onClose, onComp
                           padding: '12px 16px',
                           borderRadius: '10px',
                           border: `1.5px solid ${careerGoal === role ? 'var(--cyber-blue)' : 'var(--border-subtle)'}`,
-                          background: careerGoal === role ? 'var(--cyber-blue-dim)' : 'var(--bg-input)',
+                          background: careerGoal === role ? 'var(--cyber-blue-dim)' : '#FFFFFF',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
@@ -369,7 +369,7 @@ export default function StudentSkillQuestionnaireModal({ isOpen, onClose, onComp
                       width: '100%',
                       padding: '12px 16px',
                       borderRadius: '10px',
-                      background: 'var(--bg-input)',
+                      background: '#FFFFFF',
                       border: '1px solid var(--border-subtle)',
                       color: 'var(--text-primary)',
                       fontSize: '0.9rem',
@@ -403,11 +403,11 @@ export default function StudentSkillQuestionnaireModal({ isOpen, onClose, onComp
                             fontWeight: 600,
                             cursor: 'pointer',
                             border: `1px solid ${isSel ? 'var(--cyber-blue)' : 'var(--border-subtle)'}`,
-                            background: isSel ? 'var(--cyber-blue-dim)' : 'var(--bg-input)',
+                            background: isSel ? 'var(--cyber-blue-dim)' : '#FFFFFF',
                             color: isSel ? 'var(--cyber-blue)' : 'var(--text-secondary)'
                           }}
                         >
-                          {skill} {isSel && '✓'}
+                          {skill} {isSel && 'âœ“'}
                         </button>
                       );
                     })}
@@ -423,7 +423,7 @@ export default function StudentSkillQuestionnaireModal({ isOpen, onClose, onComp
                         flex: 1,
                         padding: '10px 14px',
                         borderRadius: '8px',
-                        background: 'var(--bg-input)',
+                        background: '#FFFFFF',
                         border: '1px solid var(--border-subtle)',
                         color: 'var(--text-primary)',
                         fontSize: '0.85rem',
@@ -497,7 +497,7 @@ export default function StudentSkillQuestionnaireModal({ isOpen, onClose, onComp
                           width: '100%',
                           padding: '10px',
                           borderRadius: '8px',
-                          background: 'var(--bg-input)',
+                          background: '#FFFFFF',
                           border: '1px solid var(--border-subtle)',
                           color: 'var(--text-primary)',
                           fontSize: '0.85rem'

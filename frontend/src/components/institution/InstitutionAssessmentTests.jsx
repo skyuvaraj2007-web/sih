@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Award,
   Plus,
@@ -167,7 +167,7 @@ export default function InstitutionAssessmentTests({ onShowToast }) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9))',
+        background: '#FFFFFF',
         padding: '24px',
         borderRadius: '14px',
         border: '1px solid rgba(56, 189, 248, 0.2)',
@@ -210,7 +210,7 @@ export default function InstitutionAssessmentTests({ onShowToast }) {
 
       {/* Filter Tabs & Stats */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', gap: '8px', background: 'rgba(15, 23, 42, 0.6)', padding: '4px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+        <div style={{ display: 'flex', gap: '8px', background: '#F7F8FA', padding: '4px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
           {['ALL', 'LOGICAL_REASONING', 'APTITUDE', 'PROGRAMMING'].map((t) => (
             <button
               key={t}
@@ -244,7 +244,7 @@ export default function InstitutionAssessmentTests({ onShowToast }) {
         <div style={{
           textAlign: 'center',
           padding: '60px',
-          background: 'rgba(15, 23, 42, 0.5)',
+          background: '#F7F8FA',
           borderRadius: '12px',
           border: '1px dashed rgba(255, 255, 255, 0.1)'
         }}>
@@ -260,7 +260,7 @@ export default function InstitutionAssessmentTests({ onShowToast }) {
             <div
               key={a.id}
               style={{
-                background: 'rgba(15, 23, 42, 0.75)',
+                background: '#F7F8FA',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
                 borderRadius: '12px',
                 padding: '20px',

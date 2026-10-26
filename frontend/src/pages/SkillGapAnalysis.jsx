@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import {
   Brain,
   Sparkles,
@@ -157,20 +157,20 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Strong':
-        return <span className="cyber-badge badge-emerald" style={{ fontWeight: 800, fontSize: '11px' }}>✓ Strong</span>;
+        return <span className="cyber-badge badge-emerald" style={{ fontWeight: 800, fontSize: '11px' }}>âœ“ Strong</span>;
       case 'Good':
-        return <span className="cyber-badge badge-cyan" style={{ fontWeight: 800, fontSize: '11px' }}>● Good</span>;
+        return <span className="cyber-badge badge-cyan" style={{ fontWeight: 800, fontSize: '11px' }}>â— Good</span>;
       case 'Needs Improvement':
-        return <span className="cyber-badge badge-amber" style={{ fontWeight: 800, fontSize: '11px' }}>▲ Needs Improvement</span>;
+        return <span className="cyber-badge badge-amber" style={{ fontWeight: 800, fontSize: '11px' }}>â–² Needs Improvement</span>;
       case 'Missing':
       default:
-        return <span className="cyber-badge badge-rose" style={{ fontWeight: 800, fontSize: '11px', background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}>✕ Missing</span>;
+        return <span className="cyber-badge badge-rose" style={{ fontWeight: 800, fontSize: '11px', background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}>âœ• Missing</span>;
     }
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '48px' }}>
-      {/* ── Top Telemetry Banner ── */}
+      {/* â”€â”€ Top Telemetry Banner â”€â”€ */}
       <div className="page-top-telemetry">
         <div className="page-title-group">
           <div className="cyber-badge badge-purple" style={{ marginBottom: '8px', fontSize: '10px' }}>
@@ -202,7 +202,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
         </div>
       </div>
 
-      {/* ── SECTION 1: Target Role & Opportunity Selector ── */}
+      {/* â”€â”€ SECTION 1: Target Role & Opportunity Selector â”€â”€ */}
       <div className="glass-panel" style={{ padding: '24px', position: 'relative' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '18px' }}>
           <div>
@@ -215,7 +215,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
           </div>
 
           {/* Toggle Role vs Opportunity */}
-          <div style={{ display: 'flex', background: 'var(--bg-input)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+          <div style={{ display: 'flex', background: '#FFFFFF', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
             <button
               onClick={() => {
                 setSelectedTargetType('CAREER_ROLE');
@@ -274,7 +274,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
                     padding: '16px',
                     borderRadius: '12px',
                     cursor: 'pointer',
-                    background: isSelected ? 'linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(0, 242, 254, 0.08))' : 'var(--bg-input)',
+                    background: isSelected ? 'linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(0, 242, 254, 0.08))' : '#FFFFFF',
                     border: isSelected ? '1.5px solid var(--cyber-cyan)' : '1px solid var(--border-subtle)',
                     boxShadow: isSelected ? '0 0 16px rgba(0, 242, 254, 0.15)' : 'none',
                     transition: 'all 0.2s ease',
@@ -335,7 +335,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
                         padding: '16px',
                         borderRadius: '12px',
                         cursor: 'pointer',
-                        background: isSelected ? 'rgba(0, 242, 254, 0.12)' : 'var(--bg-input)',
+                        background: isSelected ? 'rgba(0, 242, 254, 0.12)' : '#FFFFFF',
                         border: isSelected ? '1.5px solid var(--cyber-cyan)' : '1px solid var(--border-subtle)',
                         transition: 'all 0.2s ease',
                         display: 'flex',
@@ -366,7 +366,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
         )}
       </div>
 
-      {/* ── SECTION 2: Overall Readiness Dashboard ── */}
+      {/* â”€â”€ SECTION 2: Overall Readiness Dashboard â”€â”€ */}
       {report ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Main Hero Card */}
@@ -386,7 +386,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
                     TARGET: {report.targetTitle}
                   </span>
                   <span className={`cyber-badge ${report.overallReadiness >= (report.minReadinessScore || 75) ? 'badge-emerald' : 'badge-amber'}`} style={{ fontSize: '10.5px' }}>
-                    {report.overallReadiness >= (report.minReadinessScore || 75) ? '✓ QUALIFIED FOR ROLE' : '● BENCHMARK IN PROGRESS'}
+                    {report.overallReadiness >= (report.minReadinessScore || 75) ? 'âœ“ QUALIFIED FOR ROLE' : 'â— BENCHMARK IN PROGRESS'}
                   </span>
                 </div>
 
@@ -406,7 +406,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
                       {report.overallReadiness}% / Target Benchmark: {report.minReadinessScore || 75}%
                     </span>
                   </div>
-                  <div style={{ width: '100%', height: '10px', background: 'var(--bg-input)', borderRadius: '6px', overflow: 'hidden', position: 'relative' }}>
+                  <div style={{ width: '100%', height: '10px', background: '#FFFFFF', borderRadius: '6px', overflow: 'hidden', position: 'relative' }}>
                     <div
                       style={{
                         width: `${report.overallReadiness}%`,
@@ -457,7 +457,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
             </div>
           </div>
 
-          {/* ── Grounded AI Explanation Card ── */}
+          {/* â”€â”€ Grounded AI Explanation Card â”€â”€ */}
           {report.aiExplanation && (
             <div style={{
               background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(168, 85, 247, 0.08))',
@@ -486,13 +486,13 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
                   "{report.aiExplanation}"
                 </p>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>
-                  ✓ Grounded strictly in validated student ledger and course catalog benchmarks. Zero synthetic extrapolation.
+                  âœ“ Grounded strictly in validated student ledger and course catalog benchmarks. Zero synthetic extrapolation.
                 </div>
               </div>
             </div>
           )}
 
-          {/* ── SECTION 3: Detailed Skill Analysis ── */}
+          {/* â”€â”€ SECTION 3: Detailed Skill Analysis â”€â”€ */}
           <div className="glass-panel" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px' }}>
               <div>
@@ -517,7 +517,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
                       borderRadius: '8px',
                       border: 'none',
                       cursor: 'pointer',
-                      background: skillFilter === st ? 'rgba(0, 242, 254, 0.15)' : 'var(--bg-input)',
+                      background: skillFilter === st ? 'rgba(0, 242, 254, 0.15)' : '#FFFFFF',
                       color: skillFilter === st ? 'var(--cyber-cyan)' : 'var(--text-secondary)',
                       borderColor: skillFilter === st ? 'var(--cyber-cyan)' : 'transparent',
                       transition: 'all 0.15s ease'
@@ -546,7 +546,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
                   {filteredSkills.map((sk, idx) => {
                     const ratio = sk.requiredScore > 0 ? (sk.studentScore / sk.requiredScore) : 0;
                     return (
-                      <tr key={idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', fontSize: '13.5px' }}>
+                      <tr key={idx} style={{ borderBottom: '1px solid #E2E5E9', fontSize: '13.5px' }}>
                         {/* Name */}
                         <td style={{ padding: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -580,7 +580,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
                               Benchmark: {sk.requiredScore}%
                             </span>
                           </div>
-                          <div style={{ width: '100%', height: '8px', background: 'var(--bg-input)', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
+                          <div style={{ width: '100%', height: '8px', background: '#FFFFFF', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
                             {/* Required threshold marker */}
                             <div style={{
                               position: 'absolute',
@@ -608,7 +608,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
                         {/* Source */}
                         <td style={{ padding: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>
                           <div style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={sk.source}>
-                            {sk.isVerified ? '✓ ' : ''}{sk.source}
+                            {sk.isVerified ? 'âœ“ ' : ''}{sk.source}
                           </div>
                         </td>
                       </tr>
@@ -619,7 +619,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
             </div>
           </div>
 
-          {/* ── SECTION 4: Recommended Learning Path ── */}
+          {/* â”€â”€ SECTION 4: Recommended Learning Path â”€â”€ */}
           <div className="glass-panel" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
               <div>
@@ -673,7 +673,7 @@ export default function SkillGapAnalysis({ setActivePage, onShowToast, user }) {
                             color: isCourse ? 'var(--cyber-cyan)' : isAssessment ? 'var(--cyber-purple)' : 'var(--cyber-emerald)',
                             border: `1px solid ${isCourse ? 'rgba(0, 242, 254, 0.3)' : isAssessment ? 'rgba(168, 85, 247, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`
                           }}>
-                            {isCourse ? '📚 RECOMMENDED COURSE' : isAssessment ? '🏆 BENCHMARK ASSESSMENT' : '🚀 CAPSTONE PROJECT'}
+                            {isCourse ? 'RECOMMENDED COURSE' : isAssessment ? 'BENCHMARK ASSESSMENT' : 'CAPSTONE PROJECT'}
                           </span>
 
                           <span className="cyber-badge badge-amber" style={{ fontSize: '10px' }}>

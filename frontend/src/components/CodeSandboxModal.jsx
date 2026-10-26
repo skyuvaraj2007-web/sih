@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Terminal, Play, X, CheckCircle2, ShieldCheck, Cpu, Clock, HardDrive } from 'lucide-react';
 
 const STARTER_CODES = {
@@ -59,7 +59,7 @@ export default function CodeSandboxModal({ isOpen, onClose, onAttested }) {
         {/* Sandbox Header */}
         <div style={{
           padding: '16px 24px',
-          background: 'rgba(15, 23, 42, 0.9)',
+          background: '#FFFFFF',
           borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',

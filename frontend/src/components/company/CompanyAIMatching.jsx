@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+﻿import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Sparkles,
   Brain,
@@ -51,7 +51,7 @@ export default function CompanyAIMatching({
   const [passportStudent, setPassportStudent] = useState(null);
   const [localShortlisted, setLocalShortlisted] = useState(new Set(shortlistedIds));
 
-  // ── Filters State ──
+  // â”€â”€ Filters State â”€â”€
   const [filters, setFilters] = useState({
     minMatchScore: '',
     college: 'ALL',
@@ -232,12 +232,12 @@ export default function CompanyAIMatching({
 
   return (
     <div className="comp-stack">
-      {/* ── TOP TELEMETRY TAG ── */}
+      {/* â”€â”€ TOP TELEMETRY TAG â”€â”€ */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
         <div className="comp-telemetry-tag">
           <span>SKILLNEXUS ENTERPRISE</span>
           <span>//</span>
-          <span>FEATURE 2: INDUSTRY ↔ STUDENT SKILL MATCHING</span>
+          <span>FEATURE 2: INDUSTRY â†” STUDENT SKILL MATCHING</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span className="comp-badge comp-badge-cyan">
@@ -251,12 +251,12 @@ export default function CompanyAIMatching({
         </div>
       </div>
 
-      {/* ── CONNECTED SIH DEMO ECOSYSTEM CARD ── */}
+      {/* â”€â”€ CONNECTED SIH DEMO ECOSYSTEM CARD â”€â”€ */}
       <ConnectedEcosystemCard activeRole="industry" />
 
-      {/* ── CONNECTED INSTITUTION TALENT POOL ── */}
+      {/* â”€â”€ CONNECTED INSTITUTION TALENT POOL â”€â”€ */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.9) 100%)',
+        background: 'rgba(49,92,255,0.06)',
         border: '1px solid rgba(56, 189, 248, 0.3)',
         borderRadius: '14px',
         padding: '18px 22px',
@@ -277,17 +277,17 @@ export default function CompanyAIMatching({
             </span>
           </div>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary, #94a3b8)', margin: 0 }}>
-            Target Requirements: <strong>React.js (≥80%), Python (≥75%), SQL (≥70%), Data Structures (≥75%)</strong> • Academic Mentor: Dr. Ramesh Sundaram
+            Target Requirements: <strong>React.js (â‰¥80%), Python (â‰¥75%), SQL (â‰¥70%), Data Structures (â‰¥75%)</strong> â€¢ Academic Mentor: Dr. Ramesh Sundaram
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          {['React.js ≥ 80%', 'Python ≥ 75%', 'SQL ≥ 70%', 'DSA ≥ 75%'].map((sk, idx) => (
+          {['React.js â‰¥ 80%', 'Python â‰¥ 75%', 'SQL â‰¥ 70%', 'DSA â‰¥ 75%'].map((sk, idx) => (
             <span key={idx} style={{
               fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px',
               background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)',
               color: '#10B981', display: 'flex', alignItems: 'center', gap: '4px'
             }}>
-              ✓ {sk}
+              âœ“ {sk}
             </span>
           ))}
         </div>
@@ -298,7 +298,7 @@ export default function CompanyAIMatching({
         <RecentEcosystemActivity compact={false} />
       </div>
 
-      {/* ── HEADER & REQUISITION SELECTOR ── */}
+      {/* â”€â”€ HEADER & REQUISITION SELECTOR â”€â”€ */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', margin: 0 }}>
@@ -337,7 +337,7 @@ export default function CompanyAIMatching({
         </div>
       </div>
 
-      {/* ── METRICS SUMMARY BAR ── */}
+      {/* â”€â”€ METRICS SUMMARY BAR â”€â”€ */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
         <div className="comp-card" style={{ padding: '14px 18px', background: 'rgba(10, 18, 36, 0.7)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-muted, #94A3B8)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Matched Candidates</div>
@@ -364,7 +364,7 @@ export default function CompanyAIMatching({
         </div>
       </div>
 
-      {/* ── FILTER TOOLBAR ── */}
+      {/* â”€â”€ FILTER TOOLBAR â”€â”€ */}
       <div className="comp-card" style={{ padding: '14px 18px', background: 'rgba(13, 23, 43, 0.9)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -473,7 +473,7 @@ export default function CompanyAIMatching({
         </div>
       </div>
 
-      {/* ── CANDIDATE CARDS GRID ── */}
+      {/* â”€â”€ CANDIDATE CARDS GRID â”€â”€ */}
       {isLoading ? (
         <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted, #94A3B8)' }}>
           <RefreshCw size={28} className="spin-animation" style={{ color: '#00D4FF', margin: '0 auto 12px' }} />
@@ -541,7 +541,7 @@ export default function CompanyAIMatching({
                           {cand.studentName}
                         </h3>
                         <div style={{ fontSize: '11px', color: 'var(--text-muted, #94A3B8)', marginTop: '2px' }}>
-                          {cand.department} • Batch {cand.graduationYear || '2026'}
+                          {cand.department} â€¢ Batch {cand.graduationYear || '2026'}
                         </div>
                         <div style={{ fontSize: '10.5px', color: '#00D4FF', fontFamily: 'var(--font-mono)' }}>
                           {cand.collegeName}
@@ -612,7 +612,7 @@ export default function CompanyAIMatching({
                               fontWeight: 600
                             }}
                           >
-                            ✓ {sk}
+                            âœ“ {sk}
                           </span>
                         ))}
                       </div>
@@ -645,7 +645,7 @@ export default function CompanyAIMatching({
                               fontWeight: 600
                             }}
                           >
-                            ⚠ {sk}
+                            âš  {sk}
                           </span>
                         ))}
                         {weakSkills.map((sk, idx) => (
@@ -673,7 +673,7 @@ export default function CompanyAIMatching({
                   </div>
                 </div>
 
-                {/* ── CARD ACTIONS ── */}
+                {/* â”€â”€ CARD ACTIONS â”€â”€ */}
                 <div style={{ paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                     {/* View Profile */}
@@ -757,7 +757,7 @@ export default function CompanyAIMatching({
         </div>
       )}
 
-      {/* ── TRANSPARENT MATCH FORMULA AUDIT MODAL ── */}
+      {/* â”€â”€ TRANSPARENT MATCH FORMULA AUDIT MODAL â”€â”€ */}
       {selectedCandidateForAudit && (
         <div className="company-modal-overlay">
           <div className="company-modal-content" style={{ maxWidth: '600px' }}>
@@ -788,7 +788,7 @@ export default function CompanyAIMatching({
               <div style={{ padding: '10px', background: 'rgba(0,212,255,0.04)', borderRadius: '8px', border: '1px solid rgba(0,212,255,0.2)' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: '#00D4FF' }}>WEIGHTED MATCH FORMULA</span>
                 <p style={{ fontSize: '11.5px', color: 'var(--text-secondary, #94A3B8)', margin: '4px 0 0', lineHeight: 1.4 }}>
-                  Final Score = ∑(Skill Weight × Verified Skill Score) + Preferred Skills Bonus − Eligibility Penalties
+                  Final Score = âˆ‘(Skill Weight Ã— Verified Skill Score) + Preferred Skills Bonus âˆ’ Eligibility Penalties
                 </p>
               </div>
 
@@ -834,10 +834,10 @@ export default function CompanyAIMatching({
               <div style={{ marginTop: '10px', padding: '10px', borderRadius: '6px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>Eligibility Verification:</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-secondary, #94A3B8)' }}>
-                  • College: {selectedCandidateForAudit.collegeName} (Accredited Partner)<br />
-                  • Department: {selectedCandidateForAudit.department}<br />
-                  • Graduation Year: {selectedCandidateForAudit.graduationYear}<br />
-                  • CGPA: {selectedCandidateForAudit.cgpa || '8.0'}
+                  â€¢ College: {selectedCandidateForAudit.collegeName} (Accredited Partner)<br />
+                  â€¢ Department: {selectedCandidateForAudit.department}<br />
+                  â€¢ Graduation Year: {selectedCandidateForAudit.graduationYear}<br />
+                  â€¢ CGPA: {selectedCandidateForAudit.cgpa || '8.0'}
                 </div>
               </div>
 
@@ -855,7 +855,7 @@ export default function CompanyAIMatching({
         </div>
       )}
 
-      {/* ── SKILL PASSPORT MODAL ── */}
+      {/* â”€â”€ SKILL PASSPORT MODAL â”€â”€ */}
       {passportStudent && (
         <div className="company-modal-overlay">
           <div className="company-modal-content" style={{ maxWidth: '640px' }}>
@@ -869,7 +869,7 @@ export default function CompanyAIMatching({
                     Sovereign Skill Passport
                   </h3>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted, #94A3B8)' }}>
-                    Candidate: {passportStudent.studentName} • {passportStudent.collegeName}
+                    Candidate: {passportStudent.studentName} â€¢ {passportStudent.collegeName}
                   </div>
                 </div>
               </div>

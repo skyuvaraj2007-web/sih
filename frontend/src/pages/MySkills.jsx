@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import {
   CheckSquare,
   ShieldCheck,
@@ -544,7 +544,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
 
   return (
     <div>
-      {/* Top Header — Skill Intelligence Center */}
+      {/* Top Header â€” Skill Intelligence Center */}
       <div className="page-top-telemetry" style={{ marginBottom: '24px' }}>
         <div className="page-title-group">
           <div className="cyber-badge badge-purple" style={{ marginBottom: '8px', fontSize: '10px' }}>
@@ -599,7 +599,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                 </div>
               </div>
 
-              <div style={{ width: '100%', height: '6px', background: 'var(--bg-input)', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '6px', background: '#FFFFFF', borderRadius: '3px', overflow: 'hidden' }}>
                 <div style={{ width: `${item.score}%`, height: '100%', background: item.color, borderRadius: '3px' }} />
               </div>
             </div>
@@ -823,7 +823,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
         </button>
       </div>
 
-      {/* ── TAB 1: MY ENROLLED SKILLS (Continuous Learning Lifecycle) ── */}
+      {/* â”€â”€ TAB 1: MY ENROLLED SKILLS (Continuous Learning Lifecycle) â”€â”€ */}
       {mainTab === 'enrolled' && (
         <div>
           {enrolledSkills.length === 0 ? (
@@ -848,7 +848,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                 style={{ padding: '10px 22px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
               >
                 <Sparkles size={14} />
-                <span>Discover Institutional Skills →</span>
+                <span>Discover Institutional Skills â†’</span>
               </button>
             </div>
           ) : (
@@ -934,7 +934,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                           <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)', margin: '2px 0' }}>
                             {progress}%
                           </div>
-                          <div style={{ width: '100%', height: '5px', background: 'var(--bg-input)', borderRadius: '3px', overflow: 'hidden', margin: '4px 0' }}>
+                          <div style={{ width: '100%', height: '5px', background: '#FFFFFF', borderRadius: '3px', overflow: 'hidden', margin: '4px 0' }}>
                             <div style={{ width: `${progress}%`, height: '100%', background: 'var(--cyber-cyan)', borderRadius: '3px' }} />
                           </div>
                           <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)' }}>
@@ -950,7 +950,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                           <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--cyber-emerald)', fontFamily: 'var(--font-mono)', margin: '2px 0' }}>
                             {proficiency}%
                           </div>
-                          <div style={{ width: '100%', height: '5px', background: 'var(--bg-input)', borderRadius: '3px', overflow: 'hidden', margin: '4px 0' }}>
+                          <div style={{ width: '100%', height: '5px', background: '#FFFFFF', borderRadius: '3px', overflow: 'hidden', margin: '4px 0' }}>
                             <div style={{ width: `${proficiency}%`, height: '100%', background: 'var(--cyber-emerald)', borderRadius: '3px' }} />
                           </div>
                           <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)' }}>
@@ -961,21 +961,21 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
 
                       {/* Real Telemetry Activity Breakdown */}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: '14px' }}>
-                        <div style={{ padding: '8px 10px', background: 'var(--bg-input)', borderRadius: '6px', fontSize: '11px' }}>
+                        <div style={{ padding: '8px 10px', background: '#FFFFFF', borderRadius: '6px', fontSize: '11px' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Lessons: </span>
                           <strong style={{ color: 'var(--text-primary)' }}>{completedLessons} / {totalLessons}</strong>
                         </div>
-                        <div style={{ padding: '8px 10px', background: 'var(--bg-input)', borderRadius: '6px', fontSize: '11px' }}>
+                        <div style={{ padding: '8px 10px', background: '#FFFFFF', borderRadius: '6px', fontSize: '11px' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Practice: </span>
                           <strong style={{ color: 'var(--text-primary)' }}>{practiceAttempts} ({practiceAccuracy}%)</strong>
                         </div>
-                        <div style={{ padding: '8px 10px', background: 'var(--bg-input)', borderRadius: '6px', fontSize: '11px' }}>
+                        <div style={{ padding: '8px 10px', background: '#FFFFFF', borderRadius: '6px', fontSize: '11px' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Assessment: </span>
                           <strong style={{ color: isAssessed ? 'var(--cyber-emerald)' : 'var(--text-muted)' }}>
                             {isAssessed ? `${assessScore}%` : 'Not Taken'}
                           </strong>
                         </div>
-                        <div style={{ padding: '8px 10px', background: 'var(--bg-input)', borderRadius: '6px', fontSize: '11px' }}>
+                        <div style={{ padding: '8px 10px', background: '#FFFFFF', borderRadius: '6px', fontSize: '11px' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Capstone: </span>
                           <strong style={{ color: isProjectSubmitted ? 'var(--cyber-emerald)' : 'var(--text-muted)' }}>
                             {isProjectSubmitted ? 'Submitted' : 'Not Started'}
@@ -1064,7 +1064,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── TAB 2: DISCOVER INSTITUTIONAL SKILLS (Catalog) ── */}
+      {/* â”€â”€ TAB 2: DISCOVER INSTITUTIONAL SKILLS (Catalog) â”€â”€ */}
       {mainTab === 'discover' && (
         <div>
           {publishedSkills.length === 0 ? (
@@ -1107,7 +1107,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                       flexDirection: 'column',
                       justifyContent: 'space-between',
                       border: '1px solid var(--border-subtle)',
-                      background: 'rgba(15, 23, 42, 0.7)'
+                      background: '#F7F8FA'
                     }}
                   >
                     <div>
@@ -1143,7 +1143,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                       {pubSkill.technologies?.length > 0 && (
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
                           {pubSkill.technologies.slice(0, 4).map((tech, tIdx) => (
-                            <span key={tIdx} style={{ fontSize: '10px', padding: '2px 8px', background: 'var(--bg-input)', borderRadius: '4px', color: 'var(--cyber-cyan)' }}>
+                            <span key={tIdx} style={{ fontSize: '10px', padding: '2px 8px', background: '#FFFFFF', borderRadius: '4px', color: 'var(--cyber-cyan)' }}>
                               {tech}
                             </span>
                           ))}
@@ -1153,14 +1153,14 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)' }}>
                       <span style={{ fontSize: '11px', color: isEnrolled ? 'var(--cyber-emerald)' : 'var(--text-muted)', fontWeight: 600 }}>
-                        {isEnrolled ? '✓ Already Enrolled' : 'Open for Enrollment'}
+                        {isEnrolled ? 'âœ“ Already Enrolled' : 'Open for Enrollment'}
                       </span>
                       <button
                         onClick={() => setSelectedSkillDetailsId(pubSkill.id)}
                         className={isEnrolled ? 'btn-cyber-outline' : 'btn-cyber-primary'}
                         style={{ padding: '8px 16px', fontSize: '12px' }}
                       >
-                        {isEnrolled ? 'View Curriculum' : 'View Skill Details →'}
+                        {isEnrolled ? 'View Curriculum' : 'View Skill Details â†’'}
                       </button>
                     </div>
                   </div>
@@ -1171,7 +1171,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── TAB 3: COMPETENCY LEDGER & PROOFS (Existing Self-Assessed/Verified Skills) ── */}
+      {/* â”€â”€ TAB 3: COMPETENCY LEDGER & PROOFS (Existing Self-Assessed/Verified Skills) â”€â”€ */}
       {mainTab === 'competencies' && (
         <>
           {/* Filter Tabs & Search Bar */}
@@ -1206,7 +1206,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: '8px',
-            background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
+            background: '#FFFFFF', border: '1px solid var(--border-subtle)',
             borderRadius: '8px', padding: '6px 12px', width: '280px'
           }}>
             <Search size={14} color="var(--text-muted)" />
@@ -1226,7 +1226,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             style={{
-              background: 'var(--bg-input)',
+              background: '#FFFFFF',
               border: '1px solid var(--border-subtle)',
               color: 'var(--text-secondary)',
               borderRadius: '8px',
@@ -1299,7 +1299,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
               className="btn-cyber-primary"
               style={{ padding: '10px 22px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              <span>Take Skill Assessment →</span>
+              <span>Take Skill Assessment â†’</span>
             </button>
             <button
               onClick={() => setShowAddModal(true)}
@@ -1403,7 +1403,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
 
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', flexShrink: 0, marginTop: '2px' }}>
                       <span className={`cyber-badge ${skill.verified ? 'badge-emerald' : 'badge-purple'}`} style={{ fontSize: '9.5px', whiteSpace: 'nowrap' }}>
-                        {skill.verified ? '✓ VERIFIED' : 'SELF-ASSESSED'}
+                        {skill.verified ? 'âœ“ VERIFIED' : 'SELF-ASSESSED'}
                       </span>
                       <span className={`cyber-badge ${isGap ? 'badge-amber' : (skill.level === 'Advanced' || skill.level === 'Expert' ? 'badge-cyan' : 'badge-purple')}`} style={{ fontSize: '9.5px', whiteSpace: 'nowrap' }}>
                         {skill.level}
@@ -1436,7 +1436,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                     gap: '8px',
                     padding: '10px',
                     borderRadius: '8px',
-                    background: 'var(--bg-input)',
+                    background: '#FFFFFF',
                     border: '1px solid var(--border-subtle)',
                     fontSize: '11px',
                     marginBottom: '16px'
@@ -1524,7 +1524,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
                       }}
                     >
-                      Resolve Gap →
+                      Resolve Gap â†’
                     </button>
                   ) : (
                     <button
@@ -1535,7 +1535,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
                       }}
                     >
-                      View Evidence →
+                      View Evidence â†’
                     </button>
                   )}
                 </div>
@@ -1545,7 +1545,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── TAB 4: CERTIFICATES & CREDENTIAL EVIDENCE ── */}
+      {/* â”€â”€ TAB 4: CERTIFICATES & CREDENTIAL EVIDENCE â”€â”€ */}
       {mainTab === 'certificates' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Header Action Bar */}
@@ -1750,7 +1750,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                       {/* Institution Verification Feedback */}
                       {cert.status === 'VERIFIED' && cert.verifiedBy && (
                         <div style={{ marginTop: '12px', padding: '8px 10px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', fontSize: '11.5px', color: '#059669' }}>
-                          ✓ Verified by <strong>{cert.verifiedBy}</strong> on {new Date(cert.verifiedAt).toLocaleDateString()}
+                          âœ“ Verified by <strong>{cert.verifiedBy}</strong> on {new Date(cert.verifiedAt).toLocaleDateString()}
                         </div>
                       )}
                       {cert.status === 'REJECTED' && cert.rejectionReason && (
@@ -1816,7 +1816,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* ── TAB 5: AI SKILL GAP INTELLIGENCE & RECOMMENDATIONS ── */}
+      {/* â”€â”€ TAB 5: AI SKILL GAP INTELLIGENCE & RECOMMENDATIONS â”€â”€ */}
       {mainTab === 'skill-gap' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Top Readiness & Target Banner */}
@@ -1868,7 +1868,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                   className="btn-cyber-primary"
                   style={{ padding: '6px 12px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
-                  <Brain size={13} /> Open AI Workbench →
+                  <Brain size={13} /> Open AI Workbench â†’
                 </button>
               </div>
             </div>
@@ -1906,7 +1906,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '2px' }}>
                       {(st.evidence || []).map((ev, i) => (
                         <span key={i} style={{ fontSize: '10.5px', padding: '2px 6px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', color: '#059669' }}>
-                          ✓ {ev}
+                          âœ“ {ev}
                         </span>
                       ))}
                     </div>
@@ -1981,7 +1981,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                           WHAT EVIDENCE EXISTS
                         </div>
                         <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                          {Array.isArray(gap.whatEvidenceExists) ? gap.whatEvidenceExists.join(' • ') : gap.whatEvidenceExists}
+                          {Array.isArray(gap.whatEvidenceExists) ? gap.whatEvidenceExists.join(' â€¢ ') : gap.whatEvidenceExists}
                         </div>
                       </div>
 
@@ -2026,7 +2026,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                             className="btn-cyber-primary"
                             style={{ padding: '7px 14px', fontSize: '12px' }}
                           >
-                            Go to Course Track →
+                            Go to Course Track â†’
                           </button>
                         ) : null}
                         <button
@@ -2094,7 +2094,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
             background: 'rgba(139, 92, 246, 0.15)', border: '1px solid var(--cyber-purple)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cyber-purple)'
           }}>
-            ⚡
+            <CheckSquare size={18} />
           </div>
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
@@ -2156,7 +2156,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
               {selectedEvidence.credentialHash ? (
-                <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ padding: '12px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>CREDENTIAL HASH</div>
                   <div style={{ color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)', marginTop: '4px', wordBreak: 'break-all' }}>
                     {selectedEvidence.credentialHash}
@@ -2164,7 +2164,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                 </div>
               ) : null}
 
-              <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ padding: '12px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>VERIFICATION STATUS</div>
                 <div style={{ color: selectedEvidence.verified ? 'var(--cyber-emerald)' : 'var(--cyber-amber)', fontWeight: 600, marginTop: '4px' }}>
                   {selectedEvidence.verified ? 'Assessment Verified & Attested' : 'Self-Assessed (Unverified)'}
@@ -2182,7 +2182,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
               </div>
 
               {selectedEvidence.evidence?.repositories?.length > 0 && (
-                <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ padding: '12px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>ATTESTED REPOSITORIES</div>
                   <ul style={{ paddingLeft: '16px', marginTop: '6px', color: 'var(--text-secondary)' }}>
                     {selectedEvidence.evidence.repositories.map((repo, idx) => (
@@ -2202,7 +2202,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                 );
                 if (matchingCerts.length === 0) return null;
                 return (
-                  <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                  <div style={{ padding: '12px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
                     <div style={{ color: 'var(--cyber-emerald)', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <ShieldCheck size={14} />
                       <span>VERIFIED CERTIFICATE EVIDENCE ({matchingCerts.length})</span>
@@ -2227,7 +2227,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                         >
                           <div>
                             <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-primary)' }}>{vc.title}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{vc.issuer} • Verified by College</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{vc.issuer} â€¢ Verified by College</div>
                           </div>
                           <span style={{ fontSize: '11px', color: 'var(--cyber-cyan)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <Eye size={12} /> View Certificate
@@ -2240,13 +2240,13 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
               })()}
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div style={{ padding: '10px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ padding: '10px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ color: 'var(--text-muted)', fontSize: '10.5px', fontFamily: 'var(--font-mono)' }}>PROFICIENCY TIER</div>
                   <div style={{ color: 'var(--cyber-cyan)', fontWeight: 700, marginTop: '2px' }}>
                     {selectedEvidence.level}
                   </div>
                 </div>
-                <div style={{ padding: '10px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ padding: '10px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ color: 'var(--text-muted)', fontSize: '10.5px', fontFamily: 'var(--font-mono)' }}>MASTERY SCORE</div>
                   <div style={{ color: 'var(--cyber-emerald)', fontWeight: 700, marginTop: '2px' }}>
                     {selectedEvidence.masteryScore}%
@@ -2298,7 +2298,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                   onChange={(e) => setNewSkillName(e.target.value)}
                   required
                   style={{
-                    width: '100%', padding: '10px 14px', background: 'var(--bg-input)',
+                    width: '100%', padding: '10px 14px', background: '#FFFFFF',
                     border: '1px solid var(--border-subtle)', borderRadius: '8px',
                     color: 'var(--text-primary)', outline: 'none'
                   }}
@@ -2313,7 +2313,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                   value={newSkillCategory}
                   onChange={(e) => setNewSkillCategory(e.target.value)}
                   style={{
-                    width: '100%', padding: '10px 14px', background: 'var(--bg-input)',
+                    width: '100%', padding: '10px 14px', background: '#FFFFFF',
                     border: '1px solid var(--border-subtle)', borderRadius: '8px',
                     color: 'var(--text-primary)', outline: 'none'
                   }}
@@ -2335,7 +2335,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
                   value={newSkillLevel}
                   onChange={(e) => setNewSkillLevel(e.target.value)}
                   style={{
-                    width: '100%', padding: '10px 14px', background: 'var(--bg-input)',
+                    width: '100%', padding: '10px 14px', background: '#FFFFFF',
                     border: '1px solid var(--border-subtle)', borderRadius: '8px',
                     color: 'var(--text-primary)', outline: 'none'
                   }}

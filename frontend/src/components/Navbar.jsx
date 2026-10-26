@@ -7,7 +7,8 @@ import {
   Sun,
   Moon,
   Sparkles,
-  Zap
+  Zap,
+  Bot
 } from 'lucide-react';
 import { getUnreadCount } from '../services/notificationStore';
 import { getTheme, toggleTheme } from '../services/themeStore';
@@ -80,7 +81,7 @@ export default function Navbar({ onOpenAIModal, activePage, setActivePage, user,
           className="search-input-box"
           style={{
             width: '100%',
-            background: 'var(--bg-input)',
+            background: '#FFFFFF',
             border: searchFocused ? '1px solid var(--cyber-blue)' : '1px solid var(--border-subtle)',
             boxShadow: searchFocused ? '0 0 16px var(--cyber-blue-dim)' : 'none',
             borderRadius: '12px',
@@ -120,7 +121,7 @@ export default function Navbar({ onOpenAIModal, activePage, setActivePage, user,
             fontSize: '10px', color: 'var(--text-muted)',
             fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap', flexShrink: 0
           }}>
-            ⌘K
+            âŒ˜K
           </div>
         </div>
       </div>
@@ -129,48 +130,60 @@ export default function Navbar({ onOpenAIModal, activePage, setActivePage, user,
       <div className="topbar-right" style={{ gap: '16px' }}>
         {/* AI Engine Status Badge */}
         <button
+          className="topbar-ai-btn"
           onClick={onOpenAIModal}
-          className="cyber-badge badge-purple"
           style={{
             cursor: 'pointer',
             padding: '6px 12px',
-            borderRadius: '20px',
-            textTransform: 'none',
+            borderRadius: '6px',
+            background: '#EFF6FF',
+            border: '1px solid #BFDBFE',
+            color: '#1D4ED8',
             fontSize: '12px',
-            fontWeight: 700,
+            fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            boxShadow: 'var(--cyber-purple-glow)'
+            transition: 'background 0.15s ease'
           }}
           title="Open Nexus AI Companion"
         >
-          <Sparkles size={14} color="var(--cyber-purple)" />
-          <span>✦ SkillNexus AI Ready</span>
+          <Bot size={14} color="#315CFF" />
+          <span>AI Assistant</span>
         </button>
 
         {/* Telemetry/Streak Pill */}
         {currentRole === 'company' ? (
-          <div className="cyber-badge badge-emerald" style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '11px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--cyber-emerald)', boxShadow: '0 0 8px var(--cyber-emerald)' }} />
+          <div className="topbar-telemetry-pill" style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            padding: '5px 10px', borderRadius: '4px',
+            background: '#F0FDF4', border: '1px solid #BBF7D0',
+            color: '#15803D', fontSize: '11px', fontWeight: 600
+          }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#218739' }} />
             <span>AI MATCHING ACTIVE</span>
           </div>
         ) : currentRole === 'institution' ? (
-          <div className="cyber-badge badge-cyan" style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '11px' }}>
-            <Zap size={12} color="var(--cyber-cyan)" />
+          <div className="topbar-telemetry-pill" style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            padding: '5px 10px', borderRadius: '4px',
+            background: '#EFF6FF', border: '1px solid #BFDBFE',
+            color: '#1D4ED8', fontSize: '11px', fontWeight: 600
+          }}>
+            <Zap size={12} color="#315CFF" />
             <span>COHORT TELEMETRY LIVE</span>
           </div>
         ) : (
-          <div style={{
+          <div className="topbar-telemetry-pill" style={{
             display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '5px 12px', borderRadius: '20px',
-            background: 'var(--cyber-amber-dim)',
-            border: '1px solid var(--cyber-amber-dim)',
-            color: 'var(--cyber-amber)'
+            padding: '5px 10px', borderRadius: '4px',
+            background: '#FFFBEB',
+            border: '1px solid #FDE68A',
+            color: '#B45309'
           }}>
-            <Flame size={15} color="var(--cyber-amber)" />
-            <span style={{ fontSize: '13px', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>12</span>
-            <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Day Streak</span>
+            <Flame size={14} color="#A66A00" />
+            <span style={{ fontSize: '13px', fontWeight: 700 }}>12</span>
+            <span style={{ fontSize: '11px', fontWeight: 500, color: '#5F6B76' }}>Day Streak</span>
           </div>
         )}
 
@@ -179,28 +192,27 @@ export default function Navbar({ onOpenAIModal, activePage, setActivePage, user,
           onClick={() => setActivePage('notifications')}
           style={{
             position: 'relative',
-            background: 'var(--bg-input)',
-            border: '1px solid var(--border-subtle)',
-            color: activePage === 'notifications' ? 'var(--cyber-blue)' : 'var(--text-secondary)',
+            background: '#FFFFFF',
+            border: '1px solid #E2E5E9',
+            color: activePage === 'notifications' ? '#315CFF' : '#5F6B76',
             cursor: 'pointer',
-            padding: '8px',
-            borderRadius: '10px',
+            padding: '7px',
+            borderRadius: '6px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all 0.2s ease'
+            transition: 'all 0.15s ease'
           }}
           title={unreadCount > 0 ? `${unreadCount} unread notifications` : 'Notifications'}
         >
           <Bell size={18} />
           {unreadCount > 0 && (
             <div style={{
-              position: 'absolute', top: '-2px', right: '-2px',
-              minWidth: '16px', height: '16px', borderRadius: '10px',
+              position: 'absolute', top: '-3px', right: '-3px',
+              minWidth: '16px', height: '16px', borderRadius: '8px',
               padding: '0 4px',
-              background: 'var(--cyber-rose)', border: '2px solid var(--bg-header)',
-              color: '#FFFFFF', fontSize: '9.5px', fontWeight: 800,
-              fontFamily: 'var(--font-mono)',
+              background: '#C73737', border: '2px solid #FFFFFF',
+              color: '#FFFFFF', fontSize: '10px', fontWeight: 700,
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
               {unreadCount > 9 ? '9+' : unreadCount}
@@ -208,21 +220,11 @@ export default function Navbar({ onOpenAIModal, activePage, setActivePage, user,
           )}
         </button>
 
-        {/* Theme Toggle Button */}
-        <button
-          type="button"
-          className="theme-toggle-btn"
-          onClick={() => toggleTheme()}
-          title={`Switch to ${currentTheme === 'dark' ? 'Light' : 'Dark'} Mode`}
-        >
-          {currentTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
-
         {/* User Profile Badge & Dropdown */}
         <div
           ref={profileRef}
           className="user-profile-badge"
-          style={{ cursor: 'pointer', position: 'relative', gap: '10px', padding: '4px 10px', borderRadius: '12px' }}
+          style={{ cursor: 'pointer', position: 'relative', gap: '8px', padding: '4px 10px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}
           onClick={() => setShowProfileDropdown(!showProfileDropdown)}
         >
           <img
@@ -237,9 +239,9 @@ export default function Navbar({ onOpenAIModal, activePage, setActivePage, user,
             </div>
             <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
               {currentRole === 'academician'
-                ? `Faculty • ${currentUser.department || 'Academician'}`
+                ? `Faculty â€¢ ${currentUser.department || 'Academician'}`
                 : currentRole === 'company'
-                ? `Recruiter • ${currentUser.companyName || currentUser.institutionName || 'Enterprise Partner'}`
+                ? `Recruiter â€¢ ${currentUser.companyName || currentUser.institutionName || 'Enterprise Partner'}`
                 : currentRole === 'institution'
                 ? (currentUser.headline || 'Institution Admin')
                 : (currentUser.role === 'student' ? 'Student' : currentUser.headline || 'Student')}

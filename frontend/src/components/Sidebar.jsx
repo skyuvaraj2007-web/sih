@@ -259,30 +259,28 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
         {!isCollapsed ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              width: '32px', height: '32px', borderRadius: '10px',
-              background: 'var(--grad-ai-primary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)'
+              width: '32px', height: '32px', borderRadius: '6px',
+              background: '#315CFF',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
-              <Sparkles size={16} color="#FFFFFF" />
+              <GraduationCap size={18} color="#FFFFFF" />
             </div>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-heading)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                SkillNexus <span style={{ color: themeAccentColor }}>2.0</span>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#17202A', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
+                SkillNexus <span style={{ color: '#315CFF' }}>AI</span>
               </div>
-              <div style={{ fontSize: '9.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', letterSpacing: '0.04em' }}>
-                SPATIAL AI PLATFORM
+              <div style={{ fontSize: '10px', color: '#5F6B76', fontWeight: 600, letterSpacing: '0.04em' }}>
+                ACADEMIC • SKILLS • INDUSTRY
               </div>
             </div>
           </div>
         ) : (
           <div style={{
-            width: '36px', height: '36px', borderRadius: '10px',
-            background: 'var(--grad-ai-primary)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)'
+            width: '32px', height: '32px', borderRadius: '6px',
+            background: '#315CFF',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
-            <Sparkles size={18} color="#FFFFFF" />
+            <GraduationCap size={18} color="#FFFFFF" />
           </div>
         )}
 
@@ -290,15 +288,15 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           style={{
-            background: 'var(--bg-input)',
-            border: '1px solid var(--border-subtle)',
+            background: '#FFFFFF',
+            border: '1px solid #E2E5E9',
             borderRadius: '6px',
             width: '26px',
             height: '26px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--text-muted)',
+            color: '#5F6B76',
             cursor: 'pointer',
             transition: 'all 0.15s ease'
           }}
@@ -312,12 +310,11 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
       {!isCollapsed && (
         <div style={{
           padding: '10px 18px 4px',
-          fontSize: '9.5px',
-          fontWeight: 800,
-          color: themeAccentColor,
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          fontFamily: 'var(--font-mono)'
+          fontSize: '11px',
+          fontWeight: 700,
+          color: '#315CFF',
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase'
         }}>
           {workspaceLabel}
         </div>
@@ -325,7 +322,7 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
 
       {/* Main Navigation List */}
       <div className="sidebar-nav-container" style={{ padding: isCollapsed ? '10px 8px' : '10px 12px' }}>
-        <ul className="nav-list" style={{ gap: '4px' }}>
+        <ul className="nav-list" style={{ gap: '2px' }}>
           {navItems.map((item, idx) => {
             const Icon = item.icon;
             const active = isActive(item);
@@ -340,30 +337,30 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
                   title={isCollapsed ? item.label : undefined}
                   style={{
                     width: '100%',
-                    padding: isCollapsed ? '10px 0' : '9px 12px',
+                    padding: isCollapsed ? '10px 0' : '8px 12px',
                     justifyContent: isCollapsed ? 'center' : 'space-between',
-                    borderRadius: '10px',
-                    border: active ? '1px solid var(--border-active)' : '1px solid transparent',
+                    borderRadius: '6px',
+                    border: active ? '1px solid #BFDBFE' : '1px solid transparent',
                     background: active
-                      ? 'var(--nav-active-bg)'
+                      ? '#EFF6FF'
                       : 'transparent',
                     color: active
-                      ? 'var(--nav-active-text)'
-                      : 'var(--text-secondary)',
-                    boxShadow: active ? 'var(--nav-active-glow)' : 'none',
-                    fontWeight: active ? 700 : 500,
-                    transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
+                      ? '#1D4ED8'
+                      : '#5F6B76',
+                    boxShadow: 'none',
+                    fontWeight: active ? 600 : 500,
+                    transition: 'all 0.15s ease',
                     position: 'relative'
                   }}
                 >
                   {/* Left Icon + Label */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Icon
-                      size={18}
-                      color={active ? 'var(--nav-active-text)' : 'var(--text-muted)'}
+                      size={17}
+                      color={active ? '#1D4ED8' : '#5F6B76'}
                     />
                     {!isCollapsed && (
-                      <span style={{ fontSize: '13px', letterSpacing: '-0.01em' }}>{item.label}</span>
+                      <span style={{ fontSize: '13px' }}>{item.label}</span>
                     )}
                   </div>
 
@@ -371,12 +368,28 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
                   {!isCollapsed && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {item.badge && (
-                        <span className="cyber-badge badge-emerald" style={{ fontSize: '9px', padding: '1px 6px' }}>
+                        <span style={{
+                          fontSize: '10px',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: '#F1F3F5',
+                          border: '1px solid #E2E5E9',
+                          color: '#5F6B76',
+                          fontWeight: 600
+                        }}>
                           {item.badge}
                         </span>
                       )}
                       {item.count && (
-                        <span className="cyber-badge badge-blue" style={{ fontSize: '9px', padding: '1px 6px' }}>
+                        <span style={{
+                          fontSize: '10px',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: '#EFF6FF',
+                          border: '1px solid #BFDBFE',
+                          color: '#1D4ED8',
+                          fontWeight: 600
+                        }}>
                           {item.count}
                         </span>
                       )}
@@ -394,24 +407,24 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
         <div style={{ padding: '0 12px 10px', flexShrink: 0 }}>
           <div style={{
             padding: '12px',
-            borderRadius: '12px',
-            background: 'var(--grad-hero-banner)',
-            border: '1px solid var(--border-subtle)',
+            borderRadius: '6px',
+            background: '#F7F8FA',
+            border: '1px solid #E2E5E9',
             position: 'relative'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <div style={{
-                width: '24px', height: '24px', borderRadius: '6px',
-                background: 'var(--grad-ai-primary)',
+                width: '22px', height: '22px', borderRadius: '4px',
+                background: '#EFF6FF',
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}>
-                <Bot size={13} color="#FFFFFF" />
+                <Bot size={13} color="#315CFF" />
               </div>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-heading)' }}>
-                Nexus AI 2.0
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#17202A' }}>
+                Nexus AI Assistant
               </span>
             </div>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.4, marginBottom: '8px' }}>
+            <p style={{ fontSize: '11.5px', color: '#5F6B76', lineHeight: 1.4, marginBottom: '8px' }}>
               Spatial skill analytics & career matching engine active.
             </p>
             <button
@@ -420,8 +433,21 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
                 else if (currentRole === 'company') setActivePage('industry-portal', 'ai-matching');
                 else setActivePage('home');
               }}
-              className="btn-cyber-primary"
-              style={{ width: '100%', padding: '6px', fontSize: '11.5px' }}
+              style={{
+                width: '100%',
+                padding: '6px 10px',
+                fontSize: '12px',
+                fontWeight: 600,
+                borderRadius: '6px',
+                background: '#315CFF',
+                color: '#FFFFFF',
+                border: '1px solid #315CFF',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}
             >
               Launch AI Assistant <ArrowRight size={12} />
             </button>

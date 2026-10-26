@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import {
   Lock,
   Mail,
@@ -78,7 +78,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotError, setForgotError] = useState('');
 
-  // ── Student 4-Step Registration State ──────────────────────────────────────
+  // â”€â”€ Student 4-Step Registration State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [regStep, setRegStep] = useState(1);
   const [regData, setRegData] = useState({
     fullName: '',
@@ -102,7 +102,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
     yearSemester: 'III Year / V Sem',
     degree: 'B.Tech',
     specialization: '',
-    batch: '2023–2027',
+    batch: '2023â€“2027',
     semester: 'Semester 5'
   });
   const [regError, setRegError] = useState('');
@@ -615,71 +615,81 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(340px, 460px) minmax(360px, 480px)',
-        borderRadius: '16px',
+        borderRadius: '8px',
         overflow: 'hidden',
-        border: '1px solid var(--border-glow)',
-        background: 'var(--bg-card)',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.7)',
+        border: '1px solid #E2E5E9',
+        background: '#FFFFFF',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
         maxWidth: '960px',
         width: '100%'
       }}>
         {/* Left Hero Panel */}
         <div style={{
-          background: 'linear-gradient(180deg, #090E1F 0%, #060913 100%)',
+          background: '#F1F3F5',
           padding: '40px 36px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          borderRight: '1px solid var(--border-subtle)'
+          borderRight: '1px solid #E2E5E9'
         }}>
           <div>
             {/* Header Badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '28px' }}>
               <div style={{
-                width: '26px', height: '26px', borderRadius: '7px',
-                background: 'var(--grad-cyan-blue)', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 900, fontSize: '14px'
-              }}>⚡</div>
-              <span style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '0.04em' }}>
-                SKILLNEXUS <span style={{ color: 'var(--cyber-cyan)' }}>AI</span>
+                width: '26px', height: '26px', borderRadius: '4px',
+                background: '#315CFF', display: 'flex',
+                alignItems: 'center', justifyContent: 'center'
+              }}>
+                <GraduationCap size={15} color="#FFFFFF" />
+              </div>
+              <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.02em', color: '#17202A' }}>
+                SKILLNEXUS <span style={{ color: '#315CFF' }}>AI</span>
               </span>
-              <span className="cyber-badge badge-cyan" style={{ fontSize: '9px', padding: '2px 7px' }}>
+              <span style={{
+                fontSize: '10px',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                background: '#EFF6FF',
+                border: '1px solid #BFDBFE',
+                color: '#1D4ED8',
+                fontWeight: 700
+              }}>
                 STUDENT
               </span>
             </div>
 
-            <h1 style={{ fontSize: '28px', fontWeight: 800, lineHeight: 1.25, marginBottom: '14px', color: 'var(--text-primary)' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: 800, lineHeight: 1.3, marginBottom: '12px', color: '#17202A' }}>
               Build Your Future <br />
-              <span style={{ color: 'var(--cyber-cyan)' }}>With Confidence</span>
+              <span style={{ color: '#315CFF' }}>With Confidence</span>
             </h1>
 
-            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '32px' }}>
+            <p style={{ fontSize: '13.5px', color: '#5F6B76', lineHeight: 1.6, marginBottom: '28px' }}>
               Assess your strengths. Build verified skills. Prove your abilities. Discover top career opportunities through automated AI validation.
             </p>
 
             {/* Step Roadmap */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { step: '1', title: 'Assess', desc: 'Pinpoint skills and competency benchmarks', color: 'var(--cyber-cyan)' },
-                { step: '2', title: 'Learn & Build', desc: 'Hands-on projects and AI learning sprints', color: 'var(--cyber-purple)' },
-                { step: '3', title: 'Prove & Match', desc: 'Cryptographic digital passport & job match', color: 'var(--cyber-emerald)' }
+                { step: '1', title: 'Assess', desc: 'Pinpoint skills and competency benchmarks', color: '#315CFF' },
+                { step: '2', title: 'Learn & Build', desc: 'Hands-on projects and AI learning sprints', color: '#7E22CE' },
+                { step: '3', title: 'Prove & Match', desc: 'Cryptographic digital passport & job match', color: '#15803D' }
               ].map((item, idx) => (
                 <div key={idx} style={{
-                  display: 'flex', alignItems: 'center', gap: '14px',
-                  padding: '12px 14px', borderRadius: '10px',
-                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)'
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                  padding: '12px 14px', borderRadius: '6px',
+                  background: '#FFFFFF', border: '1px solid #E2E5E9'
                 }}>
                   <div style={{
-                    width: '28px', height: '28px', borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.06)', border: `1px solid ${item.color}`,
+                    width: '26px', height: '26px', borderRadius: '50%',
+                    background: '#F1F3F5', border: `1px solid ${item.color}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '12px', fontWeight: 800, color: item.color
+                    fontSize: '12px', fontWeight: 700, color: item.color
                   }}>
                     {item.step}
                   </div>
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{item.title}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{item.desc}</div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#17202A' }}>{item.title}</div>
+                    <div style={{ fontSize: '12px', color: '#5F6B76' }}>{item.desc}</div>
                   </div>
                 </div>
               ))}
@@ -701,7 +711,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
           <div>
             <div style={{ marginBottom: '24px' }}>
               <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '6px' }}>
-                Welcome Back, Student 👋
+                Welcome Back, Student ðŸ‘‹
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
                 Enter your credentials to access your Student Career Command Center.
@@ -745,7 +755,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                 </label>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
-                  background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
+                  background: '#FFFFFF', border: '1px solid var(--border-subtle)',
                   borderRadius: '8px', padding: '9px 12px'
                 }}>
                   <Mail size={15} color="var(--text-muted)" />
@@ -789,7 +799,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                 </div>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
-                  background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
+                  background: '#FFFFFF', border: '1px solid var(--border-subtle)',
                   borderRadius: '8px', padding: '9px 12px'
                 }}>
                   <Lock size={15} color="var(--text-muted)" />
@@ -797,7 +807,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                     style={{
                       background: 'transparent', border: 'none',
                       color: 'var(--text-primary)', fontSize: '13px', outline: 'none', width: '100%'
@@ -807,26 +817,18 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                 </div>
               </div>
 
-              {/* Remember Me & 2FA */}
+              {/* Remember Me */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    style={{ accentColor: 'var(--cyber-cyan)', cursor: 'pointer', width: '15px', height: '15px' }}
+                    style={{ accentColor: 'var(--cyber-cyan)' }}
                   />
                   <span>Remember me</span>
                 </label>
-                <span style={{
-                  color: 'var(--text-muted)',
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontSize: '11px',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(255, 255, 255, 0.06)'
-                }}>
+                <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
                   2FA: Biometric Ready
                 </span>
               </div>
@@ -835,42 +837,22 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                 type="submit"
                 disabled={loading}
                 className="btn-cyber-primary"
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  fontSize: '14px',
-                  marginTop: '6px',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
+                style={{ width: '100%', padding: '12px', fontSize: '14px', marginTop: '6px', fontWeight: 600 }}
               >
-                <span>{loading ? 'Signing in...' : 'Sign In →'}</span>
+                <span>{loading ? 'Signing in...' : 'Sign In â†’'}</span>
               </button>
             </form>
 
-            {/* Social SSO Divider */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              margin: '20px 0 16px',
-              width: '100%'
-            }}>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle, rgba(255, 255, 255, 0.08))' }}></div>
+            {/* Social SSO */}
+            <div style={{ margin: '20px 0 16px', textAlign: 'center', position: 'relative' }}>
+              <div style={{ height: '1px', background: 'var(--border-subtle)' }}></div>
               <span style={{
-                fontSize: '10.5px',
-                color: 'var(--text-muted)',
-                fontFamily: 'var(--font-mono, monospace)',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                whiteSpace: 'nowrap'
+                position: 'relative', top: '-10px', background: '#FFFFFF',
+                padding: '0 10px', fontSize: '10px', color: 'var(--text-muted)',
+                fontFamily: 'var(--font-mono)'
               }}>
                 OR SIGN IN WITH
               </span>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle, rgba(255, 255, 255, 0.08))' }}></div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -909,14 +891,11 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
               style={{
                 background: 'none', border: 'none', color: 'var(--text-muted)',
                 fontSize: '12px', cursor: 'pointer', display: 'inline-flex',
-                alignItems: 'center', justifyContent: 'center', gap: '6px',
-                transition: 'color 0.15s ease'
+                alignItems: 'center', justifyContent: 'center', gap: '6px'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
             >
-              <ArrowLeft size={14} />
-              <span>Back to login selection</span>
+              <ArrowLeft size={13} />
+              <span>â† Back to login selection</span>
             </button>
           </div>
         </div>
@@ -1057,7 +1036,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       placeholder="e.g. Full Name"
                       value={regData.fullName}
                       onChange={(e) => setRegData({ ...regData, fullName: e.target.value })}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                   <div>
@@ -1068,7 +1047,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       placeholder="student@institution.edu"
                       value={regData.email}
                       onChange={(e) => setRegData({ ...regData, email: e.target.value })}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                 </div>
@@ -1082,7 +1061,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       placeholder="+91 98765 43210"
                       value={regData.phone}
                       onChange={(e) => setRegData({ ...regData, phone: e.target.value })}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                   <div>
@@ -1091,7 +1070,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       type="date"
                       value={regData.dob}
                       onChange={(e) => setRegData({ ...regData, dob: e.target.value })}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                 </div>
@@ -1102,7 +1081,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                     <select
                       value={regData.gender}
                       onChange={(e) => setRegData({ ...regData, gender: e.target.value })}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px', appearance: 'auto' }}
+                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px', appearance: 'auto' }}
                     >
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
@@ -1119,10 +1098,10 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       <input
                         type={showRegPassword ? 'text' : 'password'}
                         required
-                        placeholder="••••••••"
+                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                         value={regData.password}
                         onChange={(e) => setRegData({ ...regData, password: e.target.value })}
-                        style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 36px 8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                        style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 36px 8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                       />
                       <button
                         type="button"
@@ -1139,10 +1118,10 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       <input
                         type={showRegConfirmPassword ? 'text' : 'password'}
                         required
-                        placeholder="••••••••"
+                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                         value={regData.confirmPassword}
                         onChange={(e) => setRegData({ ...regData, confirmPassword: e.target.value })}
-                        style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 36px 8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                        style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 36px 8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                       />
                       <button
                         type="button"
@@ -1169,7 +1148,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                     className="btn-cyber-primary"
                     style={{ flex: 2, padding: '10px', fontWeight: 600 }}
                   >
-                    Next: Academic Info →
+                    Next: Academic Info â†’
                   </button>
                 </div>
               </form>
@@ -1189,7 +1168,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       placeholder="e.g. 717821E101 or RA2211003010489"
                       value={regData.regNo}
                       onChange={(e) => setRegData({ ...regData, regNo: e.target.value })}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                     <p style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '3px' }}>
                       * Unique per institution. Prevents duplicate registrations within the same campus.
@@ -1210,7 +1189,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       placeholder="e.g. Chennai, Coimbatore, Madurai"
                       value={regData.city}
                       onChange={(e) => setRegData({ ...regData, city: e.target.value })}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                   <div>
@@ -1219,7 +1198,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       required
                       value={regData.state}
                       onChange={(e) => handleStateChange(e.target.value)}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px', appearance: 'auto' }}
+                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px', appearance: 'auto' }}
                     >
                       <option value="Tamil Nadu">Tamil Nadu</option>
                       <option value="Karnataka">Karnataka</option>
@@ -1241,7 +1220,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                     required
                     value={regData.collegeId}
                     onChange={(e) => handleCollegeSelect(e.target.value)}
-                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px', appearance: 'auto' }}
+                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px', appearance: 'auto' }}
                   >
                     <option value="">
                       {registeredColleges.length > 0
@@ -1255,7 +1234,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                     ))}
                   </select>
                   <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    ✓ Verified institutional database. Automatically populates official university and degree curricula.
+                    âœ“ Verified institutional database. Automatically populates official university and degree curricula.
                   </p>
                 </div>
 
@@ -1283,7 +1262,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       placeholder="e.g. 20"
                       value={regData.age || ''}
                       onChange={(e) => setRegData({ ...regData, age: parseInt(e.target.value, 10) || '' })}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                   <div>
@@ -1294,7 +1273,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       required
                       value={regData.yearSemester}
                       onChange={(e) => setRegData({ ...regData, yearSemester: e.target.value })}
-                      style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     >
                       <option value="I Year / I Sem">I Year / I Sem</option>
                       <option value="I Year / II Sem">I Year / II Sem</option>
@@ -1318,7 +1297,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                         required
                         value={regData.departmentId || regData.department}
                         onChange={(e) => handleDepartmentChange(e.target.value)}
-                        style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                        style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                       >
                         {dynamicDepartments.map((dept, i) => (
                           <option key={i} value={dept.id}>{dept.name} ({dept.code || 'Dept'})</option>
@@ -1329,7 +1308,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                         required
                         value={regData.department}
                         onChange={(e) => handleDepartmentChange(e.target.value)}
-                        style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                        style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                       >
                         {selectedCollegeStructure.map((dept, i) => (
                           <option key={i} value={dept.department}>{dept.department}</option>
@@ -1342,7 +1321,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                         placeholder="Select institution first..."
                         value={regData.department}
                         onChange={(e) => setRegData({ ...regData, department: e.target.value })}
-                        style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                        style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                       />
                     )}
                   </div>
@@ -1355,7 +1334,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                         required
                         value={regData.classId}
                         onChange={(e) => handleClassChange(e.target.value)}
-                        style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                        style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                       >
                         {dynamicClasses.map((cls, i) => (
                           <option key={i} value={cls.id}>
@@ -1369,7 +1348,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                         placeholder="e.g. III CSE A"
                         value={regData.className}
                         onChange={(e) => setRegData({ ...regData, className: e.target.value })}
-                        style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                        style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                       />
                     )}
                   </div>
@@ -1384,7 +1363,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       placeholder="e.g. 2024-2028 or 2027"
                       value={regData.batch}
                       onChange={(e) => setRegData({ ...regData, batch: e.target.value })}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                   <div>
@@ -1392,7 +1371,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                     <select
                       value={regData.semester}
                       onChange={(e) => setRegData({ ...regData, semester: e.target.value })}
-                      style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     >
                       <option value="Sem 1">Semester 1</option>
                       <option value="Sem 2">Semester 2</option>
@@ -1413,7 +1392,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                     className="btn-cyber-outline"
                     style={{ flex: 1, padding: '10px' }}
                   >
-                    ← Back
+                    â† Back
                   </button>
                   <button
                     type="submit"
@@ -1421,7 +1400,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                     className="btn-cyber-primary"
                     style={{ flex: 2, padding: '10px', fontWeight: 600 }}
                   >
-                    {regLoading ? 'Initiating Verification...' : 'Continue to Verification →'}
+                    {regLoading ? 'Initiating Verification...' : 'Continue to Verification â†’'}
                   </button>
                 </div>
               </form>
@@ -1507,7 +1486,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                       userSelect: 'none'
                     }}
                   >
-                    [ {regDemoOtp ? regDemoOtp.split('').join(' ') : '• • • • • •'} ]
+                    [ {regDemoOtp ? regDemoOtp.split('').join(' ') : 'â€¢ â€¢ â€¢ â€¢ â€¢ â€¢'} ]
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: '11px', color: 'var(--text-muted)' }}>
@@ -1546,7 +1525,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                         fontWeight: 700,
                         textAlign: 'center',
                         borderRadius: '10px',
-                        background: 'var(--bg-input)',
+                        background: '#FFFFFF',
                         border: digit ? '2px solid var(--cyber-cyan)' : '1px solid var(--border-subtle)',
                         color: 'var(--text-primary)',
                         outline: 'none',
@@ -1587,7 +1566,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                     className="btn-cyber-outline"
                     style={{ flex: 1, padding: '10px' }}
                   >
-                    ← Edit Details
+                    â† Edit Details
                   </button>
                   <button
                     type="submit"
@@ -1595,7 +1574,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                     className="btn-cyber-primary"
                     style={{ flex: 2, padding: '10px', fontWeight: 600 }}
                   >
-                    {otpVerifying ? 'Verifying Code...' : 'Verify & Activate Account ✓'}
+                    {otpVerifying ? 'Verifying Code...' : 'Verify & Activate Account âœ“'}
                   </button>
                 </div>
               </form>
@@ -1650,7 +1629,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
                     <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>DEPARTMENT & DEGREE</span>
                     <span style={{ fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'right' }}>
-                      {createdStudentSummary?.department || regData.department} • {createdStudentSummary?.degree || regData.degree}
+                      {createdStudentSummary?.department || regData.department} â€¢ {createdStudentSummary?.degree || regData.degree}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
@@ -1711,7 +1690,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                   className="btn-cyber-primary"
                   style={{ width: '100%', padding: '12px', fontSize: '14px', fontWeight: 700, marginTop: '6px' }}
                 >
-                  Go to Student Dashboard →
+                  Go to Student Dashboard â†’
                 </button>
               </div>
             )}
@@ -1781,7 +1760,7 @@ export default function StudentLogin({ onLoginSuccess, onBackToRoles, onNavigate
                     onChange={(e) => setForgotEmail(e.target.value)}
                     placeholder="student@university.edu"
                     style={{
-                      width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
+                      width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)',
                       borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px'
                     }}
                   />

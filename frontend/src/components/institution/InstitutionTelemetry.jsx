@@ -151,7 +151,7 @@ export default function InstitutionTelemetry({
         <div style={{ marginBottom: '16px', padding: '16px 20px', borderRadius: '12px', background: 'rgba(11, 18, 32, 0.7)', border: '1px solid #263452' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--cyber-cyan)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              ⚡ Industry Skill Demand (SBT TECH Innovations Requisition)
+              Industry Skill Demand (SBT TECH Innovations Requisition)
             </div>
             <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 600 }}>● Database-Backed Requirements</span>
           </div>

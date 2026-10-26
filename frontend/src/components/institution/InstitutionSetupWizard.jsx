@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
   Layers, 
@@ -138,7 +138,7 @@ export default function InstitutionSetupWizard({
       <div className="glass-panel" style={{
         width: '100%',
         maxWidth: '680px',
-        background: 'linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(11, 17, 32, 0.95))',
+        background: 'linear-gradient(145deg, #F7F8FA, rgba(11, 17, 32, 0.95))',
         border: '1px solid rgba(6, 182, 212, 0.3)',
         borderRadius: '16px',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px rgba(6, 182, 212, 0.15)',
@@ -165,9 +165,9 @@ export default function InstitutionSetupWizard({
               </span>
             </div>
             <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-              {currentStep === 1 && 'Step 1 — College / Institution Identity'}
-              {currentStep === 2 && 'Step 2 — Academic Departments Configuration'}
-              {currentStep === 3 && 'Step 3 — Initial Student Cohort Provisioning'}
+              {currentStep === 1 && 'Step 1 â€” College / Institution Identity'}
+              {currentStep === 2 && 'Step 2 â€” Academic Departments Configuration'}
+              {currentStep === 3 && 'Step 3 â€” Initial Student Cohort Provisioning'}
             </h2>
           </div>
 
@@ -186,23 +186,23 @@ export default function InstitutionSetupWizard({
                   fontSize: '12px',
                   fontWeight: 700,
                   background: currentStep === step 
-                    ? 'var(--cyber-cyan)' 
+                    ? '#315CFF' 
                     : currentStep > step 
-                    ? 'rgba(16, 185, 129, 0.2)' 
-                    : 'rgba(255, 255, 255, 0.05)',
+                    ? 'rgba(16, 185, 129, 0.12)' 
+                    : '#F7F8FA',
                   color: currentStep === step 
-                    ? '#0B1120' 
+                    ? '#FFFFFF' 
                     : currentStep > step 
-                    ? 'var(--cyber-emerald)' 
-                    : 'var(--text-muted)',
+                    ? '#10b981' 
+                    : '#8A949E',
                   border: currentStep === step 
                     ? 'none' 
                     : currentStep > step 
                     ? '1px solid rgba(16, 185, 129, 0.4)' 
-                    : '1px solid var(--border-subtle)'
+                    : '1px solid #E2E5E9'
                 }}
               >
-                {currentStep > step ? '✓' : step}
+                {currentStep > step ? 'âœ“' : step}
               </div>
             ))}
           </div>
@@ -224,7 +224,7 @@ export default function InstitutionSetupWizard({
             </div>
           )}
 
-          {/* ── STEP 1: COLLEGE INFO ── */}
+          {/* â”€â”€ STEP 1: COLLEGE INFO â”€â”€ */}
           {currentStep === 1 && (
             <form onSubmit={handleSaveStep1} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 8px 0' }}>
@@ -313,7 +313,7 @@ export default function InstitutionSetupWizard({
             </form>
           )}
 
-          {/* ── STEP 2: DEPARTMENTS ── */}
+          {/* â”€â”€ STEP 2: DEPARTMENTS â”€â”€ */}
           {currentStep === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
@@ -427,7 +427,7 @@ export default function InstitutionSetupWizard({
             </div>
           )}
 
-          {/* ── STEP 3: INITIAL ROSTER PROVISIONING ── */}
+          {/* â”€â”€ STEP 3: INITIAL ROSTER PROVISIONING â”€â”€ */}
           {currentStep === 3 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'center', padding: '10px 0' }}>
               <div style={{

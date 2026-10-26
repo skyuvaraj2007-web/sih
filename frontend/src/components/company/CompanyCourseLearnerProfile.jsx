@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Award, CheckCircle2, Clock, ShieldCheck, FolderGit2, ExternalLink, BookOpen, Building2, User, X, AlertCircle } from 'lucide-react';
 import { nexusApiClient } from '../../services/nexusApiClient';
 
@@ -51,7 +51,7 @@ export default function CompanyCourseLearnerProfile({ courseId, studentId, onClo
         ) : (
           <div>
             {/* Top Header Card */}
-            <div style={{ background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9))', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+            <div style={{ background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8), #F7F8FA)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--cyber-cyan, #00f2fe)', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -97,7 +97,7 @@ export default function CompanyCourseLearnerProfile({ courseId, studentId, onClo
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {profileData.courseProjects.map((proj, idx) => (
-                    <div key={proj.projectId || idx} style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '14px' }}>
+                    <div key={proj.projectId || idx} style={{ background: '#F7F8FA', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
                           <div style={{ fontWeight: '700', color: '#fff', fontSize: '14px' }}>{proj.title}</div>
@@ -118,7 +118,7 @@ export default function CompanyCourseLearnerProfile({ courseId, studentId, onClo
                       {Array.isArray(proj.skills) && proj.skills.length > 0 && (
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
                           {proj.skills.map((sk, sIdx) => (
-                            <span key={sIdx} style={{ fontSize: '10px', padding: '2px 8px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '4px', color: '#cbd5e1' }}>
+                            <span key={sIdx} style={{ fontSize: '10px', padding: '2px 8px', background: '#E2E5E9', borderRadius: '4px', color: '#cbd5e1' }}>
                               {typeof sk === 'object' ? sk.name : sk}
                             </span>
                           ))}
@@ -131,7 +131,7 @@ export default function CompanyCourseLearnerProfile({ courseId, studentId, onClo
             </div>
 
             {/* College-Verified Certificate Section */}
-            <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px', padding: '20px' }}>
+            <div style={{ background: '#F7F8FA', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px', padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                 <Award size={18} style={{ color: '#f59e0b' }} />
                 <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#fff', margin: 0 }}>College Certificate Verification Status</h3>
@@ -145,7 +145,7 @@ export default function CompanyCourseLearnerProfile({ courseId, studentId, onClo
                 <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '10px', padding: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                     <CheckCircle2 size={18} style={{ color: '#4ade80' }} />
-                    <span style={{ fontSize: '14px', fontWeight: '800', color: '#4ade80' }}>✓ Verified by College Management</span>
+                    <span style={{ fontSize: '14px', fontWeight: '800', color: '#4ade80' }}>âœ“ Verified by College Management</span>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', fontSize: '12px', color: '#cbd5e1' }}>

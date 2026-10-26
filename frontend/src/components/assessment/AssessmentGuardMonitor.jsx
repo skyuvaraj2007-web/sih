@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ShieldCheck, Video, VideoOff, AlertTriangle, Eye, ShieldAlert } from 'lucide-react';
 import { VisionIntegrityEngine } from '../../utils/visionIntegrityEngine';
 
@@ -293,7 +293,7 @@ export default function AssessmentGuardMonitor({
         gap: '10px',
         padding: '8px 14px',
         borderRadius: '24px',
-        background: 'rgba(15, 23, 42, 0.95)',
+        background: '#FFFFFF',
         border: eventCount > 0 ? '1px solid rgba(245, 158, 11, 0.5)' : '1px solid rgba(46, 224, 161, 0.4)',
         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
         backdropFilter: 'blur(8px)',

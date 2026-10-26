@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   X,
   BookOpen,
@@ -143,7 +143,7 @@ export default function CourseViewerModal({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'rgba(15, 23, 42, 0.9)'
+          background: '#FFFFFF'
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
@@ -192,7 +192,7 @@ export default function CourseViewerModal({
             <button
               onClick={onClose}
               style={{
-                background: 'rgba(255, 255, 255, 0.05)',
+                background: '#E2E5E9',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 color: '#94a3b8',
                 borderRadius: '8px',
@@ -389,7 +389,7 @@ export default function CourseViewerModal({
                       </div>
 
                       <div style={{ fontSize: '13px', color: '#94a3b8' }}>
-                        💡 Tip: After reviewing the materials and executing the practice, click <strong>Mark Lesson Complete</strong> to advance your curriculum progress and sync with your faculty dashboard.
+                        ðŸ’¡ Tip: After reviewing the materials and executing the practice, click <strong>Mark Lesson Complete</strong> to advance your curriculum progress and sync with your faculty dashboard.
                       </div>
                     </div>
                   </div>
@@ -400,7 +400,7 @@ export default function CourseViewerModal({
                       onClick={handlePrev}
                       disabled={activeModuleIdx === 0 && activeLessonIdx === 0}
                       style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
+                        background: '#E2E5E9',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         color: '#cbd5e1',
                         padding: '8px 16px',

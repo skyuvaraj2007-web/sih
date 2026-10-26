@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   X,
   Sparkles,
@@ -355,7 +355,7 @@ export default function SkillLearningPathModal({
               <Zap size={14} color="var(--cyber-cyan)" />
               <strong style={{ color: 'var(--cyber-cyan)' }}>BEST NEXT ACTION:</strong>
               <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{progressData.bestNextAction.action}</span>
-              <span style={{ color: 'var(--text-muted)' }}>— {progressData.bestNextAction.reason}</span>
+              <span style={{ color: 'var(--text-muted)' }}>â€” {progressData.bestNextAction.reason}</span>
             </div>
           </div>
         )}
@@ -406,7 +406,7 @@ export default function SkillLearningPathModal({
                         {m.title}
                       </div>
                       <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        {m.lessons?.length || 0} Lessons • {m.duration}
+                        {m.lessons?.length || 0} Lessons â€¢ {m.duration}
                       </div>
                     </div>
                     {isCompleted && (
@@ -440,7 +440,7 @@ export default function SkillLearningPathModal({
                     Capstone Project
                   </div>
                   <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                    {progressData?.projectSubmission?.submitted ? '✓ Submitted & Verified' : 'Practical Submission'}
+                    {progressData?.projectSubmission?.submitted ? 'âœ“ Submitted & Verified' : 'Practical Submission'}
                   </div>
                 </div>
               </button>
@@ -582,7 +582,7 @@ class ${skill?.name?.replace(/[^a-zA-Z]/g, '') || 'Architecture'}Engine {
                       {/* Lesson Footer Action */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                          {isCurrentLessonCompleted ? '✓ This lesson is completed' : 'Complete lesson reading to advance progress'}
+                          {isCurrentLessonCompleted ? 'âœ“ This lesson is completed' : 'Complete lesson reading to advance progress'}
                         </div>
 
                         <button
@@ -668,7 +668,7 @@ class ${skill?.name?.replace(/[^a-zA-Z]/g, '') || 'Architecture'}Engine {
                             fontSize: '12.5px',
                             color: submitted.isCorrect ? '#10b981' : '#f87171'
                           }}>
-                            <strong>{submitted.isCorrect ? '✓ Correct!' : '✗ Needs review.'}</strong> {submitted.explanation}
+                            <strong>{submitted.isCorrect ? 'âœ“ Correct!' : 'âœ— Needs review.'}</strong> {submitted.explanation}
                           </div>
                         )}
                       </div>

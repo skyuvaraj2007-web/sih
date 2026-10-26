@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import {
   Users,
   Search,
@@ -89,7 +89,7 @@ export default function InstitutionCandidateList({ institution, onShowToast, set
 
   return (
     <div style={{ paddingBottom: '32px' }}>
-      {/* ── HEADER BANNER ── */}
+      {/* â”€â”€ HEADER BANNER â”€â”€ */}
       <div className="glass-panel" style={{
         padding: '22px 24px',
         marginBottom: '20px',
@@ -137,7 +137,7 @@ export default function InstitutionCandidateList({ institution, onShowToast, set
         </div>
       </div>
 
-      {/* ── SEARCH & FILTER CONTROLS ── */}
+      {/* â”€â”€ SEARCH & FILTER CONTROLS â”€â”€ */}
       <div className="glass-panel" style={{ padding: '16px 20px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Search bar */}
@@ -207,7 +207,7 @@ export default function InstitutionCandidateList({ institution, onShowToast, set
               }}
             >
               <option value="ALL">All Candidates</option>
-              <option value="READY">Placement Ready (≥75%)</option>
+              <option value="READY">Placement Ready (â‰¥75%)</option>
               <option value="TRAINING">In Training</option>
               <option value="PLACED">Placed</option>
             </select>
@@ -215,7 +215,7 @@ export default function InstitutionCandidateList({ institution, onShowToast, set
         </div>
       </div>
 
-      {/* ── CANDIDATE TABLE / CARDS ── */}
+      {/* â”€â”€ CANDIDATE TABLE / CARDS â”€â”€ */}
       <div className="glass-panel" style={{ overflow: 'hidden' }}>
         <div style={{
           padding: '14px 20px',
@@ -317,19 +317,19 @@ export default function InstitutionCandidateList({ institution, onShowToast, set
                       </td>
 
                       <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '11.5px', color: 'var(--cyber-cyan)' }}>
-                        {c.regNo || c.studentId || '—'}
+                        {c.regNo || c.studentId || 'â€”'}
                       </td>
 
                       <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>
-                        {c.department || c.departmentName || '—'}
+                        {c.department || c.departmentName || 'â€”'}
                       </td>
 
                       <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>
-                        {c.semester ? `Sem ${c.semester}` : (c.year ? `Year ${c.year}` : '—')}
+                        {c.semester ? `Sem ${c.semester}` : (c.year ? `Year ${c.year}` : 'â€”')}
                       </td>
 
                       <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {c.cgpa ? Number(c.cgpa).toFixed(2) : '—'}
+                        {c.cgpa ? Number(c.cgpa).toFixed(2) : 'â€”'}
                       </td>
 
                       <td style={{ padding: '12px 14px' }}>
@@ -372,7 +372,7 @@ export default function InstitutionCandidateList({ institution, onShowToast, set
                                 fontSize: '10px',
                                 padding: '1px 6px',
                                 borderRadius: '4px',
-                                background: 'rgba(255, 255, 255, 0.05)',
+                                background: '#E2E5E9',
                                 color: 'var(--text-muted)'
                               }}
                             >

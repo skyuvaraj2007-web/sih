@@ -10,16 +10,11 @@ import {
   BookOpen,
   BarChart3,
   TrendingUp,
-  Handshake
+  Handshake,
+  Lock
 } from 'lucide-react';
 import './RoleGateway.css';
 import SihDemoAccessBar from '../components/auth/SihDemoAccessBar';
-
-// Import our 3D illustrations
-import studentImg from '../assets/illus/student_card.jpg';
-import institutionImg from '../assets/illus/institution_card.jpg';
-import industryImg from '../assets/illus/industry_card.jpg';
-import facultyImg from '../assets/illus/faculty_card.jpg';
 
 export default function RoleGateway({ onSelectRole, onBackToLanding, onShowToast }) {
   const roles = [
@@ -29,12 +24,10 @@ export default function RoleGateway({ onSelectRole, onBackToLanding, onShowToast
       badgeIcon: GraduationCap,
       title: 'Student Login',
       subtitle: 'Build your skills. Track your progress. Shape your future.',
-      image: studentImg,
-      badgeColor: '#00D9FF',
-      floatingBadges: [
-        { icon: BookOpen, pos: 'top-left' },
-        { icon: BarChart3, pos: 'top-right' }
-      ],
+      badgeColor: '#2563EB',
+      panelBg: '#EFF6FF',
+      panelBorder: '#DBEAFE',
+      accentColor: '#2563EB',
       features: [
         'Access learning resources',
         'Track your skill progress',
@@ -49,11 +42,10 @@ export default function RoleGateway({ onSelectRole, onBackToLanding, onShowToast
       badgeIcon: Building2,
       title: 'Institution Login',
       subtitle: 'Manage talent. Build skills. Create opportunities.',
-      image: institutionImg,
-      badgeColor: '#19D3AE',
-      floatingBadges: [
-        { icon: GraduationCap, pos: 'top-right' }
-      ],
+      badgeColor: '#0D9488',
+      panelBg: '#F0FDFA',
+      panelBorder: '#CCFBF1',
+      accentColor: '#0D9488',
       features: [
         'Manage student talent',
         'Post skills & opportunities',
@@ -68,11 +60,10 @@ export default function RoleGateway({ onSelectRole, onBackToLanding, onShowToast
       badgeIcon: Briefcase,
       title: 'Industry Login',
       subtitle: 'Find skilled talent. Build stronger teams.',
-      image: industryImg,
-      badgeColor: '#E879F9',
-      floatingBadges: [
-        { icon: BarChart3, pos: 'top-right' }
-      ],
+      badgeColor: '#7C3AED',
+      panelBg: '#FAF5FF',
+      panelBorder: '#F3E8FF',
+      accentColor: '#7C3AED',
       features: [
         'Access verified talent',
         'Post internships & jobs',
@@ -87,12 +78,10 @@ export default function RoleGateway({ onSelectRole, onBackToLanding, onShowToast
       badgeIcon: BookOpen,
       title: 'Faculty Login',
       subtitle: 'Teach courses. Mentor students. Bridge skill gaps.',
-      image: facultyImg,
-      badgeColor: '#F59E0B',
-      floatingBadges: [
-        { icon: BookOpen, pos: 'top-left' },
-        { icon: Sparkles, pos: 'top-right' }
-      ],
+      badgeColor: '#D97706',
+      panelBg: '#FFFBEB',
+      panelBorder: '#FEF3C7',
+      accentColor: '#D97706',
       features: [
         'Curate courses & assessments',
         'Analyze skill gaps vs industry demand',
@@ -186,15 +175,7 @@ export default function RoleGateway({ onSelectRole, onBackToLanding, onShowToast
             title="SkillNexus AI"
           >
             <div className="rg-logo-box">
-              <svg viewBox="0 0 24 24" fill="none" className="rg-bolt-icon">
-                <path
-                  d="M13 2L3 14H12L11 22L21 10H12L13 2Z"
-                  fill="#FFFFFF"
-                  stroke="#FFFFFF"
-                  strokeWidth="1.2"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <GraduationCap size={18} color="#FFFFFF" />
             </div>
             <span className="rg-brand-text">
               SKILLNEXUS <span className="rg-ai-text">AI</span>
@@ -202,8 +183,7 @@ export default function RoleGateway({ onSelectRole, onBackToLanding, onShowToast
           </div>
 
           <div className="rg-tagline-pill">
-            <span className="rg-sparkle-icon">✦</span>
-            <span>Where Skills Meet Opportunities</span>
+            <span>Academic & Industry Talent Platform</span>
           </div>
         </div>
       </header>
@@ -213,30 +193,21 @@ export default function RoleGateway({ onSelectRole, onBackToLanding, onShowToast
         {/* Center Hero Section */}
         <section className="rg-hero-block">
           <div className="rg-welcome-kicker">
-            <span className="rg-dash">—</span> WELCOME TO <span className="rg-dash">—</span>
+            UNIFIED TALENT PLATFORM
           </div>
           <h1 className="rg-main-title">
-            SkillNexus <span className="rg-title-ai">AI</span>
+            Select Your Workspace
           </h1>
           <p className="rg-main-subtitle">
-            Bridge the gap between skills, education and industry.
+            Connect institutional learning programs, faculty supervision, and industry recruitment.
           </p>
 
           <div className="rg-value-props">
-            <div className="rg-vp-item">
-              <span className="rg-vp-emoji">🎓</span>
-              <span className="rg-vp-label">Learn</span>
-            </div>
-            <span className="rg-vp-divider">|</span>
-            <div className="rg-vp-item">
-              <span className="rg-vp-emoji">📈</span>
-              <span className="rg-vp-label">Grow</span>
-            </div>
-            <span className="rg-vp-divider">|</span>
-            <div className="rg-vp-item">
-              <span className="rg-vp-emoji">🤝</span>
-              <span className="rg-vp-label">Get Hired</span>
-            </div>
+            <span className="rg-vp-label">Verified Skill Credentials</span>
+            <span className="rg-vp-divider">•</span>
+            <span className="rg-vp-label">Academic Telemetry</span>
+            <span className="rg-vp-divider">•</span>
+            <span className="rg-vp-label">Direct Hiring Pipeline</span>
           </div>
         </section>
 
@@ -256,25 +227,70 @@ export default function RoleGateway({ onSelectRole, onBackToLanding, onShowToast
               >
                 {/* Upper Half: Left Illustration + Right Header */}
                 <div className="rg-card-upper">
-                  {/* Left 3D Visual Box */}
-                  <div className={`rg-visual-box rg-visual-${r.id}`}>
-                    <div className="rg-visual-glow" />
-                    <img
-                      src={r.image}
-                      alt={`${r.title} Illustration`}
-                      className="rg-visual-img"
-                      loading="eager"
-                    />
+                  {/* Role Vector Emblem Box */}
+                  <div className={`rg-visual-box rg-visual-${r.id}`} style={{
+                    width: '100%',
+                    height: '130px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    background: r.panelBg,
+                    border: `1px solid ${r.panelBorder}`,
+                    overflow: 'hidden'
+                  }}>
+                    {/* Background geometric accents */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '-20px',
+                      right: '-20px',
+                      width: '75px',
+                      height: '75px',
+                      borderRadius: '50%',
+                      background: r.accentColor,
+                      opacity: 0.1
+                    }} />
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '-15px',
+                      left: '-15px',
+                      width: '55px',
+                      height: '55px',
+                      borderRadius: '50%',
+                      background: r.accentColor,
+                      opacity: 0.08
+                    }} />
 
-                    {/* Floating micro badges */}
-                    {r.floatingBadges.map((badge, idx) => {
-                      const Icon = badge.icon;
-                      return (
-                        <div key={idx} className={`rg-float-badge float-${badge.pos}`}>
-                          <Icon size={13} />
-                        </div>
-                      );
-                    })}
+                    {/* Central Icon Emblem */}
+                    <div style={{
+                      width: '56px',
+                      height: '56px',
+                      borderRadius: '14px',
+                      background: '#FFFFFF',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: r.accentColor,
+                      border: `1px solid ${r.panelBorder}`,
+                      zIndex: 2
+                    }}>
+                      <BadgeIcon size={28} strokeWidth={2} />
+                    </div>
+
+                    <div style={{
+                      marginTop: '8px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                      textTransform: 'uppercase',
+                      color: r.accentColor,
+                      zIndex: 2
+                    }}>
+                      {r.badge} PORTAL
+                    </div>
                   </div>
 
                   {/* Right Header Area */}
@@ -321,9 +337,9 @@ export default function RoleGateway({ onSelectRole, onBackToLanding, onShowToast
         {/* Safe & Secure Trust Footer */}
         <footer className="rg-trust-footer">
           <div className="rg-trust-line">
-            <span className="rg-trust-lock">🔒</span>
+            <Lock size={14} color="#218739" />
             <span className="rg-trust-text">
-              Safe &bull; Secure &bull; Trusted by Students, Institutions &amp; Industry
+              Secure System &bull; Verified Credentials &bull; ISO &amp; AICTE Aligned
             </span>
           </div>
         </footer>

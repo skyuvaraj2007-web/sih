@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   X,
   FileText,
@@ -200,7 +200,7 @@ export default function CertificateViewerModal({ certificate, onClose, onDownloa
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', flex: 1, minHeight: '480px', overflow: 'hidden' }}>
           {/* Left Pane: In-App Document Viewer */}
           <div style={{
-            background: 'var(--bg-input, #0b1120)',
+            background: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -118,7 +118,7 @@ export default function AssessmentIntegrityReportModal({
         {/* Header */}
         <div style={{
           padding: '20px 24px',
-          background: 'rgba(15, 23, 42, 0.95)',
+          background: '#FFFFFF',
           borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
@@ -182,7 +182,7 @@ export default function AssessmentIntegrityReportModal({
                 gap: '12px',
                 marginBottom: '20px'
               }}>
-                <div style={{ padding: '14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.6)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ padding: '14px', borderRadius: '8px', background: '#F7F8FA', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Candidate / Student</div>
                   <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
                     {report.student?.name || 'Student Candidate'}
@@ -190,7 +190,7 @@ export default function AssessmentIntegrityReportModal({
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{report.student?.email || ''}</div>
                 </div>
 
-                <div style={{ padding: '14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.6)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ padding: '14px', borderRadius: '8px', background: '#F7F8FA', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Duration</div>
                   <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Clock size={15} color="var(--cyber-cyan)" />
@@ -280,7 +280,7 @@ export default function AssessmentIntegrityReportModal({
                     onChange={(e) => setSeverityFilter(e.target.value)}
                     style={{
                       padding: '6px 10px', borderRadius: '6px',
-                      background: 'rgba(15, 23, 42, 0.8)', color: 'var(--text-primary)',
+                      background: '#FFFFFF', color: 'var(--text-primary)',
                       border: '1px solid var(--border-subtle)', fontSize: '12px'
                     }}
                   >
@@ -295,7 +295,7 @@ export default function AssessmentIntegrityReportModal({
                     onChange={(e) => setStatusFilter(e.target.value)}
                     style={{
                       padding: '6px 10px', borderRadius: '6px',
-                      background: 'rgba(15, 23, 42, 0.8)', color: 'var(--text-primary)',
+                      background: '#FFFFFF', color: 'var(--text-primary)',
                       border: '1px solid var(--border-subtle)', fontSize: '12px'
                     }}
                   >
@@ -312,7 +312,7 @@ export default function AssessmentIntegrityReportModal({
               {filteredEvents.length === 0 ? (
                 <div style={{
                   padding: '32px', textAlign: 'center',
-                  background: 'rgba(15, 23, 42, 0.3)', borderRadius: '8px',
+                  background: '#F7F8FA', borderRadius: '8px',
                   color: 'var(--text-muted)', fontSize: '13px'
                 }}>
                   <ShieldCheck size={28} color="var(--cyber-emerald)" style={{ margin: '0 auto 8px auto' }} />
@@ -331,7 +331,7 @@ export default function AssessmentIntegrityReportModal({
                         style={{
                           padding: '14px 16px',
                           borderRadius: '8px',
-                          background: 'rgba(15, 23, 42, 0.6)',
+                          background: '#F7F8FA',
                           border: '1px solid var(--border-subtle)',
                           display: 'flex',
                           flexDirection: 'column',
@@ -372,9 +372,9 @@ export default function AssessmentIntegrityReportModal({
 
                         {/* Metadata note */}
                         <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                          Signal confidence: {ev.confidence}% • Duration: {ev.durationSeconds}s
-                          {ev.metadata?.note ? ` • ${ev.metadata.note}` : ''}
-                          {ev.reviewedBy ? ` • Reviewed by: ${ev.reviewedBy}` : ''}
+                          Signal confidence: {ev.confidence}% â€¢ Duration: {ev.durationSeconds}s
+                          {ev.metadata?.note ? ` â€¢ ${ev.metadata.note}` : ''}
+                          {ev.reviewedBy ? ` â€¢ Reviewed by: ${ev.reviewedBy}` : ''}
                         </div>
 
                         {/* Human Review Action for Authorized Reviewers */}
@@ -393,7 +393,7 @@ export default function AssessmentIntegrityReportModal({
                                   onChange={(e) => setReviewNotes(e.target.value)}
                                   style={{
                                     flexGrow: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '4px',
-                                    background: 'rgba(15, 23, 42, 0.8)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)'
+                                    background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)'
                                   }}
                                 />
                                 <button
@@ -456,7 +456,7 @@ export default function AssessmentIntegrityReportModal({
         {/* Footer */}
         <div style={{
           padding: '14px 24px',
-          background: 'rgba(15, 23, 42, 0.95)',
+          background: '#FFFFFF',
           borderTop: '1px solid var(--border-subtle)',
           display: 'flex',
           justifyContent: 'flex-end'

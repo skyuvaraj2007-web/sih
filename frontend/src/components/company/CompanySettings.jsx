@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Settings, Building, Mail, MapPin, Key, Bell, Shield, Save, Sun, Moon, Laptop } from 'lucide-react';
 import { getTheme, setTheme } from '../../services/themeStore';
 
@@ -107,7 +107,7 @@ export default function CompanySettings({ user, onShowToast, setActivePage }) {
                 padding: '16px',
                 borderRadius: '12px',
                 border: themePref === 'light' ? '2px solid var(--cyber-blue)' : '1px solid var(--border-subtle)',
-                background: themePref === 'light' ? 'var(--nav-active-bg)' : 'var(--bg-input)',
+                background: themePref === 'light' ? 'var(--nav-active-bg)' : '#FFFFFF',
                 color: themePref === 'light' ? 'var(--cyber-blue)' : 'var(--text-primary)',
                 cursor: 'pointer',
                 display: 'flex',
@@ -118,7 +118,7 @@ export default function CompanySettings({ user, onShowToast, setActivePage }) {
               }}
             >
               <Sun size={22} color={themePref === 'light' ? 'var(--cyber-blue)' : 'var(--text-muted)'} />
-              <span style={{ fontSize: '13px', fontWeight: 700 }}>☀ Light</span>
+              <span style={{ fontSize: '13px', fontWeight: 700 }}>â˜€ Light</span>
               {themePref === 'light' ? (
                 <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '10px', background: 'var(--cyber-blue)', color: '#fff', fontWeight: 800 }}>
                   [ACTIVE]
@@ -136,7 +136,7 @@ export default function CompanySettings({ user, onShowToast, setActivePage }) {
                 padding: '16px',
                 borderRadius: '12px',
                 border: themePref === 'dark' ? '2px solid var(--cyber-blue)' : '1px solid var(--border-subtle)',
-                background: themePref === 'dark' ? 'var(--nav-active-bg)' : 'var(--bg-input)',
+                background: themePref === 'dark' ? 'var(--nav-active-bg)' : '#FFFFFF',
                 color: themePref === 'dark' ? 'var(--cyber-blue)' : 'var(--text-primary)',
                 cursor: 'pointer',
                 display: 'flex',
@@ -147,7 +147,7 @@ export default function CompanySettings({ user, onShowToast, setActivePage }) {
               }}
             >
               <Moon size={22} color={themePref === 'dark' ? 'var(--cyber-blue)' : 'var(--text-muted)'} />
-              <span style={{ fontSize: '13px', fontWeight: 700 }}>🌙 Dark</span>
+              <span style={{ fontSize: '13px', fontWeight: 700 }}>ðŸŒ™ Dark</span>
               {themePref === 'dark' ? (
                 <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '10px', background: 'var(--cyber-blue)', color: '#fff', fontWeight: 800 }}>
                   [ACTIVE]
@@ -165,7 +165,7 @@ export default function CompanySettings({ user, onShowToast, setActivePage }) {
                 padding: '16px',
                 borderRadius: '12px',
                 border: themePref === 'system' ? '2px solid var(--cyber-blue)' : '1px solid var(--border-subtle)',
-                background: themePref === 'system' ? 'var(--nav-active-bg)' : 'var(--bg-input)',
+                background: themePref === 'system' ? 'var(--nav-active-bg)' : '#FFFFFF',
                 color: themePref === 'system' ? 'var(--cyber-blue)' : 'var(--text-primary)',
                 cursor: 'pointer',
                 display: 'flex',
@@ -176,7 +176,7 @@ export default function CompanySettings({ user, onShowToast, setActivePage }) {
               }}
             >
               <Laptop size={22} color={themePref === 'system' ? 'var(--cyber-blue)' : 'var(--text-muted)'} />
-              <span style={{ fontSize: '13px', fontWeight: 700 }}>◐ System</span>
+              <span style={{ fontSize: '13px', fontWeight: 700 }}>â— System</span>
               {themePref === 'system' ? (
                 <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '10px', background: 'var(--cyber-blue)', color: '#fff', fontWeight: 800 }}>
                   [ACTIVE]

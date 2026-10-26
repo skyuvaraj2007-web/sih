@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { KeyRound, Mail, ArrowLeft, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
 import { authService } from '../services/authService';
 
@@ -263,7 +263,7 @@ export default function ForgotPasswordPage({ role = 'student', onNavigate, onOtp
                 <span>Generating Demo OTP...</span>
               </>
             ) : (
-              <span>Send Demo OTP →</span>
+              <span>Send Demo OTP â†’</span>
             )}
           </button>
         </form>

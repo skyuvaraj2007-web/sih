@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   X,
   Sparkles,
@@ -214,7 +214,7 @@ export default function SkillDetailsModal({
                   {skill.name}
                 </h1>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
-                  Offered by <strong>{skill.institutionName}</strong> • Faculty Lead: <strong>{skill.instructor?.name || 'Faculty'}</strong>
+                  Offered by <strong>{skill.institutionName}</strong> â€¢ Faculty Lead: <strong>{skill.instructor?.name || 'Faculty'}</strong>
                 </p>
               </div>
 
@@ -262,14 +262,14 @@ export default function SkillDetailsModal({
                         : '#DC2626'
                     }}>
                       {isAlreadyEnrolled
-                        ? '✓ Currently Enrolled'
+                        ? 'âœ“ Currently Enrolled'
                         : isPendingApproval
-                        ? '⏳ Enrollment Request Pending Approval'
+                        ? 'â³ Enrollment Request Pending Approval'
                         : isWaitlisted
-                        ? '📋 Added to Course Waitlist'
+                        ? 'ðŸ“‹ Added to Course Waitlist'
                         : isEligible
-                        ? '✓ You Are Eligible to Enroll'
-                        : '⚠ Eligibility Requirements Not Met'}
+                        ? 'âœ“ You Are Eligible to Enroll'
+                        : 'âš  Eligibility Requirements Not Met'}
                     </h3>
                   </div>
 
@@ -305,7 +305,7 @@ export default function SkillDetailsModal({
                 {!isEligible && eligibility.reasons?.length > 0 && (
                   <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(239, 68, 68, 0.2)', fontSize: '12px', color: '#DC2626' }}>
                     {eligibility.reasons.map((r, i) => (
-                      <div key={i} style={{ marginBottom: '2px' }}>• {r}</div>
+                      <div key={i} style={{ marginBottom: '2px' }}>â€¢ {r}</div>
                     ))}
                   </div>
                 )}
@@ -334,7 +334,7 @@ export default function SkillDetailsModal({
 
               {/* Technologies & Related Skills */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ padding: '12px', background: '#FFFFFF', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>CORE TECHNOLOGIES & TOOLS</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {(skill.technologies || ['Python', 'VS Code', 'Git']).map((t, i) => (
@@ -342,7 +342,7 @@ export default function SkillDetailsModal({
                     ))}
                   </div>
                 </div>
-                <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ padding: '12px', background: '#FFFFFF', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>RELATED SKILLS</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {(skill.relatedSkills || ['Data Structures', 'Algorithms']).map((rs, i) => (
@@ -403,7 +403,7 @@ export default function SkillDetailsModal({
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                             {mod.lessons.map((les, lIdx) => (
                               <span key={lIdx} style={{ fontSize: '10.5px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(0, 212, 255, 0.08)', color: 'var(--cyber-cyan)' }}>
-                                • {typeof les === 'object' ? les.title : String(les)}
+                                â€¢ {typeof les === 'object' ? les.title : String(les)}
                               </span>
                             ))}
                           </div>
@@ -428,7 +428,7 @@ export default function SkillDetailsModal({
                   </p>
                   {Array.isArray(skill.project.requirements) && (
                     <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-                      <strong>Key requirements:</strong> {skill.project.requirements.join(' • ')}
+                      <strong>Key requirements:</strong> {skill.project.requirements.join(' â€¢ ')}
                     </div>
                   )}
                 </div>
@@ -436,17 +436,17 @@ export default function SkillDetailsModal({
 
               {/* Instructor & Certification */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <div style={{ padding: '14px', background: 'var(--bg-input)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ padding: '14px', background: '#FFFFFF', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', marginBottom: '6px' }}>FACULTY INSTRUCTOR</div>
                   <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-heading)' }}>{skill.instructor?.name}</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{skill.instructor?.designation}</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{skill.instructor?.experience}</div>
                 </div>
 
-                <div style={{ padding: '14px', background: 'var(--bg-input)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ padding: '14px', background: '#FFFFFF', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', marginBottom: '6px' }}>OFFICIAL CERTIFICATION</div>
                   <div style={{ fontSize: '14px', fontWeight: 800, color: '#10B981' }}>
-                    {skill.certification?.available ? '🏆 Institutional Certificate Included' : 'Standard Completion Badge'}
+                    {skill.certification?.available ? 'ðŸ† Institutional Certificate Included' : 'Standard Completion Badge'}
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                     {skill.certification?.criteria || 'Granted upon passing proctored benchmark.'}
@@ -495,7 +495,7 @@ export default function SkillDetailsModal({
                   boxShadow: '0 4px 16px rgba(16, 185, 129, 0.35)'
                 }}
               >
-                <Play size={16} /> Continue Learning →
+                <Play size={16} /> Continue Learning â†’
               </button>
             ) : isPendingApproval ? (
               <button
@@ -603,11 +603,11 @@ export default function SkillDetailsModal({
               {skill?.name}
             </div>
 
-            <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '10px', fontSize: '12.5px', color: 'var(--text-secondary)', textAlign: 'left', lineHeight: 1.5, marginBottom: '20px' }}>
-              <div>• <strong>Institution:</strong> {skill?.institutionName}</div>
-              <div>• <strong>Duration:</strong> {skill?.duration} ({skill?.totalHours} Hours)</div>
-              <div>• <strong>Start Date:</strong> {skill?.schedule?.startDate}</div>
-              <div>• <strong>Mode:</strong> {skill?.mode}</div>
+            <div style={{ padding: '12px', background: '#FFFFFF', borderRadius: '10px', fontSize: '12.5px', color: 'var(--text-secondary)', textAlign: 'left', lineHeight: 1.5, marginBottom: '20px' }}>
+              <div>â€¢ <strong>Institution:</strong> {skill?.institutionName}</div>
+              <div>â€¢ <strong>Duration:</strong> {skill?.duration} ({skill?.totalHours} Hours)</div>
+              <div>â€¢ <strong>Start Date:</strong> {skill?.schedule?.startDate}</div>
+              <div>â€¢ <strong>Mode:</strong> {skill?.mode}</div>
               <div style={{ marginTop: '8px', fontSize: '11.5px', color: 'var(--text-muted)' }}>
                 "By enrolling, you agree to participate in the course curriculum and complete the required proctored benchmark assessments."
               </div>
