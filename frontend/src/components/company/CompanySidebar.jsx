@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -50,9 +50,29 @@ export default function CompanySidebar({ activeTab, onTabSelect, user, onLogout 
 
   const companyName = user?.companyName || user?.company || 'Corporate Partner';
   const recruiterName = user?.name || user?.recruiterName || 'Talent Lead';
+  const sidebarRef = useRef(null);
+
+  const handleSidebarWheel = (e) => {
+    if (!sidebarRef.current) return;
+    const nav = sidebarRef.current.querySelector('.company-sidebar-nav');
+    if (!nav) {
+      window.scrollBy({ top: e.deltaY, behavior: 'instant' });
+      return;
+    }
+    const atBottom = Math.ceil(nav.scrollTop + nav.clientHeight) >= nav.scrollHeight - 2;
+    const atTop = nav.scrollTop <= 2;
+    if ((e.deltaY > 0 && atBottom) || (e.deltaY < 0 && atTop)) {
+      window.scrollBy({ top: e.deltaY, behavior: 'instant' });
+    }
+  };
 
   return (
-    <aside className="company-sidebar" aria-label="Company Navigation">
+    <aside
+      ref={sidebarRef}
+      onWheel={handleSidebarWheel}
+      className="company-sidebar"
+      aria-label="Company Navigation"
+    >
       {/* 3. Company Branding */}
       <div className="company-sidebar-header">
         <div className="company-logo-badge">

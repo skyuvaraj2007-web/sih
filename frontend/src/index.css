@@ -294,13 +294,11 @@ html.dark .cyber-grid-overlay {
    -------------------------------------------------------------------------- */
 .app-layout {
   display: flex;
-  height: 100vh;
-  height: 100dvh;
   min-height: 100vh;
   min-height: 100dvh;
   position: relative;
   z-index: 1;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .main-content-wrapper {
@@ -308,20 +306,17 @@ html.dark .cyber-grid-overlay {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: visible;
 }
 
 .main-viewport {
   flex: 1;
   padding: 24px 32px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
-  scroll-behavior: smooth;
-  overscroll-behavior-y: auto;
+  overflow: visible;
+  overflow-x: clip;
+  overflow-y: visible;
   background-color: var(--bg-space);
   transition: background-color 0.25s ease;
 }
@@ -471,7 +466,11 @@ html.dark .cyber-grid-overlay {
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  height: 100%;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  align-self: flex-start;
   z-index: 40;
   transition: width 0.3s ease, background-color 0.25s ease, border-color 0.25s ease;
   overflow: hidden;

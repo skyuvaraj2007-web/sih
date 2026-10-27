@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Home,
   CheckSquare,
@@ -37,6 +37,21 @@ import {
 
 export default function Sidebar({ activePage, setActivePage, user, onLogout, companyTab = 'dashboard' }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const sidebarRef = useRef(null);
+
+  const handleSidebarWheel = (e) => {
+    if (!sidebarRef.current) return;
+    const nav = sidebarRef.current.querySelector('.sidebar-nav-container');
+    if (!nav) {
+      window.scrollBy({ top: e.deltaY, behavior: 'instant' });
+      return;
+    }
+    const atBottom = Math.ceil(nav.scrollTop + nav.clientHeight) >= nav.scrollHeight - 2;
+    const atTop = nav.scrollTop <= 2;
+    if ((e.deltaY > 0 && atBottom) || (e.deltaY < 0 && atTop)) {
+      window.scrollBy({ top: e.deltaY, behavior: 'instant' });
+    }
+  };
 
   const currentRole = (user?.role === 'industry' || user?.role === 'company')
     ? 'company'
@@ -233,16 +248,16 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
 
   return (
     <aside
+      ref={sidebarRef}
+      onWheel={handleSidebarWheel}
       className="sidebar"
       style={{
         width: isCollapsed ? '72px' : '260px',
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
         background: 'var(--bg-sidebar)',
         borderRight: '1px solid var(--border-subtle)',
         transition: 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-        position: 'relative',
         zIndex: 40,
         boxShadow: 'var(--shadow-subtle)'
       }}

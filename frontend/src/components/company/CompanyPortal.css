@@ -297,8 +297,9 @@ button.company-nav-item.active {
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: visible;
   position: relative;
 }
 
@@ -499,11 +500,9 @@ button.company-nav-item.active {
    ════════════════════════════════════════════════════════════════ */
 .company-viewport {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
-  overscroll-behavior-y: auto;
+  overflow: visible;
+  overflow-x: clip;
+  overflow-y: visible;
   padding: 24px 28px 48px;
   background-color: var(--company-bg-dark);
   background-image: 
