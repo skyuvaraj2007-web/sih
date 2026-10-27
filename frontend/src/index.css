@@ -194,13 +194,8 @@ html {
   min-height: 100%;
   min-height: 100dvh;
   background-color: var(--bg-space);
-  scroll-behavior: smooth;
   overflow-x: hidden;
   overflow-y: auto;
-}
-
-html, body {
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
 }
@@ -214,8 +209,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: visible;
+  overflow-x: clip;
+  overflow-y: visible;
+  touch-action: pan-y;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
@@ -235,7 +232,8 @@ p, span, div, label {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
+  overflow: visible;
+  overflow-x: clip;
   position: relative;
 }
 
@@ -321,8 +319,9 @@ html.dark .cyber-grid-overlay {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   scroll-behavior: smooth;
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: auto;
   background-color: var(--bg-space);
   transition: background-color 0.25s ease;
 }
@@ -919,7 +918,11 @@ tr:hover td {
   width: 100%;
   max-width: 680px;
   max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
   position: relative;
   color: var(--text-primary);
   animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -2634,6 +2637,31 @@ select optgroup {
 /* ══════════════════════════════════════════════════════
    14. RESPONSIVE SCROLLING & VIEWPORT MEDIA QUERIES
    ══════════════════════════════════════════════════════ */
+
+/* Responsive Auth Split Cards (Student, Academician, Institution, Industry) */
+.auth-split-card {
+  display: grid;
+  grid-template-columns: minmax(320px, 460px) minmax(340px, 480px);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border-glow);
+  background: var(--bg-card);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+  max-width: 960px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Horizontal Responsive Scroll Containers (Tables, Badges, Tabs) */
+.table-responsive-wrapper,
+.table-responsive-container,
+.overflow-x-auto {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-x pan-y !important;
+}
+
 @media (max-width: 1024px) {
   .main-viewport {
     padding: 20px 20px;
@@ -2641,10 +2669,12 @@ select optgroup {
 }
 
 @media (max-width: 768px) {
+  /* Document-Level Scrolling: neutralize nested viewport heights & scroll locks */
   .app-layout {
     height: auto !important;
     min-height: 100dvh !important;
-    overflow-x: hidden !important;
+    overflow: visible !important;
+    overflow-x: clip !important;
     overflow-y: visible !important;
     flex-direction: column !important;
   }
@@ -2652,15 +2682,21 @@ select optgroup {
   .main-content-wrapper {
     height: auto !important;
     min-height: 100dvh !important;
-    overflow-x: hidden !important;
+    overflow: visible !important;
+    overflow-x: clip !important;
     overflow-y: visible !important;
   }
 
   .main-viewport {
     height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    overflow-x: clip !important;
     overflow-y: visible !important;
-    overflow-x: hidden !important;
-    padding: 16px 12px !important;
+    overscroll-behavior: auto !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y !important;
+    padding: 16px 12px 32px !important;
     -webkit-overflow-scrolling: touch !important;
   }
 
@@ -2674,6 +2710,39 @@ select optgroup {
     max-height: 380px !important;
     border-right: none !important;
     border-bottom: 1px solid var(--border-subtle) !important;
+  }
+
+  /* Responsive Auth Split Cards on Mobile */
+  .auth-split-card {
+    grid-template-columns: 1fr !important;
+    max-width: 100% !important;
+  }
+
+  .auth-split-card > div:first-child {
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    padding: 28px 20px !important;
+  }
+
+  .auth-split-card > div:last-child {
+    padding: 28px 20px !important;
+  }
+}
+
+/* Small mobile devices (320px to 480px) */
+@media (max-width: 480px) {
+  .auth-split-card > div:first-child,
+  .auth-split-card > div:last-child {
+    padding: 22px 14px !important;
+  }
+
+  .modal-backdrop {
+    padding: 10px !important;
+  }
+
+  .modal-content-box {
+    max-height: 94dvh !important;
+    border-radius: 12px !important;
   }
 }
 

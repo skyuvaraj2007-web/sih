@@ -190,16 +190,10 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
       width: '100%',
       boxSizing: 'border-box'
     }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(340px, 460px) minmax(360px, 480px)',
-        borderRadius: '16px',
-        overflow: 'hidden',
+      <div className="auth-split-card" style={{
         border: '1px solid rgba(16, 185, 129, 0.35)',
         background: 'var(--bg-card)',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 30px rgba(16, 185, 129, 0.15)',
-        maxWidth: '960px',
-        width: '100%'
+        boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 30px rgba(16, 185, 129, 0.15)'
       }}>
         {/* Left Hero Panel */}
         <div style={{

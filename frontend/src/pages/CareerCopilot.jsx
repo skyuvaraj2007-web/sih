@@ -173,6 +173,7 @@ export default function CareerCopilot({ setActivePage, onShowToast, user }) {
       display: 'flex',
       flexDirection: 'column',
       height: 'calc(100vh - 90px)',
+      minHeight: 'calc(100dvh - 120px)',
       boxSizing: 'border-box'
     }}>
       {/* Header Banner */}
@@ -274,6 +275,8 @@ export default function CareerCopilot({ setActivePage, onShowToast, user }) {
         <div style={{
           flex: 1,
           overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y',
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',

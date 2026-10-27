@@ -226,7 +226,7 @@ export default function NexusAIModal({ isOpen, onClose, setActivePage, initialMe
     <div className="modal-backdrop" onClick={onClose} style={{ justifyContent: 'flex-end', padding: 0 }}>
       <div
         style={{
-          width: '100%', maxWidth: '480px', height: '100vh',
+          width: '100%', maxWidth: '480px', height: '100vh', maxHeight: '100dvh',
           background: 'rgba(6, 26, 51, 0.97)',
           backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
           borderLeft: '1px solid rgba(0, 217, 255, 0.35)',
@@ -327,7 +327,7 @@ export default function NexusAIModal({ isOpen, onClose, setActivePage, initialMe
         )}
 
         {/* ── Message Stream ── */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {messages.map((m, idx) => (
             <div key={idx} style={{ alignSelf: m.sender === 'user' ? 'flex-end' : 'flex-start', maxWidth: '88%' }}>
               {m.sender === 'ai' && (

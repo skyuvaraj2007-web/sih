@@ -501,6 +501,9 @@ button.company-nav-item.active {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior-y: auto;
   padding: 24px 28px 48px;
   background-color: var(--company-bg-dark);
   background-image: 
@@ -893,12 +896,27 @@ select.company-select option,
   }
   .company-main-wrapper {
     margin-left: 0;
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+  }
+  .company-viewport {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    touch-action: pan-y !important;
+    padding: 16px 12px 32px !important;
   }
   .company-kpi-grid {
     grid-template-columns: 1fr;
   }
   .company-global-search {
-    width: 200px;
+    width: 100%;
+    max-width: 220px;
   }
 }
 

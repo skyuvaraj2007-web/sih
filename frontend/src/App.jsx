@@ -1001,7 +1001,7 @@ export default function App() {
       <div className="cyber-grid-overlay"></div>
 
       {isAuthPage ? (
-        <main style={{ position: 'relative', zIndex: 10, flex: 1, width: '100%', minHeight: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth', touchAction: 'pan-y' }}>
+        <main style={{ position: 'relative', zIndex: 10, flex: 1, width: '100%', minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
           {activePage === 'landing' && (
             <LandingPage onGetStarted={() => navigateGuarded('role-select')} onSelectRole={handleRoleSelect} />
           )}

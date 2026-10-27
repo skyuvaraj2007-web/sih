@@ -167,16 +167,10 @@ export default function AcademicianLogin({ onLoginSuccess, onBackToRoles, onNavi
       boxSizing: 'border-box',
       background: 'radial-gradient(ellipse at 50% 20%, rgba(99, 102, 241, 0.12) 0%, #070b14 70%)'
     }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(340px, 460px) minmax(360px, 480px)',
-        borderRadius: '16px',
-        overflow: 'hidden',
+      <div className="auth-split-card" style={{
         border: '1px solid rgba(245, 158, 11, 0.35)',
         background: 'var(--bg-card, #0B1120)',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 30px rgba(245, 158, 11, 0.15)',
-        maxWidth: '960px',
-        width: '100%'
+        boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 30px rgba(245, 158, 11, 0.15)'
       }}>
         {/* Left Hero Panel */}
         <div style={{
