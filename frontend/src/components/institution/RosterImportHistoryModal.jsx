@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { History, X, RefreshCw, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import { academicService } from '../../services/academicService';
 
@@ -43,7 +43,7 @@ export default function RosterImportHistoryModal({ institution, onClose }) {
         width: '100%',
         maxWidth: '780px',
         maxHeight: '80vh',
-        background: 'linear-gradient(145deg, #F7F8FA, rgba(11, 17, 32, 0.96))',
+        background: 'linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(11, 17, 32, 0.96))',
         border: '1px solid rgba(6, 182, 212, 0.3)',
         borderRadius: '16px',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(6, 182, 212, 0.15)',

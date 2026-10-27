@@ -18,11 +18,11 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: 2. Ensure backend dependencies exist
-if not exist "%~dp0backend\node_modules\" (
+:: 2. Ensure backend dependencies exist and pg is installed
+if not exist "%~dp0backend\node_modules\pg\" (
     echo [INFO] Installing backend dependencies...
     pushd "%~dp0backend"
-    call npm install
+    call npm.cmd install
     popd
 )
 
@@ -30,7 +30,7 @@ if not exist "%~dp0backend\node_modules\" (
 if not exist "%~dp0frontend\node_modules\" (
     echo [INFO] Installing frontend dependencies...
     pushd "%~dp0frontend"
-    call npm install
+    call npm.cmd install
     popd
 )
 
@@ -47,10 +47,10 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5174 ^| findstr LISTENING') 
 )
 
 echo [1/2] Starting Backend Server (Port 5000)...
-start "SkillNexus - Backend (Port 5000)" /D "%~dp0backend" cmd /k npm start
+start "SkillNexus - Backend (Port 5000)" /D "%~dp0backend" cmd /k npm.cmd start
 
 echo [2/2] Starting Frontend Client (Port 5173)...
-start "SkillNexus - Frontend (Port 5173)" /D "%~dp0frontend" cmd /k npm run dev -- --open
+start "SkillNexus - Frontend (Port 5173)" /D "%~dp0frontend" cmd /k npm.cmd run dev -- --open
 
 echo.
 echo ========================================================

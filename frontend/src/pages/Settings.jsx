@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ArrowLeft,
   Settings as SettingsIcon,
@@ -49,9 +49,9 @@ import { loadStudentProfile, saveStudentProfile, calculateProfileCompletion } fr
 import { getTheme, setTheme as setNexusTheme, getResolvedTheme } from '../services/themeStore';
 import { normalizeRole } from '../services/notificationStore';
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// SETTINGS â€” TAB DEFINITIONS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════════════════════
+// SETTINGS — TAB DEFINITIONS
+// ═══════════════════════════════════════════════════════════════════════════════
 const TABS = [
   { key: 'account', label: 'Account', icon: User, desc: 'Email, phone, core identity' },
   { key: 'profile', label: 'Profile', icon: Edit3, desc: 'Personal & academic details' },
@@ -64,9 +64,9 @@ const TABS = [
   { key: 'danger', label: 'Danger Zone', icon: AlertTriangle, desc: 'Account deletion' },
 ];
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════════════════════
 // INITIALS AVATAR GENERATOR
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════════════════════
 function InitialsAvatar({ name, size = 64 }) {
   const initials = (name || 'S')
     .split(' ')
@@ -235,7 +235,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
     };
   }, []);
 
-  // â”€â”€ Save handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Save handler ───────────────────────────────────────────────────────────
   const handleSave = async (section) => {
     setIsSaving(true);
     try {
@@ -333,7 +333,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
     } finally { setIsSaving(false); }
   };
 
-  // â”€â”€ Photo handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Photo handlers ─────────────────────────────────────────────────────────
   const handlePhotoUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -385,7 +385,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
     });
   };
 
-  // â”€â”€ Password change handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Password change handler ────────────────────────────────────────────────
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (pwForm.newPass !== pwForm.confirm) {
@@ -417,27 +417,27 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
     } finally { setIsSaving(false); }
   };
 
-  // â”€â”€ Notification preferences handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Notification preferences handler ───────────────────────────────────────
   const toggleNotifPref = (key) => {
     const updated = { ...notifPrefs, [key]: !notifPrefs[key] };
     setNotifPrefs(updated);
     localStorage.setItem('nexus_notification_prefs', JSON.stringify(updated));
   };
 
-  // â”€â”€ Privacy settings handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Privacy settings handler ───────────────────────────────────────────────
   const togglePrivacy = (key) => {
     const updated = { ...privacySettings, [key]: !privacySettings[key] };
     setPrivacySettings(updated);
     localStorage.setItem('nexus_privacy_settings', JSON.stringify(updated));
   };
 
-  // â”€â”€ Theme handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Theme handler ──────────────────────────────────────────────────────────
   const handleThemeChange = (pref) => {
     setNexusTheme(pref);
     setThemePref(pref);
   };
 
-  // â”€â”€ Trash restore/delete handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Trash restore/delete handlers ──────────────────────────────────────────
   const handleRestoreItem = async (item) => {
     const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
     try {
@@ -474,7 +474,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
     }
   };
 
-  // â”€â”€ Account deactivation handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Account deactivation handler ───────────────────────────────────────────
   const handleDeactivateAccount = async () => {
     if (deleteConfirmText !== 'DELETE MY ACCOUNT') {
       if (onShowToast) onShowToast({ title: 'Confirmation Required', message: 'Please type "DELETE MY ACCOUNT" exactly to proceed.', type: 'error' });
@@ -502,11 +502,11 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
     } finally { setIsDeactivating(false); }
   };
 
-  // â”€â”€ Helper: Toggle Switch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Helper: Toggle Switch ──────────────────────────────────────────────────
   const ToggleSwitch = ({ isOn, onToggle, label, description }) => (
     <div style={{
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      padding: '14px 16px', borderRadius: '10px', background: '#FFFFFF',
+      padding: '14px 16px', borderRadius: '10px', background: 'var(--bg-input)',
       border: '1px solid var(--border-subtle)', marginBottom: '10px'
     }}>
       <div>
@@ -526,7 +526,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
     </div>
   );
 
-  // â”€â”€ Helper: Section Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Helper: Section Card ───────────────────────────────────────────────────
   const SectionCard = ({ icon: Icon, iconColor, title, children, actionButton }) => (
     <div className="glass-panel" style={{ padding: '24px', marginBottom: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
@@ -539,7 +539,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
     </div>
   );
 
-  // â”€â”€ Helper: Theme Option Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Helper: Theme Option Card ──────────────────────────────────────────────
   const ThemeOption = ({ value, label, icon: Icon, desc, gradient }) => {
     const isActive = themePref === value;
     return (
@@ -547,7 +547,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
         onClick={() => handleThemeChange(value)}
         style={{
           flex: '1 1 140px', padding: '20px', borderRadius: '12px', cursor: 'pointer',
-          background: isActive ? gradient : '#FFFFFF',
+          background: isActive ? gradient : 'var(--bg-input)',
           border: isActive ? '2px solid var(--cyber-cyan)' : '1px solid var(--border-subtle)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px',
           transition: 'all 0.25s ease', transform: isActive ? 'scale(1.02)' : 'scale(1)',
@@ -562,9 +562,9 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
     );
   };
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ═══════════════════════════════════════════════════════════════════════════
   // RENDER
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ═══════════════════════════════════════════════════════════════════════════
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '40px' }}>
 
@@ -601,7 +601,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
         </div>
       </div>
 
-      {/* â•â•â•â•â•â•â• LAYOUT: Sidebar + Content â•â•â•â•â•â•â• */}
+      {/* ═══════ LAYOUT: Sidebar + Content ═══════ */}
       <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '24px', alignItems: 'flex-start' }}>
         {/* Tab Sidebar */}
         <div className="glass-panel" style={{ padding: '8px', position: 'sticky', top: '20px' }}>
@@ -636,7 +636,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
 
         {/* Content Area */}
         <div>
-          {/* â•â•â•â•â•â•â• ACCOUNT TAB â•â•â•â•â•â•â• */}
+          {/* ═══════ ACCOUNT TAB ═══════ */}
           {activeTab === 'account' && (
             <>
               <SectionCard
@@ -671,7 +671,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                         type={f.type || 'text'}
                         value={formData[f.key] || ''}
                         onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
-                        style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', transition: 'border 0.2s ease' }}
+                        style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', transition: 'border 0.2s ease' }}
                         onFocus={e => e.target.style.borderColor = 'var(--cyber-cyan)'}
                         onBlur={e => e.target.style.borderColor = 'var(--border-subtle)'}
                       />
@@ -703,7 +703,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                     ]).map(f => (
                       <div key={f.label} style={{ padding: '10px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.04)' }}>
                         <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '3px' }}>{f.label}</div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: currentRole === 'company' ? 'var(--cyber-cyan)' : 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>{f.value || 'â€”'}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: currentRole === 'company' ? 'var(--cyber-cyan)' : 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>{f.value || '—'}</div>
                       </div>
                     ))}
                   </div>
@@ -712,7 +712,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
             </>
           )}
 
-          {/* â•â•â•â•â•â•â• PROFILE TAB â•â•â•â•â•â•â• */}
+          {/* ═══════ PROFILE TAB ═══════ */}
           {activeTab === 'profile' && (
             <>
               {currentRole === 'company' ? (
@@ -732,7 +732,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                       <select
                         value={formData.industry || 'Information Technology & Software'}
                         onChange={e => setFormData({ ...formData, industry: e.target.value })}
-                        style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px' }}
                       >
                         <option value="Information Technology & Software">Information Technology & Software</option>
                         <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning</option>
@@ -751,7 +751,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                       <select
                         value={formData.companySize || '5,000+ Employees (Global MNC)'}
                         onChange={e => setFormData({ ...formData, companySize: e.target.value })}
-                        style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px' }}
                       >
                         <option value="1-50 Employees (Early Stage / Seed)">1-50 Employees (Early Stage / Seed)</option>
                         <option value="51-250 Employees (Growth Stage)">51-250 Employees (Growth Stage)</option>
@@ -766,7 +766,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                       <select
                         value={formData.companyType || 'Enterprise / Global MNC'}
                         onChange={e => setFormData({ ...formData, companyType: e.target.value })}
-                        style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px' }}
                       >
                         <option value="Enterprise / Global MNC">Enterprise / Global MNC</option>
                         <option value="Private Limited Enterprise">Private Limited Enterprise</option>
@@ -783,7 +783,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                         value={formData.hiringFocus || ''}
                         onChange={e => setFormData({ ...formData, hiringFocus: e.target.value })}
                         placeholder="e.g. Full-Stack Developers, Cloud Architects, AI Engineers"
-                        style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }}
+                        style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }}
                       />
                     </div>
                   </div>
@@ -833,7 +833,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                       value={formData.bio || ''}
                       onChange={e => setFormData({ ...formData, bio: e.target.value })}
                       placeholder="Highlight your company culture, technology stack, internship stipends, mentorship programs, and growth opportunities offered to student candidates..."
-                      style={{ width: '100%', padding: '12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.5, outline: 'none', resize: 'vertical' }}
+                      style={{ width: '100%', padding: '12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.5, outline: 'none', resize: 'vertical' }}
                     />
                   </div>
                 </SectionCard>
@@ -848,12 +848,12 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>DATE OF BIRTH</label>
                       <input type="date" value={formData.dob || ''} onChange={e => setFormData({ ...formData, dob: e.target.value })}
-                        style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
+                        style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>GENDER</label>
                       <select value={formData.gender || ''} onChange={e => setFormData({ ...formData, gender: e.target.value })}
-                        style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px' }}>
+                        style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px' }}>
                         <option value="">Select</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
@@ -864,25 +864,25 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>DESIRED TARGET ROLE</label>
                       <input type="text" value={formData.desiredRole || ''} onChange={e => setFormData({ ...formData, desiredRole: e.target.value })}
-                        style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
+                        style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>CGPA (OUT OF 10.0)</label>
                       <input type="text" value={formData.cgpa || ''} onChange={e => setFormData({ ...formData, cgpa: e.target.value })}
-                        style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
+                        style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                     </div>
                   </div>
                   <div style={{ marginTop: '16px' }}>
                     <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>PROFESSIONAL BIO</label>
                     <textarea rows={4} value={formData.bio || ''} onChange={e => setFormData({ ...formData, bio: e.target.value })} placeholder="Write a short professional summary about yourself..."
-                      style={{ width: '100%', padding: '12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.5, outline: 'none', resize: 'vertical' }} />
+                      style={{ width: '100%', padding: '12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.5, outline: 'none', resize: 'vertical' }} />
                   </div>
                 </SectionCard>
               )}
             </>
           )}
 
-          {/* â•â•â•â•â•â•â• PHOTO TAB â•â•â•â•â•â•â• */}
+          {/* ═══════ PHOTO TAB ═══════ */}
           {activeTab === 'photo' && (
             <SectionCard icon={Camera} iconColor="var(--cyber-cyan)" title={currentRole === 'company' ? 'Company Brand Logo' : currentRole === 'institution' ? 'Campus Seal / Logo' : 'Profile Photo'}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '30px', flexWrap: 'wrap' }}>
@@ -922,7 +922,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                   >
                     <Upload size={32} color="var(--cyber-cyan)" style={{ marginBottom: '10px' }} />
                     <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>Click to upload corporate logo or drag & drop</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>PNG, JPEG, SVG or WebP â€¢ Recommended 400x400 â€¢ Max 5MB</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>PNG, JPEG, SVG or WebP • Recommended 400x400 • Max 5MB</div>
                     <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
                   </div>
 
@@ -941,7 +941,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
             </SectionCard>
           )}
 
-          {/* â•â•â•â•â•â•â• SECURITY TAB â•â•â•â•â•â•â• */}
+          {/* ═══════ SECURITY TAB ═══════ */}
           {activeTab === 'security' && (
             <>
               <SectionCard icon={Lock} iconColor="#FF9D4D" title="Change Password">
@@ -955,7 +955,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                       <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>{f.label}</label>
                       <div style={{ position: 'relative' }}>
                         <input type={f.show ? 'text' : 'password'} value={pwForm[f.key] || ''} onChange={e => setPwForm({ ...pwForm, [f.key]: e.target.value })} required
-                          style={{ width: '100%', padding: '10px 40px 10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
+                          style={{ width: '100%', padding: '10px 40px 10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                         <button type="button" onClick={f.toggle} style={{
                           position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
                           background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0
@@ -975,7 +975,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
 
               {currentRole === 'company' && (
                 <SectionCard icon={Key} iconColor="var(--cyber-cyan)" title="Recruiter ATS & API Integration Keys">
-                  <div style={{ padding: '16px 20px', borderRadius: '10px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ padding: '16px 20px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                       <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)' }}>Live Recruiter Integration Token</span>
                       <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '12px', background: 'rgba(46,224,161,0.12)', border: '1px solid rgba(46,224,161,0.35)', color: 'var(--cyber-emerald)', fontWeight: 700 }}>
@@ -1023,7 +1023,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
             </>
           )}
 
-          {/* â•â•â•â•â•â•â• NOTIFICATIONS TAB â•â•â•â•â•â•â• */}
+          {/* ═══════ NOTIFICATIONS TAB ═══════ */}
           {activeTab === 'notifications' && (
             <SectionCard icon={Bell} iconColor="#8B5CF6" title={currentRole === 'company' ? 'Recruitment Alert Preferences' : 'Notification Preferences'}>
               {(currentRole === 'company' ? [
@@ -1054,7 +1054,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
             </SectionCard>
           )}
 
-          {/* â•â•â•â•â•â•â• APPEARANCE TAB â•â•â•â•â•â•â• */}
+          {/* ═══════ APPEARANCE TAB ═══════ */}
           {activeTab === 'appearance' && (
             <SectionCard icon={Palette} iconColor="var(--cyber-cyan)" title="Theme & Display">
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '24px' }}>
@@ -1063,7 +1063,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                 <ThemeOption value="system" label="System" icon={Monitor} desc="Follow OS settings" gradient="linear-gradient(135deg, #4f46e5, #06b6d4)" />
               </div>
 
-              <div style={{ padding: '16px', borderRadius: '10px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ padding: '16px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>ACTIVE THEME</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--cyber-emerald)' }} />
@@ -1078,7 +1078,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
             </SectionCard>
           )}
 
-          {/* â•â•â•â•â•â•â• PRIVACY TAB â•â•â•â•â•â•â• */}
+          {/* ═══════ PRIVACY TAB ═══════ */}
           {activeTab === 'privacy' && (
             <SectionCard icon={Shield} iconColor="var(--cyber-purple)" title={currentRole === 'company' ? 'Corporate Visibility & Talent Access Controls' : 'Privacy & Visibility Controls'}>
               {(currentRole === 'company' ? [
@@ -1107,17 +1107,17 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
             </SectionCard>
           )}
 
-          {/* â•â•â•â•â•â•â• DATA & TRASH TAB â•â•â•â•â•â•â• */}
+          {/* ═══════ DATA & TRASH TAB ═══════ */}
           {activeTab === 'data' && (
             <>
-              <SectionCard icon={Archive} iconColor="#FF9D4D" title={currentRole === 'company' ? 'Requisition Archive & Talent History' : 'Trash Bin â€” Recoverable Items'}>
+              <SectionCard icon={Archive} iconColor="#FF9D4D" title={currentRole === 'company' ? 'Requisition Archive & Talent History' : 'Trash Bin — Recoverable Items'}>
                 {trashBin.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {trashBin.map((item, i) => (
                       <div key={item.id || item._id || i} style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         padding: '14px 16px', borderRadius: '10px',
-                        background: '#FFFFFF', border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
                         flexWrap: 'wrap', gap: '10px'
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1125,7 +1125,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                           <div>
                             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{item.name || item.title || 'Unnamed item'}</div>
                             <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
-                              Type: {item.type || 'Unknown'} {item.deletedAt ? ` â€¢ Deleted ${new Date(item.deletedAt).toLocaleDateString()}` : ''}
+                              Type: {item.type || 'Unknown'} {item.deletedAt ? ` • Deleted ${new Date(item.deletedAt).toLocaleDateString()}` : ''}
                             </div>
                           </div>
                         </div>
@@ -1177,11 +1177,11 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
             </>
           )}
 
-          {/* â•â•â•â•â•â•â• DANGER ZONE TAB â•â•â•â•â•â•â• */}
+          {/* ═══════ DANGER ZONE TAB ═══════ */}
           {activeTab === 'danger' && (
             <div className="glass-panel" style={{ padding: '24px', border: '1px solid rgba(244,63,94,0.3)', background: 'rgba(244,63,94,0.03)' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--cyber-rose)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <AlertTriangle size={18} /> {currentRole === 'company' ? 'Danger Zone â€” Corporate Account Termination' : 'Danger Zone â€” Account Deletion'}
+                <AlertTriangle size={18} /> {currentRole === 'company' ? 'Danger Zone — Corporate Account Termination' : 'Danger Zone — Account Deletion'}
               </h3>
 
               <div style={{
@@ -1190,7 +1190,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                 marginBottom: '20px'
               }}>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--cyber-rose)', marginBottom: '8px' }}>
-                  âš ï¸ This action is irreversible
+                  ⚠️ This action is irreversible
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                   {currentRole === 'company' ? 'Terminating your corporate account will:' : 'Deactivating your account will:'}
@@ -1236,7 +1236,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
                   </div>
                   <input type="text" value={deleteConfirmText} onChange={e => setDeleteConfirmText(e.target.value)} placeholder="Type confirmation text..."
                     style={{
-                      width: '100%', padding: '12px', background: '#FFFFFF',
+                      width: '100%', padding: '12px', background: 'var(--bg-input)',
                       border: deleteConfirmText === 'DELETE MY ACCOUNT' ? '2px solid var(--cyber-rose)' : '1px solid var(--border-subtle)',
                       borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none',
                       marginBottom: '14px'

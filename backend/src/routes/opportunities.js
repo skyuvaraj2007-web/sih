@@ -32,9 +32,19 @@ router.get('/', requireAuth, async (req, res) => {
   // Compute live match scores for student via Feature 2 OpportunityMatchingEngine
   if (studentId) {
     const opportunityMatchingEngine = require('../services/ai/opportunityMatchingEngine');
+    const studentSkillAggregator = require('../services/ai/studentSkillAggregator');
+    let preloadedContext = null;
+    try {
+      const studentData = await studentSkillAggregator.aggregateStudentSkills(studentId);
+      const fullStudent = await relationalManager.getStudentById(studentId);
+      preloadedContext = { studentData, fullStudent };
+    } catch (e) {
+      console.warn('[Opportunities] preloadedContext notice:', e.message);
+    }
+
     opportunities = await Promise.all(opportunities.map(async (opp) => {
       try {
-        const match = await opportunityMatchingEngine.matchStudentToOpportunity(studentId, opp.id || opp.opportunityId);
+        const match = await opportunityMatchingEngine.matchStudentToOpportunity(studentId, opp, preloadedContext);
         return {
           ...opp,
           matchScore: match.matchScore,
@@ -57,7 +67,7 @@ router.get('/', requireAuth, async (req, res) => {
         };
       } catch (e) {
         try {
-          const match = await matchingService.matchStudentToOpportunity(studentId, opp.id || opp.opportunityId);
+          const match = await matchingService.matchStudentToOpportunity(studentId, opp);
           return {
             ...opp,
             matchScore: match.matchScore,

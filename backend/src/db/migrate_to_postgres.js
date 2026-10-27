@@ -17,7 +17,7 @@ const crypto = require('crypto');
 const vm = require('vm');
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
-const { Client } = require(path.resolve(__dirname, '../../node_modules/pg'));
+const { Client } = require('pg');
 
 // Command-line flag parsing
 const args = process.argv.slice(2);

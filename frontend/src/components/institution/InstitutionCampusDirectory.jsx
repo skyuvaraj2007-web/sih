@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Building2,
   Users,
@@ -142,12 +142,12 @@ export default function InstitutionCampusDirectory({ onShowToast }) {
 
   return (
     <div>
-      {/* â”€â”€ HEADER & DISPATCH â”€â”€ */}
+      {/* ── HEADER & DISPATCH ── */}
       <div className="glass-panel" style={{
         padding: '24px',
         borderRadius: '16px',
         marginBottom: '24px',
-        background: '#FFFFFF',
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9))',
         border: '1px solid rgba(56, 189, 248, 0.2)',
         display: 'flex',
         justifyContent: 'space-between',
@@ -181,7 +181,7 @@ export default function InstitutionCampusDirectory({ onShowToast }) {
         </button>
       </div>
 
-      {/* â”€â”€ METRIC STATS â”€â”€ */}
+      {/* ── METRIC STATS ── */}
       <div className="metrics-row" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '24px' }}>
         <div className="metric-stat-card accent-emerald">
           <div className="metric-stat-header">PARTNERED COLLEGES</div>
@@ -205,7 +205,7 @@ export default function InstitutionCampusDirectory({ onShowToast }) {
         </div>
       </div>
 
-      {/* â”€â”€ TABS â”€â”€ */}
+      {/* ── TABS ── */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
         <button
           onClick={() => setActiveTab('partners')}
@@ -269,7 +269,7 @@ export default function InstitutionCampusDirectory({ onShowToast }) {
         </button>
       </div>
 
-      {/* â”€â”€ SECTION 1: PARTNERED COLLEGES â”€â”€ */}
+      {/* ── SECTION 1: PARTNERED COLLEGES ── */}
       {activeTab === 'partners' && (
         <div className="glass-panel" style={{ overflow: 'hidden' }}>
           {loading ? (
@@ -334,7 +334,7 @@ export default function InstitutionCampusDirectory({ onShowToast }) {
         </div>
       )}
 
-      {/* â”€â”€ SECTION 2: INCOMING REQUESTS â”€â”€ */}
+      {/* ── SECTION 2: INCOMING REQUESTS ── */}
       {activeTab === 'incoming' && (
         <div className="glass-panel" style={{ overflow: 'hidden' }}>
           {incomingRequests.length === 0 ? (
@@ -404,7 +404,7 @@ export default function InstitutionCampusDirectory({ onShowToast }) {
         </div>
       )}
 
-      {/* â”€â”€ SECTION 3: OUTGOING REQUESTS â”€â”€ */}
+      {/* ── SECTION 3: OUTGOING REQUESTS ── */}
       {activeTab === 'outgoing' && (
         <div className="glass-panel" style={{ overflow: 'hidden' }}>
           {outgoingRequests.length === 0 ? (
@@ -456,7 +456,7 @@ export default function InstitutionCampusDirectory({ onShowToast }) {
         </div>
       )}
 
-      {/* â”€â”€ SECTION 4: INDUSTRY COLLABORATIONS â”€â”€ */}
+      {/* ── SECTION 4: INDUSTRY COLLABORATIONS ── */}
       {activeTab === 'industry' && (
         <div className="glass-panel" style={{ overflow: 'hidden' }}>
           {industryPartners.length === 0 ? (
@@ -548,7 +548,7 @@ export default function InstitutionCampusDirectory({ onShowToast }) {
         </div>
       )}
 
-      {/* â”€â”€ NEW COLLABORATION MODAL â”€â”€ */}
+      {/* ── NEW COLLABORATION MODAL ── */}
       {showModal && (
         <div style={{
           position: 'fixed',

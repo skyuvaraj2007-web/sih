@@ -19,35 +19,21 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-/* -- Module-level data cache (persists between navigations) -- */
-let _oppCache = null;
-let _oppCacheAt = 0;
-const OPP_CACHE_TTL = 5 * 60 * 1000;
-
 export default function Opportunities({ onShowToast, onOpenAIModal }) {
   const [activeTab, setActiveTab] = useState('Internships');
   const [searchTerm, setSearchTerm] = useState('');
   const [modalityFilter, setModalityFilter] = useState('Remote / Hybrid / On-site');
   const [minMatchFilter, setMinMatchFilter] = useState(false);
-  const [opportunities, setOpportunities] = useState(() => _oppCache?.opportunities ?? []);
-  const [selectedOpportunity, setSelectedOpportunity] = useState(() => _oppCache?.opportunities?.[0] ?? null);
-  const [appliedRoles, setAppliedRoles] = useState(() => _oppCache?.appliedRoles ?? []);
-  const [applications, setApplications] = useState(() => _oppCache?.applications ?? []);
-  const [metrics, setMetrics] = useState(() => _oppCache?.metrics ?? { totalRoles: 0, topMatchScore: 0, topMatchCompany: '', appliedCount: 0 });
-  const [isLoading, setIsLoading] = useState(!_oppCache);
+  const [opportunities, setOpportunities] = useState([]);
+  const [selectedOpportunity, setSelectedOpportunity] = useState(null);
+  const [appliedRoles, setAppliedRoles] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [metrics, setMetrics] = useState({ totalRoles: 0, topMatchScore: 0, topMatchCompany: '', appliedCount: 0 });
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
 
-  const fetchOpportunities = useCallback(async (forceRefresh = false) => {
-    if (!forceRefresh && _oppCache && (Date.now() - _oppCacheAt < OPP_CACHE_TTL)) {
-      setOpportunities(_oppCache.opportunities);
-      setSelectedOpportunity(_oppCache.opportunities[0] ?? null);
-      setAppliedRoles(_oppCache.appliedRoles);
-      setApplications(_oppCache.applications);
-      setMetrics(_oppCache.metrics);
-      setIsLoading(false);
-      return;
-    }
+  const fetchOpportunities = useCallback(async () => {
     const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
     const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '') + '/api';
     const headers = {
@@ -95,7 +81,7 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
           type: opp.type || opp.opportunityType || 'Internship',
           location: opp.location || 'Hybrid',
           duration: opp.duration || '6 Months',
-          stipend: opp.stipend || 'â‚¹35,000 /mo',
+          stipend: opp.stipend || '₹35,000 /mo',
           matchScore: mScore,
           fitLabel: mScore >= 90 ? 'Extremely High Fit Probability' : mScore >= 80 ? 'Strong Alignment' : 'Moderate Alignment',
           hotHiring: opp.status === 'ACTIVE' || opp.status === 'Active',
@@ -132,24 +118,20 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
       });
 
       setOpportunities(mappedOpps);
-      const computedMetrics = oppJson.metrics || {
+      setMetrics(oppJson.metrics || {
         totalRoles: mappedOpps.length,
         topMatchScore: mappedOpps.length > 0 ? Math.max(...mappedOpps.map(o => o.matchScore)) : 0,
         topMatchCompany: mappedOpps[0]?.company || 'Available Positions',
         appliedCount: 0
-      };
-      setMetrics(computedMetrics);
+      });
 
       const appliedIdsFromOpp = oppJson.appliedIds || [];
-      let computedApps = [];
-      let computedApplied = appliedIdsFromOpp;
       if (appRes.ok) {
         const appJson = await appRes.json();
-        computedApps = appJson.data || [];
-        setApplications(computedApps);
-        const appIds = computedApps.map(a => a.opportunityId || a.opportunity_id);
-        computedApplied = Array.from(new Set([...appliedIdsFromOpp, ...appIds]));
-        setAppliedRoles(computedApplied);
+        const apps = appJson.data || [];
+        setApplications(apps);
+        const appIds = apps.map(a => a.opportunityId || a.opportunity_id);
+        setAppliedRoles(Array.from(new Set([...appliedIdsFromOpp, ...appIds])));
       } else {
         setAppliedRoles(appliedIdsFromOpp);
       }
@@ -157,16 +139,6 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
       if (mappedOpps.length > 0) {
         setSelectedOpportunity(mappedOpps[0]);
       }
-
-      // Write to module-level cache
-      _oppCache = {
-        opportunities: mappedOpps,
-        metrics: computedMetrics,
-        applications: computedApps,
-        appliedRoles: computedApplied
-      };
-      _oppCacheAt = Date.now();
-
     } catch (err) {
       console.error('Failed to load opportunities:', err);
       setError(err.message);
@@ -274,7 +246,7 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
           fontSize: '11.5px', fontFamily: 'var(--font-mono)'
         }}>
           <span className="status-dot-pulse"></span>
-          <span>RADAR SYNCHRONIZED â€¢ REAL-TIME WEIGHTS</span>
+          <span>RADAR SYNCHRONIZED • REAL-TIME WEIGHTS</span>
         </div>
       </div>
 
@@ -328,7 +300,7 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
       {/* Filter Row matching Page 10 */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 18px', background: '#FFFFFF',
+        padding: '12px 18px', background: 'var(--bg-input)',
         borderRadius: '10px', border: '1px solid var(--border-subtle)',
         marginBottom: '20px', flexWrap: 'wrap', gap: '12px'
       }}>
@@ -350,7 +322,7 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
           value={modalityFilter}
           onChange={(e) => setModalityFilter(e.target.value)}
           style={{
-            background: '#FFFFFF', border: '1px solid var(--border-subtle)',
+            background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
             borderRadius: '6px', padding: '6px 12px', color: 'var(--text-secondary)',
             fontSize: '12px', outline: 'none'
           }}
@@ -368,7 +340,7 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
             onChange={(e) => setMinMatchFilter(e.target.checked)}
             style={{ accentColor: 'var(--cyber-cyan)' }}
           />
-          <span>Role Readiness: <strong>â‰¥80% Match Only</strong></span>
+          <span>Role Readiness: <strong>≥80% Match Only</strong></span>
         </label>
       </div>
 
@@ -469,7 +441,7 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
                         </span>
                       </div>
                       <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                        {app.companyName || app.company || 'Corporate Partner'} â€¢ Applied on {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : 'Recent'}
+                        {app.companyName || app.company || 'Corporate Partner'} • Applied on {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : 'Recent'}
                       </div>
                       {app.coverNote && (
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px', fontStyle: 'italic' }}>
@@ -529,26 +501,27 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
                       )}
                     </div>
                     <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                      {opp.company} â€¢ {opp.division}
+                      {opp.company} • {opp.division}
                     </div>
                   </div>
 
                   <div style={{ textAlign: 'right' }}>
                     <div style={{
                       display: 'inline-flex', alignItems: 'center', gap: '4px',
-                      padding: '4px 10px', borderRadius: '6px',
-                      background: 'rgba(49, 92, 255, 0.08)', border: '1px solid #315CFF',
-                      color: '#315CFF', fontSize: '13px', fontWeight: 700, fontFamily: 'var(--font-mono)'
+                      padding: '4px 10px', borderRadius: '20px',
+                      background: 'rgba(0, 212, 255, 0.12)', border: '1px solid var(--cyber-cyan)',
+                      color: 'var(--cyber-cyan)', fontSize: '13px', fontWeight: 800, fontFamily: 'var(--font-mono)'
                     }}>
+                      <span>⚡</span>
                       <span>{opp.matchScore}% MATCH</span>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><MapPin size={13} /> {opp.location}</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Clock size={13} /> {opp.duration}</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#059669', fontWeight: 600 }}><DollarSign size={13} /> {opp.stipend}</span>
+                <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px', flexWrap: 'wrap' }}>
+                  <span>📍 {opp.location}</span>
+                  <span>⏱ {opp.duration}</span>
+                  <span style={{ color: 'var(--cyber-emerald)', fontWeight: 600 }}>💰 {opp.stipend}</span>
                 </div>
 
                 {/* Required Skills Validation Matrix */}
@@ -565,7 +538,7 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
                         color: sk.isGap ? 'var(--cyber-amber)' : 'var(--cyber-emerald)',
                         fontSize: '11px', fontFamily: 'var(--font-mono)', fontWeight: 600
                       }}>
-                        {sk.isGap ? 'âš ' : 'âœ“'} {sk.name} {sk.isGap ? '(Gap)' : '(Verified)'}
+                        {sk.isGap ? '⚠' : '✓'} {sk.name} {sk.isGap ? '(Gap)' : '(Verified)'}
                       </span>
                     ))}
                   </div>
@@ -574,7 +547,7 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
                 {/* Card Actions */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    Tier-1 Recruiter â€¢ Fast-track Interview â€¢ Immediate Joining
+                    Tier-1 Recruiter • Fast-track Interview • Immediate Joining
                   </div>
 
                   <button
@@ -582,7 +555,7 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
                     className="btn-cyber-primary"
                     style={{ padding: '7px 16px', fontSize: '12.5px' }}
                   >
-                    <span>View Evidence Breakdown â†’</span>
+                    <span>View Evidence Breakdown →</span>
                   </button>
                 </div>
               </div>
@@ -601,7 +574,7 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
                     Match Intelligence & Evidence Breakdown
                   </h3>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    Full algorithmic provenance for {selectedOpportunity.company} â€¢ {selectedOpportunity.title}
+                    Full algorithmic provenance for {selectedOpportunity.company} • {selectedOpportunity.title}
                   </div>
                 </div>
               </div>
@@ -609,7 +582,7 @@ export default function Opportunities({ onShowToast, onOpenAIModal }) {
               {/* Overall Match Circle */}
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '14px', background: '#FFFFFF',
+                padding: '14px', background: 'var(--bg-input)',
                 borderRadius: '10px', border: '1px solid var(--border-subtle)', marginBottom: '18px'
               }}>
                 <div>

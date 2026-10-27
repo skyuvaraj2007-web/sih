@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import {
   ArrowLeft,
   Sparkles,
@@ -145,7 +145,7 @@ export default function TechDeepDive({ setActivePage }) {
         {/* Personalized Readiness Ring */}
         <div style={{
           padding: '20px', borderRadius: '12px',
-          background: '#FFFFFF', border: '1px solid var(--border-glow)',
+          background: 'var(--bg-input)', border: '1px solid var(--border-glow)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center'
         }}>
           <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)', marginBottom: '10px' }}>
@@ -165,7 +165,7 @@ export default function TechDeepDive({ setActivePage }) {
           </div>
 
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-            Current Match: <strong>38%</strong> â€¢ Benchmark: <strong style={{ color: 'var(--cyber-cyan)' }}>75%</strong>
+            Current Match: <strong>38%</strong> • Benchmark: <strong style={{ color: 'var(--cyber-cyan)' }}>75%</strong>
           </div>
 
           <button
@@ -310,7 +310,7 @@ export default function TechDeepDive({ setActivePage }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
           <div className="glass-panel" style={{ padding: '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
-              <span className="cyber-badge badge-cyan" style={{ fontSize: '9px', marginBottom: '8px' }}>STEP 1 â€¢ COURSE</span>
+              <span className="cyber-badge badge-cyan" style={{ fontSize: '9px', marginBottom: '8px' }}>STEP 1 • COURSE</span>
               <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px', marginBottom: '4px' }}>
                 Generative AI Fundamentals
               </h4>
@@ -326,13 +326,13 @@ export default function TechDeepDive({ setActivePage }) {
               className="btn-cyber-primary"
               style={{ width: '100%', padding: '9px', fontSize: '12.5px' }}
             >
-              Enroll / View Course â†’
+              Enroll / View Course →
             </button>
           </div>
 
           <div className="glass-panel" style={{ padding: '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
-              <span className="cyber-badge badge-purple" style={{ fontSize: '9px', marginBottom: '8px' }}>STEP 2 â€¢ PROJECT</span>
+              <span className="cyber-badge badge-purple" style={{ fontSize: '9px', marginBottom: '8px' }}>STEP 2 • PROJECT</span>
               <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px', marginBottom: '4px' }}>
                 Enterprise Chatbot with LLM + RAG
               </h4>
@@ -348,18 +348,18 @@ export default function TechDeepDive({ setActivePage }) {
               className="btn-cyber-purple"
               style={{ width: '100%', padding: '9px', fontSize: '12.5px' }}
             >
-              Launch Project Sandbox â†’
+              Launch Project Sandbox →
             </button>
           </div>
 
           <div className="glass-panel" style={{ padding: '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
-              <span className="cyber-badge badge-emerald" style={{ fontSize: '9px', marginBottom: '8px' }}>STEP 3 â€¢ TARGET ROLE</span>
+              <span className="cyber-badge badge-emerald" style={{ fontSize: '9px', marginBottom: '8px' }}>STEP 3 • TARGET ROLE</span>
               <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px', marginBottom: '4px' }}>
                 TechCorp AI Intern
               </h4>
               <div style={{ fontSize: '11px', color: 'var(--cyber-emerald)', marginBottom: '10px' }}>
-                High Fit Probability â€¢ 92% Match
+                High Fit Probability • 92% Match
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '16px' }}>
                 Focus on prompt engineering, evaluation metrics, and multi-node inference acceleration.
@@ -373,7 +373,7 @@ export default function TechDeepDive({ setActivePage }) {
                 fontWeight: 700, borderRadius: '8px', border: 'none', cursor: 'pointer'
               }}
             >
-              Preview Opportunity â†’
+              Preview Opportunity →
             </button>
           </div>
         </div>

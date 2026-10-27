@@ -8,21 +8,11 @@
  * - Human review workflow (CONFIRMED, DISMISSED, NEEDS_MORE_REVIEW).
  */
 
-const { Pool } = require('pg');
-const path = require('path');
-const dotenv = require('dotenv');
-
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+const { pool, getClient, isConfigured } = require('../config/db');
 
 class AssessmentGuardService {
   async getClient() {
-    return await pool.connect();
+    return await getClient();
   }
 
   /**
@@ -30,6 +20,23 @@ class AssessmentGuardService {
    */
   async resolveStudentUuid(identifier) {
     if (!identifier) return null;
+    if (!isConfigured()) {
+      try {
+        const relationalManager = require('../db/relationalManager');
+        const s = await relationalManager.getStudentById(identifier);
+        if (s) {
+          return {
+            id: s.id || s.studentId,
+            user_id: s.userId || s.id,
+            institution_id: s.institutionId || s.collegeId,
+            student_name: s.name || s.fullName,
+            roll_number: s.rollNumber || s.regNo,
+            email: s.email
+          };
+        }
+      } catch (e) {}
+      return null;
+    }
     const client = await this.getClient();
     try {
       const res = await client.query(
@@ -62,6 +69,24 @@ class AssessmentGuardService {
       const err = new Error(`Student record not found for identifier "${studentId}".`);
       err.statusCode = 404;
       throw err;
+    }
+
+    if (!isConfigured()) {
+      return {
+        success: true,
+        message: 'Assessment monitoring session initialized (offline prototype mode).',
+        session: {
+          id: 'session-' + Date.now(),
+          assessment_id: assessmentId,
+          student_id: student.id,
+          started_at: new Date().toISOString(),
+          consent_given: Boolean(consentGiven),
+          camera_enabled: Boolean(cameraEnabled),
+          microphone_enabled: Boolean(microphoneEnabled),
+          monitoring_enabled: Boolean(monitoringEnabled),
+          status: 'ACTIVE'
+        }
+      };
     }
 
     const client = await this.getClient();
@@ -100,6 +125,21 @@ class AssessmentGuardService {
       const err = new Error(`Student not found for identifier "${studentId}".`);
       err.statusCode = 404;
       throw err;
+    }
+
+    if (!isConfigured()) {
+      return {
+        success: true,
+        message: 'Integrity signal registered (offline prototype mode).',
+        event: {
+          id: 'event-' + Date.now(),
+          session_id: sessionId,
+          signal_type: eventType,
+          confidence,
+          timestamp: new Date().toISOString(),
+          metadata
+        }
+      };
     }
 
     // Normalization of non-accusatory labels

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ShieldCheck,
   CheckCircle2,
@@ -107,7 +107,7 @@ export default function CompanyStudentAccessRequests({ onShowToast, onNavigateTo
               cursor: 'pointer'
             }}
           >
-            View Authorized Students â†’
+            View Authorized Students →
           </button>
         )}
       </div>
@@ -119,7 +119,7 @@ export default function CompanyStudentAccessRequests({ onShowToast, onNavigateTo
             key={st}
             onClick={() => setFilterStatus(st)}
             style={{
-              background: filterStatus === st ? 'var(--cyber-blue-dim)' : '#FFFFFF',
+              background: filterStatus === st ? 'var(--cyber-blue-dim)' : 'var(--bg-input)',
               color: filterStatus === st ? 'var(--cyber-blue)' : 'var(--text-secondary)',
               border: filterStatus === st ? '1px solid var(--cyber-blue)' : '1px solid var(--border-subtle)',
               padding: '8px 16px',
@@ -193,7 +193,7 @@ export default function CompanyStudentAccessRequests({ onShowToast, onNavigateTo
 
                   <div style={{ display: 'flex', gap: '16px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
                     <span>Cohort Size: <strong style={{ color: 'var(--cyber-blue)' }}>{r.student_count || (r.student_ids ? r.student_ids.length : 1)} Verified Students</strong></span>
-                    <span>â€¢</span>
+                    <span>•</span>
                     <span>Received: {new Date(r.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   HelpCircle,
   Search,
@@ -33,7 +33,7 @@ export default function HelpCenter({ onShowToast, user }) {
     setOpenFaq(openFaq === index ? null : index);
   };
 
-  // â”€â”€ 1. STUDENT FAQS & CATEGORIES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── 1. STUDENT FAQS & CATEGORIES ──────────────────────────────────────────
   const studentCategories = [
     { label: "Getting Started", icon: HelpCircle },
     { label: "Account & Profile", icon: HelpCircle },
@@ -58,7 +58,7 @@ export default function HelpCenter({ onShowToast, user }) {
     {
       category: "Course Enrollment",
       q: "How do I enroll in a course or learning sprint?",
-      a: "Navigate to Learning â†’ Course Enrollment. You can browse high-demand tech stacks (such as Generative AI, Cloud Microservices, and Full Stack Development) and click 'Enroll Now'. Courses with prerequisites will automatically verify your assessment scores."
+      a: "Navigate to Learning → Course Enrollment. You can browse high-demand tech stacks (such as Generative AI, Cloud Microservices, and Full Stack Development) and click 'Enroll Now'. Courses with prerequisites will automatically verify your assessment scores."
     },
     {
       category: "Skill Assessment",
@@ -73,12 +73,12 @@ export default function HelpCenter({ onShowToast, user }) {
     {
       category: "Projects",
       q: "How do I validate a custom project and get it verified?",
-      a: "Go to Projects â†’ Validate New Project. Submit your public GitHub repository URL. The Nexus AI engine audits your commit velocity, Docker containers, test pass rates, and codebase architecture, followed by faculty proctor attestation."
+      a: "Go to Projects → Validate New Project. Submit your public GitHub repository URL. The Nexus AI engine audits your commit velocity, Docker containers, test pass rates, and codebase architecture, followed by faculty proctor attestation."
     },
     {
       category: "Certificates & Badges",
       q: "How do I earn certified credentials and badges?",
-      a: "Certificates are issued automatically upon scoring â‰¥80% in comprehensive module assessments. Badges (such as 'Top 5% Project Architect') unlock when you complete milestone projects and maintain consistent learning streaks."
+      a: "Certificates are issued automatically upon scoring ≥80% in comprehensive module assessments. Badges (such as 'Top 5% Project Architect') unlock when you complete milestone projects and maintain consistent learning streaks."
     },
     {
       category: "Digital Passport",
@@ -98,16 +98,16 @@ export default function HelpCenter({ onShowToast, user }) {
     {
       category: "Notifications",
       q: "Where do deleted notifications go and how can I restore them?",
-      a: "Deleted notifications are safely stored in your role's Notification Trash Bin located in Settings â†’ Notification Trash Bin. You can restore them to your active feed anytime."
+      a: "Deleted notifications are safely stored in your role's Notification Trash Bin located in Settings → Notification Trash Bin. You can restore them to your active feed anytime."
     },
     {
       category: "Privacy & Security",
       q: "Who can see my profile and assessment scores?",
-      a: "You have complete sovereign control. In Settings â†’ Profile Preferences, you can set visibility to Public, Verified Corporate Partners Only, or Anonymous (where recruiters only see verified ZK-proofs without personal identifiers)."
+      a: "You have complete sovereign control. In Settings → Profile Preferences, you can set visibility to Public, Verified Corporate Partners Only, or Anonymous (where recruiters only see verified ZK-proofs without personal identifiers)."
     }
   ];
 
-  // â”€â”€ 2. INSTITUTION FAQS & CATEGORIES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── 2. INSTITUTION FAQS & CATEGORIES ─────────────────────────────────────
   const institutionCategories = [
     { label: "Getting Started", icon: HelpCircle },
     { label: "Institution Profile", icon: Building2 },
@@ -147,7 +147,7 @@ export default function HelpCenter({ onShowToast, user }) {
     {
       category: "Placement Pipeline",
       q: "How do we identify placement-ready students for corporate recruitment drives?",
-      a: "The Placement Pipeline automatically filters students who have achieved â‰¥80% Career Readiness and completed at least 2 verified project proofs, ensuring employers receive high-confidence candidates."
+      a: "The Placement Pipeline automatically filters students who have achieved ≥80% Career Readiness and completed at least 2 verified project proofs, ensuring employers receive high-confidence candidates."
     },
     {
       category: "Courses",
@@ -157,7 +157,7 @@ export default function HelpCenter({ onShowToast, user }) {
     {
       category: "Institution Settings",
       q: "How do I configure placement criteria and faculty validation requirements?",
-      a: "Visit Institution Settings â†’ Academic Preferences. You can adjust the minimum readiness score threshold for placement eligibility, mandate faculty signatures on proofs, and manage notification triggers."
+      a: "Visit Institution Settings → Academic Preferences. You can adjust the minimum readiness score threshold for placement eligibility, mandate faculty signatures on proofs, and manage notification triggers."
     },
     {
       category: "Notifications",
@@ -166,7 +166,7 @@ export default function HelpCenter({ onShowToast, user }) {
     }
   ];
 
-  // â”€â”€ 3. COMPANY FAQS & CATEGORIES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── 3. COMPANY FAQS & CATEGORIES ─────────────────────────────────────────
   const companyCategories = [
     { label: "Getting Started", icon: HelpCircle },
     { label: "Company Profile", icon: Building2 },
@@ -196,12 +196,12 @@ export default function HelpCenter({ onShowToast, user }) {
     {
       category: "Talent Search",
       q: "How do I filter candidates by verified competencies and project proofs?",
-      a: "In Company Workspace â†’ Talent Search, you can filter by department (e.g. CSE, IT, AI & DS), graduation batch, minimum match score (70% - 90%+), and specific technology stacks (Python, Docker, AWS, React)."
+      a: "In Company Workspace → Talent Search, you can filter by department (e.g. CSE, IT, AI & DS), graduation batch, minimum match score (70% - 90%+), and specific technology stacks (Python, Docker, AWS, React)."
     },
     {
       category: "Project Proofs",
       q: "How can I verify a student's GitHub code evidence and project integrity?",
-      a: "In Company Workspace â†’ Project Proofs, you can review verified student repositories. Each entry displays audited commit history, Docker container execution health, unit test pass rates, and institutional faculty attestations."
+      a: "In Company Workspace → Project Proofs, you can review verified student repositories. Each entry displays audited commit history, Docker container execution health, unit test pass rates, and institutional faculty attestations."
     },
     {
       category: "Opportunities",
@@ -211,7 +211,7 @@ export default function HelpCenter({ onShowToast, user }) {
     {
       category: "Applications",
       q: "How do I track and manage candidate applications?",
-      a: "Use Company Workspace â†’ Applications to view candidates in stages: New, Under Review, Shortlisted, Interview, and Selected. You can advance candidates through recruitment stages with one click."
+      a: "Use Company Workspace → Applications to view candidates in stages: New, Under Review, Shortlisted, Interview, and Selected. You can advance candidates through recruitment stages with one click."
     },
     {
       category: "Interviews",
@@ -221,7 +221,7 @@ export default function HelpCenter({ onShowToast, user }) {
     {
       category: "Company Settings",
       q: "How do I adjust our hiring preferences and candidate filters?",
-      a: "Go to Company Settings â†’ Hiring Preferences. You can modify your preferred roles, mandatory skill competencies, experience expectations, and graduation batch targets."
+      a: "Go to Company Settings → Hiring Preferences. You can modify your preferred roles, mandatory skill competencies, experience expectations, and graduation batch targets."
     },
     {
       category: "Privacy & Security",
@@ -306,7 +306,7 @@ export default function HelpCenter({ onShowToast, user }) {
             </h2>
             <div style={{
               display: 'flex', alignItems: 'center', gap: '10px',
-              padding: '12px 16px', background: '#FFFFFF',
+              padding: '12px 16px', background: 'var(--bg-input)',
               borderRadius: '8px', border: '1px solid var(--border-subtle)'
             }}>
               <Search size={18} color="var(--text-muted)" />

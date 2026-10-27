@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Database,
   Search,
@@ -128,14 +128,14 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
         flexDirection: 'column',
         overflow: 'hidden'
       }}>
-        {/* â”€â”€ 1. MODAL HEADER â”€â”€ */}
+        {/* ── 1. MODAL HEADER ── */}
         <div style={{
           padding: '18px 24px',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: '#F7F8FA'
+          background: 'rgba(15, 23, 42, 0.85)'
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
@@ -144,7 +144,7 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
                 OFFICIAL TAMIL NADU MASTER DIRECTORY
               </span>
               <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'rgba(255, 255, 255, 0.65)' }}>
-                DCE â€¢ UGC â€¢ AICTE â€¢ ANNA UNIVERSITY (TNEA 2026)
+                DCE • UGC • AICTE • ANNA UNIVERSITY (TNEA 2026)
               </span>
               <span style={{
                 fontSize: '10.5px',
@@ -218,7 +218,7 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* â”€â”€ 2. STATS RIBBON (Clickable to Filter) â”€â”€ */}
+        {/* ── 2. STATS RIBBON (Clickable to Filter) ── */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(5, 1fr)',
@@ -232,7 +232,7 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
             onClick={() => { setTier('ALL'); setPage(1); }}
             style={{
               padding: '10px 14px',
-              background: tier === 'ALL' && !isFiltered ? 'rgba(0, 242, 254, 0.1)' : '#F7F8FA',
+              background: tier === 'ALL' && !isFiltered ? 'rgba(0, 242, 254, 0.1)' : 'rgba(15, 23, 42, 0.75)',
               borderRadius: '10px',
               border: tier === 'ALL' && !isFiltered ? '1px solid rgba(0, 242, 254, 0.5)' : '1px solid rgba(255, 255, 255, 0.08)',
               cursor: 'pointer',
@@ -313,10 +313,10 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* â”€â”€ 3. FILTER BAR (FIXED HIGH CONTRAST & VISIBILITY) â”€â”€ */}
+        {/* ── 3. FILTER BAR (FIXED HIGH CONTRAST & VISIBILITY) ── */}
         <div style={{
           padding: '14px 24px',
-          background: '#F7F8FA',
+          background: 'rgba(15, 23, 42, 0.6)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
           display: 'flex',
           flexDirection: 'column',
@@ -476,7 +476,7 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* â”€â”€ 4. TABLE CONTENT & REGISTRY VIEW â”€â”€ */}
+        {/* ── 4. TABLE CONTENT & REGISTRY VIEW ── */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
           {paginated.length === 0 ? (
             <div style={{
@@ -520,7 +520,7 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12.5px' }}>
               <thead>
                 <tr style={{
-                  background: '#F7F8FA',
+                  background: 'rgba(15, 23, 42, 0.85)',
                   borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
                   fontFamily: 'var(--font-mono)',
                   fontSize: '11px',
@@ -547,7 +547,7 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
                     <tr
                       key={code || col.collegeName}
                       style={{
-                        borderBottom: '1px solid #E2E5E9',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
                         transition: 'background 0.15s'
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 242, 254, 0.06)'}
@@ -699,11 +699,11 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
           )}
         </div>
 
-        {/* â”€â”€ 5. PAGINATION & FOOTER CONTROLS â”€â”€ */}
+        {/* ── 5. PAGINATION & FOOTER CONTROLS ── */}
         <div style={{
           padding: '12px 24px',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          background: '#F7F8FA',
+          background: 'rgba(15, 23, 42, 0.85)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -790,7 +790,7 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
         </div>
       </div>
 
-      {/* â”€â”€ 6. COLLEGE DETAIL INSPECTOR DRAWER / MODAL â”€â”€ */}
+      {/* ── 6. COLLEGE DETAIL INSPECTOR DRAWER / MODAL ── */}
       {selectedCollege && (
         <div style={{
           position: 'fixed',
@@ -850,7 +850,7 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
               display: 'grid',
               gridTemplateColumns: 'repeat(2, 1fr)',
               gap: '10px',
-              background: '#FFFFFF',
+              background: 'rgba(15, 23, 42, 0.8)',
               padding: '14px',
               borderRadius: '10px',
               border: '1px solid rgba(255, 255, 255, 0.08)'
@@ -876,7 +876,7 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
               <div>
                 <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.5)', fontFamily: 'var(--font-mono)' }}>REGISTRATION STATUS</div>
                 <div style={{ fontSize: '13px', color: '#34D399', fontWeight: 600, marginTop: '2px' }}>
-                  â— Verified Active
+                  ● Verified Active
                 </div>
               </div>
             </div>

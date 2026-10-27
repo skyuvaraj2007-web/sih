@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   GraduationCap,
   Building,
@@ -225,7 +225,7 @@ export default function StudentCollegePage({ setActivePage, onShowToast, user })
                   <MapPin size={15} color="var(--cyber-cyan)" />
                   District: <strong style={{ color: 'var(--text-primary)' }}>{district}, Tamil Nadu</strong>
                 </span>
-                <span>â€¢</span>
+                <span>•</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Building size={15} color="var(--brand-primary)" />
                   University: <strong style={{ color: 'var(--text-primary)' }}>{university}</strong>
@@ -293,7 +293,7 @@ export default function StudentCollegePage({ setActivePage, onShowToast, user })
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Batch / Class</span>
-              <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13px' }}>{year} ({semester}) â€¢ {batch}</span>
+              <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13px' }}>{year} ({semester}) • {batch}</span>
             </div>
           </div>
         </div>
@@ -316,14 +316,14 @@ export default function StudentCollegePage({ setActivePage, onShowToast, user })
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
-            <div style={{ background: '#FFFFFF', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ background: 'var(--bg-input)', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
               <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>CURRENT CGPA</span>
               <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--cyber-emerald)', marginTop: '4px' }}>
                 {cgpa} <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>/ 10</span>
               </div>
             </div>
 
-            <div style={{ background: '#FFFFFF', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ background: 'var(--bg-input)', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
               <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>ACTIVE BACKLOGS</span>
               <div style={{ fontSize: '24px', fontWeight: 800, color: backlogs === 0 ? 'var(--cyber-emerald)' : 'var(--cyber-crimson)', marginTop: '4px' }}>
                 {backlogs}
@@ -367,7 +367,7 @@ export default function StudentCollegePage({ setActivePage, onShowToast, user })
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: '#FFFFFF', borderRadius: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: 'var(--bg-input)', borderRadius: '10px' }}>
               <CheckCircle2 size={18} color="var(--cyber-emerald)" />
               <div>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>NAAC Accreditation</div>
@@ -375,7 +375,7 @@ export default function StudentCollegePage({ setActivePage, onShowToast, user })
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: '#FFFFFF', borderRadius: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: 'var(--bg-input)', borderRadius: '10px' }}>
               <CheckCircle2 size={18} color="var(--cyber-emerald)" />
               <div>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>Autonomous & AICTE Approved</div>
@@ -383,7 +383,7 @@ export default function StudentCollegePage({ setActivePage, onShowToast, user })
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: '#FFFFFF', borderRadius: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: 'var(--bg-input)', borderRadius: '10px' }}>
               <Sparkles size={18} color="var(--cyber-cyan)" />
               <div>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>SkillNexus Campus Partner</div>
@@ -448,7 +448,7 @@ export default function StudentCollegePage({ setActivePage, onShowToast, user })
             <div
               key={idx}
               style={{
-                background: '#FFFFFF',
+                background: 'var(--bg-input)',
                 padding: '16px',
                 borderRadius: '12px',
                 border: '1px solid var(--border-subtle)'

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Award,
   Clock,
@@ -147,13 +147,13 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // â”€â”€ ACTIVE TEST VIEW â”€â”€
+  // ── ACTIVE TEST VIEW ──
   if (activeTest && questions.length > 0) {
     if (resultSummary) {
       const isPassed = resultSummary.isPassed || (resultSummary.percentage >= 50);
       return (
         <div style={{
-          background: '#FFFFFF',
+          background: 'rgba(15, 23, 42, 0.9)',
           borderRadius: '16px',
           border: '1px solid rgba(56, 189, 248, 0.3)',
           padding: '36px',
@@ -295,14 +295,14 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
                     style={{
                       display: 'flex', alignItems: 'center', gap: '12px',
                       padding: '12px 16px', borderRadius: '8px', cursor: 'pointer',
-                      background: isSelected ? 'rgba(56, 189, 248, 0.15)' : '#F7F8FA',
+                      background: isSelected ? 'rgba(56, 189, 248, 0.15)' : 'rgba(15, 23, 42, 0.6)',
                       border: `1px solid ${isSelected ? '#38bdf8' : 'rgba(255, 255, 255, 0.08)'}`,
                       transition: 'all 0.15s'
                     }}
                   >
                     <div style={{
                       width: '26px', height: '26px', borderRadius: '6px',
-                      background: isSelected ? '#38bdf8' : '#E2E5E9',
+                      background: isSelected ? '#38bdf8' : 'rgba(255, 255, 255, 0.05)',
                       color: isSelected ? '#0f172a' : '#94a3b8',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontWeight: 700, fontSize: '12px'
@@ -329,7 +329,7 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
               color: '#94a3b8', padding: '10px 18px', borderRadius: '8px', cursor: currentIdx === 0 ? 'not-allowed' : 'pointer'
             }}
           >
-            â† Previous
+            ← Previous
           </button>
 
           <span style={{ color: '#64748b', fontSize: '12.5px' }}>
@@ -344,7 +344,7 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
                 color: '#38bdf8', padding: '10px 20px', borderRadius: '8px', fontWeight: 700, cursor: 'pointer'
               }}
             >
-              Next Question â†’
+              Next Question →
             </button>
           ) : (
             <button
@@ -364,7 +364,7 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
     );
   }
 
-  // â”€â”€ ASSESSMENTS DIRECTORY LIST â”€â”€
+  // ── ASSESSMENTS DIRECTORY LIST ──
   return (
     <div style={{ marginTop: '28px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
@@ -378,7 +378,7 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Checking college examination schedule...</div>
       ) : assessments.length === 0 ? (
         <div style={{
-          padding: '30px', textAlign: 'center', background: '#FFFFFF',
+          padding: '30px', textAlign: 'center', background: 'var(--bg-input)',
           borderRadius: '12px', border: '1px dashed var(--border-subtle)', color: 'var(--text-secondary)',
           fontWeight: 600
         }}>

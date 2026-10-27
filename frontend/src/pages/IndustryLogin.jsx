@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Lock, Mail, ArrowLeft, Building, Key, ShieldCheck, CheckCircle2, Globe, Phone, User, X, AlertCircle } from 'lucide-react';
 import GoogleAuthButton from '../components/auth/GoogleAuthButton';
 import { authService } from '../services/authService';
@@ -193,58 +193,48 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(340px, 460px) minmax(360px, 480px)',
-        borderRadius: '8px',
+        borderRadius: '16px',
         overflow: 'hidden',
-        border: '1px solid #E2E5E9',
-        background: '#FFFFFF',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+        border: '1px solid rgba(16, 185, 129, 0.35)',
+        background: 'var(--bg-card)',
+        boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 30px rgba(16, 185, 129, 0.15)',
         maxWidth: '960px',
         width: '100%'
       }}>
         {/* Left Hero Panel */}
         <div style={{
-          background: '#F1F3F5',
+          background: 'linear-gradient(180deg, #071518 0%, #060913 100%)',
           padding: '40px 36px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          borderRight: '1px solid #E2E5E9'
+          borderRight: '1px solid var(--border-subtle)'
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '28px' }}>
               <div style={{
-                width: '26px', height: '26px', borderRadius: '4px',
-                background: '#A66A00', display: 'flex',
-                alignItems: 'center', justifyContent: 'center'
-              }}>
-                <Briefcase size={15} color="#FFFFFF" />
-              </div>
-              <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.02em', color: '#17202A' }}>
-                SKILLNEXUS <span style={{ color: '#A66A00' }}>AI</span>
+                width: '26px', height: '26px', borderRadius: '7px',
+                background: 'var(--grad-emerald-teal)', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 900, fontSize: '14px'
+              }}>🏢</div>
+              <span style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '0.04em' }}>
+                SKILLNEXUS <span style={{ color: 'var(--cyber-emerald)' }}>AI</span>
               </span>
-              <span style={{
-                fontSize: '10px',
-                padding: '2px 6px',
-                borderRadius: '4px',
-                background: '#FFFBEB',
-                border: '1px solid #FDE68A',
-                color: '#B45309',
-                fontWeight: 700
-              }}>
+              <span className="cyber-badge badge-emerald" style={{ fontSize: '9px', padding: '2px 7px' }}>
                 CORPORATE
               </span>
             </div>
 
-            <h1 style={{ fontSize: '26px', fontWeight: 800, lineHeight: 1.3, marginBottom: '12px', color: '#17202A' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, lineHeight: 1.25, marginBottom: '14px', color: 'var(--text-primary)' }}>
               Discover Future Talent <br />
-              <span style={{ color: '#A66A00' }}>Evidence-Backed & Verified</span>
+              <span style={{ color: 'var(--cyber-emerald)' }}>Evidence-Backed & Verified</span>
             </h1>
 
-            <p style={{ fontSize: '13.5px', color: '#5F6B76', lineHeight: 1.6, marginBottom: '28px' }}>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '32px' }}>
               Cut candidate screening overhead by 80%. Hire job-ready students pre-vetted via cryptographic skill proofs, live coding rubrics, and automated AI assessments.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {[
                 { title: 'Zero-Bias Cryptographic Profiles', desc: 'Direct access to tamper-proof skill evidence & Git portfolios' },
                 { title: 'AI Match Score Engine', desc: 'Calculate candidate readiness percentage against job requirements' },
@@ -252,18 +242,18 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
               ].map((item, idx) => (
                 <div key={idx} style={{
                   display: 'flex', alignItems: 'flex-start', gap: '12px',
-                  padding: '12px 14px', borderRadius: '6px',
-                  background: '#FFFFFF', border: '1px solid #E2E5E9'
+                  padding: '12px 14px', borderRadius: '10px',
+                  background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.15)'
                 }}>
                   <div style={{
-                    width: '22px', height: '22px', borderRadius: '4px',
-                    background: '#FFFBEB', border: '1px solid #FDE68A',
+                    width: '22px', height: '22px', borderRadius: '6px',
+                    background: 'rgba(16, 185, 129, 0.2)', border: '1px solid var(--cyber-emerald)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '11px', color: '#B45309', fontWeight: 800, flexShrink: 0, marginTop: '2px'
-                  }}>âœ“</div>
+                    fontSize: '11px', color: 'var(--cyber-emerald)', fontWeight: 800, flexShrink: 0, marginTop: '2px'
+                  }}>✓</div>
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#17202A' }}>{item.title}</div>
-                    <div style={{ fontSize: '12px', color: '#5F6B76' }}>{item.desc}</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{item.title}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{item.desc}</div>
                   </div>
                 </div>
               ))}
@@ -285,7 +275,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
           <div>
             <div style={{ marginBottom: '24px' }}>
               <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '6px' }}>
-                Welcome Back, Industry ðŸ‘‹
+                Welcome Back, Industry 👋
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
                 Discover future-ready talent with NEXUS AI.
@@ -329,7 +319,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                 </label>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
-                  background: '#FFFFFF', border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
                   borderRadius: '8px', padding: '9px 12px'
                 }}>
                   <Mail size={15} color="var(--text-muted)" />
@@ -375,7 +365,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                 </div>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
-                  background: '#FFFFFF', border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
                   borderRadius: '8px', padding: '9px 12px'
                 }}>
                   <Lock size={15} color="var(--text-muted)" />
@@ -383,7 +373,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                    placeholder="••••••••"
                     style={{
                       background: 'transparent', border: 'none',
                       color: 'var(--text-primary)', fontSize: '13px', outline: 'none', width: '100%'
@@ -393,18 +383,26 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                 </div>
               </div>
 
-              {/* Remember Me */}
+              {/* Remember Me & SSO */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    style={{ accentColor: 'var(--cyber-emerald)' }}
+                    style={{ accentColor: 'var(--cyber-emerald)', cursor: 'pointer', width: '15px', height: '15px' }}
                   />
                   <span>Remember me on this device</span>
                 </label>
-                <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+                <span style={{
+                  color: 'var(--text-muted)',
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '11px',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255, 255, 255, 0.06)'
+                }}>
                   SSO & SAML 2.0
                 </span>
               </div>
@@ -414,25 +412,45 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                 disabled={loading}
                 className="btn-cyber-primary"
                 style={{
-                  width: '100%', padding: '12px', fontSize: '14px', marginTop: '6px', fontWeight: 600,
-                  background: 'var(--cyber-emerald)', color: '#060B14', border: 'none',
-                  boxShadow: 'var(--cyber-emerald-glow)'
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '14px',
+                  marginTop: '6px',
+                  fontWeight: 600,
+                  background: 'var(--cyber-emerald)',
+                  color: '#060B14',
+                  border: 'none',
+                  boxShadow: 'var(--cyber-emerald-glow)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
                 }}
               >
-                <span>{loading ? 'Signing in...' : 'Sign In â†’'}</span>
+                <span>{loading ? 'Signing in...' : 'Sign In →'}</span>
               </button>
             </form>
 
-            {/* Optional SSO */}
-            <div style={{ margin: '20px 0 16px', textAlign: 'center', position: 'relative' }}>
-              <div style={{ height: '1px', background: 'var(--border-subtle)' }}></div>
+            {/* Optional SSO Divider */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              margin: '20px 0 16px',
+              width: '100%'
+            }}>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle, rgba(255, 255, 255, 0.08))' }}></div>
               <span style={{
-                position: 'relative', top: '-10px', background: '#FFFFFF',
-                padding: '0 10px', fontSize: '10px', color: 'var(--text-muted)',
-                fontFamily: 'var(--font-mono)'
+                fontSize: '10.5px',
+                color: 'var(--text-muted)',
+                fontFamily: 'var(--font-mono, monospace)',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap'
               }}>
                 OR SIGN IN WITH
               </span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle, rgba(255, 255, 255, 0.08))' }}></div>
             </div>
 
             <GoogleAuthButton
@@ -466,11 +484,14 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
               style={{
                 background: 'none', border: 'none', color: 'var(--text-muted)',
                 fontSize: '12px', cursor: 'pointer', display: 'inline-flex',
-                alignItems: 'center', justifyContent: 'center', gap: '6px'
+                alignItems: 'center', justifyContent: 'center', gap: '6px',
+                transition: 'color 0.15s ease'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
             >
-              <ArrowLeft size={13} />
-              <span>â† Back to login selection</span>
+              <ArrowLeft size={14} />
+              <span>Back to login selection</span>
             </button>
           </div>
         </div>
@@ -545,7 +566,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                       placeholder="e.g. TechCorp Global Systems"
                       value={companyData.companyName}
                       onChange={(e) => setCompanyData({ ...companyData, companyName: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                   <div>
@@ -555,7 +576,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                       placeholder="e.g. U72200TN2016PTC104592"
                       value={companyData.cinNumber}
                       onChange={(e) => setCompanyData({ ...companyData, cinNumber: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                 </div>
@@ -566,7 +587,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                     <select
                       value={companyData.sector}
                       onChange={(e) => setCompanyData({ ...companyData, sector: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     >
                       <option value="IT & Software">IT & Software</option>
                       <option value="Finance">Finance</option>
@@ -586,7 +607,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                     <select
                       value={companyData.companyType}
                       onChange={(e) => setCompanyData({ ...companyData, companyType: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     >
                       <option value="Startup">Startup</option>
                       <option value="SME">SME</option>
@@ -604,13 +625,13 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                     <select
                       value={companyData.companySize}
                       onChange={(e) => setCompanyData({ ...companyData, companySize: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     >
-                      <option value="1â€“10">1â€“10 Employees</option>
-                      <option value="11â€“50">11â€“50 Employees</option>
-                      <option value="51â€“200">51â€“200 Employees</option>
-                      <option value="201â€“500">201â€“500 Employees</option>
-                      <option value="501â€“1000">501â€“1000 Employees</option>
+                      <option value="1–10">1–10 Employees</option>
+                      <option value="11–50">11–50 Employees</option>
+                      <option value="51–200">51–200 Employees</option>
+                      <option value="201–500">201–500 Employees</option>
+                      <option value="501–1000">501–1000 Employees</option>
                       <option value="1000+">1000+ Employees</option>
                     </select>
                   </div>
@@ -621,7 +642,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                       placeholder="https://techcorp.global"
                       value={companyData.website}
                       onChange={(e) => setCompanyData({ ...companyData, website: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                 </div>
@@ -647,7 +668,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                     <select
                       value={companyData.city}
                       onChange={(e) => setCompanyData({ ...companyData, city: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     >
                       <option value="Chennai">Chennai</option>
                       <option value="Coimbatore">Coimbatore</option>
@@ -668,7 +689,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                       placeholder="e.g. OMR IT Corridor, Sholinganallur"
                       value={companyData.officeLocation}
                       onChange={(e) => setCompanyData({ ...companyData, officeLocation: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                   <div>
@@ -678,7 +699,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                       placeholder="600096"
                       value={companyData.pinCode}
                       onChange={(e) => setCompanyData({ ...companyData, pinCode: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                 </div>
@@ -698,7 +719,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                       placeholder="e.g. Sarah Jenkins"
                       value={companyData.contactPerson}
                       onChange={(e) => setCompanyData({ ...companyData, contactPerson: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                   <div>
@@ -709,7 +730,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                       placeholder="e.g. Head of Talent Acquisition"
                       value={companyData.designation}
                       onChange={(e) => setCompanyData({ ...companyData, designation: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                 </div>
@@ -722,7 +743,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                       placeholder="talent@techcorp.global"
                       value={companyData.businessEmail}
                       onChange={(e) => setCompanyData({ ...companyData, businessEmail: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                     <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Corporate domain required</span>
                   </div>
@@ -734,7 +755,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                       placeholder="+91 44 4891 0291"
                       value={companyData.phone}
                       onChange={(e) => setCompanyData({ ...companyData, phone: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                 </div>
@@ -745,7 +766,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                     placeholder="https://linkedin.com/in/recruiter-profile"
                     value={companyData.linkedin}
                     onChange={(e) => setCompanyData({ ...companyData, linkedin: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
               </div>
@@ -763,7 +784,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                     placeholder="e.g. TECHCORP-GLOBAL-CORP"
                     value={companyData.companyId}
                     onChange={(e) => setCompanyData({ ...companyData, companyId: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
@@ -772,10 +793,10 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                     <input
                       type="password"
                       required
-                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                      placeholder="••••••••"
                       value={companyData.password}
                       onChange={(e) => setCompanyData({ ...companyData, password: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                   <div>
@@ -783,10 +804,10 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                     <input
                       type="password"
                       required
-                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                      placeholder="••••••••"
                       value={companyData.confirmPassword}
                       onChange={(e) => setCompanyData({ ...companyData, confirmPassword: e.target.value })}
-                      style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                     />
                   </div>
                 </div>
@@ -800,7 +821,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                       style={{ transform: 'scale(1.1)', accentColor: 'var(--cyber-emerald)', cursor: 'pointer' }}
                     />
                     <label htmlFor="otpVerifiedCheck" style={{ fontSize: '11.5px', color: 'var(--cyber-emerald)', cursor: 'pointer', fontWeight: 600 }}>
-                      OTP Verified via Domain Email âœ“
+                      OTP Verified via Domain Email ✓
                     </label>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -892,7 +913,7 @@ export default function IndustryLogin({ onLoginSuccess, onBackToRoles, onNavigat
                   onChange={(e) => setForgotEmail(e.target.value)}
                   placeholder="talent@techcorp.global"
                   style={{
-                    width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)',
+                    width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
                     borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px'
                   }}
                 />

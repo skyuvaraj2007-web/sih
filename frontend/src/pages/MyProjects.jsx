@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   FolderGit2,
   Plus,
@@ -123,7 +123,7 @@ export default function MyProjects({ onShowToast }) {
             <span>PROJECT EVIDENCE MATRIX</span>
             <span>//</span>
             <span>BUILD & VALIDATE</span>
-            <span>â€¢</span>
+            <span>•</span>
             <span>{projects.length} Active Nodes</span>
           </div>
           <h1>My Projects</h1>
@@ -161,7 +161,7 @@ export default function MyProjects({ onShowToast }) {
             <FolderGit2 size={13} color="var(--cyber-cyan)" />
           </div>
           <div className="metric-stat-value">{metrics.totalProjects || projects.length}</div>
-          <div className="metric-stat-sub">{metrics.activeProjects || 0} Active â€¢ {metrics.verifiedProjects || 0} Verified</div>
+          <div className="metric-stat-sub">{metrics.activeProjects || 0} Active • {metrics.verifiedProjects || 0} Verified</div>
         </div>
 
         <div className="metric-stat-card accent-emerald">
@@ -304,7 +304,7 @@ export default function MyProjects({ onShowToast }) {
                             </span>
                             {prj.role && (
                               <span style={{ fontSize: '11px', color: 'var(--cyber-cyan)', fontWeight: 600 }}>
-                                â€¢ {prj.role}
+                                • {prj.role}
                               </span>
                             )}
                           </div>
@@ -347,7 +347,7 @@ export default function MyProjects({ onShowToast }) {
                             background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)',
                             fontSize: '11px', color: 'var(--cyber-purple, #a855f7)'
                           }}>
-                            âœ“ {sk}
+                            ✓ {sk}
                           </span>
                         ))}
                       </div>
@@ -355,7 +355,7 @@ export default function MyProjects({ onShowToast }) {
                       {/* Status Note Banner */}
                       <div style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '10px 14px', background: '#FFFFFF',
+                        padding: '10px 14px', background: 'var(--bg-input)',
                         borderRadius: '8px', border: '1px solid var(--border-subtle)',
                         marginBottom: '16px', fontSize: '11.5px'
                       }}>
@@ -365,7 +365,7 @@ export default function MyProjects({ onShowToast }) {
                             {isVerified
                               ? `Cryptographically Verified by ${prj.verifiedBy || 'Institution'}`
                               : isPending
-                                ? 'Submitted to College Review Board â€¢ Automated telemetry active'
+                                ? 'Submitted to College Review Board • Automated telemetry active'
                                 : needsCorr
                                   ? `Correction needed: ${prj.correctionReason}`
                                   : (prj.note || 'Active development synced')}
@@ -488,7 +488,7 @@ export default function MyProjects({ onShowToast }) {
                         onClick={() => setShowCreateModal(true)}
                         style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', cursor: 'pointer', fontWeight: 600 }}
                       >
-                        Fork Blueprint â†’
+                        Fork Blueprint →
                       </button>
                     </div>
                   </div>
@@ -507,7 +507,7 @@ export default function MyProjects({ onShowToast }) {
                         onClick={() => setShowCreateModal(true)}
                         style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', cursor: 'pointer', fontWeight: 600 }}
                       >
-                        Fork Blueprint â†’
+                        Fork Blueprint →
                       </button>
                     </div>
                   </div>

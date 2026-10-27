@@ -52,6 +52,25 @@ FRONTEND_URL = f"http://localhost:{FRONTEND_PORT}"
 PG_HOST = "localhost"
 PG_PORT = 5432
 PG_DATABASE = "skillnexus_db"
+ACTIVE_DB_DESC = "Local Fallback / Memory Store"
+
+def get_env_var(key, default=""):
+    """Read environment variable from process env or .env files without external dependencies."""
+    if os.environ.get(key):
+        return os.environ.get(key)
+    for env_file in [BACKEND_DIR / ".env", PROJECT_ROOT / ".env"]:
+        if env_file.is_file():
+            try:
+                with open(env_file, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            if k.strip() == key:
+                                return v.strip().strip("'\"")
+            except Exception:
+                pass
+    return default
 
 backend_process = None
 frontend_process = None
@@ -188,11 +207,15 @@ def verify_system_prerequisites():
         print("=" * 60 + "\n")
         sys.exit(1)
 
-    npm_path = shutil.which("npm") or shutil.which("npm.cmd")
-    if not npm_path:
+    if sys.platform == "win32":
+        npm_bin = shutil.which("npm.cmd") or "npm.cmd"
+    else:
+        npm_bin = shutil.which("npm") or "npm"
+
+    if not shutil.which("node"):
         print("\n" + "=" * 60)
-        print("ERROR: npm was not found on your system PATH!")
-        print("Please verify your Node.js and npm installation.")
+        print("ERROR: Node.js was not found on your system PATH!")
+        print("Please install Node.js (v18+ or v20+) from https://nodejs.org/")
         print("=" * 60 + "\n")
         sys.exit(1)
 
@@ -204,18 +227,19 @@ def verify_system_prerequisites():
         print(f"ERROR: Frontend directory not found at: {FRONTEND_DIR}")
         sys.exit(1)
 
-    # Check node_modules in backend
-    if not (BACKEND_DIR / "node_modules").is_dir():
-        print("[SETUP] Installing backend dependencies (npm install)...")
-        res = subprocess.run("npm install", cwd=str(BACKEND_DIR), shell=True)
+    # Check node_modules in backend and verify pg module exists
+    backend_needs_install = not (BACKEND_DIR / "node_modules").is_dir() or not (BACKEND_DIR / "node_modules" / "pg").is_dir()
+    if backend_needs_install:
+        print(f"[SETUP] Installing backend dependencies using {npm_bin}...")
+        res = subprocess.run(f'"{npm_bin}" install', cwd=str(BACKEND_DIR), shell=True)
         if res.returncode != 0:
             print("ERROR: Failed to install backend dependencies.")
             sys.exit(1)
 
     # Check node_modules in frontend
     if not (FRONTEND_DIR / "node_modules").is_dir():
-        print("[SETUP] Installing frontend dependencies (npm install)...")
-        res = subprocess.run("npm install", cwd=str(FRONTEND_DIR), shell=True)
+        print(f"[SETUP] Installing frontend dependencies using {npm_bin}...")
+        res = subprocess.run(f'"{npm_bin}" install', cwd=str(FRONTEND_DIR), shell=True)
         if res.returncode != 0:
             print("ERROR: Failed to install frontend dependencies.")
             sys.exit(1)
@@ -224,19 +248,57 @@ def verify_system_prerequisites():
 # 5. PostgreSQL Check
 # ------------------------------------------------------------------------------
 def check_postgresql():
-    """Verify PostgreSQL is reachable on localhost:5432."""
-    print(f"[DB] Checking PostgreSQL connectivity on {PG_HOST}:{PG_PORT} ({PG_DATABASE})...")
+    """Verify database connectivity (Supabase Cloud Database or local PostgreSQL)."""
+    global ACTIVE_DB_DESC
+    db_url = get_env_var("DATABASE_URL")
+    supabase_url = get_env_var("SUPABASE_URL")
+
+    if db_url:
+        import urllib.parse
+        try:
+            parsed = urllib.parse.urlparse(db_url)
+            host = parsed.hostname or PG_HOST
+            port = parsed.port or (6543 if "pooler" in (parsed.hostname or "") else 5432)
+            db_name = (parsed.path or "").lstrip("/") or "postgres"
+
+            is_supabase = "supabase" in host.lower()
+            target_type = "Supabase PostgreSQL" if is_supabase else "PostgreSQL"
+            print(f"[DB] Checking {target_type} connectivity on {host}:{port} ({db_name})...")
+
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(4.0)
+            try:
+                s.connect((host, port))
+                s.close()
+                ACTIVE_DB_DESC = f"{target_type} ({host}:{port})"
+                print(f"[DB] {target_type} reachable and verified.")
+                return True
+            except Exception as conn_err:
+                s.close()
+                print(f"[DB] Warning: Cannot reach {target_type} at {host}:{port}: {conn_err}")
+        except Exception as parse_err:
+            print(f"[DB] Notice: Could not parse DATABASE_URL ({parse_err}).")
+
+    if supabase_url:
+        print(f"[DB] Supabase URL detected: {supabase_url}")
+        ACTIVE_DB_DESC = f"Supabase Cloud Project ({supabase_url})"
+        return True
+
+    # Fallback to local postgresql check
+    print(f"[DB] Checking local PostgreSQL on {PG_HOST}:{PG_PORT}...")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(3.0)
+    s.settimeout(2.0)
     try:
         s.connect((PG_HOST, PG_PORT))
         s.close()
-        print("[DB] PostgreSQL connected successfully.")
+        ACTIVE_DB_DESC = f"Local PostgreSQL ({PG_HOST}:{PG_PORT})"
+        print("[DB] Local PostgreSQL connected successfully.")
         return True
-    except Exception as e:
+    except Exception:
         s.close()
-        print(f"[DB] Notice: PostgreSQL is not reachable at {PG_HOST}:{PG_PORT}.")
-        print("[DB] Continuing startup using built-in JSON persistence database (data/db.json).")
+        print("[DB] Notice: Remote Supabase / local PostgreSQL not yet configured or reachable.")
+        print("[DB] Starting in prototype mode with synchronized data fallback.")
+        ACTIVE_DB_DESC = "Prototype Relational Sync Mode (Configure DATABASE_URL in .env to connect Supabase)"
         return False
 
 # ------------------------------------------------------------------------------
@@ -427,7 +489,7 @@ SKILL NEXUS AI
 Career Intelligence & Skill Development Platform
 ====================================================
 
-Database : PostgreSQL / {PG_DATABASE}
+Database : {ACTIVE_DB_DESC}
 Backend  : {BACKEND_URL}
 Frontend : {FRONTEND_URL}
 

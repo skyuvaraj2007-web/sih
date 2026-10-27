@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User,
   Award,
@@ -98,7 +98,7 @@ export default function CompanyStudentDevelopment({ studentId, onClose, onShowTo
         {/* Modal Top Header */}
         <div style={{
           padding: '20px 24px',
-          background: 'linear-gradient(90deg, #F7F8FA, rgba(30, 41, 59, 0.9))',
+          background: 'linear-gradient(90deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9))',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           display: 'flex',
           justifyContent: 'space-between',
@@ -126,7 +126,7 @@ export default function CompanyStudentDevelopment({ studentId, onClose, onShowTo
                 </span>
               </div>
               <p style={{ margin: '3px 0 0 0', color: '#94a3b8', fontSize: '13px' }}>
-                {profile.department || 'Engineering'} â€¢ {profile.collegeName || profile.collegeId || 'Institution'} â€¢ Batch {profile.batch || '2026'}
+                {profile.department || 'Engineering'} • {profile.collegeName || profile.collegeId || 'Institution'} • Batch {profile.batch || '2026'}
               </p>
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function CompanyStudentDevelopment({ studentId, onClose, onShowTo
         {/* Sub Navigation Tabs */}
         <div style={{
           display: 'flex', gap: '6px', padding: '10px 24px',
-          background: '#F7F8FA', borderBottom: '1px solid #E2E5E9'
+          background: 'rgba(15, 23, 42, 0.5)', borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
         }}>
           {[
             { id: 'overview', label: 'Development Timeline', icon: Compass },
@@ -211,8 +211,8 @@ export default function CompanyStudentDevelopment({ studentId, onClose, onShowTo
                       key={idx}
                       style={{
                         display: 'flex', alignItems: 'flex-start', gap: '14px',
-                        background: '#F7F8FA', padding: '14px', borderRadius: '10px',
-                        border: '1px solid #E2E5E9'
+                        background: 'rgba(15, 23, 42, 0.6)', padding: '14px', borderRadius: '10px',
+                        border: '1px solid rgba(255, 255, 255, 0.05)'
                       }}
                     >
                       <div style={{
@@ -302,7 +302,7 @@ export default function CompanyStudentDevelopment({ studentId, onClose, onShowTo
                     >
                       <div>
                         <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '14px' }}>{a.title || a.name || 'Benchmark Test'}</div>
-                        <div style={{ color: '#94a3b8', fontSize: '12px' }}>Track: {a.track || 'General'} â€¢ Date: {a.completedAt ? new Date(a.completedAt).toLocaleDateString() : 'Recent'}</div>
+                        <div style={{ color: '#94a3b8', fontSize: '12px' }}>Track: {a.track || 'General'} • Date: {a.completedAt ? new Date(a.completedAt).toLocaleDateString() : 'Recent'}</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <span style={{ fontSize: '16px', fontWeight: 800, color: '#00d4ff' }}>{a.score}%</span>

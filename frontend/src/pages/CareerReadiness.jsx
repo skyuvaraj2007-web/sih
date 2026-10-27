@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   TrendingUp,
   ShieldCheck,
@@ -20,26 +20,14 @@ import {
 } from 'lucide-react';
 import { careerReadinessService } from '../services/careerReadinessService';
 
-/* â”€â”€ Module-level data cache (persists between navigations) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-let _crCache = null;
-let _crCacheAt = 0;
-const CR_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
 export default function CareerReadiness({ setActivePage, onShowToast, user }) {
-  const [readinessData, setReadinessData] = useState(() => _crCache?.readiness ?? null);
-  const [historyData, setHistoryData] = useState(() => _crCache?.history ?? []);
-  const [loading, setLoading] = useState(!_crCache);
+  const [readinessData, setReadinessData] = useState(null);
+  const [historyData, setHistoryData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
   const [error, setError] = useState(null);
 
-  const loadData = useCallback(async (forceRefresh = false) => {
-    // Serve from cache if fresh
-    if (!forceRefresh && _crCache && (Date.now() - _crCacheAt < CR_CACHE_TTL)) {
-      setReadinessData(_crCache.readiness);
-      setHistoryData(_crCache.history);
-      setLoading(false);
-      return;
-    }
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -48,16 +36,15 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
         careerReadinessService.getMyReadinessHistory()
       ]);
 
-      const rd = readinessRes.success ? readinessRes.data : null;
-      const hd = historyRes.success ? (historyRes.data || []) : [];
-      if (rd) {
-        setReadinessData(rd);
-        _crCache = { readiness: rd, history: hd };
-        _crCacheAt = Date.now();
+      if (readinessRes.success) {
+        setReadinessData(readinessRes.data);
       } else {
         setError(readinessRes.message || 'Failed to load readiness scores.');
       }
-      setHistoryData(hd);
+
+      if (historyRes.success) {
+        setHistoryData(historyRes.data || []);
+      }
     } catch (err) {
       setError(err.message || 'Network error fetching career readiness.');
     } finally {
@@ -129,38 +116,13 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
 
   if (loading) {
     return (
-      <div style={{ paddingBottom: '40px' }}>
-        <div className="skeleton-card" style={{ marginBottom: '20px', padding: '28px 32px' }}>
-          <div className="skeleton-line" style={{ width: '280px', height: '28px', marginBottom: '12px' }} />
-          <div className="skeleton-line" style={{ width: '420px', height: '14px' }} />
+      <div style={{ padding: '80px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+        <RefreshCw size={36} className="animate-spin" style={{ margin: '0 auto 16px auto', color: 'var(--cyber-cyan)' }} />
+        <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
+          Computing Career Readiness & Evidence Topologies...
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '20px', marginBottom: '20px' }}>
-          <div className="skeleton-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '32px' }}>
-            <div className="skeleton-box" style={{ width: '120px', height: '120px', borderRadius: '50%' }} />
-            <div className="skeleton-line" style={{ width: '80px', height: '20px' }} />
-            <div className="skeleton-line" style={{ width: '120px', height: '12px' }} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            {[1,2,3,4].map(i => (
-              <div key={i} className="skeleton-card">
-                <div className="skeleton-line" style={{ width: '60%', height: '11px' }} />
-                <div className="skeleton-line" style={{ width: '40%', height: '28px', marginTop: '8px' }} />
-                <div className="skeleton-box" style={{ height: '5px', marginTop: '10px', borderRadius: '3px' }} />
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="skeleton-card">
-          {[1,2,3,4,5,6].map(i => (
-            <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: i < 6 ? '18px' : 0 }}>
-              <div className="skeleton-box" style={{ width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div className="skeleton-line" style={{ width: '35%', height: '12px' }} />
-                <div className="skeleton-box" style={{ height: '5px', borderRadius: '3px' }} />
-              </div>
-              <div className="skeleton-line" style={{ width: '42px', height: '20px', marginBottom: 0 }} />
-            </div>
-          ))}
+        <div style={{ fontSize: '13px', marginTop: '6px' }}>
+          Aggregating multi-source evidence across Skill Graph, PostgreSQL projects, and assessments.
         </div>
       </div>
     );
@@ -198,7 +160,7 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
       <div style={{
         padding: '28px 32px',
         borderRadius: '16px',
-        background: 'linear-gradient(135deg, #F7F8FA, rgba(10, 15, 29, 0.98))',
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(10, 15, 29, 0.98))',
         border: '1px solid var(--border-subtle)',
         boxShadow: '0 12px 40px rgba(0, 0, 0, 0.45)',
         display: 'flex',
@@ -221,11 +183,11 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
                 Career Readiness Engine
               </h1>
               <span className="badge-cyber-cyan" style={{ fontSize: '11px', padding: '3px 10px', fontWeight: 700 }}>
-                PHASE 2 Ã¢â‚¬Â¢ AUDITED
+                PHASE 2 • AUDITED
               </span>
             </div>
             <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>
-              Deterministic 7-component evidence aggregation Ã¢â‚¬Â¢ Version {readinessData?.calculationVersion || '2.0.0'}
+              Deterministic 7-component evidence aggregation • Version {readinessData?.calculationVersion || '2.0.0'}
             </p>
           </div>
         </div>
@@ -253,7 +215,7 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
       <div style={{
         padding: '32px',
         borderRadius: '16px',
-        background: '#F7F8FA',
+        background: 'rgba(15, 23, 42, 0.85)',
         border: '1px solid var(--border-subtle)',
         boxShadow: '0 8px 30px rgba(0, 0, 0, 0.35)',
         display: 'grid',
@@ -409,7 +371,7 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
             Readiness Component Vectors
           </h2>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-            7 Evidence Vectors Ã¢â‚¬Â¢ Real PostgreSQL Data
+            7 Evidence Vectors • Real PostgreSQL Data
           </span>
         </div>
 
@@ -434,7 +396,7 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   gap: '14px',
-                  background: '#F7F8FA',
+                  background: 'rgba(15, 23, 42, 0.85)',
                   border: '1px solid var(--border-subtle)'
                 }}
               >
@@ -522,7 +484,7 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
         <div style={{
           padding: '24px',
           borderRadius: '14px',
-          background: '#F7F8FA',
+          background: 'rgba(15, 23, 42, 0.85)',
           border: '1px solid var(--border-subtle)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
@@ -541,7 +503,7 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
                     padding: '12px 16px',
                     borderRadius: '8px',
                     background: 'rgba(10, 15, 29, 0.7)',
-                    border: '1px solid #E2E5E9',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
@@ -582,7 +544,7 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
         <div style={{
           padding: '24px',
           borderRadius: '14px',
-          background: '#F7F8FA',
+          background: 'rgba(15, 23, 42, 0.85)',
           border: '1px solid var(--border-subtle)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
@@ -601,7 +563,7 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
                     padding: '14px 16px',
                     borderRadius: '8px',
                     background: 'rgba(10, 15, 29, 0.7)',
-                    border: '1px solid #E2E5E9',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -642,7 +604,7 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
       <div style={{
         padding: '28px',
         borderRadius: '16px',
-        background: '#F7F8FA',
+        background: 'rgba(15, 23, 42, 0.85)',
         border: '1px solid var(--border-subtle)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -673,7 +635,7 @@ export default function CareerReadiness({ setActivePage, onShowToast, user }) {
                     padding: '14px 20px',
                     borderRadius: '10px',
                     background: 'rgba(10, 15, 29, 0.65)',
-                    border: '1px solid #E2E5E9',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
                     display: 'flex',
                     flexWrap: 'wrap',
                     alignItems: 'center',

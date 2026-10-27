@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   FolderGit2,
@@ -155,7 +155,7 @@ export default function ProjectDetailModal({
           border: '1px solid rgba(16, 185, 129, 0.3)', padding: '4px 12px',
           borderRadius: '20px', fontSize: '12px', fontWeight: 700
         }}>
-          <ShieldCheck size={14} /> College Verified â€¢ {project.verifiedBy || 'Institution'}
+          <ShieldCheck size={14} /> College Verified • {project.verifiedBy || 'Institution'}
         </span>
       );
     }
@@ -277,9 +277,9 @@ export default function ProjectDetailModal({
                     </h2>
                     <div style={{ fontSize: '14px', color: 'var(--cyber-cyan, #00f2fe)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span>{project.role || 'Lead Software Developer'}</span>
-                      <span style={{ opacity: 0.4 }}>â€¢</span>
+                      <span style={{ opacity: 0.4 }}>•</span>
                       <span style={{ color: 'var(--text-muted)', fontSize: '12.5px' }}>
-                        {project.startDate || '2026-01'} â€” {project.isCurrentProject ? 'Present' : (project.endDate || 'Completed')}
+                        {project.startDate || '2026-01'} — {project.isCurrentProject ? 'Present' : (project.endDate || 'Completed')}
                       </span>
                     </div>
                   </div>
@@ -545,7 +545,7 @@ export default function ProjectDetailModal({
                                 <span>{act.category}</span>
                                 {act.completedAt && (
                                   <>
-                                    <span>â€¢</span>
+                                    <span>•</span>
                                     <span>Completed {new Date(act.completedAt).toLocaleDateString()}</span>
                                   </>
                                 )}

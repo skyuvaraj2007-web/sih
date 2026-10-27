@@ -252,13 +252,25 @@ class OpportunityMatchingEngine {
    */
   async calculateOpportunityMatches(opportunityId, filters = {}) {
     // 1. Fetch Opportunity
-    const { data: opp, error: oppErr } = await supabase
-      .from('opportunities')
-      .select('*')
-      .eq('id', opportunityId)
-      .maybeSingle();
+    let opp = null;
+    try {
+      if (supabase && typeof supabase.from === 'function') {
+        const { data: oppData, error: oppErr } = await supabase
+          .from('opportunities')
+          .select('*')
+          .eq('id', opportunityId)
+          .maybeSingle();
+        if (!oppErr && oppData) opp = oppData;
+      }
+    } catch (e) {}
 
-    if (oppErr || !opp) {
+    if (!opp) {
+      try {
+        opp = await relationalManager.getOpportunityById(opportunityId);
+      } catch (e) {}
+    }
+
+    if (!opp) {
       throw new Error(`Opportunity with ID ${opportunityId} not found`);
     }
 

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   ChevronRight,
@@ -48,7 +48,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
   // Question Bank Drawer
   const [showQuestionBankDrawer, setShowQuestionBankDrawer] = useState(false);
 
-  // â”€â”€ Step 1: Assessment Information â”€â”€
+  // ── Step 1: Assessment Information ──
   const [info, setInfo] = useState({
     title: '',
     opportunityId: '',
@@ -58,7 +58,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
     instructions: 'Please answer all questions independently. Programming questions will execute in a secure automated sandbox.'
   });
 
-  // â”€â”€ Step 2: Skills & Categories â”€â”€
+  // ── Step 2: Skills & Categories ──
   const [skillInput, setSkillInput] = useState('');
   const [skills, setSkills] = useState(['JavaScript', 'React', 'Problem Solving']);
   const [skillWeights, setSkillWeights] = useState({
@@ -67,7 +67,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
     'Problem Solving': 30
   });
 
-  // â”€â”€ Step 3: Questions â”€â”€
+  // ── Step 3: Questions ──
   const [questions, setQuestions] = useState([]);
   const [showNewQForm, setShowNewQForm] = useState(false);
   const [newQ, setNewQ] = useState({
@@ -97,14 +97,14 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
     ]
   });
 
-  // â”€â”€ Step 4: Candidates & Targeting â”€â”€
+  // ── Step 4: Candidates & Targeting ──
   const [candidateTargetType, setCandidateTargetType] = useState('STUDENTS'); 
   // 'STUDENTS' | 'COLLEGE' | 'DEPARTMENT' | 'APPLICANTS' | 'SHORTLISTED'
   const [selectedStudentIds, setSelectedStudentIds] = useState(new Set());
   const [selectedCollegeIds, setSelectedCollegeIds] = useState(new Set());
   const [selectedDepartments, setSelectedDepartments] = useState(new Set());
 
-  // â”€â”€ Step 5: Settings â”€â”€
+  // ── Step 5: Settings ──
   const [settings, setSettings] = useState({
     durationMinutes: 45,
     passingScore: 60,
@@ -144,7 +144,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
 
   if (!isOpen) return null;
 
-  // â”€â”€ Skill helpers â”€â”€
+  // ── Skill helpers ──
   const handleAddSkill = () => {
     const s = skillInput.trim();
     if (!s || skills.includes(s)) return;
@@ -174,7 +174,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
     setSkillWeights(updated);
   };
 
-  // â”€â”€ Question helpers â”€â”€
+  // ── Question helpers ──
   const handleAddQuestion = () => {
     if (!newQ.questionText.trim()) {
       if (onShowToast) onShowToast({ title: 'Validation Error', message: 'Question text is required', type: 'warning' });
@@ -239,7 +239,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
     }
   };
 
-  // â”€â”€ Candidate selection helpers â”€â”€
+  // ── Candidate selection helpers ──
   const toggleStudent = (id) => {
     setSelectedStudentIds(prev => {
       const next = new Set(prev);
@@ -287,7 +287,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
     return 0;
   };
 
-  // â”€â”€ Final Submit (Draft or Publish) â”€â”€
+  // ── Final Submit (Draft or Publish) ──
   const handleSubmit = async (publishImmediately = false) => {
     if (!info.title.trim()) {
       if (onShowToast) onShowToast({ title: 'Validation', message: 'Please enter an assessment title in Step 1', type: 'warning' });
@@ -351,7 +351,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
       if (res.success) {
         if (onShowToast) {
           onShowToast({
-            title: publishImmediately ? 'Assessment Published' : 'Assessment Saved as Draft',
+            title: publishImmediately ? 'Assessment Published! 🚀' : 'Assessment Saved as Draft',
             message: publishImmediately
               ? `Assigned to ${res.data.assignedCandidatesCount} candidates. Notifications dispatched.`
               : 'Saved successfully. You can review and publish anytime.',
@@ -396,7 +396,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
         boxShadow: '0 24px 60px rgba(0, 0, 0, 0.6)',
         overflow: 'hidden'
       }}>
-        {/* â”€â”€ HEADER â”€â”€ */}
+        {/* ── HEADER ── */}
         <div style={{
           padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.08)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center'
@@ -436,7 +436,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
           </button>
         </div>
 
-        {/* â”€â”€ STEPPER BAR â”€â”€ */}
+        {/* ── STEPPER BAR ── */}
         <div style={{
           display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.06)',
           background: 'rgba(0,0,0,0.2)'
@@ -463,7 +463,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
           })}
         </div>
 
-        {/* â”€â”€ STEP CONTENT (SCROLLABLE) â”€â”€ */}
+        {/* ── STEP CONTENT (SCROLLABLE) ── */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
           {/* STEP 1: Assessment Information */}
           {currentStep === 1 && (
@@ -495,7 +495,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                     onChange={e => handleOpportunityChange(e.target.value)}
                     style={{
                       width: '100%', padding: '10px 14px', borderRadius: '8px',
-                      background: '#FFFFFF', border: '1px solid rgba(255,255,255,0.12)',
+                      background: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.12)',
                       color: '#ffffff', fontSize: '13px'
                     }}
                   >
@@ -520,7 +520,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                     onChange={e => setInfo({ ...info, category: e.target.value })}
                     style={{
                       width: '100%', padding: '10px 14px', borderRadius: '8px',
-                      background: '#FFFFFF', border: '1px solid rgba(255,255,255,0.12)',
+                      background: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.12)',
                       color: '#ffffff', fontSize: '13px'
                     }}
                   >
@@ -759,10 +759,10 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                             fontSize: '11px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px',
                             background: 'rgba(0, 212, 255, 0.1)', color: 'var(--cyber-cyan, #00d9ff)'
                           }}>
-                            Q{idx + 1} â€¢ {q.type}
+                            Q{idx + 1} • {q.type}
                           </span>
                           <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-                            {q.difficulty} â€¢ {q.points || 5} pts
+                            {q.difficulty} • {q.points || 5} pts
                           </span>
                           {q.programmingLanguage && (
                             <span style={{
@@ -842,7 +842,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                         <select
                           value={newQ.type}
                           onChange={e => setNewQ({ ...newQ, type: e.target.value })}
-                          style={{ width: '100%', padding: '8px', borderRadius: '6px', background: '#FFFFFF', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px' }}
+                          style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px' }}
                         >
                           <option value="MCQ">MCQ (Single Choice)</option>
                           <option value="MULTIPLE_ANSWER">Multiple Answer (Checkbox)</option>
@@ -858,7 +858,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                         <select
                           value={newQ.difficulty}
                           onChange={e => setNewQ({ ...newQ, difficulty: e.target.value })}
-                          style={{ width: '100%', padding: '8px', borderRadius: '6px', background: '#FFFFFF', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px' }}
+                          style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px' }}
                         >
                           <option value="Easy">Easy</option>
                           <option value="Medium">Medium</option>
@@ -922,7 +922,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                                   border: 'none', cursor: 'pointer'
                                 }}
                               >
-                                {String.fromCharCode(65 + i)} {((newQ.type === 'MULTIPLE_ANSWER' && (newQ.multipleAnswers || []).includes(String(i))) || (newQ.type !== 'MULTIPLE_ANSWER' && String(newQ.correctAnswer) === String(i))) ? 'âœ“ Correct' : ''}
+                                {String.fromCharCode(65 + i)} {((newQ.type === 'MULTIPLE_ANSWER' && (newQ.multipleAnswers || []).includes(String(i))) || (newQ.type !== 'MULTIPLE_ANSWER' && String(newQ.correctAnswer) === String(i))) ? '✓ Correct' : ''}
                               </button>
                               <input
                                 type="text"
@@ -959,7 +959,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                         </div>
                         <div>
                           <label style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                            Acceptable Tolerance (Â±)
+                            Acceptable Tolerance (±)
                           </label>
                           <input
                             type="number"
@@ -982,7 +982,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                             <select
                               value={newQ.programmingLanguage}
                               onChange={e => setNewQ({ ...newQ, programmingLanguage: e.target.value })}
-                              style={{ width: '100%', padding: '8px', borderRadius: '6px', background: '#FFFFFF', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px' }}
+                              style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px' }}
                             >
                               <option value="javascript">JavaScript (Node.js)</option>
                               <option value="python">Python 3</option>
@@ -1215,7 +1215,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                                   {s.name}
                                 </div>
                                 <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                                  {s.institution_name || 'Partner College'} â€¢ {s.department || 'Computer Science'}
+                                  {s.institution_name || 'Partner College'} • {s.department || 'Computer Science'}
                                 </div>
                               </div>
                             </div>
@@ -1259,7 +1259,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                               </span>
                             </div>
                             <span style={{ fontSize: '11px', color: '#94a3b8', paddingLeft: '22px', display: 'block' }}>
-                              {c.city || 'Tamil Nadu'} â€¢ Code: {c.code || 'NEXUS'}
+                              {c.city || 'Tamil Nadu'} • Code: {c.code || 'NEXUS'}
                             </span>
                           </div>
                         );
@@ -1289,7 +1289,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                               cursor: 'pointer'
                             }}
                           >
-                            {isChecked ? 'âœ“ ' : '+ '} {dept}
+                            {isChecked ? '✓ ' : '+ '} {dept}
                           </button>
                         );
                       })}
@@ -1488,7 +1488,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                       {info.title || 'Untitled Assessment'}
                     </h2>
                     <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
-                      {info.category} â€¢ {info.difficulty} Difficulty â€¢ {settings.durationMinutes} Minutes
+                      {info.category} • {info.difficulty} Difficulty • {settings.durationMinutes} Minutes
                     </p>
                   </div>
 
@@ -1528,7 +1528,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                 <div style={{ padding: '14px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
                   <div style={{ fontSize: '11px', color: '#94a3b8' }}>BENCHMARK SETTINGS</div>
                   <div style={{ fontSize: '14px', fontWeight: 700, color: '#10b981', marginTop: '4px' }}>
-                    Pass: {settings.passingScore}% â€¢ {settings.attemptsAllowed} Attempt
+                    Pass: {settings.passingScore}% • {settings.attemptsAllowed} Attempt
                   </div>
                 </div>
               </div>
@@ -1557,7 +1557,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
                         </span>
                       </div>
                       <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-                        {q.type} â€¢ {q.points || 5} pts
+                        {q.type} • {q.points || 5} pts
                       </span>
                     </div>
                   ))}
@@ -1567,7 +1567,7 @@ export default function CompanyAssessmentBuilder({ isOpen, onClose, onCreated, o
           )}
         </div>
 
-        {/* â”€â”€ FOOTER ACTIONS â”€â”€ */}
+        {/* ── FOOTER ACTIONS ── */}
         <div style={{
           padding: '16px 24px', borderTop: '1px solid rgba(255,255,255,0.08)',
           background: 'rgba(0,0,0,0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center'

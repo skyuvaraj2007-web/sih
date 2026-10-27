@@ -5,10 +5,12 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 
-const envPath = path.resolve(__dirname, '../.env');
-dotenv.config({ path: envPath });
+// Prioritize backend/.env, falling back to root .env
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const { supabase } = require('./config/supabase');
+const { checkHealth: checkPgHealth, isConfigured: isPgConfigured } = require('./config/db');
 const authRoutes = require('./routes/auth');
 const skillsRoutes = require('./routes/skills');
 const assessmentsRoutes = require('./routes/assessments');
@@ -164,19 +166,36 @@ app.use('/api/notifications', notificationRouter);
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
   let database = 'DISCONNECTED';
+  let supabaseStatus = 'DISCONNECTED';
+  let pgStatus = 'DISCONNECTED';
 
   if (supabase) {
     try {
       const { error } = await supabase.from('users').select('id').limit(1);
-      database = error ? 'DISCONNECTED' : 'CONNECTED';
+      supabaseStatus = error ? 'ERROR' : 'CONNECTED';
     } catch (err) {
-      database = 'DISCONNECTED';
+      supabaseStatus = 'DISCONNECTED';
     }
+  }
+
+  if (isPgConfigured()) {
+    try {
+      const pgHealth = await checkPgHealth();
+      pgStatus = pgHealth.connected ? 'CONNECTED' : 'ERROR';
+    } catch (err) {
+      pgStatus = 'DISCONNECTED';
+    }
+  }
+
+  if (supabaseStatus === 'CONNECTED' || pgStatus === 'CONNECTED') {
+    database = 'CONNECTED';
   }
 
   res.json({
     status: 'ONLINE',
     database,
+    supabase: supabaseStatus,
+    postgres: pgStatus,
     node: 'SKILLNEXUS-SOVEREIGN-NODE-01',
     blockHeight: 'Block #8941_301 Synced',
     timestamp: new Date().toISOString()

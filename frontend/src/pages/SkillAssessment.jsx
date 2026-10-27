@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Brain,
   Target,
@@ -166,7 +166,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
 
     if (onShowToast) {
       onShowToast({
-        title: 'Assessment Attested ðŸŽ‰',
+        title: 'Assessment Attested 🎉',
         message: `${result.trackTitle} completed with ${result.score}% score. Sovereign ledger updated.`,
         type: 'success'
       });
@@ -229,7 +229,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
                 )}
               </div>
               <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-                {currentQ.topic || 'Continuous Adaptive Diagnostic'} â€¢ {totalQuestions} Questions Total
+                {currentQ.topic || 'Continuous Adaptive Diagnostic'} • {totalQuestions} Questions Total
               </div>
             </div>
           </div>
@@ -391,7 +391,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
                     boxShadow: 'var(--cyber-emerald-glow)'
                   }}
                 >
-                  <span>Review & Submit Assessment â†’</span>
+                  <span>Review & Submit Assessment →</span>
                 </button>
               )}
             </div>
@@ -528,7 +528,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
                     background: 'var(--cyber-emerald)', color: '#060B14', border: 'none'
                   }}
                 >
-                  Confirm & Submit â†’
+                  Confirm & Submit →
                 </button>
               </div>
             </div>
@@ -576,7 +576,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
           marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '24px' }}>ðŸŽ‰</span>
+            <span style={{ fontSize: '24px' }}>🎉</span>
             <div>
               <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>
                 Assessment Complete! Score: {completedResult.score}%
@@ -601,9 +601,9 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
         borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '14px'
       }}>
         {[
-          { id: 'INDUSTRY', label: 'ðŸ¢ Industry Assessments', desc: 'Company assigned challenges & benchmarks' },
-          { id: 'INSTITUTION', label: 'ðŸ›ï¸ Academic Exams', desc: 'Scheduled college institutional tests' },
-          { id: 'DIAGNOSTIC', label: 'ðŸŽ¯ Diagnostic Practice Tracks', desc: 'Self-paced continuous baseline skills' }
+          { id: 'INDUSTRY', label: '🏢 Industry Assessments', desc: 'Company assigned challenges & benchmarks' },
+          { id: 'INSTITUTION', label: '🏛️ Academic Exams', desc: 'Scheduled college institutional tests' },
+          { id: 'DIAGNOSTIC', label: '🎯 Diagnostic Practice Tracks', desc: 'Self-paced continuous baseline skills' }
         ].map(tab => {
           const isSel = assessmentCategoryTab === tab.id;
           return (
@@ -687,7 +687,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '20px' }}>
               Problem solving & critical thinking. Evaluate algorithmic deduction, causal clocks, and pattern synthesis.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', padding: '12px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '20px', textAlign: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', padding: '12px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '20px', textAlign: 'center' }}>
               <div>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>QUESTIONS</div>
                 <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>20 Qs</div>
@@ -708,7 +708,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
             className="btn-cyber-primary"
             style={{ width: '100%', padding: '12px', justifyContent: 'center' }}
           >
-            <span>Start Assessment â†’</span>
+            <span>Start Assessment →</span>
           </button>
         </div>
 
@@ -741,7 +741,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
               Quantitative, verbal & data interpretation. Test mathematical speed, ratio calculations, and verbal precision.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', padding: '12px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '20px', textAlign: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', padding: '12px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '20px', textAlign: 'center' }}>
               <div>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>QUESTIONS</div>
                 <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>25 Qs</div>
@@ -762,7 +762,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
             className="btn-cyber-primary"
             style={{ width: '100%', padding: '12px', justifyContent: 'center' }}
           >
-            <span>Start Assessment â†’</span>
+            <span>Start Assessment →</span>
           </button>
         </div>
 
@@ -819,7 +819,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', padding: '12px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '20px', textAlign: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', padding: '12px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '20px', textAlign: 'center' }}>
               <div>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>QUESTIONS</div>
                 <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>15 Qs</div>
@@ -841,7 +841,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
               className="btn-cyber-purple"
               style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
             >
-              <span>Start Assessment â†’</span>
+              <span>Start Assessment →</span>
             </button>
             <button
               onClick={() => setShowSandbox(true)}
@@ -865,7 +865,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
                 <span>Post-Assessment Intelligence & Evidence Synthesis</span>
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                {latestAssessment.trackTitle} Diagnostics â€¢ Completed: {latestAssessment.completedAt}
+                {latestAssessment.trackTitle} Diagnostics • Completed: {latestAssessment.completedAt}
               </div>
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
@@ -878,7 +878,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
               <div style={{
                 width: '130px', height: '130px', borderRadius: '50%',
-                background: '#FFFFFF',
+                background: 'var(--bg-input)',
                 border: '3px solid var(--cyber-cyan)',
                 boxShadow: 'var(--cyber-cyan-glow)',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
@@ -906,7 +906,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
                   {latestAssessment.strengths?.map((str, i) => (
                     <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ color: 'var(--cyber-emerald)' }}>âœ“</span> {str}
+                      <span style={{ color: 'var(--cyber-emerald)' }}>✓</span> {str}
                     </li>
                   ))}
                 </ul>
@@ -920,7 +920,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
                   {latestAssessment.weaknesses?.map((w, i) => (
                     <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ color: 'var(--cyber-rose)' }}>â€¢</span> {w}
+                      <span style={{ color: 'var(--cyber-rose)' }}>•</span> {w}
                     </li>
                   ))}
                 </ul>
@@ -962,7 +962,7 @@ export default function SkillAssessment({ setActivePage, onShowToast }) {
                     className="btn-cyber-purple"
                     style={{ flex: 1, padding: '7px 12px', fontSize: '11.5px', fontWeight: 600 }}
                   >
-                    <span>{latestAssessment.aiRecommendation?.nextBestAction || 'Take Action â†’'}</span>
+                    <span>{latestAssessment.aiRecommendation?.nextBestAction || 'Take Action →'}</span>
                   </button>
                   <button
                     onClick={() => setActivePage('skills')}

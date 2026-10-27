@@ -25,14 +25,9 @@ import {
 } from 'lucide-react';
 import passportService from '../services/passportService';
 
-/* -- Module-level data cache (persists between navigations) -- */
-let _dpCache = null;
-let _dpCacheAt = 0;
-const DP_CACHE_TTL = 5 * 60 * 1000;
-
 export default function DigitalPassport({ onShowToast, user }) {
-  const [loading, setLoading] = useState(!_dpCache);
-  const [passportData, setPassportData] = useState(() => _dpCache?.data ?? null);
+  const [loading, setLoading] = useState(true);
+  const [passportData, setPassportData] = useState(null);
   const [activeTab, setActiveTab] = useState('Overview');
 
   // Share & Privacy Modal state
@@ -54,18 +49,11 @@ export default function DigitalPassport({ onShowToast, user }) {
     showExperience: true
   });
 
-  const loadPassport = async (forceRefresh = false) => {
-    if (!forceRefresh && _dpCache && (Date.now() - _dpCacheAt < DP_CACHE_TTL)) {
-      setPassportData(_dpCache.data);
-      setLoading(false);
-      return;
-    }
+  const loadPassport = async () => {
     setLoading(true);
     try {
       const data = await passportService.getMyPassport();
       setPassportData(data);
-      _dpCache = { data };
-      _dpCacheAt = Date.now();
       if (data.passport) {
         setPrivacyForm({
           isPublic: data.passport.isPublic !== false,
@@ -96,7 +84,7 @@ export default function DigitalPassport({ onShowToast, user }) {
 
     if (onShowToast) {
       onShowToast({
-        title: 'Passport Link Copied! ðŸ“‹',
+        title: 'Passport Link Copied! 📋',
         message: 'Shareable verification link copied to your clipboard.',
         type: 'success'
       });
@@ -143,53 +131,10 @@ export default function DigitalPassport({ onShowToast, user }) {
 
   if (loading) {
     return (
-      <div style={{ paddingBottom: '40px' }}>
-        {/* Passport header skeleton */}
-        <div className="skeleton-card" style={{ marginBottom: '20px', padding: '28px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div className="skeleton-line" style={{ width: '260px', height: '26px', marginBottom: '10px' }} />
-            <div className="skeleton-line" style={{ width: '380px', height: '14px' }} />
-          </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            {[1,2,3].map(i => (
-              <div key={i} className="skeleton-box" style={{ width: '90px', height: '34px', borderRadius: '8px' }} />
-            ))}
-          </div>
-        </div>
-        {/* Tabs skeleton */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-          {[1,2,3,4,5].map(i => (
-            <div key={i} className="skeleton-box" style={{ width: '80px', height: '32px', borderRadius: '20px' }} />
-          ))}
-        </div>
-        {/* Content skeleton grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-          {[1,2].map(i => (
-            <div key={i} className="skeleton-card" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '18px' }}>
-                <div className="skeleton-box" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
-                <div style={{ flex: 1 }}>
-                  <div className="skeleton-line" style={{ width: '55%', height: '14px' }} />
-                  <div className="skeleton-line" style={{ width: '35%', height: '11px' }} />
-                </div>
-              </div>
-              {[1,2,3].map(j => (
-                <div key={j} style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
-                  <div className="skeleton-box" style={{ width: '18px', height: '18px', borderRadius: '4px', flexShrink: 0 }} />
-                  <div className="skeleton-line" style={{ flex: 1, height: '12px', marginBottom: 0 }} />
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="skeleton-card" style={{ padding: '24px' }}>
-          <div className="skeleton-line" style={{ width: '180px', height: '16px', marginBottom: '16px' }} />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-            {[1,2,3,4].map(i => (
-              <div key={i} className="skeleton-box" style={{ height: '64px', borderRadius: '10px' }} />
-            ))}
-          </div>
-        </div>
+      <div style={{ padding: '80px', textAlign: 'center', color: '#94a3b8' }}>
+        <RefreshCw size={32} className="animate-spin" style={{ margin: '0 auto 16px' }} />
+        <h3 style={{ margin: 0, fontSize: '18px', color: '#ffffff' }}>Loading Digital Skill Passport...</h3>
+        <p style={{ fontSize: '13px', color: '#64748b' }}>Aggregating verified achievements from Skill Nexus ecosystem</p>
       </div>
     );
   }
@@ -220,7 +165,7 @@ export default function DigitalPassport({ onShowToast, user }) {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '60px' }}>
-      {/* â”€â”€ TOP TELEMETRY BAR â”€â”€ */}
+      {/* ── TOP TELEMETRY BAR ── */}
       <div className="page-top-telemetry">
         <div className="page-title-group">
           <div className="telemetry-node-tag">
@@ -274,7 +219,7 @@ export default function DigitalPassport({ onShowToast, user }) {
         </div>
       </div>
 
-      {/* â”€â”€ HERO PROFILE CARD â”€â”€ */}
+      {/* ── HERO PROFILE CARD ── */}
       <div className="glass-card" style={{
         padding: '28px', borderRadius: '16px',
         background: 'rgba(10, 24, 48, 0.9)',
@@ -317,7 +262,7 @@ export default function DigitalPassport({ onShowToast, user }) {
               </div>
 
               <div style={{ fontSize: '13.5px', color: '#94a3b8', marginBottom: '6px' }}>
-                {student.institutionName} â€¢ {student.departmentName}
+                {student.institutionName} • {student.departmentName}
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', fontSize: '12px', color: '#cbd5e1' }}>
@@ -335,13 +280,13 @@ export default function DigitalPassport({ onShowToast, user }) {
 
                 {student.rollNumber && (
                   <span style={{ color: '#64748b' }}>
-                    â€¢ Roll: {student.rollNumber}
+                    • Roll: {student.rollNumber}
                   </span>
                 )}
 
                 {student.cgpa && (
                   <span style={{ color: '#10b981', fontWeight: 700 }}>
-                    â€¢ CGPA: {student.cgpa}
+                    • CGPA: {student.cgpa}
                   </span>
                 )}
               </div>
@@ -390,7 +335,7 @@ export default function DigitalPassport({ onShowToast, user }) {
         )}
       </div>
 
-      {/* â”€â”€ SECTION TABS â”€â”€ */}
+      {/* ── SECTION TABS ── */}
       <div style={{
         display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.08)',
         marginBottom: '24px', overflowX: 'auto', gap: '4px'
@@ -415,7 +360,7 @@ export default function DigitalPassport({ onShowToast, user }) {
         })}
       </div>
 
-      {/* â”€â”€ TAB 1: OVERVIEW â”€â”€ */}
+      {/* ── TAB 1: OVERVIEW ── */}
       {activeTab === 'Overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Top Evaluated Skills */}
@@ -430,7 +375,7 @@ export default function DigitalPassport({ onShowToast, user }) {
                 </p>
               </div>
               <button onClick={() => setActiveTab('Skills')} className="btn-cyber-outline" style={{ padding: '6px 12px', fontSize: '11.5px' }}>
-                View All Skills ({skills?.length || 0}) â†’
+                View All Skills ({skills?.length || 0}) →
               </button>
             </div>
 
@@ -462,9 +407,9 @@ export default function DigitalPassport({ onShowToast, user }) {
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b' }}>
-                      <span>{sk.category} â€¢ {sk.proficiencyLevel}</span>
+                      <span>{sk.category} • {sk.proficiencyLevel}</span>
                       <span style={{ color: sk.isVerified ? '#10b981' : '#94a3b8' }}>
-                        {sk.isVerified ? 'âœ“ Verified' : 'Claimed'}
+                        {sk.isVerified ? '✓ Verified' : 'Claimed'}
                       </span>
                     </div>
                   </div>
@@ -520,7 +465,7 @@ export default function DigitalPassport({ onShowToast, user }) {
         </div>
       )}
 
-      {/* â”€â”€ TAB 2: SKILLS â”€â”€ */}
+      {/* ── TAB 2: SKILLS ── */}
       {activeTab === 'Skills' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {skills && skills.length > 0 ? (
@@ -550,7 +495,7 @@ export default function DigitalPassport({ onShowToast, user }) {
                     </span>
                   </div>
                   <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
-                    Category: {sk.category} â€¢ Proficiency: {sk.proficiencyLevel}
+                    Category: {sk.category} • Proficiency: {sk.proficiencyLevel}
                   </div>
                   <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
                     Source: <strong style={{ color: '#cbd5e1' }}>{sk.source}</strong>
@@ -573,7 +518,7 @@ export default function DigitalPassport({ onShowToast, user }) {
         </div>
       )}
 
-      {/* â”€â”€ TAB 3: PROJECTS â”€â”€ */}
+      {/* ── TAB 3: PROJECTS ── */}
       {activeTab === 'Projects' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {projects && projects.length > 0 ? (
@@ -657,7 +602,7 @@ export default function DigitalPassport({ onShowToast, user }) {
         </div>
       )}
 
-      {/* â”€â”€ TAB 4: CERTIFICATIONS â”€â”€ */}
+      {/* ── TAB 4: CERTIFICATIONS ── */}
       {activeTab === 'Certifications' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {certifications && certifications.length > 0 ? (
@@ -708,7 +653,7 @@ export default function DigitalPassport({ onShowToast, user }) {
         </div>
       )}
 
-      {/* â”€â”€ TAB 5: ASSESSMENTS â”€â”€ */}
+      {/* ── TAB 5: ASSESSMENTS ── */}
       {activeTab === 'Assessments' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {assessments && assessments.length > 0 ? (
@@ -744,7 +689,7 @@ export default function DigitalPassport({ onShowToast, user }) {
                     {a.title}
                   </h3>
                   <div style={{ fontSize: '12px', color: '#94a3b8' }}>
-                    Category: {a.category} â€¢ Difficulty: {a.difficulty}
+                    Category: {a.category} • Difficulty: {a.difficulty}
                   </div>
                   <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
                     Source: <strong style={{ color: '#cbd5e1' }}>{a.verificationSource}</strong>
@@ -767,7 +712,7 @@ export default function DigitalPassport({ onShowToast, user }) {
         </div>
       )}
 
-      {/* â”€â”€ TAB 6: EXPERIENCE â”€â”€ */}
+      {/* ── TAB 6: EXPERIENCE ── */}
       {activeTab === 'Experience' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {experiences && experiences.length > 0 ? (
@@ -790,7 +735,7 @@ export default function DigitalPassport({ onShowToast, user }) {
                     </h3>
                   </div>
                   <div style={{ fontSize: '13px', color: '#cbd5e1' }}>
-                    {exp.company} â€¢ {exp.type} ({exp.location})
+                    {exp.company} • {exp.type} ({exp.location})
                   </div>
                   <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
                     Source: <strong style={{ color: '#cbd5e1' }}>{exp.verificationSource}</strong>
@@ -819,7 +764,7 @@ export default function DigitalPassport({ onShowToast, user }) {
         </div>
       )}
 
-      {/* â”€â”€ SHARE & PRIVACY MODAL â”€â”€ */}
+      {/* ── SHARE & PRIVACY MODAL ── */}
       {showShareModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -960,7 +905,7 @@ export default function DigitalPassport({ onShowToast, user }) {
         </div>
       )}
 
-      {/* â”€â”€ QR CODE MODAL â”€â”€ */}
+      {/* ── QR CODE MODAL ── */}
       {showQrModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,

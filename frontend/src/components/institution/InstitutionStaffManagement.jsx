@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users,
   Building2,
@@ -265,7 +265,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Top Banner & Action Header */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, #F7F8FA 100%)',
+        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
         border: '1px solid rgba(99, 102, 241, 0.25)',
         borderRadius: '16px',
         padding: '24px 28px',
@@ -298,7 +298,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
             Staff & Academician Management
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-            Hierarchical mapping across Institution â†’ Department â†’ Class â†’ Staff with automatic student progress isolation.
+            Hierarchical mapping across Institution → Department → Class → Staff with automatic student progress isolation.
           </p>
         </div>
 
@@ -335,7 +335,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '12px',
-        background: '#F7F8FA',
+        background: 'rgba(15, 23, 42, 0.6)',
         border: '1px solid var(--border-subtle)',
         borderRadius: '12px',
         padding: '12px 18px'
@@ -386,7 +386,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            background: '#FFFFFF',
+            background: 'var(--bg-input)',
             border: '1px solid var(--border-subtle)',
             borderRadius: '8px',
             padding: '7px 12px',
@@ -406,7 +406,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
             value={filterDepartment}
             onChange={(e) => setFilterDepartment(e.target.value)}
             style={{
-              background: '#FFFFFF',
+              background: '#0B1120',
               border: '1px solid var(--border-subtle)',
               borderRadius: '8px',
               padding: '7px 12px',
@@ -422,14 +422,14 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
         </div>
       </div>
 
-      {/* â”€â”€ VIEW 1: HIERARCHICAL GROUPED DISPLAY â”€â”€ */}
+      {/* ── VIEW 1: HIERARCHICAL GROUPED DISPLAY ── */}
       {activeTab === 'hierarchy' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {Object.keys(groupedStaff).length === 0 ? (
             <div style={{
               textAlign: 'center',
               padding: '60px 20px',
-              background: '#F7F8FA',
+              background: 'rgba(15, 23, 42, 0.4)',
               border: '1px dashed var(--border-subtle)',
               borderRadius: '16px'
             }}>
@@ -453,7 +453,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
               <div
                 key={deptName}
                 style={{
-                  background: '#F7F8FA',
+                  background: 'rgba(15, 23, 42, 0.65)',
                   border: '1px solid rgba(99, 102, 241, 0.2)',
                   borderRadius: '14px',
                   overflow: 'hidden'
@@ -509,7 +509,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                           CLASS: {className}
                         </span>
                         <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                          â€¢ {staffArray.length} Faculty Member{staffArray.length === 1 ? '' : 's'}
+                          • {staffArray.length} Faculty Member{staffArray.length === 1 ? '' : 's'}
                         </span>
                       </div>
 
@@ -536,7 +536,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                                     {staff.full_name || staff.name}
                                   </div>
                                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                                    {staff.staff_id || 'ID: Pending'} â€¢ {staff.designation || 'Faculty'}
+                                    {staff.staff_id || 'ID: Pending'} • {staff.designation || 'Faculty'}
                                   </div>
                                 </div>
                                 <span style={{
@@ -639,10 +639,10 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
         </div>
       )}
 
-      {/* â”€â”€ VIEW 2: ROSTER TABLE VIEW â”€â”€ */}
+      {/* ── VIEW 2: ROSTER TABLE VIEW ── */}
       {activeTab === 'roster' && (
         <div style={{
-          background: '#F7F8FA',
+          background: 'rgba(15, 23, 42, 0.65)',
           border: '1px solid var(--border-subtle)',
           borderRadius: '14px',
           overflowX: 'auto'
@@ -671,7 +671,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                 </tr>
               ) : (
                 filteredStaff.map(s => (
-                  <tr key={s.user_id} style={{ borderBottom: '1px solid #E2E5E9' }}>
+                  <tr key={s.user_id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
                     <td style={{ padding: '12px 16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {s.full_name || s.name}
                     </td>
@@ -775,7 +775,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
         </div>
       )}
 
-      {/* â”€â”€ MODAL 1: ADD NEW STAFF â”€â”€ */}
+      {/* ── MODAL 1: ADD NEW STAFF ── */}
       {showAddStaffModal && (
         <div style={{
           position: 'fixed',
@@ -789,7 +789,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
           padding: '20px'
         }}>
           <div style={{
-            background: '#FFFFFF',
+            background: '#0B1120',
             border: '1px solid rgba(99, 102, 241, 0.3)',
             borderRadius: '16px',
             width: '100%',
@@ -829,7 +829,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                     placeholder="e.g. Dr. Arun Kumar"
                     value={addForm.name}
                     onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
                 <div>
@@ -842,7 +842,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                     placeholder="e.g. CSE001"
                     value={addForm.staffId}
                     onChange={(e) => setAddForm({ ...addForm, staffId: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
               </div>
@@ -859,7 +859,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                     placeholder="arun@example.com"
                     value={addForm.email}
                     onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
                 <div>
@@ -872,7 +872,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                     placeholder="Min 6 characters"
                     value={addForm.password}
                     onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
               </div>
@@ -891,7 +891,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                     placeholder="35"
                     value={addForm.age}
                     onChange={(e) => setAddForm({ ...addForm, age: parseInt(e.target.value, 10) || '' })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
                 <div>
@@ -901,7 +901,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                   <select
                     value={addForm.gender}
                     onChange={(e) => setAddForm({ ...addForm, gender: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -915,7 +915,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                   <select
                     value={addForm.designation}
                     onChange={(e) => setAddForm({ ...addForm, designation: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   >
                     <option value="Professor">Professor</option>
                     <option value="Associate Professor">Associate Professor</option>
@@ -936,7 +936,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                     required
                     value={addForm.departmentId}
                     onChange={(e) => setAddForm({ ...addForm, departmentId: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   >
                     <option value="">-- Select Department --</option>
                     {departments.map((d, i) => (
@@ -952,7 +952,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                     required
                     value={addForm.classId}
                     onChange={(e) => setAddForm({ ...addForm, classId: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   >
                     <option value="">-- Select Class --</option>
                     {classes.map((cls, i) => (
@@ -972,7 +972,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                 <select
                   value={addForm.assignmentType}
                   onChange={(e) => setAddForm({ ...addForm, assignmentType: e.target.value })}
-                  style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                  style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                 >
                   <option value="Class Advisor">Class Advisor (Primary Overall Student View)</option>
                   <option value="Subject Faculty">Subject Faculty</option>
@@ -993,7 +993,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                     placeholder="e.g. Ph.D. in Computer Science"
                     value={addForm.qualification}
                     onChange={(e) => setAddForm({ ...addForm, qualification: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
                 <div>
@@ -1005,7 +1005,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                     placeholder="e.g. AI / Machine Learning"
                     value={addForm.specialization}
                     onChange={(e) => setAddForm({ ...addForm, specialization: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
               </div>
@@ -1020,7 +1020,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                     placeholder="+91 9876543210"
                     value={addForm.phone}
                     onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
                 <div>
@@ -1032,7 +1032,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                     placeholder="e.g. 10 Years"
                     value={addForm.experience}
                     onChange={(e) => setAddForm({ ...addForm, experience: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
               </div>
@@ -1052,7 +1052,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                   className="btn-cyber-primary"
                   style={{ padding: '9px 20px', fontWeight: 700 }}
                 >
-                  {submittingAdd ? 'Provisioning Academician...' : 'Save & Map Eligible Students â†’'}
+                  {submittingAdd ? 'Provisioning Academician...' : 'Save & Map Eligible Students →'}
                 </button>
               </div>
             </form>
@@ -1060,7 +1060,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
         </div>
       )}
 
-      {/* â”€â”€ MODAL 2: ASSIGN CLASS â”€â”€ */}
+      {/* ── MODAL 2: ASSIGN CLASS ── */}
       {showAssignClassModal && selectedStaff && (
         <div style={{
           position: 'fixed',
@@ -1074,7 +1074,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
           padding: '20px'
         }}>
           <div style={{
-            background: '#FFFFFF',
+            background: '#0B1120',
             border: '1px solid rgba(99, 102, 241, 0.3)',
             borderRadius: '16px',
             width: '100%',
@@ -1103,7 +1103,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                 <select
                   value={assignForm.departmentId}
                   onChange={(e) => setAssignForm({ ...assignForm, departmentId: e.target.value })}
-                  style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                  style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                 >
                   <option value="">-- Select Department --</option>
                   {departments.map((d, i) => (
@@ -1120,7 +1120,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                   required
                   value={assignForm.classId}
                   onChange={(e) => setAssignForm({ ...assignForm, classId: e.target.value })}
-                  style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                  style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                 >
                   <option value="">-- Select Class --</option>
                   {classes.map((cls, i) => (
@@ -1138,7 +1138,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                 <select
                   value={assignForm.assignmentType}
                   onChange={(e) => setAssignForm({ ...assignForm, assignmentType: e.target.value })}
-                  style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                  style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                 >
                   <option value="Class Advisor">Class Advisor</option>
                   <option value="Subject Faculty">Subject Faculty</option>
@@ -1161,7 +1161,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
         </div>
       )}
 
-      {/* â”€â”€ MODAL 3: VIEW MAPPED STUDENTS â”€â”€ */}
+      {/* ── MODAL 3: VIEW MAPPED STUDENTS ── */}
       {showStudentsModal && selectedStaff && (
         <div style={{
           position: 'fixed',
@@ -1175,7 +1175,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
           padding: '20px'
         }}>
           <div style={{
-            background: '#FFFFFF',
+            background: '#0B1120',
             border: '1px solid rgba(56, 189, 248, 0.3)',
             borderRadius: '16px',
             width: '100%',
@@ -1224,7 +1224,7 @@ export default function InstitutionStaffManagement({ institution, onShowToast })
                 </thead>
                 <tbody>
                   {mappedStudents.map(st => (
-                    <tr key={st.id} style={{ borderBottom: '1px solid #E2E5E9' }}>
+                    <tr key={st.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
                       <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-primary)' }}>
                         {st.full_name}
                       </td>

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Network,
   ShieldCheck,
@@ -109,7 +109,7 @@ export default function SkillGraph({ user, onShowToast }) {
       <div style={{
         padding: '24px 28px',
         borderRadius: '14px',
-        background: 'linear-gradient(135deg, #F7F8FA, rgba(10, 15, 29, 0.98))',
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(10, 15, 29, 0.98))',
         border: '1px solid var(--border-subtle)',
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
         display: 'flex',
@@ -136,7 +136,7 @@ export default function SkillGraph({ user, onShowToast }) {
               </span>
             </div>
             <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>
-              Continuous multi-source verification connecting Courses â€¢ Projects â€¢ Assessments â€¢ Certifications â€¢ Industry Challenges
+              Continuous multi-source verification connecting Courses • Projects • Assessments • Certifications • Industry Challenges
             </p>
           </div>
         </div>
@@ -225,7 +225,7 @@ export default function SkillGraph({ user, onShowToast }) {
       <div style={{
         padding: '16px 20px',
         borderRadius: '12px',
-        background: '#FFFFFF',
+        background: 'rgba(15, 23, 42, 0.8)',
         border: '1px solid var(--border-subtle)',
         display: 'flex',
         flexWrap: 'wrap',
@@ -315,7 +315,7 @@ export default function SkillGraph({ user, onShowToast }) {
           padding: '60px 40px',
           textAlign: 'center',
           borderRadius: '16px',
-          background: '#F7F8FA',
+          background: 'rgba(15, 23, 42, 0.6)',
           border: '1px dashed var(--border-subtle)'
         }}>
           <div style={{
@@ -355,7 +355,7 @@ export default function SkillGraph({ user, onShowToast }) {
                 key={node.id}
                 style={{
                   borderRadius: '12px',
-                  background: '#FFFFFF',
+                  background: 'rgba(15, 23, 42, 0.95)',
                   border: node.verificationStatus === 'VERIFIED' ? '1px solid rgba(46, 224, 161, 0.35)' : '1px solid var(--border-subtle)',
                   boxShadow: '0 6px 20px rgba(0, 0, 0, 0.35)',
                   padding: '20px',
@@ -463,7 +463,7 @@ export default function SkillGraph({ user, onShowToast }) {
                               padding: '6px 10px',
                               background: 'rgba(10, 15, 29, 0.6)',
                               borderRadius: '6px',
-                              border: '1px solid #E2E5E9'
+                              border: '1px solid rgba(255, 255, 255, 0.05)'
                             }}
                           >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -602,7 +602,7 @@ export default function SkillGraph({ user, onShowToast }) {
               <button
                 onClick={() => setSelectedSkill(null)}
                 style={{
-                  background: '#E2E5E9',
+                  background: 'rgba(255, 255, 255, 0.05)',
                   border: 'none',
                   borderRadius: '8px',
                   color: 'var(--text-muted)',
@@ -624,7 +624,7 @@ export default function SkillGraph({ user, onShowToast }) {
               <div style={{
                 padding: '14px',
                 borderRadius: '10px',
-                background: '#FFFFFF',
+                background: 'rgba(15, 23, 42, 0.8)',
                 border: '1px solid rgba(0, 212, 255, 0.2)'
               }}>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Proficiency</div>
@@ -637,7 +637,7 @@ export default function SkillGraph({ user, onShowToast }) {
               <div style={{
                 padding: '14px',
                 borderRadius: '10px',
-                background: '#FFFFFF',
+                background: 'rgba(15, 23, 42, 0.8)',
                 border: '1px solid rgba(46, 224, 161, 0.2)'
               }}>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Credibility</div>
@@ -654,7 +654,7 @@ export default function SkillGraph({ user, onShowToast }) {
                 padding: '16px',
                 borderRadius: '10px',
                 background: 'rgba(10, 15, 29, 0.6)',
-                border: '1px solid #E2E5E9'
+                border: '1px solid rgba(255, 255, 255, 0.05)'
               }}>
                 <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
                   Audit Summary
@@ -694,7 +694,7 @@ export default function SkillGraph({ user, onShowToast }) {
                         style={{
                           padding: '10px 14px',
                           borderRadius: '8px',
-                          background: '#F7F8FA',
+                          background: 'rgba(15, 23, 42, 0.7)',
                           border: '1px solid rgba(255, 255, 255, 0.06)',
                           display: 'flex',
                           alignItems: 'center',
@@ -708,7 +708,7 @@ export default function SkillGraph({ user, onShowToast }) {
                               {ev.title}
                             </div>
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                              Type: {ev.type || 'relational_evidence'} â€¢ Status: Verified
+                              Type: {ev.type || 'relational_evidence'} • Status: Verified
                             </div>
                           </div>
                         </div>
@@ -721,7 +721,7 @@ export default function SkillGraph({ user, onShowToast }) {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ padding: '16px', borderRadius: '8px', background: '#F7F8FA', color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic' }}>
+                  <div style={{ padding: '16px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.5)', color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic' }}>
                     No external evidence sources recorded. Level is currently based on unverified declaration.
                   </div>
                 )}

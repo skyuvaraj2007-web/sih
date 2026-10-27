@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   UserCheck,
   Search,
@@ -66,8 +66,8 @@ export default function CompanySelectedCandidates({
         academicianMentor: 'Dr. K. Ramanathan (Dept. of CSE)',
         role: 'Cloud Infrastructure Solutions Engineer',
         driveType: 'Campus Placement Drive 2026',
-        ctc: 'â‚¹14.50 LPA',
-        stipend: 'â‚¹45,000 / mo during internship',
+        ctc: '₹14.50 LPA',
+        stipend: '₹45,000 / mo during internship',
         selectionDate: '2026-09-18',
         joiningDate: '2026-07-15',
         status: 'ACCEPTED',
@@ -88,8 +88,8 @@ export default function CompanySelectedCandidates({
         academicianMentor: 'Dr. M. Chidambaram (Faculty Lead)',
         role: 'Full Stack Distributed Systems Developer',
         driveType: 'Autonomous AI Fast-Track Match',
-        ctc: 'â‚¹12.80 LPA',
-        stipend: 'â‚¹40,000 / mo during internship',
+        ctc: '₹12.80 LPA',
+        stipend: '₹40,000 / mo during internship',
         selectionDate: '2026-09-19',
         joiningDate: '2026-07-15',
         status: 'OFFER_RELEASED',
@@ -110,8 +110,8 @@ export default function CompanySelectedCandidates({
         academicianMentor: 'Prof. M. Selvam (Placement Coordinator)',
         role: 'Backend Microservices Specialist',
         driveType: 'Campus Placement Drive 2025',
-        ctc: 'â‚¹11.50 LPA',
-        stipend: 'â‚¹35,000 / mo during internship',
+        ctc: '₹11.50 LPA',
+        stipend: '₹35,000 / mo during internship',
         selectionDate: '2026-09-14',
         joiningDate: '2026-06-01',
         status: 'JOINING_CONFIRMED',
@@ -132,8 +132,8 @@ export default function CompanySelectedCandidates({
         academicianMentor: 'Dr. S. Preethi (Dept. of AI/DS)',
         role: 'Applied Machine Learning Associate',
         driveType: 'Autonomous AI Fast-Track Match',
-        ctc: 'â‚¹16.00 LPA',
-        stipend: 'â‚¹50,000 / mo during internship',
+        ctc: '₹16.00 LPA',
+        stipend: '₹50,000 / mo during internship',
         selectionDate: '2026-09-20',
         joiningDate: '2026-08-01',
         status: 'ACCEPTED',
@@ -156,8 +156,8 @@ export default function CompanySelectedCandidates({
     department: 'Computer Science & Engineering',
     academicianMentor: 'Dr. K. Ramanathan',
     role: 'Cybersecurity & Cloud Security Analyst',
-    ctc: 'â‚¹13.50 LPA',
-    stipend: 'â‚¹40,000 / mo',
+    ctc: '₹13.50 LPA',
+    stipend: '₹40,000 / mo',
     joiningDate: '2026-07-20',
     driveType: 'Campus Placement Drive 2026',
     cgpa: '8.85'
@@ -181,7 +181,7 @@ export default function CompanySelectedCandidates({
 
     return {
       totalHired: total,
-      avgCtc: 'â‚¹13.70 LPA',
+      avgCtc: '₹13.70 LPA',
       acceptedCount,
       collegesCount,
       pendingOnboarding
@@ -308,14 +308,14 @@ export default function CompanySelectedCandidates({
 
   return (
     <div style={{ maxWidth: '1440px', margin: '0 auto', paddingBottom: '48px', color: '#e2e8f0' }}>
-      {/* â”€â”€ TOP TELEMETRY BANNER â”€â”€ */}
+      {/* ── TOP TELEMETRY BANNER ── */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '24px 28px',
         borderRadius: '16px',
-        background: '#FFFFFF',
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(6, 11, 20, 0.95) 100%)',
         border: '1px solid var(--border-subtle)',
         marginBottom: '24px',
         boxShadow: 'var(--shadow-card)',
@@ -374,7 +374,7 @@ export default function CompanySelectedCandidates({
         </div>
       </div>
 
-      {/* â”€â”€ METRICS OVERVIEW CARDS â”€â”€ */}
+      {/* ── METRICS OVERVIEW CARDS ── */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
@@ -430,7 +430,7 @@ export default function CompanySelectedCandidates({
         </div>
       </div>
 
-      {/* â”€â”€ SEARCH & FILTER CONTROLS â”€â”€ */}
+      {/* ── SEARCH & FILTER CONTROLS ── */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -497,7 +497,7 @@ export default function CompanySelectedCandidates({
         </div>
       </div>
 
-      {/* â”€â”€ SELECTED CANDIDATES TABLE â”€â”€ */}
+      {/* ── SELECTED CANDIDATES TABLE ── */}
       <div className="compact-table-container">
         <table className="compact-table">
           <thead>
@@ -538,7 +538,7 @@ export default function CompanySelectedCandidates({
                         </div>
                         <div style={{ fontSize: '11px', color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span>{cand.studentId}</span>
-                          <span style={{ color: 'var(--text-muted)' }}>â€¢</span>
+                          <span style={{ color: 'var(--text-muted)' }}>•</span>
                           <span style={{ color: 'var(--text-secondary)' }}>{cand.cgpa} CGPA</span>
                         </div>
                       </div>
@@ -554,7 +554,7 @@ export default function CompanySelectedCandidates({
                       Dept: {cand.department}
                     </div>
                     <div style={{ fontSize: '10.5px', color: '#F59E0B', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <span>ðŸ‘¨â€ðŸ« {cand.academicianMentor}</span>
+                      <span>👨‍🏫 {cand.academicianMentor}</span>
                     </div>
                   </td>
 
@@ -626,7 +626,7 @@ export default function CompanySelectedCandidates({
         </table>
       </div>
 
-      {/* â”€â”€ MODAL: OFFICIAL OFFER LETTER PREVIEW â”€â”€ */}
+      {/* ── MODAL: OFFICIAL OFFER LETTER PREVIEW ── */}
       {selectedOfferLetterCandidate && (
         <div
           style={{
@@ -664,7 +664,7 @@ export default function CompanySelectedCandidates({
                     Corporate Offer of Employment
                   </h3>
                   <div style={{ fontSize: '11px', color: 'var(--cyber-cyan)', fontFamily: 'var(--font-mono)' }}>
-                    REF ID: {selectedOfferLetterCandidate.offerLetterId} â€¢ Sovereign Verified
+                    REF ID: {selectedOfferLetterCandidate.offerLetterId} • Sovereign Verified
                   </div>
                 </div>
               </div>
@@ -769,7 +769,7 @@ export default function CompanySelectedCandidates({
         </div>
       )}
 
-      {/* â”€â”€ MODAL: VERIFY SOVEREIGN DIGITAL PASSPORT â”€â”€ */}
+      {/* ── MODAL: VERIFY SOVEREIGN DIGITAL PASSPORT ── */}
       {passportVerifyCandidate && (
         <div
           style={{
@@ -816,28 +816,28 @@ export default function CompanySelectedCandidates({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
-              <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>IMMUTABLE PROCTOR HASH</div>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: '#10B981', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
                   {passportVerifyCandidate.passportHash}
                 </div>
               </div>
 
-              <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>VERIFIED COMPETENCIES</div>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
                   {passportVerifyCandidate.skills.map(sk => (
                     <span key={sk} className="cyber-badge badge-emerald" style={{ fontSize: '11px' }}>
-                      âœ“ {sk}
+                      ✓ {sk}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div style={{ padding: '12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>INSTITUTIONAL ENDORSEMENT</div>
                 <div style={{ fontSize: '12.5px', color: '#fff', marginTop: '2px' }}>
-                  {passportVerifyCandidate.college} â€¢ Endorsed by {passportVerifyCandidate.academicianMentor}
+                  {passportVerifyCandidate.college} • Endorsed by {passportVerifyCandidate.academicianMentor}
                 </div>
               </div>
             </div>
@@ -856,7 +856,7 @@ export default function CompanySelectedCandidates({
         </div>
       )}
 
-      {/* â”€â”€ MODAL: RECORD NEW SELECTION â”€â”€ */}
+      {/* ── MODAL: RECORD NEW SELECTION ── */}
       {isRecordModalOpen && (
         <div
           style={{
@@ -1008,7 +1008,7 @@ export default function CompanySelectedCandidates({
                     onChange={(e) => setRecordForm(prev => ({ ...prev, ctc: e.target.value }))}
                     className="company-input"
                     style={{ width: '100%', fontSize: '12.5px' }}
-                    placeholder="e.g. â‚¹14.50 LPA"
+                    placeholder="e.g. ₹14.50 LPA"
                     required
                   />
                 </div>

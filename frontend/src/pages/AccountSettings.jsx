@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   User,
   Sliders,
@@ -222,7 +222,7 @@ export default function AccountSettings({ onShowToast }) {
                   </span>
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
-                  Candidate ID: {storedUser?.studentId || storedUser?.id || 'NEX-STU'} â€¢ Verified Institution: {settings.college || 'Linked Academic Campus'}
+                  Candidate ID: {storedUser?.studentId || storedUser?.id || 'NEX-STU'} • Verified Institution: {settings.college || 'Linked Academic Campus'}
                 </div>
               </div>
             </div>
@@ -255,7 +255,7 @@ export default function AccountSettings({ onShowToast }) {
                   type="text"
                   value={settings.name}
                   onChange={(e) => setSettings({ ...settings, name: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
 
@@ -267,7 +267,7 @@ export default function AccountSettings({ onShowToast }) {
                   type="email"
                   value={settings.email}
                   onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
 
@@ -279,7 +279,7 @@ export default function AccountSettings({ onShowToast }) {
                   type="text"
                   value={settings.phone}
                   onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
 
@@ -291,7 +291,7 @@ export default function AccountSettings({ onShowToast }) {
                   type="text"
                   value={settings.college}
                   onChange={(e) => setSettings({ ...settings, college: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
 
@@ -303,7 +303,7 @@ export default function AccountSettings({ onShowToast }) {
                   type="text"
                   value={settings.degree}
                   onChange={(e) => setSettings({ ...settings, degree: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
 
@@ -315,7 +315,7 @@ export default function AccountSettings({ onShowToast }) {
                   type="text"
                   value={settings.gradYear}
                   onChange={(e) => setSettings({ ...settings, gradYear: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
             </div>
@@ -337,7 +337,7 @@ export default function AccountSettings({ onShowToast }) {
                   type="text"
                   value={settings.desiredRole}
                   onChange={(e) => setSettings({ ...settings, desiredRole: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                 />
               </div>
 
@@ -350,7 +350,7 @@ export default function AccountSettings({ onShowToast }) {
                     type="text"
                     value={settings.targetIndustry}
                     onChange={(e) => setSettings({ ...settings, targetIndustry: e.target.value })}
-                    style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                    style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                   />
                 </div>
 
@@ -362,7 +362,7 @@ export default function AccountSettings({ onShowToast }) {
                     type="text"
                     value={settings.compensation}
                     onChange={(e) => setSettings({ ...settings, compensation: e.target.value })}
-                    style={{ width: '100%', padding: '9px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
+                    style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none' }}
                   />
                 </div>
               </div>
@@ -404,7 +404,7 @@ export default function AccountSettings({ onShowToast }) {
               rows={3}
               value={settings.bio}
               onChange={(e) => setSettings({ ...settings, bio: e.target.value })}
-              style={{ width: '100%', padding: '12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none', lineHeight: 1.5 }}
+              style={{ width: '100%', padding: '12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12.5px', outline: 'none', lineHeight: 1.5 }}
             />
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
               Nexus AI auto-tailors this summary into hiring manager ATS cover dispatches.
@@ -455,7 +455,7 @@ export default function AccountSettings({ onShowToast }) {
                     onChange={(e) => setNewSkillInput(e.target.value)}
                     autoFocus
                     style={{
-                      padding: '4px 8px', borderRadius: '4px', background: '#FFFFFF',
+                      padding: '4px 8px', borderRadius: '4px', background: 'var(--bg-input)',
                       border: '1px solid var(--cyber-cyan)', color: '#FFF', fontSize: '12px', outline: 'none'
                     }}
                   />
@@ -464,7 +464,7 @@ export default function AccountSettings({ onShowToast }) {
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', fontSize: '11.5px', padding: '12px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', fontSize: '11.5px', padding: '12px', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
               <div>
                 <div style={{ color: 'var(--text-muted)' }}>STRONGEST PILLAR</div>
                 <div style={{ color: 'var(--cyber-emerald)', fontWeight: 600, marginTop: '2px' }}>Predictive Modeling (Level 82/100)</div>
@@ -561,7 +561,7 @@ export default function AccountSettings({ onShowToast }) {
           {/* Action Footer matching Page 12 */}
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '16px 24px', background: '#FFFFFF',
+            padding: '16px 24px', background: 'var(--bg-input)',
             borderRadius: '10px', border: '1px solid var(--border-glow)'
           }}>
             <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>

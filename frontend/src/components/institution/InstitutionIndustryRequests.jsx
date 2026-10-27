@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Building2,
   Users,
@@ -251,12 +251,12 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
 
   return (
     <div style={{ padding: '24px', color: 'var(--text-primary)', minHeight: '100%' }}>
-      {/* â”€â”€ HEADER BANNER â”€â”€ */}
+      {/* ── HEADER BANNER ── */}
       <div className="glass-panel" style={{
         padding: '24px',
         borderRadius: '16px',
         marginBottom: '24px',
-        background: '#FFFFFF',
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9))',
         border: '1px solid rgba(56, 189, 248, 0.2)',
         display: 'flex',
         justifyContent: 'space-between',
@@ -290,7 +290,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
         </button>
       </div>
 
-      {/* â”€â”€ METRIC CARDS & TABS â”€â”€ */}
+      {/* ── METRIC CARDS & TABS ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '20px' }}>
         <div
           onClick={() => setActiveTab('all')}
@@ -345,7 +345,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
         </div>
       </div>
 
-      {/* â”€â”€ REQUESTS TABLE â”€â”€ */}
+      {/* ── REQUESTS TABLE ── */}
       <div className="glass-panel" style={{ borderRadius: '14px', overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -454,7 +454,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
         )}
       </div>
 
-      {/* â”€â”€ REQUEST COMPANY ACCESS FORM MODAL â”€â”€ */}
+      {/* ── REQUEST COMPANY ACCESS FORM MODAL ── */}
       {showModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -480,7 +480,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
             </div>
 
             <form onSubmit={handleSendRequest}>
-              {/* â”€â”€ SEARCH OR ENTER COMPANY â”€â”€ */}
+              {/* ── SEARCH OR ENTER COMPANY ── */}
               <div style={{ marginBottom: '16px', position: 'relative' }}>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   SEARCH OR ENTER COMPANY NAME *
@@ -495,7 +495,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
                     placeholder="Type registered company name (e.g. ABC Technologies, TCS)..."
                     style={{
                       width: '100%', padding: '10px 12px 10px 38px', borderRadius: '8px',
-                      background: '#FFFFFF', border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
                       color: 'var(--text-primary)', fontSize: '13.5px'
                     }}
                   />
@@ -524,7 +524,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
                             {c.name || c.companyName || c.company_name}
                           </div>
                           <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                            {c.industry} â€¢ {c.location || c.headquarters || 'India'}
+                            {c.industry} • {c.location || c.headquarters || 'India'}
                           </div>
                         </div>
                         <span className="cyber-badge badge-blue" style={{ fontSize: '10px' }}>VERIFIED PARTNER</span>
@@ -546,7 +546,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
                     value={formData.companyEmail}
                     onChange={(e) => setFormData(prev => ({ ...prev, companyEmail: e.target.value }))}
                     placeholder="talent@company.com"
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
 
@@ -559,7 +559,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
                     value={formData.website}
                     onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
                     placeholder="https://company.com"
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
 
@@ -572,7 +572,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
                     value={formData.industry}
                     onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
                     placeholder="e.g. Enterprise Software, Data Science"
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
 
@@ -585,7 +585,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
                     value={formData.location}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                     placeholder="Chennai, Tamil Nadu"
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
 
@@ -598,7 +598,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
                     value={formData.contactPerson}
                     onChange={(e) => setFormData(prev => ({ ...prev, contactPerson: e.target.value }))}
                     placeholder="e.g. Ms. Sarah Jenkins"
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
 
@@ -611,7 +611,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
                     value={formData.contactPhone}
                     onChange={(e) => setFormData(prev => ({ ...prev, contactPhone: e.target.value }))}
                     placeholder="+91 98765 43210"
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
                   />
                 </div>
               </div>
@@ -626,11 +626,11 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
                   value={formData.reason}
                   onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
                   placeholder="Provide context for company request (e.g. Industry placement drive, skill mapping)..."
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '13px' }}
                 />
               </div>
 
-              {/* â”€â”€ MANDATORY READ-ONLY ACCESS DISCLOSURE CARD â”€â”€ */}
+              {/* ── MANDATORY READ-ONLY ACCESS DISCLOSURE CARD ── */}
               <div style={{
                 padding: '14px 16px', borderRadius: '10px',
                 background: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)',
@@ -639,7 +639,7 @@ export default function InstitutionIndustryRequests({ onShowToast }) {
                 <Lock size={20} color="var(--cyber-cyan)" style={{ marginTop: '2px', flexShrink: 0 }} />
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--cyber-cyan)' }}>
-                    Student Data Access Policy â€” READ ONLY
+                    Student Data Access Policy — READ ONLY
                   </div>
                   <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                     Upon approval, the company receives <strong>read-only access</strong> to eligible student academic, skill, project, and career readiness records.

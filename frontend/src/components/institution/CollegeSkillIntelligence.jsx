@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   BarChart2,
   TrendingUp,
@@ -348,7 +348,7 @@ export default function CollegeSkillIntelligence({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
 
-      {/* â”€â”€ TOP BANNER & PRIVACY SHIELD â”€â”€ */}
+      {/* ── TOP BANNER & PRIVACY SHIELD ── */}
       <div
         className="glass-panel"
         style={{
@@ -467,7 +467,7 @@ export default function CollegeSkillIntelligence({
         </div>
       </div>
 
-      {/* â”€â”€ 1. COLLEGE DASHBOARD: 7 CORE KPIS â”€â”€ */}
+      {/* ── 1. COLLEGE DASHBOARD: 7 CORE KPIS ── */}
       <div
         style={{
           display: 'grid',
@@ -666,7 +666,7 @@ export default function CollegeSkillIntelligence({
         </div>
       </div>
 
-      {/* â”€â”€ 2. ACTIONABLE INSIGHTS BANNER (CRITICAL REQUIREMENT) â”€â”€ */}
+      {/* ── 2. ACTIONABLE INSIGHTS BANNER (CRITICAL REQUIREMENT) ── */}
       <div
         className="glass-panel"
         style={{
@@ -764,7 +764,7 @@ export default function CollegeSkillIntelligence({
                   85 students are ready for Python internships.
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--text-secondary, #64748B)', marginTop: '3px' }}>
-                  Cohort achieved verified score â‰¥ 85% in advanced data structures & object-oriented Python.
+                  Cohort achieved verified score ≥ 85% in advanced data structures & object-oriented Python.
                 </div>
               </div>
             </div>
@@ -840,7 +840,7 @@ export default function CollegeSkillIntelligence({
         </div>
       </div>
 
-      {/* â”€â”€ 3. WORKSPACE SUB-NAVIGATION â”€â”€ */}
+      {/* ── 3. WORKSPACE SUB-NAVIGATION ── */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border-subtle, #E2E8F0)', gap: '4px' }}>
         <button
           onClick={() => setActiveTab('overview')}
@@ -915,7 +915,7 @@ export default function CollegeSkillIntelligence({
         </button>
       </div>
 
-      {/* â”€â”€ 4. MULTI-LEVEL DEPARTMENT ANALYTICS FILTER BAR â”€â”€ */}
+      {/* ── 4. MULTI-LEVEL DEPARTMENT ANALYTICS FILTER BAR ── */}
       <div
         className="glass-panel"
         style={{
@@ -1128,7 +1128,7 @@ export default function CollegeSkillIntelligence({
         </div>
       </div>
 
-      {/* â”€â”€ TAB 1: SKILL READINESS & COHORT ANALYTICS â”€â”€ */}
+      {/* ── TAB 1: SKILL READINESS & COHORT ANALYTICS ── */}
       {activeTab === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
@@ -1681,7 +1681,7 @@ export default function CollegeSkillIntelligence({
         </div>
       )}
 
-      {/* â”€â”€ TAB 2: SKILL GAP DIAGNOSTICS (EXACT EXAMPLE IN PROMPT) â”€â”€ */}
+      {/* ── TAB 2: SKILL GAP DIAGNOSTICS (EXACT EXAMPLE IN PROMPT) ── */}
       {activeTab === 'gaps' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           
@@ -1850,7 +1850,7 @@ export default function CollegeSkillIntelligence({
         </div>
       )}
 
-      {/* â”€â”€ TAB 3: CANDIDATE READINESS & PRIVACY ROSTER â”€â”€ */}
+      {/* ── TAB 3: CANDIDATE READINESS & PRIVACY ROSTER ── */}
       {activeTab === 'roster' && (
         <div
           className="glass-panel"
@@ -1999,7 +1999,7 @@ export default function CollegeSkillIntelligence({
         </div>
       )}
 
-      {/* â”€â”€ MODAL: CREATE TARGETED TRAINING INITIATIVE â”€â”€ */}
+      {/* ── MODAL: CREATE TARGETED TRAINING INITIATIVE ── */}
       {showInitiativeModal && (
         <div
           style={{
@@ -2227,7 +2227,7 @@ export default function CollegeSkillIntelligence({
         </div>
       )}
 
-      {/* â”€â”€ MODAL: VIEW STUDENTS (ACTION BUTTON FROM INSIGHTS) â”€â”€ */}
+      {/* ── MODAL: VIEW STUDENTS (ACTION BUTTON FROM INSIGHTS) ── */}
       {showRosterModal && (
         <div
           style={{
@@ -2293,7 +2293,7 @@ export default function CollegeSkillIntelligence({
                 }}
               >
                 <ShieldCheck size={16} />
-                <span>85 Students verified with score â‰¥ 85% in {rosterSkillFilter}. Ready for immediate placement referral.</span>
+                <span>85 Students verified with score ≥ 85% in {rosterSkillFilter}. Ready for immediate placement referral.</span>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '340px', overflowY: 'auto' }}>

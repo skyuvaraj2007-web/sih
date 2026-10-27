@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Video, Mic, CheckCircle2, AlertCircle, X, Lock, Eye } from 'lucide-react';
 
 export default function AssessmentIntegrityCheckModal({
@@ -80,7 +80,7 @@ export default function AssessmentIntegrityCheckModal({
         {/* Header */}
         <div style={{
           padding: '20px 24px',
-          background: '#FFFFFF',
+          background: 'rgba(15, 23, 42, 0.95)',
           borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
@@ -139,7 +139,7 @@ export default function AssessmentIntegrityCheckModal({
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '12px 16px',
-              background: '#F7F8FA',
+              background: 'rgba(15, 23, 42, 0.6)',
               borderRadius: '8px',
               border: cameraAvailable ? '1px solid rgba(46, 224, 161, 0.3)' : '1px solid var(--border-subtle)'
             }}>
@@ -168,7 +168,7 @@ export default function AssessmentIntegrityCheckModal({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '12px 16px',
-                background: '#F7F8FA',
+                background: 'rgba(15, 23, 42, 0.6)',
                 borderRadius: '8px',
                 border: micAvailable ? '1px solid rgba(46, 224, 161, 0.3)' : '1px solid var(--border-subtle)'
               }}>
@@ -197,7 +197,7 @@ export default function AssessmentIntegrityCheckModal({
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '12px 16px',
-              background: '#F7F8FA',
+              background: 'rgba(15, 23, 42, 0.6)',
               borderRadius: '8px',
               border: '1px solid rgba(46, 224, 161, 0.3)'
             }}>
@@ -240,7 +240,7 @@ export default function AssessmentIntegrityCheckModal({
             gap: '12px',
             cursor: 'pointer',
             padding: '14px',
-            background: consentChecked ? 'rgba(0, 212, 255, 0.05)' : '#F7F8FA',
+            background: consentChecked ? 'rgba(0, 212, 255, 0.05)' : 'rgba(15, 23, 42, 0.4)',
             borderRadius: '8px',
             border: consentChecked ? '1px solid var(--cyber-cyan)' : '1px solid var(--border-subtle)',
             marginBottom: '24px',

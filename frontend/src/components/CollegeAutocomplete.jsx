@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, Building2, MapPin, Check, X, ChevronDown } from 'lucide-react';
 import { searchColleges, getCollegeById, TN_COLLEGES } from '../services/collegeDirectory';
 
@@ -175,7 +175,7 @@ export default function CollegeAutocomplete({
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
-        background: '#FFFFFF',
+        background: 'var(--bg-input)',
         border: error ? '1px solid var(--cyber-rose)' : selectedCollege ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid var(--border-subtle)',
         borderRadius: '8px',
         transition: 'all 0.2s ease',
@@ -344,9 +344,9 @@ export default function CollegeAutocomplete({
                         <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--text-secondary)' }}>
                           <MapPin size={10} /> {col.city || col.district}
                         </span>
-                        <span>â€¢</span>
+                        <span>•</span>
                         <span>{col.institutionType}</span>
-                        <span>â€¢</span>
+                        <span>•</span>
                         <span style={{
                           fontSize: '9.5px',
                           padding: '1px 6px',
@@ -369,7 +369,7 @@ export default function CollegeAutocomplete({
                         </span>
                         {col.universityAffiliation && (
                           <>
-                            <span>â€¢</span>
+                            <span>•</span>
                             <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>
                               {col.universityAffiliation}
                             </span>

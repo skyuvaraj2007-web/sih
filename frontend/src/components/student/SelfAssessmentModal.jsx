@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Sparkles, AlertCircle, ShieldAlert, Award, BookOpen } from 'lucide-react';
 
 const CATEGORIES = [
@@ -195,7 +195,7 @@ export default function SelfAssessmentModal({ isOpen, onClose, onSaved, initialD
                   width: '100%',
                   padding: '10px 14px',
                   borderRadius: '8px',
-                  background: '#E2E5E9',
+                  background: 'rgba(255, 255, 255, 0.05)',
                   border: '1px solid rgba(255, 255, 255, 0.12)',
                   color: 'white',
                   fontSize: '13px',
@@ -291,7 +291,7 @@ export default function SelfAssessmentModal({ isOpen, onClose, onSaved, initialD
                   width: '100%',
                   padding: '10px 14px',
                   borderRadius: '8px',
-                  background: '#E2E5E9',
+                  background: 'rgba(255, 255, 255, 0.05)',
                   border: '1px solid rgba(255, 255, 255, 0.12)',
                   color: 'white',
                   fontSize: '13px',
@@ -312,7 +312,7 @@ export default function SelfAssessmentModal({ isOpen, onClose, onSaved, initialD
                   width: '100%',
                   padding: '10px 14px',
                   borderRadius: '8px',
-                  background: '#E2E5E9',
+                  background: 'rgba(255, 255, 255, 0.05)',
                   border: '1px solid rgba(255, 255, 255, 0.12)',
                   color: 'white',
                   fontSize: '13px',
@@ -336,7 +336,7 @@ export default function SelfAssessmentModal({ isOpen, onClose, onSaved, initialD
                 width: '100%',
                 padding: '10px 14px',
                 borderRadius: '8px',
-                background: '#E2E5E9',
+                background: 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
                 color: 'white',
                 fontSize: '13px',

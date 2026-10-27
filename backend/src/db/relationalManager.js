@@ -27,8 +27,9 @@ try {
   console.warn('[RelationalManager] Notice: data directory read-only in serverless:', e.message);
 }
 
-// Supabase client and query adapter
+// Supabase client, PostgreSQL pool, and query adapter
 const { supabase } = require('../config/supabase');
+const { pool: pgPool } = require('../config/db');
 const { supabaseQueryAdapter } = require('./supabaseQueryAdapter');
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -84,6 +85,135 @@ class RelationalManager {
 
     const demoAccounts = [
       {
+        email: 'student.demo@skillnexus.ai',
+        role: 'STUDENT',
+        password: 'Demo@2026',
+        name: 'Arun Kumar',
+        userId: 'demo-student-user-canonical',
+        studentId: '23CSE042',
+        rollNumber: '23CSE042',
+        regNo: '23CSE042',
+        collegeId: 'ABC-ENG',
+        institutionId: 'ABC-ENG',
+        collegeCode: 'ABC-ENG',
+        institutionCode: 'ABC-ENG',
+        collegeName: 'ABC Engineering College',
+        institutionName: 'ABC Engineering College',
+        department: 'Computer Science and Engineering',
+        departmentName: 'Computer Science and Engineering',
+        degree: 'B.Tech',
+        batch: '2023-2027',
+        year: 'III Year',
+        semester: 'Semester 5',
+        cgpa: 8.85,
+        creditsCompleted: 98,
+        totalCredits: 160,
+        readinessScore: 88,
+        placementStatus: 'Placement Ready',
+        targetRole: 'Full Stack AI Engineer',
+        targetCareerRole: 'Full Stack AI Engineer',
+        desiredRole: 'Full Stack AI Engineer',
+        careerGoals: 'Full Stack AI Engineer',
+        bio: 'Passionate computer science undergraduate specialized in full stack web development, algorithmic problem solving, and cloud-native architectures.',
+        githubUrl: 'https://github.com/arunkumar-nexus',
+        linkedinUrl: 'https://linkedin.com/in/arunkumar-sih2026',
+        resumeUrl: 'https://skillnexus.io/resumes/arun-kumar-cv.pdf',
+        profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        skills: [
+          { name: 'Python', level: 'Advanced', verified: true, confidence: 88 },
+          { name: 'React.js', level: 'Advanced', verified: true, confidence: 85 },
+          { name: 'React', level: 'Advanced', verified: true, confidence: 85 },
+          { name: 'Data Structures', level: 'Advanced', verified: true, confidence: 84 },
+          { name: 'C++', level: 'Advanced', verified: true, confidence: 82 },
+          { name: 'SQL', level: 'Intermediate', verified: true, confidence: 80 },
+          { name: 'Java', level: 'Intermediate', verified: true, confidence: 78 },
+          { name: 'Cloud Computing', level: 'Intermediate', verified: true, confidence: 76 }
+        ],
+        projects: [
+          {
+            id: 'demo-prj-1',
+            title: 'SkillNexus AI — Decentralized Competency Intelligence Platform',
+            description: 'End-to-end full stack web application incorporating cryptographic skill validation, dynamic matching engines, and micro-credentialing passports.',
+            repoUrl: 'https://github.com/arunkumar-nexus/skillnexus-core',
+            demoUrl: 'https://skillnexus-demo.vercel.app',
+            techStack: ['React', 'Node.js', 'PostgreSQL', 'Express', 'TailwindCSS'],
+            status: 'Validated',
+            proofVerified: true,
+            submittedAt: new Date(Date.now() - 25 * 86400000).toISOString()
+          },
+          {
+            id: 'demo-prj-2',
+            title: 'Neural Network Career Copilot & Resume Optimizer',
+            description: 'AI-assisted career navigation copilot that parses candidate skill graphs and computes deterministic gap analysis across industry benchmarks.',
+            repoUrl: 'https://github.com/arunkumar-nexus/career-copilot-engine',
+            demoUrl: 'https://copilot-nexus.vercel.app',
+            techStack: ['Python', 'FastAPI', 'PyTorch', 'Docker'],
+            status: 'Validated',
+            proofVerified: true,
+            submittedAt: new Date(Date.now() - 15 * 86400000).toISOString()
+          },
+          {
+            id: 'demo-prj-3',
+            title: 'Distributed Microservices Event Pipeline',
+            description: 'Scalable data pipeline built with Kafka and Redis for low-latency assessment streaming and telemetry tracking.',
+            repoUrl: 'https://github.com/arunkumar-nexus/distributed-event-mesh',
+            demoUrl: 'https://mesh-demo.vercel.app',
+            techStack: ['Go', 'Kafka', 'Redis', 'Docker', 'Kubernetes'],
+            status: 'In Progress',
+            proofVerified: false,
+            submittedAt: new Date(Date.now() - 5 * 86400000).toISOString()
+          }
+        ],
+        certifications: [
+          {
+            title: 'Certified Full Stack Web Developer (React.js & Node.js)',
+            certificateNumber: 'SNX-2026-FSD-0842',
+            url: 'https://skillnexus.io/verify/SNX-2026-FSD-0842',
+            issuedAt: new Date(Date.now() - 30 * 86400000).toISOString()
+          },
+          {
+            title: 'Advanced Data Structures & Algorithms Mastery',
+            certificateNumber: 'SNX-2026-DSA-0911',
+            url: 'https://skillnexus.io/verify/SNX-2026-DSA-0911',
+            issuedAt: new Date(Date.now() - 60 * 86400000).toISOString()
+          }
+        ]
+      },
+      {
+        email: 'academician.demo@skillnexus.ai',
+        role: 'FACULTY',
+        password: 'Demo@2026',
+        name: 'Dr. Ramesh Sundaram',
+        userId: 'demo-academician-user',
+        facultyId: 'FAC-CSE-001',
+        institutionId: 'ABC-ENG',
+        collegeId: 'ABC-ENG',
+        department: 'Computer Science and Engineering',
+        designation: 'Professor & Head of Department'
+      },
+      {
+        email: 'institution.demo@skillnexus.ai',
+        role: 'INSTITUTION',
+        password: 'Demo@2026',
+        name: 'ABC Engineering College',
+        userId: 'demo-institution-user',
+        institutionId: 'ABC-ENG',
+        collegeId: 'ABC-ENG',
+        institutionName: 'ABC Engineering College',
+        collegeName: 'ABC Engineering College',
+        university: 'Anna University'
+      },
+      {
+        email: 'industry.demo@skillnexus.ai',
+        role: 'COMPANY',
+        password: 'Demo@2026',
+        name: 'Kavitha N',
+        userId: 'demo-industry-user',
+        companyId: 'COMP-SBT',
+        companyName: 'SBT TECH Innovations',
+        industry: 'Information Technology & AI Solutions'
+      },
+      {
         email: 'arun.kumar@nexus.edu',
         role: 'STUDENT',
         password: 'nexus@2026',
@@ -107,7 +237,7 @@ class RelationalManager {
         role: 'INSTITUTION',
         password: 'nexus@2026',
         name: 'SRM Institute of Science and Technology',
-        userId: 'demo-institution-user',
+        userId: 'demo-institution-user-srm',
         institutionId: 'TN010',
         collegeId: 'TN010',
         institutionName: 'SRM Institute of Science and Technology',
@@ -119,7 +249,7 @@ class RelationalManager {
         role: 'COMPANY',
         password: 'nexus@2026',
         name: 'ABC Technologies',
-        userId: 'demo-company-user',
+        userId: 'demo-company-user-abc',
         companyId: 'COMP-001',
         companyName: 'ABC Technologies',
         industry: 'Information Technology & AI Solutions'
@@ -165,13 +295,26 @@ class RelationalManager {
             year: demo.year,
             semester: demo.semester,
             cgpa: demo.cgpa,
+            creditsCompleted: demo.creditsCompleted || 98,
+            totalCredits: demo.totalCredits || 160,
             collegeId: demo.collegeId,
             institutionId: demo.institutionId,
-            collegeCode: demo.collegeId,
-            institutionCode: demo.institutionId,
-            collegeName: 'SRM Institute of Science and Technology',
+            collegeCode: demo.collegeCode || demo.collegeId,
+            institutionCode: demo.institutionCode || demo.institutionId,
+            collegeName: demo.collegeName || 'ABC Engineering College',
             readinessScore: demo.readinessScore,
             placementStatus: demo.placementStatus,
+            targetRole: demo.targetRole || 'Full Stack AI Engineer',
+            targetCareerRole: demo.targetCareerRole || 'Full Stack AI Engineer',
+            desiredRole: demo.desiredRole || 'Full Stack AI Engineer',
+            careerGoals: demo.careerGoals || 'Full Stack AI Engineer',
+            bio: demo.bio || '',
+            githubUrl: demo.githubUrl || '',
+            linkedinUrl: demo.linkedinUrl || '',
+            resumeUrl: demo.resumeUrl || '',
+            skills: Array.isArray(demo.skills) ? demo.skills : [],
+            projects: Array.isArray(demo.projects) ? demo.projects : [],
+            certifications: Array.isArray(demo.certifications) ? demo.certifications : [],
             profileImage: demo.profileImage,
             isVerified: true,
             status: 'ACTIVE',
@@ -226,7 +369,45 @@ class RelationalManager {
           changed = true;
         }
       }
+
+      if (demo.role === 'FACULTY' || demo.role === 'ACADEMICIAN') {
+        const facultyList = Array.isArray(data.faculty) ? data.faculty : (data.faculty = []);
+        const facultyExists = facultyList.some(fac => (fac.email || '').toLowerCase() === demo.email.toLowerCase() || fac.facultyId === demo.facultyId);
+        if (!facultyExists) {
+          facultyList.push({
+            id: demo.facultyId || demo.userId,
+            facultyId: demo.facultyId || 'FAC-CSE-001',
+            userId: demo.userId,
+            name: demo.name,
+            email: demo.email,
+            department: demo.department,
+            designation: demo.designation,
+            collegeId: demo.collegeId,
+            institutionId: demo.institutionId,
+            isVerified: true,
+            status: 'ACTIVE',
+            createdAt: new Date().toISOString()
+          });
+          changed = true;
+        }
+      }
     }
+
+    try {
+      const seedData = require('./seedData');
+      if (!Array.isArray(data.opportunities) || data.opportunities.length === 0) {
+        if (Array.isArray(seedData.opportunities) && seedData.opportunities.length > 0) {
+          data.opportunities = JSON.parse(JSON.stringify(seedData.opportunities));
+          changed = true;
+        }
+      }
+      if (!Array.isArray(data.courses) || data.courses.length === 0) {
+        if (Array.isArray(seedData.learningCourses) && seedData.learningCourses.length > 0) {
+          data.courses = JSON.parse(JSON.stringify(seedData.learningCourses));
+          changed = true;
+        }
+      }
+    } catch (e) {}
 
     if (changed) {
       data.users = users;
@@ -244,7 +425,9 @@ class RelationalManager {
   }
 
   get pg() {
-    return this.adapter;
+    if (pgPool) return pgPool;
+    if (this.supabase) return this.adapter;
+    return null;
   }
 
   get queryAdapter() {
@@ -252,11 +435,26 @@ class RelationalManager {
   }
 
   async query(sql, params = []) {
-    return this.adapter.query(sql, params);
+    if (pgPool) {
+      return await pgPool.query(sql, params);
+    }
+    if (this.supabase) {
+      return this.adapter.query(sql, params);
+    }
+    return { rows: [], rowCount: 0 };
   }
 
   async connect() {
-    return this.adapter.connect();
+    if (pgPool) {
+      return await pgPool.connect();
+    }
+    if (this.supabase) {
+      return this.adapter.connect();
+    }
+    return {
+      query: async () => ({ rows: [], rowCount: 0 }),
+      release: () => {}
+    };
   }
 
   from(table) {
@@ -1832,7 +2030,8 @@ class RelationalManager {
       const roleMatches =
         (requestedRole === 'student' && userRole === 'student') ||
         (requestedRole === 'institution' && userRole === 'institution') ||
-        ((requestedRole === 'company' || requestedRole === 'industry') && (userRole === 'company' || userRole === 'industry'));
+        ((requestedRole === 'company' || requestedRole === 'industry') && (userRole === 'company' || userRole === 'industry')) ||
+        ((requestedRole === 'faculty' || requestedRole === 'academician') && (userRole === 'faculty' || userRole === 'academician'));
 
       if (!roleMatches) {
         return {
@@ -1881,8 +2080,12 @@ class RelationalManager {
     } else if (uRole === 'company' || uRole === 'industry') {
       fullProfile = (data.companies || []).find(c => (c.email || '').toLowerCase() === normEmail) ||
                     (data.companies || []).find(c => user.companyId && (c.companyId === user.companyId || c.id === user.companyId));
+    } else if (uRole === 'faculty' || uRole === 'academician') {
+      fullProfile = (data.faculty || []).find(f => (f.email || '').toLowerCase() === normEmail) ||
+                    (data.faculty || []).find(f => user.facultyId && (f.facultyId === user.facultyId || f.id === user.facultyId));
     }
 
+    const effectiveRole = (uRole === 'faculty' ? 'academician' : (uRole === 'industry' ? 'company' : uRole));
     const sanitizedUser = {
       ...(fullProfile || {}),
       id: user.id,
@@ -1891,9 +2094,12 @@ class RelationalManager {
       institutionId: user.institutionId || user.collegeId || fullProfile?.institutionId || fullProfile?.collegeId || fullProfile?.id,
       collegeId: user.collegeId || user.institutionId || fullProfile?.collegeId || fullProfile?.institutionId || fullProfile?.id,
       companyId: user.companyId || fullProfile?.companyId || fullProfile?.id,
+      facultyId: user.facultyId || fullProfile?.facultyId || fullProfile?.id,
+      department: user.department || fullProfile?.department,
+      designation: user.designation || fullProfile?.designation,
       name: user.name || fullProfile?.name || fullProfile?.collegeName || fullProfile?.companyName,
       email: user.email,
-      role: uRole,
+      role: effectiveRole,
       isVerified: true,
       status: 'ACTIVE'
     };
@@ -1903,7 +2109,7 @@ class RelationalManager {
       const jwt = require('jsonwebtoken');
       const jwtSecret = process.env.JWT_SECRET || 'skillnexus_quantum_super_secret_jwt_key_2026';
       token = jwt.sign(
-        { id: user.id, email: user.email, role: uRole },
+        { id: user.id, email: user.email, role: effectiveRole },
         jwtSecret,
         { expiresIn: '7d' }
       );
@@ -12155,20 +12361,43 @@ class RelationalManager {
   async getStudentCertificates(studentId) {
     if (!studentId) return [];
     try {
-      if (this.pg) {
-        const student = await this.getStudentById(studentId);
-        const resolvedId = student?.id || studentId;
-        const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(String(resolvedId));
-        if (isUuid) {
-          const res = await this.pg.query(
-            `SELECT id, student_id, institution_id, course_id, certificate_number, title, certificate_url, verification_hash, issued_at
-             FROM certificates
-             WHERE student_id = $1
-             ORDER BY issued_at DESC`,
-            [resolvedId]
-          );
-          return res.rows || [];
+      const student = await this.getStudentById(studentId);
+      const resolvedId = student?.id || studentId;
+      const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(String(resolvedId));
+
+      if (this.supabase && isUuid) {
+        const { data, error } = await this.supabase
+          .from('certificates')
+          .select('*')
+          .eq('student_id', resolvedId)
+          .order('issued_at', { ascending: false });
+        if (!error && Array.isArray(data) && data.length > 0) {
+          return data;
         }
+      }
+
+      if (this.pg && isUuid) {
+        const res = await this.pg.query(
+          `SELECT id, student_id, institution_id, course_id, certificate_number, title, certificate_url, verification_hash, issued_at
+           FROM certificates
+           WHERE student_id = $1
+           ORDER BY issued_at DESC`,
+          [resolvedId]
+        );
+        if (res.rows && res.rows.length > 0) return res.rows;
+      }
+
+      if (Array.isArray(student?.certifications) && student.certifications.length > 0) {
+        return student.certifications.map((c, idx) => ({
+          id: c.id || `cert-${resolvedId}-${idx + 1}`,
+          student_id: resolvedId,
+          title: c.title || c.certificateName || 'Certified Professional',
+          certificate_number: c.certificateNumber || c.certificate_number || `SNX-CERT-${idx + 1000}`,
+          certificate_url: c.url || c.certificate_url || '#',
+          verification_hash: c.verification_hash || 'SHA256-VERIFIED-CREDENTIAL',
+          status: 'VERIFIED',
+          issued_at: c.issuedAt || c.issued_at || new Date().toISOString()
+        }));
       }
     } catch (e) {
       console.warn('[getStudentCertificates] error:', e.message);
@@ -12178,6 +12407,38 @@ class RelationalManager {
 
   async getStudentCertifications(studentId) {
     return await this.getStudentCertificates(studentId);
+  }
+
+  async getStudentSkills(studentId) {
+    if (!studentId) return [];
+    try {
+      const student = await this.getStudentById(studentId);
+      if (student && Array.isArray(student.skills) && student.skills.length > 0) {
+        return student.skills;
+      }
+      if (this.supabase) {
+        const resolvedId = student?.id || studentId;
+        const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(String(resolvedId));
+        if (isUuid) {
+          const { data, error } = await this.supabase
+            .from('student_skills')
+            .select('*')
+            .eq('student_id', resolvedId);
+          if (!error && Array.isArray(data) && data.length > 0) {
+            return data.map(r => ({
+              id: r.id,
+              name: r.skill_name,
+              level: r.proficiency_level || r.claimed_level || 'Intermediate',
+              confidence: Number(r.confidence_score || r.proficiency_score || 75),
+              verified: r.verification_status === 'VERIFIED'
+            }));
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[getStudentSkills] error:', e.message);
+    }
+    return [];
   }
 
   async createStudentProject(studentId, data = {}) {

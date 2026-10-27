@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Home,
   Users,
@@ -127,7 +127,7 @@ export default function AcademicianPortal({
   const [loadingDossier, setLoadingDossier] = useState(false);
   const [newRemarkText, setNewRemarkText] = useState('');
 
-  // â”€â”€ SIH Demo Connected State & Live Activity Assignment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── SIH Demo Connected State & Live Activity Assignment ───────────────────
   const [assigningActivity, setAssigningActivity] = useState(false);
   const [activityAssigned, setActivityAssigned] = useState(false);
 
@@ -559,7 +559,7 @@ export default function AcademicianPortal({
     document.body.removeChild(link);
   };
 
-  // â”€â”€ NEW: Load My Classes for assignment target selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Load My Classes for assignment target selection ─────────────────
   const fetchMyClasses = useCallback(async () => {
     try {
       const res = await academicianService.getMyClasses();
@@ -567,7 +567,7 @@ export default function AcademicianPortal({
     } catch {}
   }, []);
 
-  // â”€â”€ NEW: Open Course Assignment Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Open Course Assignment Modal ────────────────────────────────────
   const handleOpenAssignModal = (course) => {
     setCourseToAssign(course);
     setAssignForm({ targetType: 'entire_class', targetClassIds: [], targetStudentIds: [] });
@@ -575,7 +575,7 @@ export default function AcademicianPortal({
     fetchMyClasses();
   };
 
-  // â”€â”€ NEW: Submit Course Assignment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Submit Course Assignment ────────────────────────────────────────
   const handleAssignCourseSubmit = async () => {
     if (!courseToAssign) return;
     setAssigning(true);
@@ -597,7 +597,7 @@ export default function AcademicianPortal({
     }
   };
 
-  // â”€â”€ NEW: Load Course Progress for a specific course â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Load Course Progress for a specific course ─────────────────────
   const handleViewCourseProgress = async (course) => {
     setSelectedCourseForProgress(course);
     setLoadingCourseProgress(true);
@@ -612,7 +612,7 @@ export default function AcademicianPortal({
     }
   };
 
-  // â”€â”€ NEW: Load Overall Progress â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Load Overall Progress ───────────────────────────────────────────
   const fetchOverallProgress = useCallback(async () => {
     try {
       const res = await academicianService.getOverallProgress();
@@ -620,7 +620,7 @@ export default function AcademicianPortal({
     } catch {}
   }, []);
 
-  // â”€â”€ NEW: Soft-delete course â†’ Trash â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Soft-delete course → Trash ─────────────────────────────────────
   const handleSoftDeleteCourse = async (courseId) => {
     try {
       const res = await academicianService.softDeleteCourse(courseId);
@@ -633,7 +633,7 @@ export default function AcademicianPortal({
     }
   };
 
-  // â”€â”€ NEW: Soft-delete assessment â†’ Trash â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Soft-delete assessment → Trash ─────────────────────────────────
   const handleSoftDeleteAssessment = async (assessmentId) => {
     try {
       const res = await academicianService.softDeleteAssessment(assessmentId);
@@ -646,7 +646,7 @@ export default function AcademicianPortal({
     }
   };
 
-  // â”€â”€ NEW: Load Trash â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Load Trash ──────────────────────────────────────────────────────
   const fetchTrash = useCallback(async () => {
     setLoadingTrash(true);
     try {
@@ -655,7 +655,7 @@ export default function AcademicianPortal({
     } catch {} finally { setLoadingTrash(false); }
   }, []);
 
-  // â”€â”€ NEW: Restore from Trash â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Restore from Trash ──────────────────────────────────────────────
   const handleRestoreFromTrash = async (id, itemType) => {
     try {
       const res = await academicianService.restoreItem(id, itemType);
@@ -669,7 +669,7 @@ export default function AcademicianPortal({
     }
   };
 
-  // â”€â”€ NEW: Permanent Delete from Trash â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Permanent Delete from Trash ────────────────────────────────────
   const handlePermanentDelete = async (id, itemType) => {
     if (!window.confirm(`Permanently delete this ${itemType}? This CANNOT be undone.`)) return;
     try {
@@ -683,7 +683,7 @@ export default function AcademicianPortal({
     }
   };
 
-  // â”€â”€ NEW: Load Pending Achievements â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Load Pending Achievements ──────────────────────────────────────
   const fetchPendingAchievements = useCallback(async () => {
     setLoadingAchievements(true);
     try {
@@ -692,7 +692,7 @@ export default function AcademicianPortal({
     } catch {} finally { setLoadingAchievements(false); }
   }, []);
 
-  // â”€â”€ NEW: Verify Achievement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Verify Achievement ──────────────────────────────────────────────
   const handleVerifyAchievement = async (id, achievementType) => {
     try {
       const res = await academicianService.verifyAchievement(id, achievementType, achievementComment);
@@ -706,7 +706,7 @@ export default function AcademicianPortal({
     }
   };
 
-  // â”€â”€ NEW: Reject Achievement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── NEW: Reject Achievement ──────────────────────────────────────────────
   const handleRejectAchievement = async (id, achievementType) => {
     if (!achievementComment.trim()) {
       if (onShowToast) onShowToast({ title: 'Comment Required', message: 'Please provide a reason for rejection.', type: 'warning' });
@@ -767,7 +767,7 @@ export default function AcademicianPortal({
 
   return (
     <div style={{ padding: '24px 32px', maxWidth: '1600px', margin: '0 auto', color: 'var(--text-primary)' }}>
-      {/* â”€â”€ SIH DEMO ENVIRONMENT BADGE â”€â”€ */}
+      {/* ── SIH DEMO ENVIRONMENT BADGE ── */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '10px 18px', borderRadius: '12px',
@@ -785,19 +785,19 @@ export default function AcademicianPortal({
           </span>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>|</span>
           <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-            Connected Demo Ecosystem â€¢ Dr. Ramesh Sundaram (HOD & Professor, CSE)
+            Connected Demo Ecosystem • Dr. Ramesh Sundaram (HOD & Professor, CSE)
           </span>
         </div>
         <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-          ABC Engineering College â€¢ CSE III-A Lead
+          ABC Engineering College • CSE III-A Lead
         </div>
       </div>
 
-      {/* â”€â”€ CONNECTED SIH DEMO ECOSYSTEM â€” ACADEMIC SUPERVISION & LIVE ACTIVITY â”€â”€ */}
+      {/* ── CONNECTED SIH DEMO ECOSYSTEM — ACADEMIC SUPERVISION & LIVE ACTIVITY ── */}
       <ConnectedEcosystemCard activeRole="academician" />
 
       <div style={{
-        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, #F7F8FA 100%)',
+        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%)',
         border: '1px solid rgba(99, 102, 241, 0.3)',
         borderRadius: '16px',
         padding: '20px 24px',
@@ -811,7 +811,7 @@ export default function AcademicianPortal({
             </div>
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
-                Connected Demo Ecosystem â€” Academic Supervision
+                Connected Demo Ecosystem — Academic Supervision
               </h3>
               <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                 Real-time cohort monitoring, course enrollment tracking, and student activity dispatch
@@ -825,7 +825,7 @@ export default function AcademicianPortal({
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginBottom: '18px' }}>
           {/* Mapped Student Dossier Quickcard */}
-          <div style={{ padding: '14px 16px', borderRadius: '10px', background: '#F7F8FA', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ padding: '14px 16px', borderRadius: '10px', background: 'rgba(15, 23, 42, 0.7)', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>
                 Connected Mentee
@@ -834,10 +834,10 @@ export default function AcademicianPortal({
                 Arun Kumar
               </div>
               <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                Roll: 23CSE042 â€¢ CSE III-A (Batch 2023â€“2027)
+                Roll: 23CSE042 • CSE III-A (Batch 2023–2027)
               </div>
               <div style={{ fontSize: '11px', color: '#10B981', marginTop: '6px', fontWeight: 600 }}>
-                â— CGPA: 8.85 â€¢ 8 Verified Skills (Python, React, DSA, SQL)
+                ● CGPA: 8.85 • 8 Verified Skills (Python, React, DSA, SQL)
               </div>
             </div>
             <button
@@ -862,7 +862,7 @@ export default function AcademicianPortal({
           </div>
 
           {/* Institutional Skill Enrollment Monitor */}
-          <div style={{ padding: '14px 16px', borderRadius: '10px', background: '#F7F8FA', border: '1px solid var(--border-subtle)' }}>
+          <div style={{ padding: '14px 16px', borderRadius: '10px', background: 'rgba(15, 23, 42, 0.7)', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>
               Enrolled Institutional Skill
             </div>
@@ -870,15 +870,15 @@ export default function AcademicianPortal({
               Advanced React.js & State Architecture
             </div>
             <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              Offered by ABC Engineering College â€¢ 6 Weeks Program
+              Offered by ABC Engineering College • 6 Weeks Program
             </div>
             <div style={{ fontSize: '11px', color: '#38bdf8', marginTop: '6px', fontWeight: 600 }}>
-              â— Arun Kumar: Enrolled â€¢ Initial Progress (0%)
+              ● Arun Kumar: Enrolled • Initial Progress (0%)
             </div>
           </div>
 
           {/* Industry Demand Alignment */}
-          <div style={{ padding: '14px 16px', borderRadius: '10px', background: '#F7F8FA', border: '1px solid var(--border-subtle)' }}>
+          <div style={{ padding: '14px 16px', borderRadius: '10px', background: 'rgba(15, 23, 42, 0.7)', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>
               Industry Partner Alignment
             </div>
@@ -889,7 +889,7 @@ export default function AcademicianPortal({
               Requisition: Associate Full Stack AI Developer
             </div>
             <div style={{ fontSize: '11px', color: '#10B981', marginTop: '6px', fontWeight: 600 }}>
-              â— Required: React.js, Python, SQL, DSA (Match active)
+              ● Required: React.js, Python, SQL, DSA (Match active)
             </div>
           </div>
         </div>
@@ -916,7 +916,7 @@ export default function AcademicianPortal({
               </span>
             </div>
             <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', margin: 0 }}>
-              Target: CSE III-A â€¢ 45 Mins Practical â€¢ Dispatches real PostgreSQL notification to student Arun Kumar
+              Target: CSE III-A • 45 Mins Practical • Dispatches real PostgreSQL notification to student Arun Kumar
             </p>
           </div>
 
@@ -945,7 +945,7 @@ export default function AcademicianPortal({
                 }}
               >
                 <Send size={13} />
-                {assigningActivity ? 'Publishing Activity...' : 'Assign Activity to CSE III-A â†’'}
+                {assigningActivity ? 'Publishing Activity...' : 'Assign Activity to CSE III-A →'}
               </button>
             )}
           </div>
@@ -957,7 +957,7 @@ export default function AcademicianPortal({
         <RecentEcosystemActivity compact={false} />
       </div>
 
-      {/* â”€â”€ Top Workspace Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Top Workspace Header ──────────────────────────────────────────── */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -1000,7 +1000,7 @@ export default function AcademicianPortal({
             )}
           </div>
           <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            <strong>{academician.designation}</strong> â€¢ {academician.department} â€¢ <em>{academician.institution}</em>
+            <strong>{academician.designation}</strong> • {academician.department} • <em>{academician.institution}</em>
           </div>
         </div>
 
@@ -1078,7 +1078,7 @@ export default function AcademicianPortal({
         </div>
       </div>
 
-      {/* â”€â”€ Sub-navigation Tabs matching prompt specification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Sub-navigation Tabs matching prompt specification ────────────────── */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -1132,7 +1132,7 @@ export default function AcademicianPortal({
               {tab.label}
               {tab.count !== undefined && (
                 <span style={{
-                  background: isCurrent ? '#6366f1' : '#FFFFFF',
+                  background: isCurrent ? '#6366f1' : 'var(--bg-input)',
                   color: isCurrent ? '#fff' : 'var(--text-muted)',
                   fontSize: '11px',
                   padding: '1px 6px',
@@ -1152,9 +1152,9 @@ export default function AcademicianPortal({
         })}
       </div>
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 1: ACADEMICIAN DASHBOARD
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'dashboard' && (
         <div>
           {/* 6 Key Statistics Cards */}
@@ -1218,10 +1218,10 @@ export default function AcademicianPortal({
             })}
           </div>
 
-          {/* â”€â”€ CLASS-LEVEL ANALYTICS (Requirement 14) â”€â”€ */}
+          {/* ── CLASS-LEVEL ANALYTICS (Requirement 14) ── */}
           {dashboardData?.classAnalytics && (
             <div style={{
-              background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, #F7F8FA 100%)',
+              background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
               border: '1px solid rgba(56, 189, 248, 0.3)',
               borderRadius: '16px',
               padding: '20px 24px',
@@ -1278,7 +1278,7 @@ export default function AcademicianPortal({
             </div>
           )}
 
-          {/* â”€â”€ STUDENTS NEEDING ATTENTION (Requirement 15) â”€â”€ */}
+          {/* ── STUDENTS NEEDING ATTENTION (Requirement 15) ── */}
           {dashboardData?.studentsNeedingAttention && dashboardData.studentsNeedingAttention.length > 0 && (
             <div style={{
               background: 'rgba(239, 68, 68, 0.05)',
@@ -1296,7 +1296,7 @@ export default function AcademicianPortal({
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
                 {dashboardData.studentsNeedingAttention.map((st, i) => (
                   <div key={i} style={{
-                    background: '#F7F8FA',
+                    background: 'rgba(15, 23, 42, 0.7)',
                     border: '1px solid rgba(239, 68, 68, 0.2)',
                     borderRadius: '10px',
                     padding: '14px',
@@ -1323,7 +1323,7 @@ export default function AcademicianPortal({
                         </span>
                       </div>
                       <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>
-                        Course Progress: <strong style={{ color: '#ef4444' }}>{st.courseProgress}%</strong> â€¢ Last Activity: {st.lastActivity}
+                        Course Progress: <strong style={{ color: '#ef4444' }}>{st.courseProgress}%</strong> • Last Activity: {st.lastActivity}
                       </div>
                     </div>
                     <button
@@ -1343,7 +1343,7 @@ export default function AcademicianPortal({
                         textAlign: 'center'
                       }}
                     >
-                      View Student Dossier â†’
+                      View Student Dossier →
                     </button>
                   </div>
                 ))}
@@ -1397,7 +1397,7 @@ export default function AcademicianPortal({
                           <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>(Benchmark: {sk.benchmark}%)</span>
                         </div>
                       </div>
-                      <div style={{ height: '7px', background: '#FFFFFF', borderRadius: '999px', overflow: 'hidden' }}>
+                      <div style={{ height: '7px', background: 'var(--bg-input)', borderRadius: '999px', overflow: 'hidden' }}>
                         <div style={{
                           height: '100%',
                           width: `${sk.score}%`,
@@ -1458,7 +1458,7 @@ export default function AcademicianPortal({
                           {tier.count} Students ({pct}%)
                         </span>
                       </div>
-                      <div style={{ height: '8px', background: '#FFFFFF', borderRadius: '999px', overflow: 'hidden' }}>
+                      <div style={{ height: '8px', background: 'var(--bg-input)', borderRadius: '999px', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${pct}%`, background: tier.color, borderRadius: '999px' }} />
                       </div>
                     </div>
@@ -1530,7 +1530,7 @@ export default function AcademicianPortal({
                       <div>
                         <div style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-heading)' }}>{c.title}</div>
                         <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-                          {c.category} â€¢ {c.enrolledCount} enrolled â€¢ Avg Progress: {c.avgProgress}%
+                          {c.category} • {c.enrolledCount} enrolled • Avg Progress: {c.avgProgress}%
                         </div>
                       </div>
                       <span style={{ fontSize: '11px', fontWeight: 700, background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', padding: '3px 8px', borderRadius: '4px' }}>
@@ -1571,7 +1571,7 @@ export default function AcademicianPortal({
                       <div>
                         <div style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-heading)' }}>{a.title}</div>
                         <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-                          {a.type} â€¢ {a.durationMinutes} mins â€¢ Passing: {a.passingScore}%
+                          {a.type} • {a.durationMinutes} mins • Passing: {a.passingScore}%
                         </div>
                       </div>
                       <button
@@ -1740,9 +1740,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW: DEDICATED STUDENT PERFORMANCE PAGE (Requirement 13)
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'student-performance' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
@@ -1756,7 +1756,7 @@ export default function AcademicianPortal({
                 </h2>
               </div>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-                {dashboardData?.profile?.name || user?.name || 'Class Advisor'} â€¢ {dashboardData?.profile?.department || 'Department'} â€¢ {dashboardData?.profile?.className || 'Assigned Class'}
+                {dashboardData?.profile?.name || user?.name || 'Class Advisor'} • {dashboardData?.profile?.department || 'Department'} • {dashboardData?.profile?.className || 'Assigned Class'}
               </p>
             </div>
           </div>
@@ -1821,7 +1821,7 @@ export default function AcademicianPortal({
                       </td>
                       <td style={{ padding: '14px 18px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '60px', height: '6px', background: '#FFFFFF', borderRadius: '999px', overflow: 'hidden' }}>
+                          <div style={{ width: '60px', height: '6px', background: 'var(--bg-input)', borderRadius: '999px', overflow: 'hidden' }}>
                             <div style={{ width: `${st.courseProgress || 0}%`, height: '100%', background: '#6366f1' }} />
                           </div>
                           <span style={{ fontSize: '12px', fontWeight: 600 }}>{st.courseProgress || 0}%</span>
@@ -1877,9 +1877,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW: COMPLETE INDIVIDUAL STUDENT PERFORMANCE & VISUAL TIMELINE (Requirements 14 & 15)
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'student-detail' && (
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           {/* Header Bar */}
@@ -1900,7 +1900,7 @@ export default function AcademicianPortal({
                 cursor: 'pointer'
               }}
             >
-              â† Back to Student Performance
+              ← Back to Student Performance
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
@@ -1941,7 +1941,7 @@ export default function AcademicianPortal({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {/* 1. Student Information Banner */}
               <div style={{
-                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, #F7F8FA 100%)',
+                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.95) 100%)',
                 border: '1px solid rgba(99, 102, 241, 0.3)',
                 borderRadius: '16px',
                 padding: '24px',
@@ -1985,7 +1985,7 @@ export default function AcademicianPortal({
                       {studentDossier.info?.readinessScore || 0}%
                     </div>
                     <div style={{ fontSize: '11.5px', color: '#10b981', fontWeight: 700 }}>
-                      â— {studentDossier.info?.readinessTier || 'Developing'}
+                      ● {studentDossier.info?.readinessTier || 'Developing'}
                     </div>
                   </div>
                 </div>
@@ -2054,7 +2054,7 @@ export default function AcademicianPortal({
                           <span>{sk.domain}</span>
                           <span style={{ color: sk.score >= 70 ? '#10b981' : sk.score >= 50 ? '#6366f1' : '#f59e0b' }}>{sk.score}%</span>
                         </div>
-                        <div style={{ height: '6px', background: '#FFFFFF', borderRadius: '999px', overflow: 'hidden' }}>
+                        <div style={{ height: '6px', background: 'var(--bg-input)', borderRadius: '999px', overflow: 'hidden' }}>
                           <div style={{ height: '100%', width: `${sk.score}%`, background: 'var(--grad-ai-primary)', borderRadius: '999px' }} />
                         </div>
                       </div>
@@ -2119,7 +2119,7 @@ export default function AcademicianPortal({
                     (studentDossier.certificates || []).map((cf, idx) => (
                       <div key={idx} style={{ padding: '10px', background: 'var(--bg-elevated)', borderRadius: '8px', marginBottom: '8px' }}>
                         <div style={{ fontWeight: 700, fontSize: '13px' }}>{cf.certificate}</div>
-                        <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{cf.provider} â€¢ {cf.status}</div>
+                        <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{cf.provider} • {cf.status}</div>
                       </div>
                     ))
                   )}
@@ -2136,7 +2136,7 @@ export default function AcademicianPortal({
                     (studentDossier.projects || []).map((pj, idx) => (
                       <div key={idx} style={{ padding: '10px', background: 'var(--bg-elevated)', borderRadius: '8px', marginBottom: '8px' }}>
                         <div style={{ fontWeight: 700, fontSize: '13px' }}>{pj.name}</div>
-                        <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Tech: {pj.technology} â€¢ Status: {pj.status}</div>
+                        <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Tech: {pj.technology} • Status: {pj.status}</div>
                       </div>
                     ))
                   )}
@@ -2152,8 +2152,8 @@ export default function AcademicianPortal({
                   ) : (
                     (studentDossier.internships || []).map((it, idx) => (
                       <div key={idx} style={{ padding: '10px', background: 'var(--bg-elevated)', borderRadius: '8px', marginBottom: '8px' }}>
-                        <div style={{ fontWeight: 700, fontSize: '13px' }}>{it.role} â€” {it.company}</div>
-                        <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Duration: {it.duration} â€¢ {it.status}</div>
+                        <div style={{ fontWeight: 700, fontSize: '13px' }}>{it.role} — {it.company}</div>
+                        <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Duration: {it.duration} • {it.status}</div>
                       </div>
                     ))
                   )}
@@ -2194,7 +2194,7 @@ export default function AcademicianPortal({
                       placeholder="Add an advisory remark for this student..."
                       value={newRemarkText}
                       onChange={(e) => setNewRemarkText(e.target.value)}
-                      style={{ flex: 1, background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                      style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                     />
                     <button
                       onClick={handleAddRemark}
@@ -2295,9 +2295,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 2: STUDENT DIRECTORY
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'students' && (
         <div>
           {/* Controls Bar: Search, Filters, Export */}
@@ -2332,7 +2332,7 @@ export default function AcademicianPortal({
               />
               {studentSearch && (
                 <button onClick={() => setStudentSearch('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                  âœ•
+                  ✕
                 </button>
               )}
             </div>
@@ -2343,7 +2343,7 @@ export default function AcademicianPortal({
                 value={deptFilter}
                 onChange={(e) => setDeptFilter(e.target.value)}
                 style={{
-                  background: '#FFFFFF',
+                  background: 'var(--bg-input)',
                   border: '1px solid var(--border-subtle)',
                   borderRadius: '8px',
                   padding: '7px 12px',
@@ -2362,7 +2362,7 @@ export default function AcademicianPortal({
                 value={readinessFilter}
                 onChange={(e) => setReadinessFilter(e.target.value)}
                 style={{
-                  background: '#FFFFFF',
+                  background: 'var(--bg-input)',
                   border: '1px solid var(--border-subtle)',
                   borderRadius: '8px',
                   padding: '7px 12px',
@@ -2382,7 +2382,7 @@ export default function AcademicianPortal({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#FFFFFF',
+                  background: 'var(--bg-input)',
                   border: '1px solid var(--border-subtle)',
                   color: 'var(--text-primary)',
                   padding: '7px 14px',
@@ -2465,7 +2465,7 @@ export default function AcademicianPortal({
                       </td>
                       <td style={{ padding: '14px 18px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '60px', height: '6px', background: '#FFFFFF', borderRadius: '999px', overflow: 'hidden' }}>
+                          <div style={{ width: '60px', height: '6px', background: 'var(--bg-input)', borderRadius: '999px', overflow: 'hidden' }}>
                             <div style={{ width: `${s.courseProgress}%`, height: '100%', background: '#6366f1' }} />
                           </div>
                           <span style={{ fontSize: '12px', fontWeight: 600 }}>{s.courseProgress}%</span>
@@ -2491,7 +2491,7 @@ export default function AcademicianPortal({
                       </td>
                       <td style={{ padding: '14px 18px' }}>
                         <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 600 }}>
-                          â— {s.status}
+                          ● {s.status}
                         </span>
                       </td>
                       <td style={{ padding: '14px 18px', textAlign: 'right' }}>
@@ -2520,9 +2520,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 3: COURSE MANAGEMENT
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'courses' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -2650,7 +2650,7 @@ export default function AcademicianPortal({
                     <button
                       onClick={() => onShowToast && onShowToast({ title: 'Course Analytics', message: `Average cohort progress: ${c.avgProgress}%`, type: 'info' })}
                       style={{
-                        background: '#FFFFFF',
+                        background: 'var(--bg-input)',
                         border: '1px solid var(--border-subtle)',
                         color: 'var(--text-muted)',
                         padding: '8px 12px',
@@ -2670,9 +2670,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 4: CREATE COURSE FORM
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'create-course' && (
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '16px', padding: '28px', boxShadow: 'var(--shadow-subtle)' }}>
@@ -2692,7 +2692,7 @@ export default function AcademicianPortal({
                   placeholder="e.g. Distributed Cloud Systems & Microservices"
                   value={courseForm.title}
                   onChange={(e) => setCourseForm({ ...courseForm, title: e.target.value })}
-                  style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '10px 14px', color: 'var(--text-heading)', fontSize: '13.5px' }}
+                  style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '10px 14px', color: 'var(--text-heading)', fontSize: '13.5px' }}
                 />
               </div>
 
@@ -2703,7 +2703,7 @@ export default function AcademicianPortal({
                   placeholder="Provide an overview of the curriculum and technologies taught..."
                   value={courseForm.description}
                   onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
-                  style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '10px 14px', color: 'var(--text-heading)', fontSize: '13.5px', resize: 'vertical' }}
+                  style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '10px 14px', color: 'var(--text-heading)', fontSize: '13.5px', resize: 'vertical' }}
                 />
               </div>
 
@@ -2713,7 +2713,7 @@ export default function AcademicianPortal({
                   <select
                     value={courseForm.category}
                     onChange={(e) => setCourseForm({ ...courseForm, category: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   >
                     <option value="Computer Science">Computer Science</option>
                     <option value="Electronics & VLSI">Electronics & VLSI</option>
@@ -2728,7 +2728,7 @@ export default function AcademicianPortal({
                   <select
                     value={courseForm.difficulty}
                     onChange={(e) => setCourseForm({ ...courseForm, difficulty: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   >
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
@@ -2744,7 +2744,7 @@ export default function AcademicianPortal({
                     max={52}
                     value={courseForm.durationWeeks}
                     onChange={(e) => setCourseForm({ ...courseForm, durationWeeks: e.target.value })}
-                    style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                    style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                   />
                 </div>
               </div>
@@ -2776,7 +2776,7 @@ export default function AcademicianPortal({
                           updated[mi].title = e.target.value;
                           setCourseForm({ ...courseForm, modules: updated });
                         }}
-                        style={{ flex: 1, background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '8px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                        style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '8px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                       />
                       <input
                         type="text"
@@ -2787,7 +2787,7 @@ export default function AcademicianPortal({
                           setCourseForm({ ...courseForm, modules: updated });
                         }}
                         placeholder="Duration"
-                        style={{ width: '100px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '8px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                        style={{ width: '100px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '8px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                       />
                     </div>
                   </div>
@@ -2798,7 +2798,7 @@ export default function AcademicianPortal({
                 <button
                   type="button"
                   onClick={() => setActivePage('academician-courses')}
-                  style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '10px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '10px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
@@ -2814,9 +2814,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 5: ASSESSMENT MANAGEMENT
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'assessments' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -2905,7 +2905,7 @@ export default function AcademicianPortal({
                       </td>
                       <td style={{ padding: '14px 18px' }}>
                         <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#10b981' }}>
-                          â— {a.status}
+                          ● {a.status}
                         </span>
                       </td>
                       <td style={{ padding: '14px 18px', textAlign: 'right' }}>
@@ -2934,12 +2934,12 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 6: CREATE ASSESSMENT FORM
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          ────────────────────────────────────────────────────────────────────────── */}
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 6: CREATE SKILL ASSESSMENT FORM (Requirements 17, 18, 19, 20)
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'create-assessment' && (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '16px', padding: '28px', boxShadow: 'var(--shadow-subtle)' }}>
@@ -2965,7 +2965,7 @@ export default function AcademicianPortal({
                   placeholder="e.g. Data Structures & Algorithms Benchmark III CSE A"
                   value={asmtForm.title}
                   onChange={(e) => setAsmtForm({ ...asmtForm, title: e.target.value })}
-                  style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '10px 14px', color: 'var(--text-heading)', fontSize: '13.5px' }}
+                  style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '10px 14px', color: 'var(--text-heading)', fontSize: '13.5px' }}
                 />
               </div>
 
@@ -2976,7 +2976,7 @@ export default function AcademicianPortal({
                   placeholder="Provide scope, instructions, and target skill benchmarks..."
                   value={asmtForm.description || ''}
                   onChange={(e) => setAsmtForm({ ...asmtForm, description: e.target.value })}
-                  style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px', resize: 'vertical' }}
+                  style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px', resize: 'vertical' }}
                 />
               </div>
 
@@ -2986,7 +2986,7 @@ export default function AcademicianPortal({
                   <select
                     value={asmtForm.skillCategory}
                     onChange={(e) => setAsmtForm({ ...asmtForm, skillCategory: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   >
                     <option value="Programming">Programming</option>
                     <option value="Aptitude">Aptitude</option>
@@ -3003,7 +3003,7 @@ export default function AcademicianPortal({
                   <select
                     value={asmtForm.difficulty}
                     onChange={(e) => setAsmtForm({ ...asmtForm, difficulty: e.target.value })}
-                    style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                   >
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
@@ -3019,7 +3019,7 @@ export default function AcademicianPortal({
                     max={180}
                     value={asmtForm.durationMinutes}
                     onChange={(e) => setAsmtForm({ ...asmtForm, durationMinutes: e.target.value })}
-                    style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                    style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                   />
                 </div>
 
@@ -3031,7 +3031,7 @@ export default function AcademicianPortal({
                     max={500}
                     value={asmtForm.totalMarks}
                     onChange={(e) => setAsmtForm({ ...asmtForm, totalMarks: e.target.value })}
-                    style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                    style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                   />
                 </div>
 
@@ -3043,7 +3043,7 @@ export default function AcademicianPortal({
                     max={100}
                     value={asmtForm.passingScore}
                     onChange={(e) => setAsmtForm({ ...asmtForm, passingScore: e.target.value })}
-                    style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                    style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                   />
                 </div>
               </div>
@@ -3084,7 +3084,7 @@ export default function AcademicianPortal({
                 </div>
 
                 {asmtForm.targetScope === 'selected_students' && (
-                  <div style={{ maxHeight: '160px', overflowY: 'auto', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '10px' }}>
+                  <div style={{ maxHeight: '160px', overflowY: 'auto', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '10px' }}>
                     {studentsList.map(st => (
                       <label key={st.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontSize: '12.5px', cursor: 'pointer' }}>
                         <input
@@ -3098,7 +3098,7 @@ export default function AcademicianPortal({
                             });
                           }}
                         />
-                        <span>{st.name} ({st.registerNumber}) â€” {st.department}</span>
+                        <span>{st.name} ({st.registerNumber}) — {st.department}</span>
                       </label>
                     ))}
                   </div>
@@ -3155,7 +3155,7 @@ export default function AcademicianPortal({
                             updated[qi].questionType = e.target.value;
                             setAsmtForm({ ...asmtForm, questions: updated });
                           }}
-                          style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '4px 8px', fontSize: '12px', color: 'var(--text-heading)' }}
+                          style={{ background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '4px 8px', fontSize: '12px', color: 'var(--text-heading)' }}
                         >
                           <option value="mcq">Multiple Choice</option>
                           <option value="true_false">True / False</option>
@@ -3194,7 +3194,7 @@ export default function AcademicianPortal({
                           setAsmtForm({ ...asmtForm, questions: updated });
                         }}
                         placeholder="State question or challenge..."
-                        style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '8px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                        style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '8px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                       />
                     </div>
 
@@ -3212,7 +3212,7 @@ export default function AcademicianPortal({
                               setAsmtForm({ ...asmtForm, questions: updated });
                             }}
                             placeholder="Complete problem description..."
-                            style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '6px 10px', color: 'var(--text-heading)', fontSize: '12px' }}
+                            style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '6px 10px', color: 'var(--text-heading)', fontSize: '12px' }}
                           />
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -3226,7 +3226,7 @@ export default function AcademicianPortal({
                                 updated[qi].inputFormat = e.target.value;
                                 setAsmtForm({ ...asmtForm, questions: updated });
                               }}
-                              style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '6px 8px', color: 'var(--text-heading)', fontSize: '12px' }}
+                              style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '6px 8px', color: 'var(--text-heading)', fontSize: '12px' }}
                             />
                           </div>
                           <div>
@@ -3239,7 +3239,7 @@ export default function AcademicianPortal({
                                 updated[qi].outputFormat = e.target.value;
                                 setAsmtForm({ ...asmtForm, questions: updated });
                               }}
-                              style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '6px 8px', color: 'var(--text-heading)', fontSize: '12px' }}
+                              style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '6px 8px', color: 'var(--text-heading)', fontSize: '12px' }}
                             />
                           </div>
                         </div>
@@ -3254,7 +3254,7 @@ export default function AcademicianPortal({
                                 updated[qi].sampleInput = e.target.value;
                                 setAsmtForm({ ...asmtForm, questions: updated });
                               }}
-                              style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '6px 8px', color: 'var(--text-heading)', fontSize: '12px' }}
+                              style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '6px 8px', color: 'var(--text-heading)', fontSize: '12px' }}
                             />
                           </div>
                           <div>
@@ -3267,7 +3267,7 @@ export default function AcademicianPortal({
                                 updated[qi].sampleOutput = e.target.value;
                                 setAsmtForm({ ...asmtForm, questions: updated });
                               }}
-                              style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '6px 8px', color: 'var(--text-heading)', fontSize: '12px' }}
+                              style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '6px 8px', color: 'var(--text-heading)', fontSize: '12px' }}
                             />
                           </div>
                         </div>
@@ -3314,7 +3314,7 @@ export default function AcademicianPortal({
                                 updated[qi].options[oi] = e.target.value;
                                 setAsmtForm({ ...asmtForm, questions: updated });
                               }}
-                              style={{ flex: 1, background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '6px 10px', color: 'var(--text-heading)', fontSize: '12px' }}
+                              style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '6px 10px', color: 'var(--text-heading)', fontSize: '12px' }}
                             />
                           </div>
                         ))}
@@ -3328,7 +3328,7 @@ export default function AcademicianPortal({
                 <button
                   type="button"
                   onClick={() => setActivePage('academician-assessments')}
-                  style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '10px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '10px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
@@ -3344,16 +3344,16 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 7: ASSESSMENT RESULTS VIEW
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'assessment-results' && (
         <div>
           <button
             onClick={() => setActivePage('academician-assessments')}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: '#6366f1', fontSize: '13px', fontWeight: 700, cursor: 'pointer', marginBottom: '16px' }}
           >
-            â† Back to Assessments
+            ← Back to Assessments
           </button>
 
           {loadingResults ? (
@@ -3418,9 +3418,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 8: SKILL GAP ANALYSIS (Crucial Feature)
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'skill-gaps' && (
         <div>
           <div style={{ marginBottom: '20px' }}>
@@ -3471,13 +3471,13 @@ export default function AcademicianPortal({
                       </span>
                     </div>
                     <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                      Category: {gap.skillCategory} â€¢ Affected Students: <strong>{gap.affectedStudentsCount}</strong> â€¢ Average Score: <strong>{gap.averageScore}%</strong> (Target: {gap.benchmarkScore}%)
+                      Category: {gap.skillCategory} • Affected Students: <strong>{gap.affectedStudentsCount}</strong> • Average Score: <strong>{gap.averageScore}%</strong> (Target: {gap.benchmarkScore}%)
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '12px' }}>
                       <span style={{ color: '#6366f1' }}>
                         Recommended Course: <strong>{gap.recommendedCourse?.title}</strong>
                       </span>
-                      <span style={{ color: 'var(--text-muted)' }}>â€¢</span>
+                      <span style={{ color: 'var(--text-muted)' }}>•</span>
                       <span style={{ color: '#10b981' }}>
                         Diagnostic: <strong>{gap.recommendedAssessment?.title}</strong>
                       </span>
@@ -3521,7 +3521,7 @@ export default function AcademicianPortal({
                     <button
                       onClick={() => setShowScheduleModal(true)}
                       style={{
-                        background: '#FFFFFF',
+                        background: 'var(--bg-input)',
                         border: '1px solid var(--border-subtle)',
                         color: 'var(--text-primary)',
                         padding: '8px 14px',
@@ -3541,9 +3541,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 9: INDUSTRY REQUIREMENTS & COMPARISON
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'industry-requirements' && (
         <div>
           <div style={{ marginBottom: '20px' }}>
@@ -3588,7 +3588,7 @@ export default function AcademicianPortal({
                     <span style={{ color: 'var(--text-muted)' }}>Industry Demand:</span>
                     <strong style={{ color: '#6366f1' }}>{req.industryDemand}%</strong>
                   </div>
-                  <div style={{ height: '6px', background: '#FFFFFF', borderRadius: '999px', overflow: 'hidden' }}>
+                  <div style={{ height: '6px', background: 'var(--bg-input)', borderRadius: '999px', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${req.industryDemand}%`, background: '#6366f1' }} />
                   </div>
                 </div>
@@ -3598,7 +3598,7 @@ export default function AcademicianPortal({
                     <span style={{ color: 'var(--text-muted)' }}>Student Cohort Average:</span>
                     <strong style={{ color: req.studentAverage >= 70 ? '#10b981' : '#f59e0b' }}>{req.studentAverage}%</strong>
                   </div>
-                  <div style={{ height: '6px', background: '#FFFFFF', borderRadius: '999px', overflow: 'hidden' }}>
+                  <div style={{ height: '6px', background: 'var(--bg-input)', borderRadius: '999px', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${req.studentAverage}%`, background: req.studentAverage >= 70 ? '#10b981' : '#f59e0b' }} />
                   </div>
                 </div>
@@ -3612,9 +3612,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 10: SMART RECOMMENDATIONS
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'recommendations' && (
         <div>
           <div style={{ marginBottom: '20px' }}>
@@ -3687,9 +3687,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 11: MENTORSHIP WORKSPACE
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'mentorship' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -3746,7 +3746,7 @@ export default function AcademicianPortal({
                       <div>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-heading)' }}>{m.student_name}</div>
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                          {m.roll_number} â€¢ {m.department_name} â€¢ Goal: {m.goals || 'Industry Readiness'}
+                          {m.roll_number} • {m.department_name} • Goal: {m.goals || 'Industry Readiness'}
                         </div>
                       </div>
                       <button
@@ -3786,7 +3786,7 @@ export default function AcademicianPortal({
                         </span>
                       </div>
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                        With: <strong>{s.student_name}</strong> â€¢ {new Date(s.scheduled_at).toLocaleString()}
+                        With: <strong>{s.student_name}</strong> • {new Date(s.scheduled_at).toLocaleString()}
                       </div>
                       {s.meeting_link && (
                         <a
@@ -3807,9 +3807,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 12: INDUSTRY OPPORTUNITIES & MATCHING
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'opportunities' && (
         <div>
           <div style={{ marginBottom: '20px' }}>
@@ -3842,7 +3842,7 @@ export default function AcademicianPortal({
                       {opp.title}
                     </h3>
                     <div style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
-                      {opp.type} â€¢ {opp.location} â€¢ Deadline: {opp.deadline}
+                      {opp.type} • {opp.location} • Deadline: {opp.deadline}
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
@@ -3907,9 +3907,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 13: ACADEMICIAN SKILL ANALYTICS (Requirement 23)
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {(currentTab === 'skill-analytics' || currentTab === 'analytics') && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
@@ -4012,7 +4012,7 @@ export default function AcademicianPortal({
                           <span style={{ fontSize: '13px', fontWeight: 800, color: '#10b981' }}>+{cg.averageGrowth}%</span>
                         </div>
                       </div>
-                      <div style={{ height: '14px', background: '#FFFFFF', borderRadius: '999px', overflow: 'hidden', padding: '2px' }}>
+                      <div style={{ height: '14px', background: 'var(--bg-input)', borderRadius: '999px', overflow: 'hidden', padding: '2px' }}>
                         <div style={{
                           height: '100%',
                           width: `${Math.min(100, Math.max(cg.averageGrowth, cg.averageScore))}%`,
@@ -4049,7 +4049,7 @@ export default function AcademicianPortal({
                             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>(Bench: {sp.benchmark || 60}%)</span>
                           </div>
                         </div>
-                        <div style={{ height: '8px', background: '#FFFFFF', borderRadius: '999px', overflow: 'hidden' }}>
+                        <div style={{ height: '8px', background: 'var(--bg-input)', borderRadius: '999px', overflow: 'hidden' }}>
                           <div style={{
                             height: '100%',
                             width: `${sp.averageScore}%`,
@@ -4134,9 +4134,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           VIEW 14: NOTIFICATIONS
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {currentTab === 'notifications' && (
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 16px', color: 'var(--text-heading)' }}>
@@ -4182,9 +4182,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           STUDENT PROFILE DOSSIER MODAL
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {selectedStudentId && (
         <div style={{
           position: 'fixed',
@@ -4214,14 +4214,14 @@ export default function AcademicianPortal({
                   {studentDossier?.info?.name || 'Student Profile'}
                 </h2>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  {studentDossier?.info?.registerNumber} â€¢ {studentDossier?.info?.department} â€¢ CGPA: {studentDossier?.info?.cgpa}
+                  {studentDossier?.info?.registerNumber} • {studentDossier?.info?.department} • CGPA: {studentDossier?.info?.cgpa}
                 </div>
               </div>
               <button
                 onClick={() => setSelectedStudentId(null)}
                 style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}
               >
-                âœ•
+                ✕
               </button>
             </div>
 
@@ -4242,7 +4242,7 @@ export default function AcademicianPortal({
                   <div>
                     <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Computed Industry Readiness</div>
                     <div style={{ fontSize: '20px', fontWeight: 800, color: '#6366f1' }}>
-                      {studentDossier.info.readinessScore}% â€” {studentDossier.info.readinessTier}
+                      {studentDossier.info.readinessScore}% — {studentDossier.info.readinessTier}
                     </div>
                   </div>
                   <button
@@ -4268,7 +4268,7 @@ export default function AcademicianPortal({
                       {studentDossier.courses.map((c, i) => (
                         <div key={i} style={{ padding: '10px 12px', background: 'var(--bg-elevated)', borderRadius: '8px', fontSize: '12.5px' }}>
                           <div style={{ fontWeight: 700 }}>{c.title}</div>
-                          <div style={{ color: 'var(--text-muted)', fontSize: '11.5px' }}>Progress: {c.progress_percentage}% â€¢ {c.enrollment_status}</div>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '11.5px' }}>Progress: {c.progress_percentage}% • {c.enrollment_status}</div>
                         </div>
                       ))}
                     </div>
@@ -4301,7 +4301,7 @@ export default function AcademicianPortal({
                       {studentDossier.assessments.map((a, i) => (
                         <div key={i} style={{ padding: '8px 12px', background: 'var(--bg-elevated)', borderRadius: '6px', fontSize: '12px' }}>
                           <div style={{ fontWeight: 700 }}>{a.title}</div>
-                          <div style={{ color: 'var(--text-muted)' }}>Score: {a.score}% â€¢ Status: {a.status}</div>
+                          <div style={{ color: 'var(--text-muted)' }}>Score: {a.score}% • Status: {a.status}</div>
                         </div>
                       ))}
                     </div>
@@ -4321,7 +4321,7 @@ export default function AcademicianPortal({
                         {studentDossier.projects.map((p, i) => (
                           <div key={i} style={{ padding: '8px 12px', background: 'var(--bg-elevated)', borderRadius: '6px', fontSize: '12px' }}>
                             <div style={{ fontWeight: 700 }}>{p.title}</div>
-                            <div style={{ color: 'var(--text-muted)' }}>Tech: {p.tech_stack || 'N/A'} â€¢ Status: {p.verification_status}</div>
+                            <div style={{ color: 'var(--text-muted)' }}>Tech: {p.tech_stack || 'N/A'} • Status: {p.verification_status}</div>
                           </div>
                         ))}
                       </div>
@@ -4337,7 +4337,7 @@ export default function AcademicianPortal({
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {studentDossier.internships.map((int, i) => (
                           <div key={i} style={{ padding: '8px 12px', background: 'var(--bg-elevated)', borderRadius: '6px', fontSize: '12px' }}>
-                            <div style={{ fontWeight: 700 }}>{int.company_name} â€” {int.role_title}</div>
+                            <div style={{ fontWeight: 700 }}>{int.company_name} — {int.role_title}</div>
                             <div style={{ color: 'var(--text-muted)' }}>Stage: {int.status}</div>
                           </div>
                         ))}
@@ -4352,7 +4352,7 @@ export default function AcademicianPortal({
                     Skill Gap vs Industry Requirements ({studentDossier.skillGaps?.length || 0})
                   </h4>
                   {studentDossier.skillGaps?.length === 0 ? (
-                    <div style={{ fontSize: '12.5px', color: '#10b981' }}>âœ“ No critical skill gaps flagged. Student aligns well with target profile.</div>
+                    <div style={{ fontSize: '12.5px', color: '#10b981' }}>✓ No critical skill gaps flagged. Student aligns well with target profile.</div>
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '8px' }}>
                       {studentDossier.skillGaps.map((sg, i) => (
@@ -4381,7 +4381,7 @@ export default function AcademicianPortal({
                       placeholder="Add an evaluation note or recommendation for this student..."
                       value={newRemarkText}
                       onChange={(e) => setNewRemarkText(e.target.value)}
-                      style={{ flex: 1, background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                      style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                     />
                     <button
                       onClick={handleAddRemark}
@@ -4395,7 +4395,7 @@ export default function AcademicianPortal({
                       <div key={i} style={{ padding: '8px 12px', background: 'var(--bg-elevated)', borderRadius: '6px', fontSize: '12.5px' }}>
                         <div style={{ color: 'var(--text-primary)' }}>"{rem.remarks}"</div>
                         <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                          By {rem.faculty_name || 'Faculty'} â€¢ {new Date(rem.created_at).toLocaleDateString()}
+                          By {rem.faculty_name || 'Faculty'} • {new Date(rem.created_at).toLocaleDateString()}
                         </div>
                       </div>
                     ))}
@@ -4407,9 +4407,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           SCHEDULE MENTORSHIP SESSION MODAL
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {showScheduleModal && (
         <div style={{
           position: 'fixed',
@@ -4441,7 +4441,7 @@ export default function AcademicianPortal({
                   required
                   value={sessionForm.studentId}
                   onChange={(e) => setSessionForm({ ...sessionForm, studentId: e.target.value })}
-                  style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                  style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                 >
                   <option value="">Select a student...</option>
                   {studentsList.map(s => (
@@ -4458,7 +4458,7 @@ export default function AcademicianPortal({
                   placeholder="e.g. Code Review & System Architecture Mentorship"
                   value={sessionForm.title}
                   onChange={(e) => setSessionForm({ ...sessionForm, title: e.target.value })}
-                  style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                  style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                 />
               </div>
 
@@ -4470,7 +4470,7 @@ export default function AcademicianPortal({
                     required
                     value={sessionForm.scheduledAt}
                     onChange={(e) => setSessionForm({ ...sessionForm, scheduledAt: e.target.value })}
-                    style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                    style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                   />
                 </div>
                 <div>
@@ -4481,7 +4481,7 @@ export default function AcademicianPortal({
                     max={120}
                     value={sessionForm.durationMinutes}
                     onChange={(e) => setSessionForm({ ...sessionForm, durationMinutes: e.target.value })}
-                    style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                    style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                   />
                 </div>
               </div>
@@ -4493,7 +4493,7 @@ export default function AcademicianPortal({
                   placeholder="https://meet.google.com/abc-defg-hij"
                   value={sessionForm.meetingLink}
                   onChange={(e) => setSessionForm({ ...sessionForm, meetingLink: e.target.value })}
-                  style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                  style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
                 />
               </div>
 
@@ -4501,7 +4501,7 @@ export default function AcademicianPortal({
                 <button
                   type="button"
                   onClick={() => setShowScheduleModal(false)}
-                  style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '9px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '9px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
@@ -4517,9 +4517,9 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ──────────────────────────────────────────────────────────────────────────
           ASSIGN COURSE MODAL
-          â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          ────────────────────────────────────────────────────────────────────────── */}
       {showAssignCourseModal && (
         <div style={{
           position: 'fixed',
@@ -4549,7 +4549,7 @@ export default function AcademicianPortal({
               <select
                 value={assignData.courseId}
                 onChange={(e) => setAssignData({ ...assignData, courseId: e.target.value })}
-                style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
               >
                 <option value="">Select course...</option>
                 {coursesList.map(c => (
@@ -4565,7 +4565,7 @@ export default function AcademicianPortal({
                 value={assignData.notes}
                 onChange={(e) => setAssignData({ ...assignData, notes: e.target.value })}
                 placeholder="Complete by end of month to qualify for placement drives..."
-                style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
+                style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px' }}
               />
             </div>
 
@@ -4573,7 +4573,7 @@ export default function AcademicianPortal({
               <button
                 type="button"
                 onClick={() => setShowAssignCourseModal(false)}
-                style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '9px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}
+                style={{ background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '9px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}
               >
                 Cancel
               </button>
@@ -4589,7 +4589,7 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€ COURSE ASSIGNMENT MODAL (new) â”€â”€ */}
+      {/* ── COURSE ASSIGNMENT MODAL (new) ── */}
       {showAssignModal && courseToAssign && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '520px', border: '1px solid var(--border-subtle)', boxShadow: '0 24px 60px rgba(0,0,0,0.5)' }}>
@@ -4610,7 +4610,7 @@ export default function AcademicianPortal({
                     onClick={() => setAssignForm(f => ({ ...f, targetType: opt.value, targetClassIds: [], targetStudentIds: [] }))}
                     style={{
                       padding: '7px 14px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer',
-                      background: assignForm.targetType === opt.value ? 'rgba(99,102,241,0.15)' : '#FFFFFF',
+                      background: assignForm.targetType === opt.value ? 'rgba(99,102,241,0.15)' : 'var(--bg-input)',
                       border: assignForm.targetType === opt.value ? '1px solid rgba(99,102,241,0.5)' : '1px solid var(--border-subtle)',
                       color: assignForm.targetType === opt.value ? '#6366f1' : 'var(--text-muted)'
                     }}
@@ -4668,7 +4668,7 @@ export default function AcademicianPortal({
             )}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
-              <button onClick={() => setShowAssignModal(false)} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '9px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}>
+              <button onClick={() => setShowAssignModal(false)} style={{ background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '9px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}>
                 Cancel
               </button>
               <button
@@ -4683,7 +4683,7 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€ VIEW: ASSIGNED COURSES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── VIEW: ASSIGNED COURSES ───────────────────────────────────────────── */}
       {currentTab === 'assigned-courses' && (
         <div>
           <div style={{ marginBottom: '20px' }}>
@@ -4705,7 +4705,7 @@ export default function AcademicianPortal({
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div style={{ flex: 1, marginRight: '12px' }}>
                       <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-heading)' }}>{course.title}</h3>
-                      <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{course.category} â€¢ {course.difficulty}</span>
+                      <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{course.category} • {course.difficulty}</span>
                     </div>
                     <button
                       onClick={() => handleViewCourseProgress(course)}
@@ -4720,7 +4720,7 @@ export default function AcademicianPortal({
                       { label: 'Completed', value: course.totalCompleted, color: '#22c55e' },
                       { label: 'In Progress', value: course.inProgress, color: '#f59e0b' }
                     ].map(s => (
-                      <div key={s.label} style={{ textAlign: 'center', padding: '8px', background: '#FFFFFF', borderRadius: '8px' }}>
+                      <div key={s.label} style={{ textAlign: 'center', padding: '8px', background: 'var(--bg-input)', borderRadius: '8px' }}>
                         <div style={{ fontSize: '20px', fontWeight: 800, color: s.color }}>{s.value}</div>
                         <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>{s.label}</div>
                       </div>
@@ -4730,7 +4730,7 @@ export default function AcademicianPortal({
                     <span>Avg. Progress</span>
                     <span style={{ fontWeight: 700, color: course.avgProgress >= 70 ? '#22c55e' : course.avgProgress >= 40 ? '#f59e0b' : '#ef4444' }}>{course.avgProgress}%</span>
                   </div>
-                  <div style={{ height: '6px', background: '#FFFFFF', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ height: '6px', background: 'var(--bg-input)', borderRadius: '3px', overflow: 'hidden' }}>
                     <div style={{ width: `${course.avgProgress}%`, height: '100%', background: course.avgProgress >= 70 ? '#22c55e' : course.avgProgress >= 40 ? '#f59e0b' : '#ef4444', borderRadius: '3px', transition: 'width 0.6s ease' }} />
                   </div>
                 </div>
@@ -4740,15 +4740,15 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€ VIEW: COURSE PROGRESS DETAIL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── VIEW: COURSE PROGRESS DETAIL ────────────────────────────────────── */}
       {currentTab === 'course-progress' && (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
             <button
               onClick={() => setActivePage('academician-assigned-courses')}
-              style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '7px 12px', borderRadius: '8px', fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '7px 12px', borderRadius: '8px', fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              â† Back
+              ← Back
             </button>
             <div>
               <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-heading)' }}>
@@ -4783,7 +4783,7 @@ export default function AcademicianPortal({
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
-                      <tr style={{ background: '#FFFFFF', borderBottom: '1px solid var(--border-subtle)' }}>
+                      <tr style={{ background: 'var(--bg-input)', borderBottom: '1px solid var(--border-subtle)' }}>
                         <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Student</th>
                         <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Class</th>
                         <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Progress</th>
@@ -4801,7 +4801,7 @@ export default function AcademicianPortal({
                           <td style={{ padding: '12px 16px', color: 'var(--text-secondary)' }}>{stu.class}</td>
                           <td style={{ padding: '12px 16px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <div style={{ flex: 1, height: '6px', background: '#FFFFFF', borderRadius: '3px', overflow: 'hidden', minWidth: '80px' }}>
+                              <div style={{ flex: 1, height: '6px', background: 'var(--bg-input)', borderRadius: '3px', overflow: 'hidden', minWidth: '80px' }}>
                                 <div style={{ width: `${stu.progress}%`, height: '100%', background: stu.progress >= 70 ? '#22c55e' : stu.progress >= 30 ? '#f59e0b' : '#ef4444', borderRadius: '3px' }} />
                               </div>
                               <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-heading)', minWidth: '32px' }}>{stu.progress}%</span>
@@ -4828,7 +4828,7 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€ VIEW: OVERALL PROGRESS DASHBOARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── VIEW: OVERALL PROGRESS DASHBOARD ────────────────────────────────── */}
       {currentTab === 'overall-progress' && (
         <div>
           <div style={{ marginBottom: '20px' }}>
@@ -4887,7 +4887,7 @@ export default function AcademicianPortal({
                             <td style={{ padding: '10px 12px', textAlign: 'center', color: 'var(--text-secondary)' }}>{cls.studentCount}</td>
                             <td style={{ padding: '10px 12px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <div style={{ flex: 1, height: '6px', background: '#FFFFFF', borderRadius: '3px', overflow: 'hidden' }}>
+                                <div style={{ flex: 1, height: '6px', background: 'var(--bg-input)', borderRadius: '3px', overflow: 'hidden' }}>
                                   <div style={{ width: `${cls.avgProgress}%`, height: '100%', background: '#10b981', borderRadius: '3px' }} />
                                 </div>
                                 <span style={{ fontSize: '12px', fontWeight: 700, color: '#10b981' }}>{cls.avgProgress}%</span>
@@ -4895,7 +4895,7 @@ export default function AcademicianPortal({
                             </td>
                             <td style={{ padding: '10px 12px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <div style={{ flex: 1, height: '6px', background: '#FFFFFF', borderRadius: '3px', overflow: 'hidden' }}>
+                                <div style={{ flex: 1, height: '6px', background: 'var(--bg-input)', borderRadius: '3px', overflow: 'hidden' }}>
                                   <div style={{ width: `${cls.avgSkill}%`, height: '100%', background: '#3b82f6', borderRadius: '3px' }} />
                                 </div>
                                 <span style={{ fontSize: '12px', fontWeight: 700, color: '#3b82f6' }}>{cls.avgSkill}%</span>
@@ -4913,17 +4913,17 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€ VIEW: TRASH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── VIEW: TRASH ─────────────────────────────────────────────────────── */}
       {currentTab === 'trash' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div>
-              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-heading)' }}>ðŸ—‘ï¸ Trash</h2>
+              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-heading)' }}>🗑️ Trash</h2>
               <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>Items can be restored or permanently deleted from here</p>
             </div>
             <button
               onClick={fetchTrash}
-              style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '8px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '8px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <RefreshCw size={14} /> Refresh
             </button>
@@ -4941,13 +4941,13 @@ export default function AcademicianPortal({
               {/* Deleted Courses */}
               {trashData.courses.length > 0 && (
                 <div style={{ marginBottom: '24px' }}>
-                  <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>ðŸ“š Deleted Courses</h3>
+                  <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>📚 Deleted Courses</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {trashData.courses.map(item => (
                       <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '10px', padding: '14px 18px' }}>
                         <div>
                           <div style={{ fontWeight: 600, color: 'var(--text-heading)' }}>{item.title}</div>
-                          <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{item.category} â€¢ Deleted {item.deleted_at ? new Date(item.deleted_at).toLocaleDateString() : ''}</div>
+                          <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{item.category} • Deleted {item.deleted_at ? new Date(item.deleted_at).toLocaleDateString() : ''}</div>
                         </div>
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <button onClick={() => handleRestoreFromTrash(item.id, 'course')} style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
@@ -4966,13 +4966,13 @@ export default function AcademicianPortal({
               {/* Deleted Assessments */}
               {trashData.assessments.length > 0 && (
                 <div>
-                  <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>ðŸ“‹ Deleted Assessments</h3>
+                  <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>📋 Deleted Assessments</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {trashData.assessments.map(item => (
                       <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '10px', padding: '14px 18px' }}>
                         <div>
                           <div style={{ fontWeight: 600, color: 'var(--text-heading)' }}>{item.title}</div>
-                          <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{item.domain} â€¢ Deleted {item.deleted_at ? new Date(item.deleted_at).toLocaleDateString() : ''}</div>
+                          <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{item.domain} • Deleted {item.deleted_at ? new Date(item.deleted_at).toLocaleDateString() : ''}</div>
                         </div>
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <button onClick={() => handleRestoreFromTrash(item.id, 'assessment')} style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
@@ -4992,7 +4992,7 @@ export default function AcademicianPortal({
         </div>
       )}
 
-      {/* â”€â”€ VIEW: ACHIEVEMENT VERIFICATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── VIEW: ACHIEVEMENT VERIFICATION ──────────────────────────────────── */}
       {currentTab === 'achievements' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -5002,7 +5002,7 @@ export default function AcademicianPortal({
                 Review and verify certificates & projects uploaded by your assigned students
               </p>
             </div>
-            <button onClick={fetchPendingAchievements} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '8px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button onClick={fetchPendingAchievements} style={{ background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', padding: '8px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <RefreshCw size={14} /> Refresh
             </button>
           </div>
@@ -5012,7 +5012,7 @@ export default function AcademicianPortal({
           ) : (pendingAchievements.certificates.length + pendingAchievements.projects.length) === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
               <ShieldCheck size={48} style={{ opacity: 0.3, marginBottom: '12px' }} />
-              <p style={{ fontSize: '15px' }}>No pending verifications â€” all caught up!</p>
+              <p style={{ fontSize: '15px' }}>No pending verifications — all caught up!</p>
             </div>
           ) : (
             <div>
@@ -5024,14 +5024,14 @@ export default function AcademicianPortal({
                   value={achievementComment}
                   onChange={(e) => setAchievementComment(e.target.value)}
                   placeholder="Add a comment for approval or reason for rejection..."
-                  style={{ width: '100%', boxSizing: 'border-box', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px', resize: 'vertical' }}
+                  style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-heading)', fontSize: '13px', resize: 'vertical' }}
                 />
               </div>
 
               {/* Pending Certificates */}
               {pendingAchievements.certificates.length > 0 && (
                 <div style={{ marginBottom: '24px' }}>
-                  <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>ðŸ† Pending Certificates ({pendingAchievements.certificates.length})</h3>
+                  <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>🏆 Pending Certificates ({pendingAchievements.certificates.length})</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {pendingAchievements.certificates.map(cert => (
                       <div key={cert.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '16px 18px' }}>
@@ -5042,7 +5042,7 @@ export default function AcademicianPortal({
                               By: <strong style={{ color: 'var(--text-heading)' }}>{cert.student_name}</strong> ({cert.roll_number})
                             </div>
                             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                              {cert.issuing_organization && <span>Issuer: {cert.issuing_organization} â€¢ </span>}
+                              {cert.issuing_organization && <span>Issuer: {cert.issuing_organization} • </span>}
                               {cert.issue_date && <span>Issued: {new Date(cert.issue_date).toLocaleDateString()}</span>}
                             </div>
                             {cert.description && <p style={{ margin: '6px 0 0', fontSize: '12.5px', color: 'var(--text-muted)' }}>{cert.description}</p>}
@@ -5054,10 +5054,10 @@ export default function AcademicianPortal({
                               </a>
                             )}
                             <button onClick={() => handleVerifyAchievement(cert.id, 'certificate')} style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                              âœ“ Approve
+                              ✓ Approve
                             </button>
                             <button onClick={() => handleRejectAchievement(cert.id, 'certificate')} style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                              âœ— Reject
+                              ✗ Reject
                             </button>
                           </div>
                         </div>
@@ -5070,7 +5070,7 @@ export default function AcademicianPortal({
               {/* Pending Projects */}
               {pendingAchievements.projects.length > 0 && (
                 <div>
-                  <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Pending Projects ({pendingAchievements.projects.length})</h3>
+                  <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>🚀 Pending Projects ({pendingAchievements.projects.length})</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {pendingAchievements.projects.map(proj => (
                       <div key={proj.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '16px 18px' }}>
@@ -5094,10 +5094,10 @@ export default function AcademicianPortal({
                               </a>
                             )}
                             <button onClick={() => handleVerifyAchievement(proj.id, 'project')} style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                              âœ“ Approve
+                              ✓ Approve
                             </button>
                             <button onClick={() => handleRejectAchievement(proj.id, 'project')} style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                              âœ— Reject
+                              ✗ Reject
                             </button>
                           </div>
                         </div>

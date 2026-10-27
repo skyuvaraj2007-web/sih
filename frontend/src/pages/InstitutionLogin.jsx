@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, Mail, ArrowLeft, Building2, Key, GraduationCap, Phone, Globe, User, ShieldCheck, CheckCircle2, X, Search, Sparkles, Plus, Trash2 } from 'lucide-react';
 import GoogleAuthButton from '../components/auth/GoogleAuthButton';
 import OtpVerificationModal from '../components/auth/OtpVerificationModal';
@@ -265,58 +265,48 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(340px, 460px) minmax(360px, 480px)',
-        borderRadius: '8px',
+        borderRadius: '16px',
         overflow: 'hidden',
-        border: '1px solid #E2E5E9',
-        background: '#FFFFFF',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+        border: '1px solid rgba(139, 92, 246, 0.35)',
+        background: 'var(--bg-card)',
+        boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 30px rgba(139, 92, 246, 0.15)',
         maxWidth: '960px',
         width: '100%'
       }}>
         {/* Left Hero Panel */}
         <div style={{
-          background: '#F1F3F5',
+          background: 'linear-gradient(180deg, #130C24 0%, #060913 100%)',
           padding: '40px 36px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          borderRight: '1px solid #E2E5E9'
+          borderRight: '1px solid var(--border-subtle)'
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '28px' }}>
               <div style={{
-                width: '26px', height: '26px', borderRadius: '4px',
-                background: '#218739', display: 'flex',
-                alignItems: 'center', justifyContent: 'center'
-              }}>
-                <Building2 size={15} color="#FFFFFF" />
-              </div>
-              <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.02em', color: '#17202A' }}>
-                SKILLNEXUS <span style={{ color: '#218739' }}>AI</span>
+                width: '26px', height: '26px', borderRadius: '7px',
+                background: 'var(--grad-purple-indigo)', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 900, fontSize: '14px'
+              }}>🎓</div>
+              <span style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '0.04em' }}>
+                SKILLNEXUS <span style={{ color: 'var(--cyber-purple)' }}>AI</span>
               </span>
-              <span style={{
-                fontSize: '10px',
-                padding: '2px 6px',
-                borderRadius: '4px',
-                background: '#F0FDF4',
-                border: '1px solid #BBF7D0',
-                color: '#15803D',
-                fontWeight: 700
-              }}>
+              <span className="cyber-badge badge-purple" style={{ fontSize: '9px', padding: '2px 7px' }}>
                 ACADEMIA
               </span>
             </div>
 
-            <h1 style={{ fontSize: '26px', fontWeight: 800, lineHeight: 1.3, marginBottom: '12px', color: '#17202A' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, lineHeight: 1.25, marginBottom: '14px', color: 'var(--text-primary)' }}>
               Empower Future Talent <br />
-              <span style={{ color: '#218739' }}>With Skill Intelligence</span>
+              <span style={{ color: 'var(--cyber-purple)' }}>With Skill Intelligence</span>
             </h1>
 
-            <p style={{ fontSize: '13.5px', color: '#5F6B76', lineHeight: 1.6, marginBottom: '28px' }}>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '32px' }}>
               Transform institutional readiness with automated student competency graphs, cohort benchmark analytics, and direct corporate placement pipelines.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {[
                 { title: 'Real-Time Cohort Analytics', desc: 'Track curriculum proficiency across department cohorts' },
                 { title: 'Accreditation-Ready Verification', desc: 'Tamper-proof digital skill proofs for NBA & NAAC compliance' },
@@ -324,18 +314,18 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
               ].map((item, idx) => (
                 <div key={idx} style={{
                   display: 'flex', alignItems: 'flex-start', gap: '12px',
-                  padding: '12px 14px', borderRadius: '6px',
-                  background: '#FFFFFF', border: '1px solid #E2E5E9'
+                  padding: '12px 14px', borderRadius: '10px',
+                  background: 'rgba(139, 92, 246, 0.05)', border: '1px solid rgba(139, 92, 246, 0.15)'
                 }}>
                   <div style={{
-                    width: '22px', height: '22px', borderRadius: '4px',
-                    background: '#F0FDF4', border: '1px solid #BBF7D0',
+                    width: '22px', height: '22px', borderRadius: '6px',
+                    background: 'rgba(139, 92, 246, 0.2)', border: '1px solid var(--cyber-purple)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '11px', color: '#15803D', fontWeight: 800, flexShrink: 0, marginTop: '2px'
-                  }}>âœ“</div>
+                    fontSize: '11px', color: 'var(--cyber-purple)', fontWeight: 800, flexShrink: 0, marginTop: '2px'
+                  }}>✓</div>
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#17202A' }}>{item.title}</div>
-                    <div style={{ fontSize: '12px', color: '#5F6B76' }}>{item.desc}</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{item.title}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{item.desc}</div>
                   </div>
                 </div>
               ))}
@@ -357,7 +347,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
           <div>
             <div style={{ marginBottom: '24px' }}>
               <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '6px' }}>
-                Welcome Back, Institution ðŸ‘‹
+                Welcome Back, Institution 👋
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
                 Manage student talent and career readiness with SKILLNEXUS AI.
@@ -401,7 +391,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                 </label>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
-                  background: '#FFFFFF', border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
                   borderRadius: '8px', padding: '9px 12px'
                 }}>
                   <Mail size={15} color="var(--text-muted)" />
@@ -447,7 +437,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                 </div>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
-                  background: '#FFFFFF', border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
                   borderRadius: '8px', padding: '9px 12px'
                 }}>
                   <Lock size={15} color="var(--text-muted)" />
@@ -455,7 +445,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                    placeholder="••••••••"
                     style={{
                       background: 'transparent', border: 'none',
                       color: 'var(--text-primary)', fontSize: '13px', outline: 'none', width: '100%'
@@ -465,18 +455,26 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                 </div>
               </div>
 
-              {/* Remember Me */}
+              {/* Remember Me & Accreditation */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    style={{ accentColor: 'var(--cyber-purple)' }}
+                    style={{ accentColor: 'var(--cyber-purple)', cursor: 'pointer', width: '15px', height: '15px' }}
                   />
                   <span>Remember me</span>
                 </label>
-                <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+                <span style={{
+                  color: 'var(--text-muted)',
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '11px',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255, 255, 255, 0.06)'
+                }}>
                   AISHE & NBA Verified
                 </span>
               </div>
@@ -485,22 +483,42 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                 type="submit"
                 disabled={loading}
                 className="btn-cyber-purple"
-                style={{ width: '100%', padding: '12px', fontSize: '14px', marginTop: '6px', fontWeight: 600 }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '14px',
+                  marginTop: '6px',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
               >
-                <span>{loading ? 'Signing in...' : 'Sign In â†’'}</span>
+                <span>{loading ? 'Signing in...' : 'Sign In →'}</span>
               </button>
             </form>
 
-            {/* Optional SSO */}
-            <div style={{ margin: '20px 0 16px', textAlign: 'center', position: 'relative' }}>
-              <div style={{ height: '1px', background: 'var(--border-subtle)' }}></div>
+            {/* Optional SSO Divider */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              margin: '20px 0 16px',
+              width: '100%'
+            }}>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle, rgba(255, 255, 255, 0.08))' }}></div>
               <span style={{
-                position: 'relative', top: '-10px', background: '#FFFFFF',
-                padding: '0 10px', fontSize: '10px', color: 'var(--text-muted)',
-                fontFamily: 'var(--font-mono)'
+                fontSize: '10.5px',
+                color: 'var(--text-muted)',
+                fontFamily: 'var(--font-mono, monospace)',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap'
               }}>
                 OR SIGN IN WITH
               </span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle, rgba(255, 255, 255, 0.08))' }}></div>
             </div>
 
             <GoogleAuthButton
@@ -535,11 +553,14 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
               style={{
                 background: 'none', border: 'none', color: 'var(--text-muted)',
                 fontSize: '12px', cursor: 'pointer', display: 'inline-flex',
-                alignItems: 'center', justifyContent: 'center', gap: '6px'
+                alignItems: 'center', justifyContent: 'center', gap: '6px',
+                transition: 'color 0.15s ease'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
             >
-              <ArrowLeft size={13} />
-              <span>â† Back to login selection</span>
+              <ArrowLeft size={14} />
+              <span>Back to login selection</span>
             </button>
           </div>
         </div>
@@ -661,14 +682,14 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                               placeholder="Search official college name or code (e.g. 2712, Kongu, CIT, Anna Univ)..."
                               value={masterQuery}
                               onChange={(e) => setMasterQuery(e.target.value)}
-                              style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 10px', color: 'var(--text-primary)', fontSize: '12px' }}
+                              style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 10px', color: 'var(--text-primary)', fontSize: '12px' }}
                             />
                           </div>
                         </div>
 
                         {/* Search Results Dropdown */}
                         {masterSearchResults.length > 0 && (
-                          <div style={{ maxHeight: '180px', overflowY: 'auto', background: '#FFFFFF', border: '1px solid var(--cyber-purple)', borderRadius: '8px', padding: '4px', marginBottom: '8px' }}>
+                          <div style={{ maxHeight: '180px', overflowY: 'auto', background: '#0B1120', border: '1px solid var(--cyber-purple)', borderRadius: '8px', padding: '4px', marginBottom: '8px' }}>
                             {masterSearchResults.map((mc, idx) => (
                               <div
                                 key={idx}
@@ -696,11 +717,11 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px', fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
                                   <span style={{ color: 'var(--cyber-cyan)' }}>Code: {mc.collegeCode}</span>
-                                  <span>â€¢</span>
+                                  <span>•</span>
                                   <span>{mc.district}</span>
-                                  <span>â€¢</span>
+                                  <span>•</span>
                                   <span>{mc.university}</span>
-                                  <span>â€¢</span>
+                                  <span>•</span>
                                   <span>{mc.collegeType}</span>
                                 </div>
                               </div>
@@ -744,7 +765,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                             placeholder="e.g. C-24981 / TN-ENG-010"
                             value={reqData.aisheCode || reqData.institutionId}
                             onChange={(e) => setReqData({ ...reqData, aisheCode: e.target.value, institutionId: reqData.institutionId || e.target.value })}
-                            style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                            style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                           />
                         </div>
                         <div>
@@ -754,7 +775,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                             placeholder="e.g. Anna University / Deemed"
                             value={reqData.affiliatedUniversity}
                             onChange={(e) => setReqData({ ...reqData, affiliatedUniversity: e.target.value })}
-                            style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                            style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                           />
                         </div>
                       </div>
@@ -765,7 +786,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                           <select
                             value={reqData.institutionType}
                             onChange={(e) => setReqData({ ...reqData, institutionType: e.target.value })}
-                            style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                            style={{ width: '100%', background: '#0B1120', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                           >
                             <option value="University">University</option>
                             <option value="Autonomous College">Autonomous College</option>
@@ -783,7 +804,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                             placeholder="registrar@campus.edu.in"
                             value={reqData.officialEmail}
                             onChange={(e) => setReqData({ ...reqData, officialEmail: e.target.value })}
-                            style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                            style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                           />
                         </div>
                       </div>
@@ -796,7 +817,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                             placeholder="https://campus.edu.in"
                             value={reqData.website}
                             onChange={(e) => setReqData({ ...reqData, website: e.target.value })}
-                            style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                            style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                           />
                         </div>
                         <div>
@@ -806,7 +827,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                             placeholder="e.g. Chennai, Coimbatore, Madurai"
                             value={reqData.district}
                             onChange={(e) => setReqData({ ...reqData, district: e.target.value })}
-                            style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                            style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                           />
                         </div>
                       </div>
@@ -825,7 +846,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                             placeholder="e.g. Dr. K. Ramanathan"
                             value={reqData.contactPerson}
                             onChange={(e) => setReqData({ ...reqData, contactPerson: e.target.value })}
-                            style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                            style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                           />
                         </div>
                         <div>
@@ -836,7 +857,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                             placeholder="e.g. Head of Placements / Dean"
                             value={reqData.designation}
                             onChange={(e) => setReqData({ ...reqData, designation: e.target.value })}
-                            style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                            style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                           />
                         </div>
                       </div>
@@ -849,7 +870,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                           placeholder="+91 98765 43210"
                           value={reqData.phone}
                           onChange={(e) => setReqData({ ...reqData, phone: e.target.value })}
-                          style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                          style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                         />
                       </div>
 
@@ -859,10 +880,10 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                           <input
                             type="password"
                             required
-                            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                            placeholder="••••••••"
                             value={reqData.password}
                             onChange={(e) => setReqData({ ...reqData, password: e.target.value })}
-                            style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                            style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                           />
                         </div>
                         <div>
@@ -870,10 +891,10 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                           <input
                             type="password"
                             required
-                            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                            placeholder="••••••••"
                             value={reqData.confirmPassword}
                             onChange={(e) => setReqData({ ...reqData, confirmPassword: e.target.value })}
-                            style={{ width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
+                            style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', color: 'var(--text-primary)', fontSize: '13px' }}
                           />
                         </div>
                       </div>
@@ -938,7 +959,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                           type="text"
                           id="newDeptInputInst"
                           placeholder="Add department (e.g. Artificial Intelligence & Data Science)..."
-                          style={{ flex: 1, background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 10px', color: 'var(--text-primary)', fontSize: '12px' }}
+                          style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 10px', color: 'var(--text-primary)', fontSize: '12px' }}
                         />
                         <button
                           type="button"
@@ -974,7 +995,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                         className="btn-cyber-outline"
                         style={{ flex: 1, padding: '10px' }}
                       >
-                        â† Previous
+                        ← Previous
                       </button>
                     ) : (
                       <button
@@ -1015,7 +1036,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                         className="btn-cyber-purple"
                         style={{ flex: 2, padding: '10px', fontWeight: 600 }}
                       >
-                        Next Step â†’
+                        Next Step →
                       </button>
                     ) : (
                       <button
@@ -1095,7 +1116,7 @@ export default function InstitutionLogin({ onLoginSuccess, onBackToRoles, onNavi
                     onChange={(e) => setForgotEmail(e.target.value)}
                     placeholder="dean@university.edu.in"
                     style={{
-                      width: '100%', background: '#FFFFFF', border: '1px solid var(--border-subtle)',
+                      width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
                       borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px'
                     }}
                   />

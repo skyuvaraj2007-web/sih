@@ -16,6 +16,9 @@ class SupabaseQueryAdapter {
    * Returns { rows: [...], rowCount: n, command: '...' }
    */
   async query(sqlText, params = []) {
+    if (!this.client) {
+      return { rows: [], rowCount: 0 };
+    }
     if (!sqlText || typeof sqlText !== 'string') {
       return { rows: [], rowCount: 0 };
     }

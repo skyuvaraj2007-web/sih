@@ -1,4 +1,4 @@
-/* SKILLNEXUS AI — SIH DEMO LOGIN SECTION STYLES (LIGHT MODE DESIGN SYSTEM) */
+/* SKILLNEXUS AI — SIH DEMO LOGIN SECTION STYLES */
 
 .sih-demo-section-container {
   width: 100%;
@@ -10,35 +10,36 @@
 
 .sih-demo-header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 }
 
 .sih-demo-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: #1D4ED8;
+  gap: 7px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #818cf8;
   text-transform: uppercase;
   margin-bottom: 8px;
 }
 
 .sih-demo-title {
   font-size: 22px;
-  font-weight: 700;
-  color: #17202A;
+  font-weight: 800;
+  color: #f8fafc;
   margin: 0 0 6px;
+  letter-spacing: -0.02em;
 }
 
 .sih-demo-subtitle {
   font-size: 13.5px;
-  color: #5F6B76;
+  color: #94a3b8;
   margin: 0;
 }
 
@@ -66,22 +67,23 @@
 }
 
 .sih-demo-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E5E9;
-  border-radius: 8px;
-  padding: 16px;
+  background: #111A2E;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  padding: 18px 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   overflow: hidden;
 }
 
 .sih-demo-card:hover {
-  border-color: #315CFF;
-  box-shadow: 0 4px 12px rgba(49, 92, 255, 0.08);
+  transform: translateY(-3px);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
 }
 
 .sih-demo-card-top {
@@ -92,21 +94,21 @@
 }
 
 .sih-demo-role-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .sih-demo-pill-badge {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 3px 8px;
-  border-radius: 4px;
+  border-radius: 6px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -122,16 +124,17 @@
 
 .sih-demo-role-name {
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-weight: 800;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  font-family: var(--font-mono, monospace);
   margin-bottom: 2px;
 }
 
 .sih-demo-user-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #17202A;
+  font-size: 16px;
+  font-weight: 700;
+  color: #f8fafc;
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -139,9 +142,9 @@
 }
 
 .sih-demo-credential-box {
-  background: #F7F8FA;
-  border: 1px solid #E2E5E9;
-  border-radius: 6px;
+  background: #0B1220;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
   padding: 8px 10px;
   display: flex;
   align-items: center;
@@ -155,17 +158,18 @@
 }
 
 .sih-demo-cred-label {
-  font-size: 10px;
-  color: #8A949E;
+  font-size: 9.5px;
+  color: #64748b;
   text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .sih-demo-cred-val {
   font-size: 12px;
-  color: #17202A;
-  font-family: monospace;
+  color: #cbd5e1;
+  font-family: var(--font-mono, monospace);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -173,53 +177,51 @@
 }
 
 .sih-demo-copy-btn {
-  background: #FFFFFF;
-  border: 1px solid #E2E5E9;
-  color: #5F6B76;
-  padding: 4px 8px;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  padding: 4px 7px;
+  border-radius: 5px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10.5px;
+  font-weight: 600;
   transition: all 0.15s ease;
   flex-shrink: 0;
 }
 
 .sih-demo-copy-btn:hover {
-  background: #F1F3F5;
-  color: #17202A;
-  border-color: #CBD5E1;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
 }
 
 .sih-demo-copy-btn.copied {
-  background: #F0FDF4;
-  border-color: #BBF7D0;
-  color: #15803D;
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
 }
 
 .sih-demo-action-btn {
   width: 100%;
-  padding: 9px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  border: 1px solid #315CFF;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 800;
+  border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  transition: all 0.15s ease;
-  background: #315CFF;
-  color: #FFFFFF;
+  gap: 7px;
+  transition: all 0.2s ease;
+  color: #070b14;
 }
 
 .sih-demo-action-btn:hover {
-  background: #2649D8;
-  border-color: #2649D8;
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
 .sih-demo-action-btn:active {

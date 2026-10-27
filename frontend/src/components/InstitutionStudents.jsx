@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Users,
   Search,
@@ -171,7 +171,7 @@ export default function InstitutionStudents({ institution, onShowToast }) {
           }}>
             <Building2 size={13} />
             <span>Academic Workspace // Student Details</span>
-            <span style={{ color: 'var(--text-muted)' }}>â€¢</span>
+            <span style={{ color: 'var(--text-muted)' }}>•</span>
             <span style={{ color: 'var(--cyber-emerald)' }}>ID: {currentCollegeId}</span>
           </div>
           <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
@@ -218,7 +218,7 @@ export default function InstitutionStudents({ institution, onShowToast }) {
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          background: '#FFFFFF',
+          background: 'var(--bg-input)',
           border: '1px solid var(--border-subtle)',
           borderRadius: '8px',
           padding: '0 12px',
@@ -263,7 +263,7 @@ export default function InstitutionStudents({ institution, onShowToast }) {
             }}
             style={{
               width: '100%',
-              background: '#FFFFFF',
+              background: 'var(--bg-input)',
               border: '1px solid var(--border-subtle)',
               borderRadius: '8px',
               padding: '9px 12px',
@@ -290,7 +290,7 @@ export default function InstitutionStudents({ institution, onShowToast }) {
             }}
             style={{
               width: '100%',
-              background: '#FFFFFF',
+              background: 'var(--bg-input)',
               border: '1px solid var(--border-subtle)',
               borderRadius: '8px',
               padding: '9px 12px',
@@ -314,7 +314,7 @@ export default function InstitutionStudents({ institution, onShowToast }) {
             onChange={(e) => setSortBy(e.target.value)}
             style={{
               width: '100%',
-              background: '#FFFFFF',
+              background: 'var(--bg-input)',
               border: '1px solid var(--border-subtle)',
               borderRadius: '8px',
               padding: '9px 12px',
@@ -324,9 +324,9 @@ export default function InstitutionStudents({ institution, onShowToast }) {
               outline: 'none'
             }}
           >
-            <option value="name_asc">Sort: Name (A â†’ Z)</option>
-            <option value="name_desc">Sort: Name (Z â†’ A)</option>
-            <option value="readiness_desc">Sort: Skill Readiness (High â†’ Low)</option>
+            <option value="name_asc">Sort: Name (A → Z)</option>
+            <option value="name_desc">Sort: Name (Z → A)</option>
+            <option value="readiness_desc">Sort: Skill Readiness (High → Low)</option>
             <option value="dept">Sort: Department</option>
             <option value="year">Sort: Academic Year</option>
             <option value="recent">Sort: Recently Registered</option>
@@ -402,7 +402,7 @@ export default function InstitutionStudents({ institution, onShowToast }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
                 <tr style={{
-                  background: '#F7F8FA',
+                  background: 'rgba(15, 23, 42, 0.7)',
                   borderBottom: '1px solid var(--border-subtle)',
                   fontFamily: 'var(--font-mono)',
                   fontSize: '11px',
@@ -423,7 +423,7 @@ export default function InstitutionStudents({ institution, onShowToast }) {
                   <tr
                     key={stu.studentId}
                     style={{
-                      borderBottom: '1px solid #E2E5E9',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
                       transition: 'background 0.15s ease',
                       cursor: 'pointer'
                     }}
@@ -505,7 +505,7 @@ export default function InstitutionStudents({ institution, onShowToast }) {
                     {/* Status */}
                     <td style={{ padding: '14px 14px' }}>
                       <span className="cyber-badge badge-emerald" style={{ fontSize: '9px' }}>
-                        â— {stu.status || 'Active'}
+                        ● {stu.status || 'Active'}
                       </span>
                     </td>
 
@@ -605,7 +605,7 @@ export default function InstitutionStudents({ institution, onShowToast }) {
               alignItems: 'center',
               padding: '20px 24px',
               borderBottom: '1px solid var(--border-subtle)',
-              background: '#F7F8FA'
+              background: 'rgba(15, 23, 42, 0.6)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="cyber-badge badge-cyan" style={{ fontSize: '10px' }}>VERIFIED STUDENT PROFILE</span>
@@ -651,10 +651,10 @@ export default function InstitutionStudents({ institution, onShowToast }) {
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
                     <span className="cyber-badge badge-purple">{selectedStudent.department}</span>
                     <span className="cyber-badge badge-cyan">{selectedStudent.year}</span>
-                    <span className="cyber-badge badge-emerald">â— {selectedStudent.status}</span>
+                    <span className="cyber-badge badge-emerald">● {selectedStudent.status}</span>
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>
-                    {selectedStudent.email} â€¢ {selectedStudent.collegeName}
+                    {selectedStudent.email} • {selectedStudent.collegeName}
                   </div>
                 </div>
               </div>
@@ -812,7 +812,7 @@ export default function InstitutionStudents({ institution, onShowToast }) {
                         className="cyber-badge badge-emerald"
                         style={{ fontSize: '10.5px', padding: '4px 8px' }}
                       >
-                        âœ“ {cert}
+                        ✓ {cert}
                       </span>
                     ))}
                   </div>
@@ -824,7 +824,7 @@ export default function InstitutionStudents({ institution, onShowToast }) {
             <div style={{
               padding: '16px 24px',
               borderTop: '1px solid var(--border-subtle)',
-              background: '#F7F8FA',
+              background: 'rgba(15, 23, 42, 0.6)',
               display: 'flex',
               justifyContent: 'flex-end',
               gap: '10px'

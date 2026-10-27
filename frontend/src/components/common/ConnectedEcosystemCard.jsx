@@ -1,16 +1,18 @@
 import React from 'react';
-import { School, UserCheck, GraduationCap, Building2, CheckCircle2, ChevronRight, ShieldCheck, Network } from 'lucide-react';
+import { School, UserCheck, GraduationCap, Building2, CheckCircle2, ChevronRight, ShieldCheck, Sparkles } from 'lucide-react';
 
 export default function ConnectedEcosystemCard({ activeRole = 'student', onSelectRole }) {
   const roles = [
     {
       id: 'institution',
       title: 'ABC Engineering College',
-      subtitle: 'Autonomous Institution • NAAC A++',
+      subtitle: 'Accredited Autonomous Institution • NAAC A++',
       category: 'Institution',
       meta: '45 Students in CSE III-A • 1 Active Skill Program',
       icon: School,
-      color: '#218739',
+      color: '#10B981',
+      bg: 'rgba(16, 185, 129, 0.08)',
+      border: 'rgba(16, 185, 129, 0.25)',
       active: activeRole === 'institution'
     },
     {
@@ -20,17 +22,21 @@ export default function ConnectedEcosystemCard({ activeRole = 'student', onSelec
       category: 'Academician',
       meta: 'Class Mentor • React.js Mini Project Assigned',
       icon: UserCheck,
-      color: '#6366F1',
+      color: '#8B5CF6',
+      bg: 'rgba(139, 92, 246, 0.08)',
+      border: 'rgba(139, 92, 246, 0.25)',
       active: activeRole === 'academician'
     },
     {
       id: 'student',
       title: 'Arun Kumar (23CSE042)',
-      subtitle: 'III CSE A • CGPA: 8.85 • Full Stack AI',
+      subtitle: 'III CSE A • CGPA: 8.85 • Full Stack AI Track',
       category: 'Primary Student',
       meta: '8 Verified Skills • Enrolled in React.js Program',
       icon: GraduationCap,
-      color: '#315CFF',
+      color: '#00D4FF',
+      bg: 'rgba(0, 212, 255, 0.08)',
+      border: 'rgba(0, 212, 255, 0.25)',
       active: activeRole === 'student'
     },
     {
@@ -38,42 +44,43 @@ export default function ConnectedEcosystemCard({ activeRole = 'student', onSelec
       title: 'SBT TECH Innovations',
       subtitle: 'Enterprise AI & Cloud Systems Partner',
       category: 'Industry Partner',
-      meta: 'Associate Full Stack AI Developer • Dynamic Matching',
+      meta: 'Associate Full Stack AI Developer • Dynamic Matching & Shortlisting',
       icon: Building2,
-      color: '#A66A00',
+      color: '#F59E0B',
+      bg: 'rgba(245, 158, 11, 0.08)',
+      border: 'rgba(245, 158, 11, 0.25)',
       active: activeRole === 'industry' || activeRole === 'company'
     }
   ];
 
   return (
     <div style={{
-      background: '#FFFFFF',
-      border: '1px solid #E2E5E9',
-      borderRadius: '8px',
-      padding: '16px 20px',
-      marginBottom: '20px',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)'
+      background: 'rgba(21, 31, 53, 0.85)',
+      border: '1px solid #263452',
+      borderRadius: '12px',
+      padding: '18px 20px',
+      marginBottom: '20px'
     }}>
       {/* Top Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Network size={16} color="#315CFF" />
-          <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#17202A', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
+          <Sparkles size={16} color="#00D4FF" />
+          <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
             Connected SIH Demo Ecosystem
           </h4>
           <span style={{
-            fontSize: '11px',
-            padding: '2px 8px',
+            fontSize: '10px',
+            padding: '2px 6px',
             borderRadius: '4px',
-            background: '#EFF6FF',
-            border: '1px solid #BFDBFE',
-            color: '#1D4ED8',
-            fontWeight: 600
+            background: 'rgba(0, 212, 255, 0.15)',
+            border: '1px solid rgba(0, 212, 255, 0.4)',
+            color: '#00D4FF',
+            fontWeight: 800
           }}>
             DATABASE LINKED
           </span>
         </div>
-        <div style={{ fontSize: '12px', color: '#5F6B76' }}>
+        <div style={{ fontSize: '11px', color: '#94A3B8' }}>
           4 Roles • PostgreSQL Single Source of Truth
         </div>
       </div>
@@ -85,29 +92,30 @@ export default function ConnectedEcosystemCard({ activeRole = 'student', onSelec
         gap: '12px',
         position: 'relative'
       }}>
-        {roles.map((r) => {
+        {roles.map((r, idx) => {
           const Icon = r.icon;
           return (
             <div
               key={r.id}
               onClick={() => onSelectRole && onSelectRole(r.id)}
               style={{
-                background: r.active ? '#F8FAFC' : '#FFFFFF',
-                border: r.active ? `2px solid ${r.color}` : '1px solid #E2E5E9',
-                borderRadius: '6px',
+                background: r.bg,
+                border: `1px solid ${r.active ? r.color : r.border}`,
+                borderRadius: '10px',
                 padding: '12px 14px',
                 cursor: onSelectRole ? 'pointer' : 'default',
-                transition: 'all 0.15s ease',
-                position: 'relative'
+                transition: 'all 0.2s ease',
+                position: 'relative',
+                boxShadow: r.active ? `0 0 16px ${r.color}20` : 'none'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <span style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
+                  fontSize: '10px',
+                  fontWeight: 800,
                   color: r.color,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.03em'
+                  letterSpacing: '0.04em'
                 }}>
                   {r.category}
                 </span>
@@ -115,45 +123,45 @@ export default function ConnectedEcosystemCard({ activeRole = 'student', onSelec
                   <span style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '4px',
-                    fontSize: '11px',
-                    fontWeight: 600,
+                    gap: '3px',
+                    fontSize: '9.5px',
+                    fontWeight: 700,
                     color: r.color,
-                    background: '#F1F3F5',
-                    padding: '2px 6px',
+                    background: `${r.color}20`,
+                    padding: '1px 5px',
                     borderRadius: '4px'
                   }}>
-                    <CheckCircle2 size={11} /> Active View
+                    <CheckCircle2 size={10} /> Active View
                   </span>
                 )}
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                 <div style={{
-                  width: '26px', height: '26px', borderRadius: '4px',
-                  background: '#F1F3F5', border: '1px solid #E2E5E9',
+                  width: '24px', height: '24px', borderRadius: '6px',
+                  background: `${r.color}15`, border: `1px solid ${r.color}40`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0
                 }}>
-                  <Icon size={14} color={r.color} />
+                  <Icon size={13} color={r.color} />
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#17202A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#F8FAFC', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {r.title}
                 </div>
               </div>
 
-              <div style={{ fontSize: '12px', color: '#5F6B76', marginBottom: '8px', lineHeight: 1.4 }}>
+              <div style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '6px', lineHeight: 1.3 }}>
                 {r.subtitle}
               </div>
 
               <div style={{
-                fontSize: '11.5px',
-                color: '#5F6B76',
-                background: '#F7F8FA',
-                padding: '6px 8px',
+                fontSize: '10.5px',
+                color: r.color,
+                background: 'rgba(11, 18, 32, 0.5)',
+                padding: '4px 6px',
                 borderRadius: '4px',
-                border: '1px solid #E2E5E9',
-                lineHeight: 1.35
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                lineHeight: 1.2
               }}>
                 {r.meta}
               </div>

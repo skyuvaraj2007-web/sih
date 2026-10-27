@@ -109,7 +109,7 @@ export default function StudentActivation() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#F7F8FA',
+      background: 'radial-gradient(ellipse at 50% 20%, rgba(6, 182, 212, 0.08), transparent 70%), #0B1120',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -120,9 +120,9 @@ export default function StudentActivation() {
         width: '100%',
         maxWidth: '520px',
         background: 'var(--bg-card)',
-        border: '1px solid #E2E5E9',
+        border: '1px solid rgba(6, 182, 212, 0.3)',
         borderRadius: '16px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(6, 182, 212, 0.1)',
         overflow: 'hidden'
       }}>
         {/* Brand Banner */}

@@ -34,12 +34,12 @@ import { dispatchAssessmentAssignedNotification } from '../../services/notificat
 import '../common/CompactDataList.css';
 
 const PROGRAMMING_LANGUAGES = [
-  { id: 'JavaScript', name: 'JavaScript (Node.js)', starter: '// JavaScript Solution\nfunction solution(input) {\n  // Implement system logic here\n  return true;\n}' },
-  { id: 'TypeScript', name: 'TypeScript', starter: '// TypeScript Solution\nfunction solution(input: string): boolean {\n  // Implement typed system logic here\n  return true;\n}' },
-  { id: 'Python', name: 'Python 3.11', starter: '# Python 3 Solution\ndef solution(input_data):\n    # Implement system logic here\n    return True\n' },
-  { id: 'Java', name: 'Java 17', starter: '// Java Solution\npublic class Solution {\n    public static boolean solution(String input) {\n        // Implement logic here\n        return true;\n    }\n}' },
-  { id: 'C++', name: 'C++ 20', starter: '// C++ Solution\n#include <iostream>\n#include <string>\n\nbool solution(const std::string& input) {\n    // Implement logic here\n    return true;\n}' },
-  { id: 'Go', name: 'Go (Golang)', starter: '// Go Solution\npackage main\n\nfunc Solution(input string) bool {\n    // Implement logic here\n    return true\n}' }
+  { id: 'JavaScript', name: 'JavaScript (Node.js)', icon: '⚡', starter: '// JavaScript Solution\nfunction solution(input) {\n  // Implement system logic here\n  return true;\n}' },
+  { id: 'TypeScript', name: 'TypeScript', icon: '🔷', starter: '// TypeScript Solution\nfunction solution(input: string): boolean {\n  // Implement typed system logic here\n  return true;\n}' },
+  { id: 'Python', name: 'Python 3.11', icon: '🐍', starter: '# Python 3 Solution\ndef solution(input_data):\n    # Implement system logic here\n    return True\n' },
+  { id: 'Java', name: 'Java 17', icon: '☕', starter: '// Java Solution\npublic class Solution {\n    public static boolean solution(String input) {\n        // Implement logic here\n        return true;\n    }\n}' },
+  { id: 'C++', name: 'C++ 20', icon: '⚙️', starter: '// C++ Solution\n#include <iostream>\n#include <string>\n\nbool solution(const std::string& input) {\n    // Implement logic here\n    return true;\n}' },
+  { id: 'Go', name: 'Go (Golang)', icon: '🐹', starter: '// Go Solution\npackage main\n\nfunc Solution(input string) bool {\n    // Implement logic here\n    return true\n}' }
 ];
 
 export default function CompanyLearningAssessments({ user, onShowToast, onNavigateToStudents }) {
@@ -344,7 +344,7 @@ export default function CompanyLearningAssessments({ user, onShowToast, onNaviga
 
         if (onShowToast) {
           onShowToast({
-            title: 'Assessment Posted & Dispatched',
+            title: 'Assessment Posted & Dispatched! 🚀',
             message: `Assessment test "${formData.title}" posted. Notifications delivered to ${selectedStudents.length} student(s) and their institution(s).`,
             type: 'success'
           });
@@ -1017,7 +1017,7 @@ export default function CompanyLearningAssessments({ user, onShowToast, onNaviga
                               : 'bg-black/20 border-white/5 text-slate-300 hover:border-white/20'
                           }`}
                         >
-                          <Code size={14} className="text-cyan-400" />
+                          <span className="text-base">{lang.icon}</span>
                           <span className="font-bold text-xs">{lang.name}</span>
                         </button>
                       ))}
@@ -1339,7 +1339,7 @@ export default function CompanyLearningAssessments({ user, onShowToast, onNaviga
                       }}
                     >
                       <Send size={13} />
-                      <span>{isSubmitting ? 'Transmitting & Broadcasting...' : 'Post Assessment & Broadcast Notifications'}</span>
+                      <span>{isSubmitting ? 'Transmitting & Broadcasting...' : 'Post Assessment & Broadcast Notifications 🚀'}</span>
                     </button>
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen,
   TrendingUp,
@@ -79,7 +79,7 @@ export default function LearningProgressAnalytics({ setActivePage, onShowToast }
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '48px' }}>
 
-      {/* â”€â”€ Page Header â”€â”€ */}
+      {/* ── Page Header ── */}
       <div className="page-top-telemetry">
         <div className="page-title-group">
           <div className="telemetry-node-tag">
@@ -105,11 +105,11 @@ export default function LearningProgressAnalytics({ setActivePage, onShowToast }
         </div>
       </div>
 
-      {/* â”€â”€ Telemetry Strip â”€â”€ */}
+      {/* ── Telemetry Strip ── */}
       <div className="telemetry-strip" style={{ marginBottom: '24px' }}>
         <div className="telemetry-item">
           <span className="telemetry-label">DATABASE SYNC</span>
-          <span className="telemetry-value" style={{ color: 'var(--cyber-emerald)' }}>â— LIVE</span>
+          <span className="telemetry-value" style={{ color: 'var(--cyber-emerald)' }}>● LIVE</span>
         </div>
         <div className="telemetry-divider">|</div>
         <div className="telemetry-item">
@@ -133,7 +133,7 @@ export default function LearningProgressAnalytics({ setActivePage, onShowToast }
         </div>
       </div>
 
-      {/* â”€â”€ Section Nav â”€â”€ */}
+      {/* ── Section Nav ── */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
         {sections.map(s => (
           <button
@@ -147,7 +147,7 @@ export default function LearningProgressAnalytics({ setActivePage, onShowToast }
         ))}
       </div>
 
-      {/* â”€â”€ Loading State â”€â”€ */}
+      {/* ── Loading State ── */}
       {loading && (
         <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>
           <Activity size={32} style={{ margin: '0 auto 12px auto', animation: 'spin 2s linear infinite' }} />
@@ -155,7 +155,7 @@ export default function LearningProgressAnalytics({ setActivePage, onShowToast }
         </div>
       )}
 
-      {/* â”€â”€ Empty State for Brand New Student â”€â”€ */}
+      {/* ── Empty State for Brand New Student ── */}
       {!loading && isEmpty && (
         <div className="glass-panel" style={{ padding: '48px 24px', textAlign: 'center', marginBottom: '32px' }}>
           <div style={{
@@ -200,7 +200,7 @@ export default function LearningProgressAnalytics({ setActivePage, onShowToast }
         </div>
       )}
 
-      {/* â”€â”€ Active Dashboard Content (when data exists) â”€â”€ */}
+      {/* ── Active Dashboard Content (when data exists) ── */}
       {!loading && !isEmpty && (
         <>
           {/* Top KPI Cards */}
@@ -218,7 +218,7 @@ export default function LearningProgressAnalytics({ setActivePage, onShowToast }
               <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)' }}>{totalCourses}</div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)' }}>
                 <span style={{ color: 'var(--cyber-emerald)' }}>{completedCourses} completed</span>
-                <span>â€¢</span>
+                <span>•</span>
                 <span>{inProgress} in progress</span>
               </div>
             </div>
@@ -283,7 +283,7 @@ export default function LearningProgressAnalytics({ setActivePage, onShowToast }
                     style={{
                       padding: '16px',
                       borderRadius: '8px',
-                      background: '#F7F8FA',
+                      background: 'rgba(15, 23, 42, 0.4)',
                       border: '1px solid var(--border-subtle)',
                       display: 'flex',
                       alignItems: 'center',
@@ -298,14 +298,14 @@ export default function LearningProgressAnalytics({ setActivePage, onShowToast }
                           {crs.category}
                         </span>
                         <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                          {crs.difficulty} â€¢ {crs.instructorName}
+                          {crs.difficulty} • {crs.instructorName}
                         </span>
                       </div>
                       <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                         {crs.courseTitle}
                       </div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        {crs.completedModules} / {crs.moduleCount} Modules Completed â€¢ {crs.timeSpentHours}h logged
+                        {crs.completedModules} / {crs.moduleCount} Modules Completed • {crs.timeSpentHours}h logged
                       </div>
                     </div>
 
@@ -330,7 +330,7 @@ export default function LearningProgressAnalytics({ setActivePage, onShowToast }
                       className="btn-cyber-outline"
                       style={{ padding: '6px 12px', fontSize: '11px' }}
                     >
-                      Continue â†’
+                      Continue →
                     </button>
                   </div>
                 ))}
@@ -459,7 +459,7 @@ export default function LearningProgressAnalytics({ setActivePage, onShowToast }
                             Gap: {rec.weakSkill}
                           </span>
                           <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                            {rec.recommendedCourse.hours}h â€¢ {rec.recommendedCourse.difficulty}
+                            {rec.recommendedCourse.hours}h • {rec.recommendedCourse.difficulty}
                           </span>
                         </div>
                         <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>
@@ -475,7 +475,7 @@ export default function LearningProgressAnalytics({ setActivePage, onShowToast }
                         className="btn-cyber-primary"
                         style={{ width: '100%', padding: '8px', fontSize: '12px' }}
                       >
-                        {rec.isEnrolled ? 'Resume Course â†’' : 'Enroll in Remediation Course â†’'}
+                        {rec.isEnrolled ? 'Resume Course →' : 'Enroll in Remediation Course →'}
                       </button>
                     </div>
                   ))}

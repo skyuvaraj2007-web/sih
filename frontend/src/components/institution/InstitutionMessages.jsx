@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   MessageSquare,
   Send,
@@ -167,7 +167,7 @@ export default function InstitutionMessages({ institution, onShowToast }) {
 
   return (
     <div style={{ paddingBottom: '32px' }}>
-      {/* â”€â”€ HEADER BANNER â”€â”€ */}
+      {/* ── HEADER BANNER ── */}
       <div className="glass-panel" style={{
         padding: '20px 24px',
         marginBottom: '20px',
@@ -212,7 +212,7 @@ export default function InstitutionMessages({ institution, onShowToast }) {
         </div>
       </div>
 
-      {/* â”€â”€ MESSAGING SPLIT INTERFACE â”€â”€ */}
+      {/* ── MESSAGING SPLIT INTERFACE ── */}
       <div className="glass-panel" style={{
         display: 'grid',
         gridTemplateColumns: '320px 1fr',
@@ -235,7 +235,7 @@ export default function InstitutionMessages({ institution, onShowToast }) {
               gap: '8px',
               padding: '6px 10px',
               borderRadius: '6px',
-              background: '#F7F8FA',
+              background: 'rgba(15, 23, 42, 0.6)',
               border: '1px solid var(--border-subtle)'
             }}>
               <Search size={14} color="var(--text-muted)" />
@@ -326,7 +326,7 @@ export default function InstitutionMessages({ institution, onShowToast }) {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: '#F7F8FA'
+                background: 'rgba(15, 23, 42, 0.4)'
               }}>
                 <div>
                   <h3 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
@@ -377,7 +377,7 @@ export default function InstitutionMessages({ institution, onShowToast }) {
                           gap: '6px'
                         }}>
                           <span>{m.sender_name || (isMe ? 'Institution' : 'Participant')}</span>
-                          <span>â€¢</span>
+                          <span>•</span>
                           <span>{m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                         </div>
                         <div style={{
@@ -417,7 +417,7 @@ export default function InstitutionMessages({ institution, onShowToast }) {
                   onChange={(e) => setMessageText(e.target.value)}
                   style={{
                     flex: 1,
-                    background: '#F7F8FA',
+                    background: 'rgba(15, 23, 42, 0.7)',
                     border: '1px solid var(--border-subtle)',
                     borderRadius: '8px',
                     padding: '9px 14px',
@@ -458,7 +458,7 @@ export default function InstitutionMessages({ institution, onShowToast }) {
         </div>
       </div>
 
-      {/* â”€â”€ NEW CONVERSATION MODAL â”€â”€ */}
+      {/* ── NEW CONVERSATION MODAL ── */}
       {showNewModal && (
         <div style={{
           position: 'fixed',
@@ -505,7 +505,7 @@ export default function InstitutionMessages({ institution, onShowToast }) {
                     width: '100%',
                     padding: '8px 12px',
                     borderRadius: '6px',
-                    background: '#FFFFFF',
+                    background: 'rgba(15, 23, 42, 0.8)',
                     border: '1px solid var(--border-subtle)',
                     color: 'var(--text-primary)',
                     fontSize: '13px',
@@ -527,7 +527,7 @@ export default function InstitutionMessages({ institution, onShowToast }) {
                     width: '100%',
                     padding: '8px 12px',
                     borderRadius: '6px',
-                    background: '#FFFFFF',
+                    background: 'rgba(15, 23, 42, 0.8)',
                     border: '1px solid var(--border-subtle)',
                     color: 'var(--text-primary)',
                     fontSize: '13px',
@@ -549,7 +549,7 @@ export default function InstitutionMessages({ institution, onShowToast }) {
                     width: '100%',
                     padding: '8px 12px',
                     borderRadius: '6px',
-                    background: '#FFFFFF',
+                    background: 'rgba(15, 23, 42, 0.8)',
                     border: '1px solid var(--border-subtle)',
                     color: 'var(--text-primary)',
                     fontSize: '13px',

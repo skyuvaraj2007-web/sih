@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search,
   Filter,
@@ -39,10 +39,10 @@ export default function CompanyTalentSearch({
   onOpenCompare,
   companyId = ''
 }) {
-  // â”€â”€ SEARCH MODES â”€â”€
+  // ── SEARCH MODES ──
   const [searchMode, setSearchMode] = useState('general'); // 'general' or 'company_course'
 
-  // â”€â”€ DYNAMIC SKILL & COURSE SELECTION â”€â”€
+  // ── DYNAMIC SKILL & COURSE SELECTION ──
   const [selectedSkills, setSelectedSkills] = useState(['C', 'C++', 'Data Structures']);
   const [skillInput, setSkillInput] = useState('');
   const [availableSkillCatalog, setAvailableSkillCatalog] = useState([
@@ -56,14 +56,14 @@ export default function CompanyTalentSearch({
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [courseCatalog, setCourseCatalog] = useState([]);
 
-  // â”€â”€ BENCHMARK REQUIREMENTS â”€â”€
+  // ── BENCHMARK REQUIREMENTS ──
   const [skillBenchmark, setSkillBenchmark] = useState(80);
   const [overallBenchmark, setOverallBenchmark] = useState(80);
   const [minAssessmentScore, setMinAssessmentScore] = useState(0);
   const [minCourseCompletion, setMinCourseCompletion] = useState(0);
   const [minProjectsCount, setMinProjectsCount] = useState(0);
 
-  // â”€â”€ FILTERS & SORTING â”€â”€
+  // ── FILTERS & SORTING ──
   const [filterInstitution, setFilterInstitution] = useState('All');
   const [filterDepartment, setFilterDepartment] = useState('All');
   const [sortBy, setSortBy] = useState('highest_match');
@@ -83,11 +83,11 @@ export default function CompanyTalentSearch({
     return Array.from(map.entries()).map(([code, name]) => ({ code, name }));
   }, [students]);
 
-  // â”€â”€ RESULTS & METRICS STATE â”€â”€
+  // ── RESULTS & METRICS STATE ──
   const [discoveryData, setDiscoveryData] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // â”€â”€ COMPARE TRAY & PROFILE MODAL â”€â”€
+  // ── COMPARE TRAY & PROFILE MODAL ──
   const [selectedForCompare, setSelectedForCompare] = useState([]);
   const [viewingProfileStudent, setViewingProfileStudent] = useState(null);
 
@@ -248,7 +248,7 @@ export default function CompanyTalentSearch({
 
   return (
     <div className="comp-stack">
-      {/* â”€â”€ TOP TELEMETRY BANNER â”€â”€ */}
+      {/* ── TOP TELEMETRY BANNER ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
         <div className="comp-telemetry-tag">
           <span>SKILLNEXUS ENTERPRISE</span>
@@ -275,7 +275,7 @@ export default function CompanyTalentSearch({
         </div>
 
         {/* Dual Mode Switcher */}
-        <div style={{ display: 'inline-flex', background: '#FFFFFF', padding: '4px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+        <div style={{ display: 'inline-flex', background: 'rgba(15, 23, 42, 0.8)', padding: '4px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
           <button
             type="button"
             onClick={() => setSearchMode('general')}
@@ -313,7 +313,7 @@ export default function CompanyTalentSearch({
         </div>
       </div>
 
-      {/* â”€â”€ DASHBOARD METRICS SUMMARY WIDGETS (Requirement 24) â”€â”€ */}
+      {/* ── DASHBOARD METRICS SUMMARY WIDGETS (Requirement 24) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
         <div className="comp-card" style={{ padding: '16px', borderLeft: '3px solid #00D4FF' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary, #94A3B8)', textTransform: 'uppercase', fontWeight: 700 }}>
@@ -366,8 +366,8 @@ export default function CompanyTalentSearch({
         </div>
       </div>
 
-      {/* â”€â”€ SKILL & BENCHMARK CONFIGURATION PANEL (Requirements 3, 4, 5, 17) â”€â”€ */}
-      <div className="comp-card" style={{ background: '#F7F8FA' }}>
+      {/* ── SKILL & BENCHMARK CONFIGURATION PANEL (Requirements 3, 4, 5, 17) ── */}
+      <div className="comp-card" style={{ background: 'rgba(15, 23, 42, 0.65)' }}>
         <div className="comp-card-header" style={{ marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#00D4FF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             <Filter size={15} />
@@ -645,7 +645,7 @@ export default function CompanyTalentSearch({
         </div>
       </div>
 
-      {/* â”€â”€ VIEW MODE & GROUPING TOGGLE (Requirement 15) â”€â”€ */}
+      {/* ── VIEW MODE & GROUPING TOGGLE (Requirement 15) ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '8px 0' }}>
         <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span>Ranked Candidates ({talentResults.length})</span>
@@ -675,7 +675,7 @@ export default function CompanyTalentSearch({
         </div>
       </div>
 
-      {/* â”€â”€ INSTITUTION BREAKDOWN VIEW (Requirement 15) â”€â”€ */}
+      {/* ── INSTITUTION BREAKDOWN VIEW (Requirement 15) ── */}
       {viewMode === 'institution_grouping' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
           {institutionBreakdown.map(inst => (
@@ -720,7 +720,7 @@ export default function CompanyTalentSearch({
         </div>
       )}
 
-      {/* â”€â”€ RANKED TALENT RESULTS GRID (Requirement 9) â”€â”€ */}
+      {/* ── RANKED TALENT RESULTS GRID (Requirement 9) ── */}
       {viewMode === 'ranked_list' && (
         <>
           {talentResults.length === 0 ? (
@@ -762,7 +762,7 @@ export default function CompanyTalentSearch({
                           </h3>
                           <div style={{ fontSize: '12px', color: 'var(--text-secondary, #94A3B8)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <Building2 size={12} color="#00D4FF" />
-                            {student.institutionName} â€¢ {student.department} ({student.batch})
+                            {student.institutionName} • {student.department} ({student.batch})
                           </div>
                         </div>
 
@@ -829,7 +829,7 @@ export default function CompanyTalentSearch({
                                   color: sk.meetsBenchmark ? '#10B981' : '#F59E0B'
                                 }}
                               >
-                                {sk.skillName} â€” {sk.score}% {sk.isVerified && 'âœ“'}
+                                {sk.skillName} — {sk.score}% {sk.isVerified && '✓'}
                               </span>
                             ))
                           ) : (
@@ -904,7 +904,7 @@ export default function CompanyTalentSearch({
         </>
       )}
 
-      {/* â”€â”€ READ-ONLY SCOPED STUDENT TALENT DOSSIER MODAL (Requirements 10 & 21) â”€â”€ */}
+      {/* ── READ-ONLY SCOPED STUDENT TALENT DOSSIER MODAL (Requirements 10 & 21) ── */}
       {viewingProfileStudent && (
         <div style={{
           position: 'fixed',
@@ -942,7 +942,7 @@ export default function CompanyTalentSearch({
                   {viewingProfileStudent.name}
                 </h2>
                 <div style={{ fontSize: '13px', color: 'var(--text-secondary, #94A3B8)', marginTop: '4px' }}>
-                  {viewingProfileStudent.institutionName} â€¢ {viewingProfileStudent.department} ({viewingProfileStudent.batch})
+                  {viewingProfileStudent.institutionName} • {viewingProfileStudent.department} ({viewingProfileStudent.batch})
                 </div>
               </div>
 
@@ -962,19 +962,19 @@ export default function CompanyTalentSearch({
                 Transparent Match Score Breakdown
               </h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', textAlign: 'center' }}>
-                <div style={{ background: '#FFFFFF', padding: '8px', borderRadius: '6px' }}>
+                <div style={{ background: 'rgba(15, 23, 42, 0.8)', padding: '8px', borderRadius: '6px' }}>
                   <div style={{ fontSize: '10px', color: 'var(--text-secondary, #94A3B8)' }}>SKILL MATCH</div>
                   <div style={{ fontSize: '16px', fontWeight: 800, color: '#00D4FF' }}>{viewingProfileStudent.matchBreakdown?.skillMatch}%</div>
                 </div>
-                <div style={{ background: '#FFFFFF', padding: '8px', borderRadius: '6px' }}>
+                <div style={{ background: 'rgba(15, 23, 42, 0.8)', padding: '8px', borderRadius: '6px' }}>
                   <div style={{ fontSize: '10px', color: 'var(--text-secondary, #94A3B8)' }}>COURSE PERFORMANCE</div>
                   <div style={{ fontSize: '16px', fontWeight: 800, color: '#10B981' }}>{viewingProfileStudent.matchBreakdown?.coursePerformance}%</div>
                 </div>
-                <div style={{ background: '#FFFFFF', padding: '8px', borderRadius: '6px' }}>
+                <div style={{ background: 'rgba(15, 23, 42, 0.8)', padding: '8px', borderRadius: '6px' }}>
                   <div style={{ fontSize: '10px', color: 'var(--text-secondary, #94A3B8)' }}>ASSESSMENT</div>
                   <div style={{ fontSize: '16px', fontWeight: 800, color: '#8B5CF6' }}>{viewingProfileStudent.matchBreakdown?.assessment}%</div>
                 </div>
-                <div style={{ background: '#FFFFFF', padding: '8px', borderRadius: '6px' }}>
+                <div style={{ background: 'rgba(15, 23, 42, 0.8)', padding: '8px', borderRadius: '6px' }}>
                   <div style={{ fontSize: '10px', color: 'var(--text-secondary, #94A3B8)' }}>PROJECT RELEVANCE</div>
                   <div style={{ fontSize: '16px', fontWeight: 800, color: '#F59E0B' }}>{viewingProfileStudent.matchBreakdown?.projectExperience}%</div>
                 </div>
@@ -988,7 +988,7 @@ export default function CompanyTalentSearch({
               </h4>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {viewingProfileStudent.skillScoreBreakdown?.map(sk => (
-                  <div key={sk.skillName} style={{ padding: '6px 12px', background: '#FFFFFF', borderRadius: '6px', border: `1px solid ${sk.meetsBenchmark ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`, fontSize: '12px' }}>
+                  <div key={sk.skillName} style={{ padding: '6px 12px', background: 'rgba(15, 23, 42, 0.8)', borderRadius: '6px', border: `1px solid ${sk.meetsBenchmark ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`, fontSize: '12px' }}>
                     <span style={{ color: '#fff', fontWeight: 600 }}>{sk.skillName}: </span>
                     <span style={{ color: sk.meetsBenchmark ? '#10B981' : '#F59E0B', fontWeight: 700 }}>{sk.score}%</span>
                     <span style={{ fontSize: '10px', color: 'var(--text-secondary, #94A3B8)', marginLeft: '6px' }}>(Benchmark: {sk.requiredBenchmark}%)</span>
@@ -1006,7 +1006,7 @@ export default function CompanyTalentSearch({
                 <div style={{ fontSize: '12px', color: 'var(--text-secondary, #94A3B8)' }}>No specific project evidence submitted for requested skills.</div>
               ) : (
                 viewingProfileStudent.relevantProjects?.map(p => (
-                  <div key={p.id} style={{ background: '#F7F8FA', padding: '10px 12px', borderRadius: '6px', marginBottom: '8px', borderLeft: '2px solid #F59E0B' }}>
+                  <div key={p.id} style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '10px 12px', borderRadius: '6px', marginBottom: '8px', borderLeft: '2px solid #F59E0B' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{p.title}</span>
                       {p.githubUrl && (
@@ -1035,7 +1035,7 @@ export default function CompanyTalentSearch({
                   <div key={c.certificateId} style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '10px 12px', borderRadius: '6px', marginBottom: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>{c.courseTitle}</div>
-                      <div style={{ fontSize: '10px', color: '#10B981' }}>âœ“ Verified by {c.verifiedBy}</div>
+                      <div style={{ fontSize: '10px', color: '#10B981' }}>✓ Verified by {c.verifiedBy}</div>
                     </div>
                     <span className="comp-badge comp-badge-emerald">VERIFIED CREDENTIAL</span>
                   </div>

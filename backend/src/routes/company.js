@@ -126,20 +126,6 @@ router.get('/opportunities/:id/recommended-candidates', requireAuth, verifyCompa
   }
 });
 
-// Alias: GET /opportunities/:id/matches (backwards compatibility for UI)
-router.get('/opportunities/:id/matches', requireAuth, verifyCompany, async (req, res) => {
-  try {
-    const result = await opportunityMatchingEngine.calculateOpportunityMatches(req.params.id, req.query);
-    res.json({
-      success: true,
-      data: result.candidates,
-      opportunity: result.opportunity,
-      totalCandidates: result.totalCandidates
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
 
 // POST Calculate/Recalculate Matches
 router.post('/opportunities/:id/calculate-matches', requireAuth, verifyCompany, async (req, res) => {

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   User,
   ArrowLeft,
@@ -43,9 +43,9 @@ import {
 import { loadStudentProfile, saveStudentProfile, calculateProfileCompletion } from '../services/profileStore';
 import { normalizeRole } from '../services/notificationStore';
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════════════════════
 // INITIALS AVATAR GENERATOR
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════════════════════
 function InitialsAvatar({ name, size = 84 }) {
   const initials = (name || 'S')
     .split(' ')
@@ -111,15 +111,15 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
 
   const instData = instProfile || {
     institutionName: user?.institutionName || user?.name || 'Institution Information Unavailable',
-    campusId: user?.campusId || user?.code || user?.id || 'â€”',
-    email: user?.email || 'â€”',
-    collegeId: user?.collegeId || user?.code || user?.id || 'â€”',
-    district: user?.district || user?.city || 'â€”',
-    university: user?.university || user?.affiliation || 'â€”',
+    campusId: user?.campusId || user?.code || user?.id || '—',
+    email: user?.email || '—',
+    collegeId: user?.collegeId || user?.code || user?.id || '—',
+    district: user?.district || user?.city || '—',
+    university: user?.university || user?.affiliation || '—',
     type: user?.type || 'Educational Institution',
-    website: user?.website || 'â€”',
-    phone: user?.phone || 'â€”',
-    contactPerson: user?.contactPerson || user?.name || 'â€”',
+    website: user?.website || '—',
+    phone: user?.phone || '—',
+    contactPerson: user?.contactPerson || user?.name || '—',
     departments: user?.departments || [],
     studentCount: user?.studentCount || 0,
     coursesOffered: user?.coursesOffered || 0
@@ -127,13 +127,13 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
 
   const compData = compProfile || {
     companyName: user?.companyName || user?.name || 'Company Information Unavailable',
-    recruiterHandle: user?.recruiterHandle || user?.companyId || user?.id || 'â€”',
-    email: user?.email || 'â€”',
-    contactPerson: user?.contactPerson || user?.name || 'â€”',
+    recruiterHandle: user?.recruiterHandle || user?.companyId || user?.id || '—',
+    email: user?.email || '—',
+    contactPerson: user?.contactPerson || user?.name || '—',
     industry: user?.industry || 'Technology & Innovation',
-    location: user?.location || (user?.city ? `${user.city}, ${user.state || ''}` : 'â€”'),
-    website: user?.website || 'â€”',
-    phone: user?.phone || 'â€”',
+    location: user?.location || (user?.city ? `${user.city}, ${user.state || ''}` : '—'),
+    website: user?.website || '—',
+    phone: user?.phone || '—',
     preferredSkills: user?.preferredSkills || [],
     preferredRoles: user?.preferredRoles || [],
     experienceLevel: user?.experienceLevel || 'All Undergraduate Years',
@@ -145,7 +145,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
   const [isEditingComp, setIsEditingComp] = useState(false);
   const [compFormData, setCompFormData] = useState(compData);
 
-  // â”€â”€ Fetch all profile sections from backend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Fetch all profile sections from backend ────────────────────────────────
   const fetchAll = useCallback(async () => {
     const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
     const headers = { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
@@ -308,7 +308,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
     return () => window.removeEventListener('nexus_profile_updated', handleProfileUpdate);
   }, [isEditing]);
 
-  // â”€â”€ Edit / Save / Cancel Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Edit / Save / Cancel Handlers ──────────────────────────────────────────
   const handleToggleEdit = () => {
     if (isEditing) {
       setFormData(profile);
@@ -371,10 +371,10 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
     }
   };
 
-  // â”€â”€ Profile Completion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Profile Completion ─────────────────────────────────────────────────────
   const completion = calculateProfileCompletion(profile, documents, projects);
 
-  // â”€â”€ Institution & Company Save Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Institution & Company Save Handlers ─────────────────────────────────────
   const handleSaveInst = async (e) => {
     if (e) e.preventDefault();
     try {
@@ -433,7 +433,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
     if (onShowToast) onShowToast({ title: 'Company Profile Updated', message: 'Company details saved locally.', type: 'success' });
   };
 
-  // â”€â”€ Photo upload handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Photo upload handler ───────────────────────────────────────────────────
   const handlePhotoUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -452,7 +452,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
     reader.readAsDataURL(file);
   };
 
-  // â”€â”€ Document upload handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Document upload handler ────────────────────────────────────────────────
   const handleDocUpload = async (file) => {
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
@@ -478,14 +478,14 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
     reader.readAsDataURL(file);
   };
 
-  // â”€â”€ Application stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Application stats ──────────────────────────────────────────────────────
   const appStats = {
     applied: applications.length,
     shortlisted: applications.filter(a => ['Shortlisted', 'shortlisted', 'Interview', 'interview'].includes(a.stage || a.status)).length,
     selected: applications.filter(a => ['Offer', 'offer', 'Selected', 'selected', 'Accepted', 'accepted'].includes(a.stage || a.status)).length
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────── RENDER ─────────────────────────────────────────────
 
   // Helper: Section card wrapper
   const SectionCard = ({ icon: Icon, iconColor, title, rightAction, children }) => (
@@ -502,10 +502,10 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
 
   // Helper: Info cell
   const InfoCell = ({ label, value, accent, mono }) => (
-    <div style={{ padding: '14px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)' }}>
+    <div style={{ padding: '14px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)' }}>
       <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>{label}</div>
       <div style={{ fontSize: '13.5px', fontWeight: 600, color: accent || 'var(--text-primary)', marginTop: '2px', ...(mono ? { fontFamily: 'var(--font-mono)' } : {}) }}>
-        {value || 'â€”'}
+        {value || '—'}
       </div>
     </div>
   );
@@ -549,7 +549,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
           <p>
             {currentRole === 'institution' ? 'Manage your institution profile, academic information, and official contact details.' :
              currentRole === 'company' ? 'Manage your company profile, hiring preferences, and talent requirements.' :
-             'Your complete student profile overview â€” personal, academic, skills, courses, projects, and certificates.'}
+             'Your complete student profile overview — personal, academic, skills, courses, projects, and certificates.'}
           </p>
         </div>
 
@@ -567,10 +567,10 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
         </div>
       </div>
 
-      {/* â•â• STUDENT PROFILE CONTENT â•â• */}
+      {/* ══ STUDENT PROFILE CONTENT ══ */}
       {currentRole === 'student' && (
       <>
-      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• PROFILE HEADER CARD â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      {/* ═══════════════ PROFILE HEADER CARD ═══════════════ */}
       <div className="glass-panel" style={{
         padding: '28px', marginBottom: '24px', position: 'relative', overflow: 'hidden',
         border: '1px solid var(--border-glow)', background: 'var(--grad-hero-banner)'
@@ -601,18 +601,18 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
               <label style={{
                 position: 'absolute', bottom: '0px', right: '0px',
                 width: '26px', height: '26px', borderRadius: '50%',
-                background: '#315CFF', border: '2px solid #FFFFFF',
+                background: 'var(--cyber-cyan)', border: '2px solid #0B1120',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: 'pointer', transition: 'all 0.2s ease'
               }}>
-                <Camera size={12} color="#FFFFFF" strokeWidth={2.5} />
+                <Camera size={12} color="#0B1120" strokeWidth={2.5} />
                 <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
               </label>
             </div>
 
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#17202A', letterSpacing: '-0.02em' }}>{profile.name}</h2>
+                <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>{profile.name}</h2>
                 <span className="cyber-badge badge-emerald" style={{ fontSize: '9px', padding: '3px 8px' }}>
                   <ShieldCheck size={11} style={{ marginRight: '4px' }} /> Verified Student
                 </span>
@@ -620,7 +620,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
               <div style={{ fontSize: '14px', color: 'var(--cyber-cyan)', fontWeight: 600, marginTop: '4px' }}>{profile.desiredRole || 'Career goal not set'}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Building2 size={13} color="var(--text-muted)" /> {profile.college || 'Institution not set'}</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><GraduationCap size={13} color="var(--text-muted)" /> {profile.department || 'Dept'} â€¢ {profile.year || profile.gradYear || 'â€”'}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><GraduationCap size={13} color="var(--text-muted)" /> {profile.department || 'Dept'} • {profile.year || profile.gradYear || '—'}</span>
                 {profile.email && <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Mail size={13} color="var(--text-muted)" /> {profile.email}</span>}
                 {profile.phone && <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Phone size={13} color="var(--text-muted)" /> {profile.phone}</span>}
               </div>
@@ -630,7 +630,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
           {/* Profile Completion Badge */}
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-            padding: '16px 20px', borderRadius: '12px', background: '#FFFFFF',
+            padding: '16px 20px', borderRadius: '12px', background: 'var(--bg-input)',
             border: '1px solid var(--border-subtle)', minWidth: '120px'
           }}>
             <div style={{
@@ -653,7 +653,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
       </div>
 
       {isEditing ? (
-        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• EDIT PROFILE FORM MODE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+        /* ═══════════════ EDIT PROFILE FORM MODE ═══════════════ */
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Personal Information */}
           <SectionCard icon={User} iconColor="var(--cyber-cyan)" title="Personal Information">
@@ -668,13 +668,13 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
                 <div key={f.key}>
                   <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>{f.label}</label>
                   <input type={f.type || 'text'} required={f.required} value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
+                    style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                 </div>
               ))}
               <div>
                 <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>GENDER</label>
                 <select value={formData.gender || ''} onChange={e => setFormData({ ...formData, gender: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px' }}>
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px' }}>
                   <option value="">Select</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
@@ -702,7 +702,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
                   <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>{f.label}</label>
                   <input type={f.type || 'text'} required={f.required} placeholder={f.placeholder || ''}
                     value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
+                    style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                 </div>
               ))}
             </div>
@@ -714,12 +714,12 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
               <div>
                 <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>DESIRED TARGET ROLE</label>
                 <input type="text" value={formData.desiredRole || ''} onChange={e => setFormData({ ...formData, desiredRole: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>PROFESSIONAL BIO</label>
                 <textarea rows={3} value={formData.bio || ''} onChange={e => setFormData({ ...formData, bio: e.target.value })}
-                  style={{ width: '100%', padding: '12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.5, outline: 'none', resize: 'vertical' }} />
+                  style={{ width: '100%', padding: '12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.5, outline: 'none', resize: 'vertical' }} />
               </div>
             </div>
           </SectionCard>
@@ -749,7 +749,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
               {showSkillInput && (
                 <div style={{ display: 'inline-flex', gap: '6px' }}>
                   <input type="text" placeholder="Skill name..." value={newSkill} onChange={e => setNewSkill(e.target.value)} autoFocus
-                    style={{ padding: '4px 10px', background: '#FFFFFF', border: '1px solid var(--cyber-cyan)', borderRadius: '4px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }} />
+                    style={{ padding: '4px 10px', background: 'var(--bg-input)', border: '1px solid var(--cyber-cyan)', borderRadius: '4px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }} />
                   <button type="button" onClick={handleAddSkill} className="btn-cyber-primary" style={{ padding: '4px 8px', fontSize: '11px' }}>Add</button>
                   <button type="button" onClick={() => setShowSkillInput(false)} className="btn-cyber-outline" style={{ padding: '4px 8px', fontSize: '11px' }}>Cancel</button>
                 </div>
@@ -758,7 +758,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
           </SectionCard>
 
           {/* Action Bar */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', padding: '16px 24px', background: '#FFFFFF', borderRadius: '10px', border: '1px solid var(--border-glow)' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', padding: '16px 24px', background: 'var(--bg-input)', borderRadius: '10px', border: '1px solid var(--border-glow)' }}>
             <button type="button" onClick={handleToggleEdit} className="btn-cyber-outline" style={{ fontSize: '13px', padding: '10px 18px' }}>Cancel</button>
             <button type="submit" disabled={isSaving} className="btn-cyber-primary" style={{ fontSize: '13px', padding: '10px 22px' }}>
               <Save size={14} /> <span>{isSaving ? 'Saving...' : 'Save Profile Changes'}</span>
@@ -766,7 +766,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
           </div>
         </form>
       ) : (
-        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• VIEW PROFILE MODE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+        /* ═══════════════ VIEW PROFILE MODE ═══════════════ */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
           {/* Row 1: Profile Completion + Personal Info */}
@@ -826,7 +826,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             {/* Skills */}
             <SectionCard icon={Code} iconColor="var(--cyber-cyan)" title="Skills"
-              rightAction={<button onClick={() => setActivePage('skills')} style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>View All â†’</button>}>
+              rightAction={<button onClick={() => setActivePage('skills')} style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>View All →</button>}>
               {profile.skills.length > 0 ? (
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {profile.skills.map(skill => (
@@ -848,7 +848,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
 
             {/* Courses */}
             <SectionCard icon={BookOpen} iconColor="#8B5CF6" title="My Courses"
-              rightAction={<button onClick={() => setActivePage('learning')} style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>View All â†’</button>}>
+              rightAction={<button onClick={() => setActivePage('learning')} style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>View All →</button>}>
               {enrollments.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {enrollments.slice(0, 4).map((enr, i) => (
@@ -883,7 +883,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
                 onClick={() => setActivePage('communication')}
                 style={{ background: 'none', border: 'none', color: '#8B5CF6', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
               >
-                Launch Communication Module â†’
+                Launch Communication Module →
               </button>
             }
           >
@@ -900,10 +900,10 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
                     LEVEL {commProfile?.level || 1}
                   </span>
                   <span className="cyber-badge badge-amber" style={{ fontSize: '10px' }}>
-                    {commProfile?.streak || 0}d Streak
+                    🔥 {commProfile?.streak || 0}d Streak
                   </span>
                   <span className="cyber-badge badge-blue" style={{ fontSize: '10px' }}>
-                    {commProfile?.xp || 0} XP
+                    ⚡ {commProfile?.xp || 0} XP
                   </span>
                 </div>
               </div>
@@ -940,7 +940,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
                     Validated Strengths:
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    {commProfile?.strengths?.length > 0 ? commProfile.strengths.join(', ') : 'None established yet (score â‰¥60% needed)'}
+                    {commProfile?.strengths?.length > 0 ? commProfile.strengths.join(', ') : 'None established yet (score ≥60% needed)'}
                   </div>
                 </div>
                 <div>
@@ -963,7 +963,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             {/* Projects */}
             <SectionCard icon={FolderGit2} iconColor="var(--cyber-emerald)" title="My Projects"
-              rightAction={<button onClick={() => setActivePage('projects')} style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>View All â†’</button>}>
+              rightAction={<button onClick={() => setActivePage('projects')} style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>View All →</button>}>
               {projects.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {projects.slice(0, 4).map((proj, i) => (
@@ -1008,7 +1008,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
                         <div>
                           <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{cert.courseName || cert.title || 'Certificate'}</div>
                           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                            {cert.issuedBy || cert.institutionName || 'Institution'} {cert.issuedAt ? `â€¢ ${new Date(cert.issuedAt).toLocaleDateString()}` : ''}
+                            {cert.issuedBy || cert.institutionName || 'Institution'} {cert.issuedAt ? `• ${new Date(cert.issuedAt).toLocaleDateString()}` : ''}
                           </div>
                         </div>
                         <span style={{
@@ -1031,14 +1031,14 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             {/* Opportunities Summary */}
             <SectionCard icon={Briefcase} iconColor="var(--cyber-purple)" title="Opportunities"
-              rightAction={<button onClick={() => setActivePage('opportunities')} style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>View All â†’</button>}>
+              rightAction={<button onClick={() => setActivePage('opportunities')} style={{ background: 'none', border: 'none', color: 'var(--cyber-cyan)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>View All →</button>}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 {[
                   { label: 'Applied', value: appStats.applied, color: 'var(--cyber-cyan)' },
                   { label: 'Shortlisted', value: appStats.shortlisted, color: '#FF9D4D' },
                   { label: 'Selected', value: appStats.selected, color: 'var(--cyber-emerald)' }
                 ].map(s => (
-                  <div key={s.label} style={{ padding: '16px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                  <div key={s.label} style={{ padding: '16px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
                     <div style={{ fontSize: '24px', fontWeight: 800, color: s.color, fontFamily: 'var(--font-mono)' }}>{s.value}</div>
                     <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '4px', textTransform: 'uppercase' }}>{s.label}</div>
                   </div>
@@ -1074,7 +1074,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
                           <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)' }}>{doc.title || doc.fileName}</div>
                           <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
                             <span style={{ padding: '1px 5px', borderRadius: '3px', background: 'rgba(0,212,255,0.1)', color: 'var(--cyber-cyan)', fontSize: '9px', fontWeight: 700 }}>{doc.type || 'Document'}</span>
-                            {' â€¢ '}{doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'Today'}
+                            {' • '}{doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'Today'}
                           </div>
                         </div>
                       </div>
@@ -1115,9 +1115,9 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
       </>
       )}
 
-      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+      {/* ════════════════════════════════════════════════════════════════
           INSTITUTION PROFILE VIEW (preserved exactly)
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          ════════════════════════════════════════════════════════════════ */}
       {currentRole === 'institution' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="glass-panel" style={{ padding: '28px', borderTop: '3px solid var(--cyber-purple)' }}>
@@ -1149,7 +1149,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
                   <div key={key}>
                     <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>{lbl}</label>
                     <input type="text" value={instFormData[key] || ''} onChange={e => setInstFormData({ ...instFormData, [key]: e.target.value })}
-                      style={{ width: '100%', padding: '8px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px' }} />
+                      style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px' }} />
                   </div>
                 ))}
               </form>
@@ -1199,9 +1199,9 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
         </div>
       )}
 
-      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+      {/* ════════════════════════════════════════════════════════════════
           COMPANY / INDUSTRY PROFILE VIEW (preserved exactly)
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          ════════════════════════════════════════════════════════════════ */}
       {currentRole === 'company' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="glass-panel" style={{ padding: '28px', borderTop: '3px solid var(--cyber-emerald)' }}>
@@ -1233,7 +1233,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
                   <div key={key}>
                     <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>{lbl}</label>
                     <input type={key === 'email' ? 'email' : 'text'} value={compFormData[key] || ''} onChange={e => setCompFormData({ ...compFormData, [key]: e.target.value })}
-                      style={{ width: '100%', padding: '8px 12px', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px' }} />
+                      style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px' }} />
                   </div>
                 ))}
               </form>

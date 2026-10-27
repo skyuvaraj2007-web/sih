@@ -10,21 +10,11 @@
  * - Single source of truth: PostgreSQL database tables.
  */
 
-const { Pool } = require('pg');
-const path = require('path');
-const dotenv = require('dotenv');
-
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+const { pool, getClient, isConfigured } = require('../config/db');
 
 class SkillGraphService {
   async getClient() {
-    return await pool.connect();
+    return await getClient();
   }
 
   /**
@@ -32,6 +22,24 @@ class SkillGraphService {
    */
   async resolveStudent(identifier) {
     if (!identifier) return null;
+    if (!isConfigured()) {
+      try {
+        const relationalManager = require('../db/relationalManager');
+        const s = await relationalManager.getStudentById(identifier);
+        if (s) {
+          return {
+            id: s.id || s.studentId,
+            user_id: s.userId || s.id,
+            institution_id: s.institutionId || s.collegeId,
+            full_name: s.name || s.fullName,
+            roll_number: s.rollNumber || s.regNo,
+            user_email: s.email,
+            readiness_score: s.readinessScore || 75
+          };
+        }
+      } catch (e) {}
+      return null;
+    }
     const client = await this.getClient();
     try {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(identifier).trim());

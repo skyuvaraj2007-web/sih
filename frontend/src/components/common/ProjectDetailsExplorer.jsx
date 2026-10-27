@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   FolderGit2,
   Search,
@@ -100,12 +100,12 @@ export default function ProjectDetailsExplorer({ portal = 'academic', onShowToas
 
   return (
     <div>
-      {/* â”€â”€ HEADER BANNER â”€â”€ */}
+      {/* ── HEADER BANNER ── */}
       <div className="glass-panel" style={{
         padding: '24px',
         borderRadius: '16px',
         marginBottom: '24px',
-        background: '#FFFFFF',
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9))',
         border: '1px solid rgba(56, 189, 248, 0.2)',
         display: 'flex',
         justifyContent: 'space-between',
@@ -138,7 +138,7 @@ export default function ProjectDetailsExplorer({ portal = 'academic', onShowToas
         </button>
       </div>
 
-      {/* â”€â”€ SEARCH & FILTER CONTROLS â”€â”€ */}
+      {/* ── SEARCH & FILTER CONTROLS ── */}
       <div className="glass-panel" style={{ padding: '18px 20px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '14px' }}>
           {/* Main Search */}
@@ -195,7 +195,7 @@ export default function ProjectDetailsExplorer({ portal = 'academic', onShowToas
         )}
       </div>
 
-      {/* â”€â”€ PROJECT GRID â”€â”€ */}
+      {/* ── PROJECT GRID ── */}
       {loading ? (
         <div style={{ padding: '60px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
           <div className="spinner" style={{ margin: '0 auto 12px' }} />
@@ -330,7 +330,7 @@ export default function ProjectDetailsExplorer({ portal = 'academic', onShowToas
         </div>
       )}
 
-      {/* â”€â”€ PROJECT DETAILS MODAL â”€â”€ */}
+      {/* ── PROJECT DETAILS MODAL ── */}
       {selectedProject && (
         <div style={{
           position: 'fixed',
