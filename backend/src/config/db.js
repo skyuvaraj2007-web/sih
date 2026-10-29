@@ -17,8 +17,8 @@ const path = require('path');
 const dotenv = require('dotenv');
 
 // Load environment variables prioritizing backend/.env, with fallback to root .env
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const connectionString = process.env.DATABASE_URL || '';
 

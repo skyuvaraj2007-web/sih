@@ -6,8 +6,8 @@ const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 
 // Prioritize backend/.env, falling back to root .env
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const { supabase } = require('./config/supabase');
 const { checkHealth: checkPgHealth, isConfigured: isPgConfigured } = require('./config/db');
