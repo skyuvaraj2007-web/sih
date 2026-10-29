@@ -249,6 +249,25 @@ async function runTests() {
     const academicianToken = d9.token;
 
     // --------------------------------------------------------------------------
+    // Test 9b: Canonical SIH Academician Login (academician.demo@skillnexus.ai / Demo@2026)
+    // --------------------------------------------------------------------------
+    const res9b = await fetch(`${API_BASE}/auth/academician/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'academician.demo@skillnexus.ai', password: 'Demo@2026' })
+    });
+    const d9b = await res9b.json();
+    assert(
+      res9b.status === 200 &&
+      d9b.success === true &&
+      Boolean(d9b.token) &&
+      d9b.user?.role === 'academician' &&
+      Boolean(d9b.user?.name),
+      'Test 9b: Canonical SIH Academician demo login succeeds',
+      `Got ${res9b.status}: ${d9b.user?.name} (${d9b.user?.role})`
+    );
+
+    // --------------------------------------------------------------------------
     // Test 10: Unauthenticated access to dashboard is blocked
     // --------------------------------------------------------------------------
     const res10 = await fetch(`${API_BASE}/academician/dashboard`);
@@ -355,6 +374,41 @@ async function runTests() {
       'Test 14: Duplicate staff email gives "An account with this email already exists."',
       `Got ${res14.status}: ${d14.message}`
     );
+
+    // --------------------------------------------------------------------------
+    // Test 15: Database unavailable error returns HTTP 503 or safe message
+    // --------------------------------------------------------------------------
+    const express = require('express');
+    const authRoutes = require('../src/routes/auth');
+    const testApp = express();
+    testApp.use(express.json());
+    testApp.use('/api/auth', authRoutes);
+    const testServer = await new Promise(resolve => {
+      const s = testApp.listen(0, () => resolve(s));
+    });
+    const testPort = testServer.address().port;
+
+    const origQuery = relationalManager.query;
+    relationalManager.query = async () => {
+      throw new Error('Connection terminated unexpectedly: ECONNREFUSED');
+    };
+    try {
+      const res15 = await fetch(`http://localhost:${testPort}/api/auth/academician/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'arun@example.com', password: 'Arun@123' })
+      });
+      const d15 = await res15.json();
+      assert(
+        res15.status === 503 &&
+        d15.message.includes('Database service is temporarily unavailable'),
+        'Test 15: Database connectivity error returns HTTP 503 and safe error message',
+        `Got ${res15.status}: ${d15.message}`
+      );
+    } finally {
+      relationalManager.query = origQuery;
+      testServer.close();
+    }
 
   } catch (err) {
     console.error('Fatal test error:', err);

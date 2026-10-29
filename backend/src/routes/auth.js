@@ -823,30 +823,52 @@ router.post('/academician/login', async (req, res) => {
     let passwordHash = null;
     let isActive = true;
 
-    if (relationalManager.supabase) {
-      const userRes = await relationalManager.query(
-        `SELECT u.id, u.email, u.password_hash, u.is_active,
-                r.code AS role_code
-         FROM users u
-         LEFT JOIN user_roles ur ON ur.user_id = u.id
-         LEFT JOIN roles r ON r.id = ur.role_id
-         WHERE lower(u.email) = lower($1)
-         LIMIT 1`,
-        [normEmail]
-      );
+    let pgQueryFailed = false;
+    if (relationalManager.supabase || relationalManager.pg) {
+      try {
+        const userRes = await relationalManager.query(
+          `SELECT u.id, u.email, u.password_hash, u.is_active,
+                  r.code AS role_code
+           FROM users u
+           LEFT JOIN user_roles ur ON ur.user_id = u.id
+           LEFT JOIN roles r ON r.id = ur.role_id
+           WHERE lower(u.email) = lower($1)
+           LIMIT 1`,
+          [normEmail]
+        );
 
-      if (userRes.rows.length === 0) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid email or password.'
-        });
+        if (userRes.rows.length === 0) {
+          return res.status(401).json({
+            success: false,
+            message: 'Invalid email or password.'
+          });
+        }
+
+        user = userRes.rows[0];
+        userRole = (user.role_code || '').toLowerCase();
+        passwordHash = user.password_hash;
+        isActive = user.is_active !== false;
+      } catch (dbErr) {
+        console.warn('[Academician Login] Primary DB query failed:', dbErr.message);
+        pgQueryFailed = true;
+        const isConnErr = dbErr.message && (
+          dbErr.message.includes('ECONNREFUSED') ||
+          dbErr.message.includes('ETIMEDOUT') ||
+          dbErr.message.includes('timeout') ||
+          dbErr.message.includes('Database pool is not configured') ||
+          dbErr.message.includes('Connection terminated') ||
+          dbErr.message.includes('DATABASE_URL')
+        );
+        if (isConnErr) {
+          return res.status(503).json({
+            success: false,
+            message: 'Database service is temporarily unavailable. Please try again later.'
+          });
+        }
       }
+    }
 
-      user = userRes.rows[0];
-      userRole = (user.role_code || '').toLowerCase();
-      passwordHash = user.password_hash;
-      isActive = user.is_active !== false;
-    } else {
+    if (!user && (pgQueryFailed || !relationalManager.supabase)) {
       const authResult = await relationalManager.authenticateUser(normEmail, password, 'faculty');
       if (!authResult.success) {
         return res.status(authResult.code || 401).json({
@@ -856,6 +878,7 @@ router.post('/academician/login', async (req, res) => {
       }
       user = authResult.user;
       userRole = (user.role || '').toLowerCase();
+      isActive = user.is_active !== false;
     }
 
     // Check account status before or alongside password check
@@ -988,6 +1011,20 @@ router.post('/academician/login', async (req, res) => {
     });
   } catch (err) {
     console.error('Academician login error:', err);
+    const isConnErr = err.message && (
+      err.message.includes('ECONNREFUSED') ||
+      err.message.includes('ETIMEDOUT') ||
+      err.message.includes('timeout') ||
+      err.message.includes('Connection terminated') ||
+      err.message.includes('Database connection') ||
+      err.message.includes('DATABASE_URL')
+    );
+    if (isConnErr) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database service is temporarily unavailable. Please try again later.'
+      });
+    }
     return res.status(500).json({ success: false, message: 'Unable to login right now. Please try again.' });
   }
 });

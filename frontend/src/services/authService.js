@@ -4,7 +4,21 @@
  * Supports HTTP-only session cookies with credentials: 'include' and bearer token backup.
  */
 
-const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
+export const getApiBase = () => {
+  const envUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL ? import.meta.env.VITE_API_URL : '').replace(/\/api\/?$/, '').replace(/\/$/, '');
+  if (typeof window !== 'undefined') {
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // In production / deployed domains, avoid hardcoded localhost URLs which trigger mixed content and connection refused
+    if (!isLocal && (envUrl.includes('localhost') || envUrl.includes('127.0.0.1'))) {
+      return '';
+    }
+  }
+  return envUrl;
+};
+
+export const getApiAuthBase = () => `${getApiBase()}/api/auth`;
+
+const API_BASE = getApiBase();
 const API_AUTH_BASE = `${API_BASE}/api/auth`;
 
 export const authService = {
@@ -95,7 +109,8 @@ export const authService = {
    */
   async academicianLogin(email, password, rememberMe = false) {
     try {
-      const res = await fetch(`${API_AUTH_BASE}/academician/login`, {
+      const authBase = getApiAuthBase();
+      const res = await fetch(`${authBase}/academician/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -104,12 +119,13 @@ export const authService = {
         body: JSON.stringify({ email, password, rememberMe })
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data.success) {
         return {
           success: false,
-          message: data.message || 'Authentication failed. Please check your credentials.'
+          status: res.status,
+          message: data.message || (res.status === 503 ? 'Database service is temporarily unavailable. Please try again later.' : 'Authentication failed. Please check your credentials.')
         };
       }
 
@@ -136,7 +152,7 @@ export const authService = {
       console.error('[authService] Academician login error:', err);
       return {
         success: false,
-        message: 'Unable to login right now. Please try again.'
+        message: 'Could not connect to authentication server. Please ensure the backend server is running.'
       };
     }
   },

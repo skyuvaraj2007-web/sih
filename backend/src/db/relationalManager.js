@@ -192,6 +192,18 @@ class RelationalManager {
         designation: 'Professor & Head of Department'
       },
       {
+        email: 'arun@example.com',
+        role: 'FACULTY',
+        password: 'Arun@123',
+        name: 'Dr. Arun Kumar',
+        userId: 'demo-arun-academician-user',
+        facultyId: 'CSE001',
+        institutionId: 'ABC-ENG',
+        collegeId: 'ABC-ENG',
+        department: 'Computer Science and Engineering',
+        designation: 'Associate Professor & Class Advisor'
+      },
+      {
         email: 'institution.demo@skillnexus.ai',
         role: 'INSTITUTION',
         password: 'Demo@2026',
@@ -418,6 +430,161 @@ class RelationalManager {
     }
 
     return { success: true, demoAccounts: demoAccounts.length };
+  }
+
+  async ensurePostgresDemoAccounts() {
+    if (!this.pg) return;
+    try {
+      let instId = null;
+      let deptId = null;
+      let classId = null;
+
+      const instRes = await this.pg.query(
+        "SELECT id FROM institutions WHERE code = 'ABC-ENG' OR name ILIKE '%ABC Engineering%' LIMIT 1"
+      );
+      instId = instRes.rows[0]?.id;
+      if (!instId) {
+        const anyInst = await this.pg.query("SELECT id FROM institutions LIMIT 1");
+        instId = anyInst.rows[0]?.id;
+      }
+
+      if (instId) {
+        const deptRes = await this.pg.query(
+          "SELECT id FROM departments WHERE institution_id = $1 AND (code = 'CSE' OR name ILIKE '%Computer Science%') LIMIT 1",
+          [instId]
+        );
+        deptId = deptRes.rows[0]?.id;
+        if (!deptId) {
+          const anyDept = await this.pg.query("SELECT id FROM departments WHERE institution_id = $1 LIMIT 1", [instId]);
+          deptId = anyDept.rows[0]?.id;
+        }
+
+        const classRes = await this.pg.query(
+          "SELECT id FROM classes WHERE institution_id = $1 AND name ILIKE '%III CSE A%' LIMIT 1",
+          [instId]
+        );
+        classId = classRes.rows[0]?.id;
+        if (!classId) {
+          const anyClass = await this.pg.query("SELECT id FROM classes WHERE institution_id = $1 LIMIT 1", [instId]);
+          classId = anyClass.rows[0]?.id;
+        }
+      }
+
+      const roles = await this.pg.query("SELECT id, code FROM roles WHERE code IN ('ACADEMICIAN', 'FACULTY')");
+      const roleIds = roles.rows.map(r => r.id);
+
+      const academicians = [
+        {
+          email: 'academician.demo@skillnexus.ai',
+          password: 'Demo@2026',
+          name: 'Dr. Ramesh Sundaram',
+          facultyId: 'FAC-CSE-001',
+          designation: 'Professor & Head of Department',
+          bio: 'Professor and Department Head with 16+ years of research and curriculum excellence. Mentoring students in industry-grade software architectures.',
+          specialization: 'Cloud Computing, Distributed Algorithms & System Architecture'
+        },
+        {
+          email: 'arun@example.com',
+          password: 'Arun@123',
+          name: 'Dr. Arun Kumar',
+          facultyId: 'CSE001',
+          designation: 'Associate Professor & Class Advisor',
+          bio: 'Associate Professor specialized in Distributed Systems & AI. Class Advisor for III CSE A.',
+          specialization: 'Distributed Systems, Data Structures & AI Systems'
+        }
+      ];
+
+      for (const ac of academicians) {
+        const norm = ac.email.toLowerCase();
+        const userRes = await this.pg.query('SELECT id, password_hash FROM users WHERE lower(email) = lower($1) LIMIT 1', [norm]);
+        let uid;
+        if (userRes.rows.length === 0) {
+          const hash = bcrypt.hashSync(ac.password, 10);
+          const ins = await this.pg.query(
+            'INSERT INTO users (email, password_hash, is_active, created_at, updated_at) VALUES ($1, $2, true, NOW(), NOW()) RETURNING id',
+            [norm, hash]
+          );
+          uid = ins.rows[0].id;
+        } else {
+          uid = userRes.rows[0].id;
+          const currentHash = userRes.rows[0].password_hash;
+          // Protect existing account credentials: never overwrite existing passwords
+          if (!currentHash) {
+            const hash = bcrypt.hashSync(ac.password, 10);
+            await this.pg.query('UPDATE users SET password_hash = $1, is_active = true, updated_at = NOW() WHERE id = $2', [hash, uid]);
+          } else {
+            await this.pg.query('UPDATE users SET is_active = true WHERE id = $1', [uid]);
+          }
+        }
+
+        for (const rid of roleIds) {
+          await this.pg.query(
+            'INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT (user_id, role_id) DO NOTHING',
+            [uid, rid]
+          );
+        }
+
+        if (instId && deptId) {
+          const apCheck = await this.pg.query('SELECT id FROM academician_profiles WHERE user_id = $1 LIMIT 1', [uid]);
+          if (apCheck.rows.length === 0) {
+            await this.pg.query(
+              `INSERT INTO academician_profiles (
+                user_id, institution_id, department_id, class_id, full_name, faculty_id,
+                designation, official_email, bio, qualification, specialization, created_at, updated_at
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Ph.D. in Computer Science & Engineering', $10, NOW(), NOW())`,
+              [uid, instId, deptId, classId, ac.name, ac.facultyId, ac.designation, norm, ac.bio, ac.specialization]
+            );
+          } else {
+            await this.pg.query(
+              `UPDATE academician_profiles SET
+                institution_id = $2, department_id = $3, class_id = $4,
+                full_name = $5, faculty_id = $6, designation = $7, official_email = $8,
+                bio = $9, specialization = $10, updated_at = NOW()
+               WHERE user_id = $1`,
+              [uid, instId, deptId, classId, ac.name, ac.facultyId, ac.designation, norm, ac.bio, ac.specialization]
+            );
+          }
+
+          if (classId) {
+            const saCheck = await this.pg.query(
+              'SELECT id FROM staff_assignments WHERE staff_id = $1 AND class_id = $2 LIMIT 1',
+              [uid, classId]
+            );
+            let assignId;
+            if (saCheck.rows.length === 0) {
+              const saIns = await this.pg.query(
+                `INSERT INTO staff_assignments (
+                  staff_id, institution_id, department_id, class_id, assignment_type, is_primary, status, created_at, updated_at
+                ) VALUES ($1, $2, $3, $4, 'Class Advisor', true, 'active', NOW(), NOW()) RETURNING id`,
+                [uid, instId, deptId, classId]
+              );
+              assignId = saIns.rows[0].id;
+            } else {
+              assignId = saCheck.rows[0].id;
+              await this.pg.query("UPDATE staff_assignments SET status = 'active', updated_at = NOW() WHERE id = $1", [assignId]);
+            }
+
+            const stuRes = await this.pg.query('SELECT id FROM students WHERE institution_id = $1 LIMIT 45', [instId]);
+            for (const s of stuRes.rows) {
+              const mCheck = await this.pg.query(
+                'SELECT id FROM student_staff_mapping WHERE student_id = $1 AND staff_id = $2 LIMIT 1',
+                [s.id, uid]
+              );
+              if (mCheck.rows.length === 0) {
+                await this.pg.query(
+                  `INSERT INTO student_staff_mapping (
+                    class_id, student_id, staff_id, assignment_id, is_active, assigned_at, created_at
+                  ) VALUES ($1, $2, $3, $4, true, NOW(), NOW())`,
+                  [classId, s.id, uid, assignId]
+                );
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[ensurePostgresDemoAccounts] Notice:', e.message);
+    }
   }
 
   get isPgRequired() {
@@ -2824,7 +2991,7 @@ class RelationalManager {
         if (partnerInstIds.length > 0) {
           try {
             const instStudentsRes = await this.pg.query(
-              `SELECT id FROM students WHERE institution_id IN ($1)`,
+              `SELECT id FROM students WHERE institution_id = ANY($1)`,
               [partnerInstIds]
             );
             (instStudentsRes.rows || []).forEach(r => authorizedStudentIds.add(r.id));
@@ -2836,7 +3003,7 @@ class RelationalManager {
         if (authorizedStudentIds.size > 0) {
           try {
             const readyRes = await this.pg.query(
-              `SELECT id, readiness_score, placement_readiness_score FROM students WHERE id IN ($1)`,
+              `SELECT id, readiness_score, placement_readiness_score FROM students WHERE id = ANY($1)`,
               [[...authorizedStudentIds]]
             );
             jobReadyTalent = (readyRes.rows || []).filter(s => (s.readiness_score >= 70 || s.placement_readiness_score >= 70)).length;
@@ -7245,7 +7412,7 @@ class RelationalManager {
           LEFT JOIN institutions inst ON inst.id = s.institution_id
           JOIN opportunities o ON o.id = a.opportunity_id
           JOIN companies c ON c.id = o.company_id
-          WHERE a.opportunity_id IN ($1)
+          WHERE a.opportunity_id = ANY($1)
           ORDER BY a.applied_at DESC
         `;
         const res = await this.pg.query(query, [oppIds]);

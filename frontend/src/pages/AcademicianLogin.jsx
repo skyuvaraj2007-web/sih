@@ -104,7 +104,7 @@ export default function AcademicianLogin({ onLoginSuccess, onBackToRoles, onNavi
         onLoginSuccess(result.user);
       }, 300);
     } catch (err) {
-      setError('Unable to login right now. Please try again.');
+      setError(err?.message || 'Unable to login right now. Please try again.');
     } finally {
       setLoading(false);
     }

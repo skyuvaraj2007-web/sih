@@ -156,6 +156,22 @@ router.post('/staff', requireAuth, verifyInstitutionAdmin, async (req, res) => {
     );
     const resolvedInstUuid = instQuery.rows[0]?.id || null;
 
+    // Resolve Class UUID
+    let resolvedClassUuid = null;
+    let classDeptId = null;
+    let classInstId = null;
+    if (classId) {
+      const classQuery = await relationalManager.query(
+        'SELECT id, department_id, institution_id FROM classes WHERE id::text = $1 OR name ILIKE $1 LIMIT 1',
+        [String(classId)]
+      );
+      if (classQuery.rows.length > 0) {
+        resolvedClassUuid = classQuery.rows[0].id;
+        classDeptId = classQuery.rows[0].department_id;
+        classInstId = classQuery.rows[0].institution_id;
+      }
+    }
+
     // Resolve Department UUID
     let resolvedDeptUuid = null;
     if (departmentId) {
@@ -164,16 +180,26 @@ router.post('/staff', requireAuth, verifyInstitutionAdmin, async (req, res) => {
         [String(departmentId), resolvedInstUuid]
       );
       resolvedDeptUuid = deptQuery.rows[0]?.id || null;
+      if (!resolvedDeptUuid) {
+        // Fallback to match by code or name across departments
+        const deptFallback = await relationalManager.query(
+          'SELECT id FROM departments WHERE id::text = $1 OR code = $1 OR name ILIKE $1 LIMIT 1',
+          [String(departmentId)]
+        );
+        resolvedDeptUuid = deptFallback.rows[0]?.id || null;
+      }
     }
-
-    // Resolve Class UUID
-    let resolvedClassUuid = null;
-    if (classId) {
-      const classQuery = await relationalManager.query(
-        'SELECT id FROM classes WHERE id::text = $1 OR name ILIKE $1 LIMIT 1',
-        [String(classId)]
+    // If department was not resolved but class has an associated department, inherit it
+    if (!resolvedDeptUuid && classDeptId) {
+      resolvedDeptUuid = classDeptId;
+    }
+    // Fallback: if department is still null, pick first department for institution
+    if (!resolvedDeptUuid && resolvedInstUuid) {
+      const defaultDept = await relationalManager.query(
+        'SELECT id FROM departments WHERE institution_id = $1 LIMIT 1',
+        [resolvedInstUuid]
       );
-      resolvedClassUuid = classQuery.rows[0]?.id || null;
+      resolvedDeptUuid = defaultDept.rows[0]?.id || null;
     }
 
     // Hash password securely

@@ -393,7 +393,7 @@ router.post(['/submit/:id', '/targeted/:id/submit'], requireAuth, async (req, re
       studentIdentifier: studentId,
       answers
     });
-    res.json({ success: true, data: result });
+    res.json({ success: true, ...result, data: result });
   } catch (err) {
     const isDenied = err.message.includes('not assigned') || err.message.includes('denied');
     res.status(isDenied ? 403 : 500).json({ success: false, message: err.message });
@@ -491,7 +491,7 @@ router.post('/institution/:id/submit', requireAuth, async (req, res) => {
       studentId,
       answers
     });
-    res.json({ success: true, data: result });
+    res.json({ success: true, ...result, data: result });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

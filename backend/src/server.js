@@ -107,6 +107,9 @@ app.use('/api/messages', messageRoutes);
 
 const relationalManager = require('./db/relationalManager');
 relationalManager.ensureCanonicalDemoAccounts();
+if (relationalManager.pg) {
+  relationalManager.ensurePostgresDemoAccounts().catch(e => console.warn('[server] ensurePostgresDemoAccounts notice:', e.message));
+}
 const notificationRouter = express.Router();
 notificationRouter.get('/', async (req, res) => {
   try {

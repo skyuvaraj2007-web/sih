@@ -3,7 +3,18 @@
  * Handles client-side API requests for the Academician/Faculty Module.
  */
 
-const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
+const getApiBase = () => {
+  const envUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL ? import.meta.env.VITE_API_URL : '').replace(/\/api\/?$/, '').replace(/\/$/, '');
+  if (typeof window !== 'undefined') {
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!isLocal && (envUrl.includes('localhost') || envUrl.includes('127.0.0.1'))) {
+      return '';
+    }
+  }
+  return envUrl;
+};
+
+const API_BASE = getApiBase();
 const ACADEMICIAN_BASE = `${API_BASE}/api/academician`;
 const LEARNING_BASE = `${API_BASE}/api/learning`;
 
