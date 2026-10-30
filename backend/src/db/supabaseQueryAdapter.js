@@ -425,17 +425,49 @@ class SupabaseQueryAdapter {
 
     // Split on top-level ANDs
     const conditions = whereStr.split(/\s+AND\s+/i);
+    let appliedFilterCount = 0;
 
     for (const cond of conditions) {
       const trimmed = cond.trim();
 
-      // Check parenthesized OR condition: (col1 = $1 OR col2 = $2 ...)
-      const orMatch = trimmed.match(/^\(([\s\S]+?)\)$/);
-      if (orMatch && /\s+OR\s+/i.test(orMatch[1])) {
-        const orClauses = orMatch[1].split(/\s+OR\s+/i);
+      // Check parenthesized or unparenthesized OR condition
+      let orClauses = null;
+      const parenOrMatch = trimmed.match(/^\(([\s\S]+?)\)$/);
+      if (parenOrMatch && /\s+OR\s+/i.test(parenOrMatch[1])) {
+        orClauses = parenOrMatch[1].split(/\s+OR\s+/i);
+      } else if (/\s+OR\s+/i.test(trimmed)) {
+        orClauses = trimmed.split(/\s+OR\s+/i);
+      }
+
+      if (orClauses && orClauses.length > 1) {
         const postgrestOrParts = [];
         for (const sub of orClauses) {
-          const subEq = sub.trim().match(/(?:([a-zA-Z0-9_]+)\.)?([a-zA-Z0-9_]+)(?:::text)?\s*=\s*\$(\d+)/i);
+          const s = sub.trim();
+
+          // LOWER(col) = LOWER($n) or LOWER(col) = $n
+          const subLow = s.match(/LOWER\(\s*(?:([a-zA-Z0-9_]+)\.)?([a-zA-Z0-9_]+)\s*\)\s*=\s*(?:LOWER\(\s*)?\$(\d+)(?:\s*\))?/i);
+          if (subLow) {
+            const col = subLow[2].toLowerCase();
+            const val = this._resolveParam(subLow[3], params);
+            if (val !== null && val !== undefined) {
+              postgrestOrParts.push(`${col}.ilike.${String(val).trim()}`);
+              continue;
+            }
+          }
+
+          // col ILIKE $n or col LIKE $n
+          const subLike = s.match(/(?:([a-zA-Z0-9_]+)\.)?([a-zA-Z0-9_]+)\s+(?:I?LIKE)\s*\$(\d+)/i);
+          if (subLike) {
+            const col = subLike[2].toLowerCase();
+            const val = this._resolveParam(subLike[3], params);
+            if (val !== null && val !== undefined) {
+              postgrestOrParts.push(`${col}.ilike.${val}`);
+              continue;
+            }
+          }
+
+          // col = $n or col::text = $n
+          const subEq = s.match(/(?:([a-zA-Z0-9_]+)\.)?([a-zA-Z0-9_]+)(?:::text)?\s*=\s*\$(\d+)/i);
           if (subEq) {
             const col = subEq[2].toLowerCase();
             let val = this._resolveParam(subEq[3], params);
@@ -443,12 +475,32 @@ class SupabaseQueryAdapter {
               val = this._normalizeUuidParam(col, val);
               if (val !== '__SKIP_INVALID_UUID__') {
                 postgrestOrParts.push(`${col}.eq.${val}`);
+                continue;
               }
             }
           }
         }
         if (postgrestOrParts.length > 0) {
           q = q.or(postgrestOrParts.join(','));
+          appliedFilterCount++;
+          continue;
+        }
+      }
+
+      // Check LOWER(col) = LOWER($n) or LOWER(col) = $n
+      const lowerMatch = trimmed.match(/LOWER\(\s*(?:([a-zA-Z0-9_]+)\.)?([a-zA-Z0-9_]+)\s*\)\s*=\s*(?:LOWER\(\s*)?\$(\d+)(?:\s*\))?/i);
+      if (lowerMatch) {
+        const condAlias = lowerMatch[1] ? lowerMatch[1].toLowerCase() : null;
+        const col = lowerMatch[2].toLowerCase();
+        const val = this._resolveParam(lowerMatch[3], params);
+
+        if (condAlias && tableAlias && condAlias !== tableAlias.toLowerCase()) {
+          continue;
+        }
+
+        if (val !== null && val !== undefined) {
+          q = q.ilike(col, String(val).trim());
+          appliedFilterCount++;
           continue;
         }
       }
@@ -467,6 +519,7 @@ class SupabaseQueryAdapter {
           else if (op === '>') q = q.gt(col, val);
           else if (op === '<') q = q.lt(col, val);
           else if (op === '!=' || op === '<>') q = q.neq(col, val);
+          appliedFilterCount++;
           continue;
         }
       }
@@ -480,7 +533,10 @@ class SupabaseQueryAdapter {
 
         if (condAlias && tableAlias && condAlias !== tableAlias.toLowerCase()) {
           const sub = await this._subfilterJoinedTable(q, sql, condAlias, col, val);
-          if (sub) q = sub;
+          if (sub) {
+            q = sub;
+            appliedFilterCount++;
+          }
           continue;
         }
 
@@ -488,23 +544,7 @@ class SupabaseQueryAdapter {
           val = this._normalizeUuidParam(col, val);
           if (val === '__SKIP_INVALID_UUID__') continue;
           q = q.eq(col, val);
-          continue;
-        }
-      }
-
-      // Check LOWER(col) = LOWER($n)
-      const lowerMatch = trimmed.match(/LOWER\(\s*(?:([a-zA-Z0-9_]+)\.)?([a-zA-Z0-9_]+)\s*\)\s*=\s*LOWER\(\s*\$(\d+)\s*\)/i);
-      if (lowerMatch) {
-        const condAlias = lowerMatch[1] ? lowerMatch[1].toLowerCase() : null;
-        const col = lowerMatch[2].toLowerCase();
-        const val = this._resolveParam(lowerMatch[3], params);
-
-        if (condAlias && tableAlias && condAlias !== tableAlias.toLowerCase()) {
-          continue;
-        }
-
-        if (val !== null && val !== undefined) {
-          q = q.ilike(col, String(val).trim());
+          appliedFilterCount++;
           continue;
         }
       }
@@ -522,6 +562,7 @@ class SupabaseQueryAdapter {
 
         if (val !== null && val !== undefined) {
           q = q.ilike(col, val);
+          appliedFilterCount++;
           continue;
         }
       }
@@ -539,9 +580,11 @@ class SupabaseQueryAdapter {
 
         if (Array.isArray(val)) {
           q = q.in(col, val);
+          appliedFilterCount++;
           continue;
         } else if (val) {
           q = q.eq(col, val);
+          appliedFilterCount++;
           continue;
         }
       }
@@ -552,6 +595,7 @@ class SupabaseQueryAdapter {
         const condAlias = isNullMatch[1] ? isNullMatch[1].toLowerCase() : null;
         if (condAlias && tableAlias && condAlias !== tableAlias.toLowerCase()) continue;
         q = q.is(isNullMatch[2].toLowerCase(), null);
+        appliedFilterCount++;
         continue;
       }
 
@@ -561,6 +605,7 @@ class SupabaseQueryAdapter {
         const condAlias = notNullMatch[1] ? notNullMatch[1].toLowerCase() : null;
         if (condAlias && tableAlias && condAlias !== tableAlias.toLowerCase()) continue;
         q = q.not(notNullMatch[2].toLowerCase(), 'is', null);
+        appliedFilterCount++;
         continue;
       }
 
@@ -570,6 +615,7 @@ class SupabaseQueryAdapter {
         const condAlias = boolMatch[1] ? boolMatch[1].toLowerCase() : null;
         if (condAlias && tableAlias && condAlias !== tableAlias.toLowerCase()) continue;
         q = q.eq(boolMatch[2].toLowerCase(), boolMatch[3].toLowerCase() === 'true');
+        appliedFilterCount++;
         continue;
       }
 
@@ -579,8 +625,14 @@ class SupabaseQueryAdapter {
         const condAlias = strLiteralMatch[1] ? strLiteralMatch[1].toLowerCase() : null;
         if (condAlias && tableAlias && condAlias !== tableAlias.toLowerCase()) continue;
         q = q.eq(strLiteralMatch[2].toLowerCase(), strLiteralMatch[3]);
+        appliedFilterCount++;
         continue;
       }
+    }
+
+    if (whereStr && whereStr.trim() && appliedFilterCount === 0) {
+      console.warn(`[SupabaseQueryAdapter] Notice: WHERE clause could not be translated into PostgREST filter: "${whereStr}"`);
+      throw new Error(`[SupabaseQueryAdapter] Query translation unsupported for WHERE clause: "${whereStr}"`);
     }
 
     return { builder: q };
@@ -684,9 +736,11 @@ class SupabaseQueryAdapter {
     let q;
     if (/ON\s+CONFLICT/i.test(sql)) {
       if (/DO\s+NOTHING/i.test(sql)) {
-        q = this.client.from(tableName).insert(record).select();
+        q = this.client.from(tableName).insert(record, { ignoreDuplicates: true }).select();
       } else {
-        q = this.client.from(tableName).upsert(record).select();
+        const conflictMatch = sql.match(/ON\s+CONFLICT\s*\(([^)]+)\)/i);
+        const onConflict = conflictMatch ? conflictMatch[1].trim() : undefined;
+        q = this.client.from(tableName).upsert(record, onConflict ? { onConflict } : {}).select();
       }
     } else {
       q = this.client.from(tableName).insert(record).select();

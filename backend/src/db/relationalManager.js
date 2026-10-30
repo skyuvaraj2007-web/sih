@@ -588,13 +588,24 @@ class RelationalManager {
   }
 
   get isPgRequired() {
-    return false; // Fully Supabase-backed runtime
+    if (POSTGRESQL_REQUIRED || isPostgresRequired()) return true;
+    if (process.env.VERCEL && (process.env.DATABASE_URL || process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL)) return true;
+    return false;
   }
 
   get pg() {
-    if (pgPool) return pgPool;
-    if (this.supabase) return this.adapter;
-    return null;
+    if (!this._pgProxy) {
+      const self = this;
+      this._pgProxy = {
+        async query(sql, params = []) {
+          return await self.query(sql, params);
+        },
+        async connect() {
+          return await self.connect();
+        }
+      };
+    }
+    return this._pgProxy;
   }
 
   get queryAdapter() {
@@ -602,21 +613,58 @@ class RelationalManager {
   }
 
   async query(sql, params = []) {
-    if (pgPool) {
-      return await pgPool.query(sql, params);
+    if (pgPool && !this._pgPoolFailedPermanently) {
+      try {
+        return await pgPool.query(sql, params);
+      } catch (pgErr) {
+        const isAuthOrConn = pgErr.code === '28P01' ||
+          pgErr.code === 'ECONNREFUSED' ||
+          pgErr.code === 'ETIMEDOUT' ||
+          pgErr.code === 'ENOTFOUND' ||
+          /password authentication failed/i.test(pgErr.message) ||
+          /connection/i.test(pgErr.message);
+
+        if (isAuthOrConn) {
+          this._pgPoolFailedPermanently = true;
+          console.warn('[RelationalManager] Direct PostgreSQL pool connection/authentication failed, switching to Supabase query adapter failover:', pgErr.message);
+        } else {
+          console.warn('[RelationalManager] Direct PostgreSQL query notice:', pgErr.message);
+        }
+
+        if (this.supabase && this.adapter) {
+          try {
+            return await this.adapter.query(sql, params);
+          } catch (adapterErr) {
+            console.warn('[RelationalManager] Supabase adapter query failover error:', adapterErr.message);
+            throw adapterErr;
+          }
+        }
+        throw pgErr;
+      }
     }
-    if (this.supabase) {
-      return this.adapter.query(sql, params);
+
+    if (this.supabase && this.adapter) {
+      return await this.adapter.query(sql, params);
     }
+
     return { rows: [], rowCount: 0 };
   }
 
   async connect() {
-    if (pgPool) {
-      return await pgPool.connect();
+    if (pgPool && !this._pgPoolFailedPermanently) {
+      try {
+        return await pgPool.connect();
+      } catch (pgErr) {
+        this._pgPoolFailedPermanently = true;
+        console.warn('[RelationalManager] Direct PostgreSQL connect failed, falling back to Supabase adapter:', pgErr.message);
+        if (this.supabase && this.adapter) {
+          return await this.adapter.connect();
+        }
+        throw pgErr;
+      }
     }
-    if (this.supabase) {
-      return this.adapter.connect();
+    if (this.supabase && this.adapter) {
+      return await this.adapter.connect();
     }
     return {
       query: async () => ({ rows: [], rowCount: 0 }),
@@ -759,6 +807,13 @@ class RelationalManager {
         };
       }
     }
+    if (this.supabase) {
+      try {
+        const supUser = await this._getUserByIdViaSupabase(id);
+        if (supUser) return supUser;
+      } catch (e) {}
+    }
+    if (this.isPgRequired) return null;
     const data = this._read(true);
     return (data.users || []).find(u => u.id === id || u.userId === id || u.studentId === id || u.companyId === id) || null;
   }
@@ -766,39 +821,50 @@ class RelationalManager {
   async getUserByEmail(email) {
     const norm = (email || '').toLowerCase().trim();
     if (this.pg) {
-      const res = await this.pg.query(
-        `SELECT u.id, u.email, u.is_active,
-                s.id AS student_id, s.full_name AS student_name, s.institution_id AS student_inst_id,
-                cm.company_id, c.company_name,
-                a.institution_id AS academician_inst_id
-         FROM users u
-         LEFT JOIN students s ON s.user_id = u.id
-         LEFT JOIN company_members cm ON cm.user_id = u.id
-         LEFT JOIN companies c ON c.id = cm.company_id
-         LEFT JOIN academicians a ON a.user_id = u.id
-         WHERE LOWER(u.email) = $1 LIMIT 1`,
-        [norm]
-      );
-      if (res.rows.length > 0) {
-        const row = res.rows[0];
-        let role = 'student';
-        if (row.company_id) role = 'company';
-        else if (row.academician_inst_id) role = 'institution';
+      try {
+        const res = await this.pg.query(
+          `SELECT u.id, u.email, u.is_active,
+                  s.id AS student_id, s.full_name AS student_name, s.institution_id AS student_inst_id,
+                  cm.company_id, c.company_name,
+                  a.institution_id AS academician_inst_id
+           FROM users u
+           LEFT JOIN students s ON s.user_id = u.id
+           LEFT JOIN company_members cm ON cm.user_id = u.id
+           LEFT JOIN companies c ON c.id = cm.company_id
+           LEFT JOIN academicians a ON a.user_id = u.id
+           WHERE LOWER(u.email) = $1 LIMIT 1`,
+          [norm]
+        );
+        if (res.rows.length > 0) {
+          const row = res.rows[0];
+          let role = 'student';
+          if (row.company_id) role = 'company';
+          else if (row.academician_inst_id) role = 'institution';
 
-        return {
-          id: row.id,
-          userId: row.id,
-          email: row.email,
-          role,
-          studentId: row.student_id,
-          companyId: row.company_id,
-          companyName: row.company_name,
-          institutionId: row.student_inst_id || row.academician_inst_id,
-          collegeId: row.student_inst_id || row.academician_inst_id,
-          name: row.student_name || row.company_name || row.email.split('@')[0]
-        };
+          return {
+            id: row.id,
+            userId: row.id,
+            email: row.email,
+            role,
+            studentId: row.student_id,
+            companyId: row.company_id,
+            companyName: row.company_name,
+            institutionId: row.student_inst_id || row.academician_inst_id,
+            collegeId: row.student_inst_id || row.academician_inst_id,
+            name: row.student_name || row.company_name || row.email.split('@')[0]
+          };
+        }
+      } catch (err) {
+        console.warn('[getUserByEmail] Query notice:', err.message);
       }
     }
+    if (this.supabase) {
+      try {
+        const supUser = await this._getUserByEmailViaSupabase(norm);
+        if (supUser) return supUser;
+      } catch (e) {}
+    }
+    if (this.isPgRequired) return null;
     const data = this._read(true);
     return (data.users || []).find(u => (u.email || '').toLowerCase().trim() === norm) || null;
   }
@@ -860,6 +926,11 @@ class RelationalManager {
           await this.pg.query('UPDATE users SET is_active = true, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [userRes.rows[0].id]);
         }
       } catch (err) {
+        if (this.supabase) {
+          try {
+            await this.supabase.from('users').update({ is_active: true, updated_at: new Date().toISOString() }).ilike('email', normEmail);
+          } catch (e) {}
+        }
         if (this.isPgRequired) throw new Error('DATABASE ERROR (verifyDemoOtp): ' + err.message);
         console.warn('[verifyDemoOtp] PostgreSQL verification update failed, using JSON fallback:', err.message);
       }
@@ -1657,15 +1728,40 @@ class RelationalManager {
           };
         }
       } catch (err) {
+        if (this.supabase) {
+          try {
+            return await this._registerUserViaSupabase(userData);
+          } catch (supErr) {
+            console.warn('[registerUser] Supabase explicit failover notice:', supErr.message);
+            if (this.isPgRequired) {
+              return {
+                success: false,
+                code: 503,
+                statusCode: 503,
+                message: 'Database registration service is temporarily unavailable.'
+              };
+            }
+          }
+        }
         if (this.isPgRequired) {
-          throw new Error('DATABASE ERROR (registerUser): ' + err.message);
+          return {
+            success: false,
+            code: 503,
+            statusCode: 503,
+            message: 'Database registration service is temporarily unavailable.'
+          };
         }
         console.warn('[registerUser] PostgreSQL registration failed; falling back to JSON-local mode:', err.message);
       }
     }
 
     if (this.isPgRequired) {
-      throw new Error('DATABASE ERROR (registerUser): PostgreSQL required');
+      return {
+        success: false,
+        code: 503,
+        statusCode: 503,
+        message: 'Database registration service is temporarily unavailable.'
+      };
     }
 
     const data = this._read();
@@ -1986,6 +2082,689 @@ class RelationalManager {
     };
   }
 
+  async _getUserByEmailViaSupabase(email) {
+    if (!this.supabase) return null;
+    const norm = (email || '').toLowerCase().trim();
+    try {
+      const { data: users, error } = await this.supabase
+        .from('users')
+        .select('*')
+        .ilike('email', norm)
+        .limit(1);
+
+      if (error || !users || users.length === 0) return null;
+      const row = users[0];
+
+      let role = 'student';
+      try {
+        const { data: urData } = await this.supabase.from('user_roles').select('role_id').eq('user_id', row.id).limit(1);
+        if (urData && urData[0] && urData[0].role_id) {
+          const { data: rData } = await this.supabase.from('roles').select('code').eq('id', urData[0].role_id).limit(1);
+          if (rData && rData[0] && rData[0].code) {
+            const c = rData[0].code.toLowerCase();
+            if (c === 'company' || c === 'industry') role = 'company';
+            else if (c === 'institution') role = 'institution';
+            else if (c === 'faculty' || c === 'academician') role = 'academician';
+          }
+        }
+      } catch {}
+
+      const resUser = {
+        id: row.id,
+        userId: row.id,
+        email: row.email,
+        role,
+        name: row.email.split('@')[0]
+      };
+
+      if (role === 'student') {
+        try {
+          const { data: sData } = await this.supabase.from('students').select('id, roll_number, full_name, institution_id').eq('user_id', row.id).limit(1);
+          if (sData && sData[0]) {
+            resUser.studentId = sData[0].roll_number || sData[0].id;
+            resUser.name = sData[0].full_name || resUser.name;
+            resUser.institutionId = sData[0].institution_id;
+            resUser.collegeId = sData[0].institution_id;
+          }
+        } catch {}
+      } else if (role === 'academician') {
+        try {
+          const { data: apData } = await this.supabase.from('academician_profiles').select('full_name, institution_id, faculty_id, designation').eq('user_id', row.id).limit(1);
+          if (apData && apData[0]) {
+            resUser.name = apData[0].full_name || resUser.name;
+            resUser.institutionId = apData[0].institution_id;
+            resUser.collegeId = apData[0].institution_id;
+            resUser.facultyId = apData[0].faculty_id;
+            resUser.designation = apData[0].designation;
+          }
+        } catch {}
+      } else if (role === 'institution') {
+        try {
+          const { data: imData } = await this.supabase.from('institution_members').select('institution_id').eq('user_id', row.id).limit(1);
+          if (imData && imData[0]) {
+            resUser.institutionId = imData[0].institution_id;
+            resUser.collegeId = imData[0].institution_id;
+          }
+        } catch {}
+      } else if (role === 'company') {
+        try {
+          const { data: cmData } = await this.supabase.from('company_members').select('company_id').eq('user_id', row.id).limit(1);
+          if (cmData && cmData[0]) {
+            resUser.companyId = cmData[0].company_id;
+          }
+        } catch {}
+      }
+
+      return resUser;
+    } catch (err) {
+      console.warn('[RelationalManager] _getUserByEmailViaSupabase error:', err.message);
+      return null;
+    }
+  }
+
+  async _getUserByIdViaSupabase(id) {
+    if (!this.supabase || !id) return null;
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id));
+    if (!isUuid) return null;
+
+    try {
+      const { data: users, error } = await this.supabase.from('users').select('*').eq('id', id).limit(1);
+      if (error || !users || users.length === 0) return null;
+      return await this._getUserByEmailViaSupabase(users[0].email);
+    } catch {
+      return null;
+    }
+  }
+
+  async _authenticateUserViaSupabase(normEmail, password, role = null) {
+    if (!this.supabase) {
+      throw new Error('Supabase client is not available for failover.');
+    }
+
+    const { data: users, error: uErr } = await this.supabase
+      .from('users')
+      .select('*')
+      .ilike('email', normEmail)
+      .limit(1);
+
+    if (uErr) {
+      throw new Error('Supabase user lookup failed: ' + uErr.message);
+    }
+
+    if (!users || users.length === 0) {
+      return {
+        success: false,
+        code: 404,
+        statusCode: 404,
+        message: 'Account not found. Please create an account first.'
+      };
+    }
+
+    const user = users[0];
+
+    // Query user role
+    let userRole = 'student';
+    try {
+      const { data: urData } = await this.supabase
+        .from('user_roles')
+        .select('role_id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      if (urData && urData[0] && urData[0].role_id) {
+        const { data: rData } = await this.supabase
+          .from('roles')
+          .select('code')
+          .eq('id', urData[0].role_id)
+          .limit(1);
+        if (rData && rData[0] && rData[0].code) {
+          userRole = String(rData[0].code).toLowerCase();
+        }
+      }
+    } catch (e) {
+      console.warn('[RelationalManager] Notice querying user role via Supabase:', e.message);
+    }
+
+    const requestedRole = role ? String(role).toLowerCase() : null;
+    const isRoleMatched = !requestedRole || [
+      (requestedRole === 'student' && userRole === 'student'),
+      (requestedRole === 'institution' && userRole === 'institution'),
+      ((requestedRole === 'company' || requestedRole === 'industry') && (userRole === 'company' || userRole === 'industry')),
+      ((requestedRole === 'faculty' || requestedRole === 'academician') && (userRole === 'faculty' || userRole === 'academician'))
+    ].some(Boolean);
+
+    if (!isRoleMatched) {
+      return {
+        success: false,
+        code: 403,
+        statusCode: 403,
+        message: 'Account not authorized for this role. Please use the correct login portal.'
+      };
+    }
+
+    if (user.account_status === 'PENDING_VERIFICATION' || user.email_verified === false || user.is_active === false) {
+      return {
+        success: false,
+        code: 403,
+        statusCode: 403,
+        message: 'Please verify your account before logging in.'
+      };
+    }
+
+    const passwordValid = user.password_hash && bcrypt.compareSync(password, user.password_hash);
+    if (!passwordValid) {
+      return {
+        success: false,
+        code: 401,
+        statusCode: 401,
+        message: 'Incorrect password.'
+      };
+    }
+
+    const sanitizedUser = {
+      id: user.id,
+      userId: user.id,
+      email: user.email,
+      role: (userRole === 'faculty' || userRole === 'academician') ? 'academician' : userRole,
+      isVerified: user.email_verified !== false,
+      status: user.account_status || 'ACTIVE'
+    };
+
+    if (userRole === 'student') {
+      try {
+        const { data: sData } = await this.supabase
+          .from('students')
+          .select('*, institutions(code, name)')
+          .eq('user_id', user.id)
+          .limit(1);
+        if (sData && sData[0]) {
+          const s = sData[0];
+          sanitizedUser.studentId = s.roll_number || s.id;
+          sanitizedUser.name = s.full_name || sanitizedUser.name;
+          sanitizedUser.institutionId = s.institution_id;
+          sanitizedUser.collegeId = s.institutions?.code || s.institution_id;
+        }
+      } catch (e) {}
+    } else if (userRole === 'institution') {
+      try {
+        const { data: imData } = await this.supabase
+          .from('institution_members')
+          .select('*, institutions(code, name)')
+          .eq('user_id', user.id)
+          .limit(1);
+        if (imData && imData[0]) {
+          const im = imData[0];
+          sanitizedUser.institutionId = im.institution_id;
+          sanitizedUser.collegeId = im.institutions?.code || im.institution_id;
+          sanitizedUser.name = im.institutions?.name || sanitizedUser.name;
+        }
+      } catch (e) {}
+    } else if (userRole === 'faculty' || userRole === 'academician') {
+      try {
+        const { data: apData } = await this.supabase
+          .from('academician_profiles')
+          .select('*, institutions(code, name), departments(name)')
+          .eq('user_id', user.id)
+          .limit(1);
+        if (apData && apData[0]) {
+          const ap = apData[0];
+          sanitizedUser.name = ap.full_name || sanitizedUser.name;
+          sanitizedUser.institutionId = ap.institution_id;
+          sanitizedUser.collegeId = ap.institutions?.code || ap.institution_id;
+          sanitizedUser.departmentId = ap.department_id;
+          sanitizedUser.departmentName = ap.departments?.name;
+          sanitizedUser.facultyId = ap.faculty_id;
+          sanitizedUser.designation = ap.designation;
+        } else {
+          const { data: imData } = await this.supabase
+            .from('institution_members')
+            .select('*, institutions(code, name)')
+            .eq('user_id', user.id)
+            .limit(1);
+          if (imData && imData[0]) {
+            const im = imData[0];
+            sanitizedUser.institutionId = im.institution_id;
+            sanitizedUser.collegeId = im.institutions?.code || im.institution_id;
+            sanitizedUser.designation = im.designation;
+          }
+        }
+      } catch (e) {}
+    } else if (userRole === 'company' || userRole === 'industry') {
+      try {
+        const { data: cmData } = await this.supabase
+          .from('company_members')
+          .select('*, companies(company_name)')
+          .eq('user_id', user.id)
+          .limit(1);
+        if (cmData && cmData[0]) {
+          const cm = cmData[0];
+          sanitizedUser.companyId = cm.company_id;
+          sanitizedUser.name = cm.companies?.company_name || sanitizedUser.name;
+        }
+      } catch (e) {}
+    }
+
+    const jwtSecret = process.env.JWT_SECRET || 'skillnexus_quantum_super_secret_jwt_key_2026';
+    let token = null;
+    try {
+      const jwt = require('jsonwebtoken');
+      token = jwt.sign(
+        {
+          id: user.id,
+          studentId: sanitizedUser.studentId,
+          institutionId: sanitizedUser.institutionId,
+          collegeId: sanitizedUser.collegeId,
+          email: user.email,
+          role: userRole,
+          name: sanitizedUser.name,
+          companyId: sanitizedUser.companyId
+        },
+        jwtSecret,
+        { expiresIn: '7d' }
+      );
+    } catch (e) {}
+
+    return {
+      success: true,
+      token,
+      user: sanitizedUser
+    };
+  }
+
+  async _registerUserViaSupabase(userData) {
+    if (!this.supabase) {
+      throw new Error('Supabase client is not available.');
+    }
+
+    const email = (userData.email || userData.businessEmail || '').trim().toLowerCase();
+    const role = (userData.role || 'student').toLowerCase();
+
+    if (!email) {
+      return { success: false, code: 400, statusCode: 400, message: 'Email is required.' };
+    }
+    if (!userData.password) {
+      return { success: false, code: 400, statusCode: 400, message: 'Password is required.' };
+    }
+
+    // Check existing email
+    const { data: existingUsers, error: checkErr } = await this.supabase
+      .from('users')
+      .select('id, email')
+      .ilike('email', email)
+      .limit(1);
+
+    if (checkErr) {
+      throw new Error('Supabase email lookup error: ' + checkErr.message);
+    }
+    if (existingUsers && existingUsers.length > 0) {
+      return { success: false, code: 409, statusCode: 409, message: 'An account with this email address already exists. Please sign in.' };
+    }
+
+    const passwordHash = bcrypt.hashSync(userData.password, 10);
+    const roleCode = (role === 'institution' ? 'INSTITUTION' : role === 'company' || role === 'industry' ? 'COMPANY' : role === 'faculty' || role === 'academician' ? 'FACULTY' : 'STUDENT');
+
+    // Resolve or insert role
+    let roleId = null;
+    const { data: roleRows } = await this.supabase.from('roles').select('id').eq('code', roleCode).limit(1);
+    if (roleRows && roleRows.length > 0) {
+      roleId = roleRows[0].id;
+    } else {
+      const { data: newRole } = await this.supabase
+        .from('roles')
+        .insert({
+          code: roleCode,
+          name: roleCode.charAt(0).toUpperCase() + roleCode.slice(1).toLowerCase(),
+          description: `System role ${roleCode}`
+        }, { ignoreDuplicates: true })
+        .select('id')
+        .single();
+      roleId = newRole?.id;
+    }
+
+    // Insert user
+    const { data: userInsert, error: uErr } = await this.supabase
+      .from('users')
+      .insert({
+        email,
+        password_hash: passwordHash,
+        is_active: true
+      })
+      .select('id, email')
+      .single();
+
+    if (uErr) {
+      throw new Error('Failed to create user in Supabase: ' + uErr.message);
+    }
+    const userId = userInsert.id;
+
+    if (roleId) {
+      await this.supabase.from('user_roles').insert({ user_id: userId, role_id: roleId }, { ignoreDuplicates: true });
+    }
+
+    if (role === 'student') {
+      const institutionValue = userData.institutionId || userData.collegeId || userData.collegeCode || userData.institutionCode || userData.institution || null;
+      if (!institutionValue) {
+        return { success: false, code: 400, statusCode: 400, message: 'Institution code or ID is required for student registration.' };
+      }
+
+      let institution = null;
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(institutionValue));
+      let instQuery = this.supabase.from('institutions').select('id, code, name');
+      if (isUuid) {
+        instQuery = instQuery.or(`id.eq.${institutionValue},code.eq.${institutionValue}`);
+      } else {
+        instQuery = instQuery.or(`code.eq.${institutionValue},code.ilike.${institutionValue}`);
+      }
+      const { data: instData } = await instQuery.limit(1);
+      if (instData && instData.length > 0) {
+        institution = instData[0];
+      } else {
+        const masterCollege = getMasterCollegeByCodeOrId(institutionValue);
+        const cleanCode = masterCollege ? masterCollege.collegeCode : String(institutionValue).toUpperCase().slice(0, 32);
+        const cleanName = masterCollege ? masterCollege.collegeName : (userData.collegeName || userData.institutionName || `Institution ${cleanCode}`);
+        const cleanDistrict = masterCollege ? masterCollege.district : (userData.district || 'Tamil Nadu');
+        const cleanEmail = (masterCollege && masterCollege.email) ? masterCollege.email : (userData.officialEmail || `contact@${cleanCode.toLowerCase()}.edu.in`);
+
+        const { data: newInst } = await this.supabase
+          .from('institutions')
+          .insert({
+            code: cleanCode,
+            name: cleanName,
+            district: cleanDistrict,
+            state: 'Tamil Nadu',
+            official_email: cleanEmail,
+            website_url: (masterCollege && masterCollege.website) ? masterCollege.website : (userData.website || null)
+          }, { ignoreDuplicates: true })
+          .select('id, code, name')
+          .single();
+        institution = newInst || { id: null, code: cleanCode, name: cleanName };
+      }
+
+      const deptValue = userData.departmentId || userData.departmentCode || userData.department || userData.dept || null;
+      if (!deptValue) {
+        return { success: false, code: 400, statusCode: 400, message: 'Department is required. Please select or provide a valid department.' };
+      }
+
+      let deptId = null;
+      if (institution && institution.id) {
+        const { data: deptData } = await this.supabase
+          .from('departments')
+          .select('id')
+          .eq('institution_id', institution.id)
+          .or(`code.eq.${String(deptValue).toUpperCase().slice(0, 10)},name.ilike.%${String(deptValue)}%`)
+          .limit(1);
+        if (deptData && deptData.length > 0) {
+          deptId = deptData[0].id;
+        } else {
+          const { data: newDept } = await this.supabase
+            .from('departments')
+            .insert({
+              institution_id: institution.id,
+              code: String(deptValue).toUpperCase().slice(0, 10),
+              name: String(deptValue)
+            }, { ignoreDuplicates: true })
+            .select('id')
+            .single();
+          deptId = newDept?.id;
+        }
+      }
+
+      const regNo = (userData.regNo || userData.registerNumber || userData.rollNumber || userData.studentId || `REG-${Date.now().toString().slice(-6)}`).trim();
+      const { data: studentInsert, error: sErr } = await this.supabase
+        .from('students')
+        .insert({
+          user_id: userId,
+          institution_id: institution ? institution.id : null,
+          department_id: deptId,
+          roll_number: regNo,
+          full_name: userData.name || userData.fullName || 'Student',
+          cgpa: userData.cgpa != null && userData.cgpa !== '' && !isNaN(Number(userData.cgpa)) ? Number(userData.cgpa) : null,
+          batch: userData.batch || '2022-2026',
+          graduation_year: Number(userData.graduationYear || userData.gradYear || new Date().getFullYear() + 4),
+          readiness_score: 0,
+          placement_status: 'Seeking Placement',
+          target_career_role: userData.targetRole || userData.preferredRole || null,
+          year_semester: userData.yearSemester || userData.year || userData.semester || '3rd Year / 5th Sem'
+        })
+        .select('id, full_name')
+        .single();
+
+      if (sErr) {
+        throw new Error('Failed to create student record in Supabase: ' + sErr.message);
+      }
+
+      const { otp } = this.generateDemoOtp(email, 'REGISTRATION');
+      return {
+        success: true,
+        message: 'Account created successfully. Please enter the 6-digit OTP to verify and activate your account.',
+        demoOtp: otp,
+        email,
+        role,
+        user: {
+          id: userId,
+          userId,
+          email,
+          role,
+          studentId: regNo,
+          name: studentInsert.full_name,
+          institutionId: institution ? institution.id : null,
+          collegeId: institution ? (institution.code || institution.id) : null,
+          status: 'ACTIVE',
+          isVerified: true
+        }
+      };
+    }
+
+    if (role === 'institution') {
+      const instCode = userData.institutionCode || userData.collegeCode || userData.collegeId || `INST-${Date.now().toString().slice(-6)}`;
+      const instName = userData.institutionName || userData.collegeName || userData.name || 'Institution';
+      let instId = null;
+
+      const { data: exInst } = await this.supabase
+        .from('institutions')
+        .select('id')
+        .or(`code.ilike.${instCode},official_email.ilike.${email}`)
+        .limit(1);
+      if (exInst && exInst.length > 0) {
+        instId = exInst[0].id;
+      } else {
+        const { data: insInst } = await this.supabase
+          .from('institutions')
+          .insert({
+            code: instCode,
+            name: instName,
+            district: userData.district || userData.city || 'Unspecified',
+            state: userData.state || 'Tamil Nadu',
+            official_email: email,
+            website_url: userData.website || userData.websiteUrl || null
+          })
+          .select('id')
+          .single();
+        instId = insInst?.id;
+      }
+
+      if (instId) {
+        await this.supabase.from('institution_members').insert({
+          institution_id: instId,
+          user_id: userId,
+          member_role: 'INSTITUTION_ADMIN',
+          designation: 'Placement Officer',
+          is_active: true
+        }, { ignoreDuplicates: true });
+      }
+
+      const { otp } = this.generateDemoOtp(email, 'REGISTRATION');
+      return {
+        success: true,
+        message: 'Account created successfully. Please enter the 6-digit OTP to verify and activate your account.',
+        demoOtp: otp,
+        email,
+        role,
+        user: {
+          id: userId,
+          userId,
+          email,
+          role,
+          institutionId: instId,
+          collegeId: instCode,
+          name: instName,
+          status: 'ACTIVE',
+          isVerified: true
+        }
+      };
+    }
+
+    if (role === 'company' || role === 'industry') {
+      const compName = userData.companyName || userData.name || 'Company';
+      const regNum = userData.companyCode || userData.registrationNumber || `REG-${Date.now().toString().slice(-6)}`;
+      let compId = null;
+
+      const { data: exComp } = await this.supabase
+        .from('companies')
+        .select('id')
+        .or(`company_name.ilike.${compName},registration_number.ilike.${regNum}`)
+        .limit(1);
+      if (exComp && exComp.length > 0) {
+        compId = exComp[0].id;
+      } else {
+        const { data: insComp } = await this.supabase
+          .from('companies')
+          .insert({
+            company_name: compName,
+            registration_number: regNum,
+            industry: userData.industry || 'Technology',
+            website_url: userData.website || userData.websiteUrl || null,
+            headquarters: userData.headquarters || userData.city || 'Unspecified',
+            state: userData.state || 'Tamil Nadu',
+            is_verified: true
+          })
+          .select('id')
+          .single();
+        compId = insComp?.id;
+      }
+
+      if (compId) {
+        await this.supabase.from('company_members').insert({
+          company_id: compId,
+          user_id: userId,
+          designation: 'Recruiter',
+          is_active: true
+        }, { ignoreDuplicates: true });
+      }
+
+      const { otp } = this.generateDemoOtp(email, 'REGISTRATION');
+      return {
+        success: true,
+        message: 'Account created successfully. Please enter the 6-digit OTP to verify and activate your account.',
+        demoOtp: otp,
+        email,
+        role,
+        user: {
+          id: userId,
+          userId,
+          email,
+          role,
+          companyId: compId,
+          name: compName,
+          status: 'ACTIVE',
+          isVerified: true
+        }
+      };
+    }
+
+    if (role === 'faculty' || role === 'academician') {
+      const facultyName = userData.name || userData.fullName || 'Faculty Member';
+      const institutionValue = userData.institutionId || userData.collegeId || userData.collegeCode || userData.institutionCode || userData.institution || null;
+      let instId = null;
+      let instCode = null;
+
+      if (institutionValue) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(institutionValue));
+        let q = this.supabase.from('institutions').select('id, code, name');
+        if (isUuid) {
+          q = q.or(`id.eq.${institutionValue},code.eq.${institutionValue}`);
+        } else {
+          q = q.or(`code.eq.${institutionValue},code.ilike.${institutionValue}`);
+        }
+        const { data: instRows } = await q.limit(1);
+        if (instRows && instRows[0]) {
+          instId = instRows[0].id;
+          instCode = instRows[0].code;
+        }
+      }
+      if (!instId) {
+        const { data: firstInst } = await this.supabase.from('institutions').select('id, code').limit(1);
+        if (firstInst && firstInst[0]) {
+          instId = firstInst[0].id;
+          instCode = firstInst[0].code;
+        }
+      }
+
+      let deptId = null;
+      const deptValue = userData.departmentId || userData.departmentCode || userData.department || userData.dept || null;
+      if (deptValue && instId) {
+        const { data: dRows } = await this.supabase.from('departments').select('id').eq('institution_id', instId).or(`code.eq.${String(deptValue).toUpperCase().slice(0, 10)},name.ilike.%${String(deptValue)}%`).limit(1);
+        if (dRows && dRows[0]) {
+          deptId = dRows[0].id;
+        } else {
+          const { data: newD } = await this.supabase.from('departments').insert({
+            institution_id: instId,
+            code: String(deptValue).toUpperCase().slice(0, 10),
+            name: String(deptValue)
+          }, { ignoreDuplicates: true }).select('id').single();
+          deptId = newD?.id;
+        }
+      }
+
+      const facultyId = (userData.facultyId || userData.staffId || `FAC-${Date.now().toString().slice(-6)}`).trim();
+      const designation = userData.designation || 'Assistant Professor';
+
+      if (instId) {
+        await this.supabase.from('institution_members').upsert({
+          institution_id: instId,
+          user_id: userId,
+          member_role: 'FACULTY',
+          designation,
+          is_active: true
+        });
+
+        await this.supabase.from('academician_profiles').upsert({
+          user_id: userId,
+          institution_id: instId,
+          department_id: deptId,
+          faculty_id: facultyId,
+          full_name: facultyName,
+          designation,
+          official_email: email,
+          bio: userData.bio || 'Faculty mentor in technical excellence.'
+        }, { onConflict: 'user_id' });
+      }
+
+      const { otp } = this.generateDemoOtp(email, 'REGISTRATION');
+      return {
+        success: true,
+        message: 'Academician account created successfully. Please enter the 6-digit OTP to verify and activate your account.',
+        demoOtp: otp,
+        email,
+        role: 'academician',
+        user: {
+          id: userId,
+          userId,
+          email,
+          role: 'academician',
+          facultyId,
+          designation,
+          institutionId: instCode || instId,
+          collegeId: instCode || instId,
+          departmentId: deptId,
+          name: facultyName,
+          status: 'ACTIVE',
+          isVerified: true
+        }
+      };
+    }
+  }
+
   async authenticateUser(email, password, role = null) {
     const normEmail = (email || '').trim().toLowerCase();
     this.ensureCanonicalDemoAccounts();
@@ -2170,11 +2949,40 @@ class RelationalManager {
           };
         }
       } catch (err) {
+        if (this.supabase) {
+          try {
+            return await this._authenticateUserViaSupabase(normEmail, password, role);
+          } catch (supErr) {
+            console.warn('[authenticateUser] Supabase explicit failover notice:', supErr.message);
+            if (this.isPgRequired) {
+              return {
+                success: false,
+                code: 503,
+                statusCode: 503,
+                message: 'Database authentication service is temporarily unavailable.'
+              };
+            }
+          }
+        }
         if (this.isPgRequired) {
-          throw new Error('DATABASE ERROR (authenticateUser): ' + err.message);
+          return {
+            success: false,
+            code: 503,
+            statusCode: 503,
+            message: 'Database authentication service is temporarily unavailable.'
+          };
         }
         console.warn('[authenticateUser] PostgreSQL auth failed; falling back to JSON-local mode:', err.message);
       }
+    }
+
+    if (this.isPgRequired) {
+      return {
+        success: false,
+        code: 404,
+        statusCode: 404,
+        message: 'Account not found. Please create an account first.'
+      };
     }
 
     const data = this._read();
@@ -2313,8 +3121,25 @@ class RelationalManager {
           email: normEmail
         };
       } catch (err) {
+        if (this.isPgRequired) {
+          return {
+            success: false,
+            code: 503,
+            statusCode: 503,
+            message: 'Database service is temporarily unavailable.'
+          };
+        }
         console.warn('[forgotPasswordWithOtp] PostgreSQL lookup failed; falling back to JSON-local mode:', err.message);
       }
+    }
+
+    if (this.isPgRequired) {
+      return {
+        success: false,
+        code: 404,
+        statusCode: 404,
+        message: 'Account not found. Please create an account first.'
+      };
     }
 
     const data = this._read();
@@ -2376,8 +3201,25 @@ class RelationalManager {
           return { success: true, message: 'Password has been successfully updated. You can now log in.' };
         }
       } catch (err) {
+        if (this.isPgRequired) {
+          return {
+            success: false,
+            code: 503,
+            statusCode: 503,
+            message: 'Database password update service is temporarily unavailable.'
+          };
+        }
         console.warn('[resetPasswordWithOtp] PostgreSQL password update failed; falling back to JSON-local mode:', err.message);
       }
+    }
+
+    if (this.isPgRequired) {
+      return {
+        success: false,
+        code: 404,
+        statusCode: 404,
+        message: 'Account not found.'
+      };
     }
 
     const data = this._read();
