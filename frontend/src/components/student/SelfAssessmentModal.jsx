@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Sparkles, AlertCircle, ShieldAlert, Award, BookOpen } from 'lucide-react';
+import useAppleModal from '../../utils/useAppleModal';
 
 const CATEGORIES = [
   'Programming',
@@ -24,6 +25,7 @@ const LEVELS = [
 const CONFIDENCE_LEVELS = ['Low', 'Medium', 'High'];
 
 export default function SelfAssessmentModal({ isOpen, onClose, onSaved, initialData = null }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen, onClose });
   const [skillName, setSkillName] = useState('');
   const [category, setCategory] = useState('Programming');
   const [level, setLevel] = useState('Intermediate');
@@ -89,27 +91,39 @@ export default function SelfAssessmentModal({ isOpen, onClose, onSaved, initialD
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(4, 9, 20, 0.85)',
-      backdropFilter: 'blur(8px)',
-      zIndex: 1100,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
-      <div style={{
-        background: 'var(--bg-card, #0c1427)',
-        border: '1px solid var(--border-subtle, rgba(0, 242, 254, 0.2))',
-        borderRadius: '16px',
-        width: '100%',
-        maxWidth: '560px',
-        boxShadow: '0 24px 64px rgba(0, 0, 0, 0.6)',
-        overflow: 'hidden',
-        animation: 'modalSlideUp 0.25s ease-out'
-      }}>
+    <div 
+      onClick={handleBackdropClick}
+      className="modal-backdrop"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(4, 9, 20, 0.85)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        zIndex: 1100,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Self-Assess Skill Dialog"
+        className="modal-content-box"
+        style={{
+          background: 'var(--bg-card, #0c1427)',
+          border: '1px solid var(--border-subtle, rgba(0, 242, 254, 0.2))',
+          borderRadius: '16px',
+          width: '100%',
+          maxWidth: '560px',
+          boxShadow: '0 24px 64px rgba(0, 0, 0, 0.6)',
+          overflow: 'hidden',
+          animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
         {/* Header */}
         <div style={{
           padding: '20px 24px',
@@ -132,6 +146,7 @@ export default function SelfAssessmentModal({ isOpen, onClose, onSaved, initialD
           </div>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             style={{
               background: 'transparent',
               border: 'none',

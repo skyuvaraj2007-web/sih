@@ -44,6 +44,7 @@ import SkillLearningPathModal from '../components/student/SkillLearningPathModal
 import CertificateViewerModal from '../components/common/CertificateViewerModal';
 import CertificateUploadModal from '../components/student/CertificateUploadModal';
 import { certificateService } from '../services/certificateService';
+import { skillIntelligenceService } from '../services/skillIntelligenceService';
 
 const getApiBase = () => {
   if (typeof window !== 'undefined' && window.__NEXUS_API_BASE__) {
@@ -78,35 +79,8 @@ function determineCategory(name) {
 
 export default function MySkills({ setActivePage, onShowToast, user }) {
   const [assessmentStore] = useState(() => loadAssessmentStore());
-  const [skills, setSkills] = useState([]);
-  const [counts, setCounts] = useState({ total: 0, enrolled: 0, verified: 0, gaps: 0, readinessIndex: 0 });
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('All Categories');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedEvidence, setSelectedEvidence] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newSkillName, setNewSkillName] = useState('');
-  const [newSkillCategory, setNewSkillCategory] = useState('Programming');
-  const [newSkillLevel, setNewSkillLevel] = useState('Beginner');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Complete Skill Intelligence Lifecyle States
-  const [enrolledSkills, setEnrolledSkills] = useState([]);
-  const [publishedSkills, setPublishedSkills] = useState([]);
-  const [mainTab, setMainTab] = useState('enrolled'); // 'enrolled' | 'discover' | 'competencies' | 'certificates' | 'skill-gap'
-  const [selectedSkillDetailsId, setSelectedSkillDetailsId] = useState(null);
-  const [learningModalSkillId, setLearningModalSkillId] = useState(null);
-
-  // Certificates & AI Skill Gap Ecosystem States
-  const [certificates, setCertificates] = useState([]);
-  const [skillGapData, setSkillGapData] = useState(null);
-  const [showCertificateUpload, setShowCertificateUpload] = useState(false);
-  const [activeViewingCertificate, setActiveViewingCertificate] = useState(null);
-  const [certFilter, setCertFilter] = useState('ALL');
-
-  // Resolve current student from props or authenticated session
+  // Resolve current student key for fast cache lookup
   const currentStudent = useMemo(() => {
     if (user) {
       return {
@@ -120,63 +94,82 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
     return null;
   }, [user]);
 
-  // Load and enrich skills
-  const loadSkillsData = async () => {
-    setLoading(true);
+  const studentKey = currentStudent?.studentId || user?.studentId || user?.id || '';
+
+  // Instant Cache Lookup: synchronously initialize from memory or sessionStorage
+  const initialCache = useMemo(() => skillIntelligenceService.getCached(studentKey), [studentKey]);
+
+  const [skills, setSkills] = useState(() => initialCache?.skillsData || []);
+  const [counts, setCounts] = useState(() => initialCache?.counts || { total: 0, enrolled: 0, verified: 0, gaps: 0, readinessIndex: 0 });
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('All Categories');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(() => !initialCache);
+  const [error, setError] = useState(null);
+  const [selectedEvidence, setSelectedEvidence] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newSkillName, setNewSkillName] = useState('');
+  const [newSkillCategory, setNewSkillCategory] = useState('Programming');
+  const [newSkillLevel, setNewSkillLevel] = useState('Beginner');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Complete Skill Intelligence Lifecyle States (initialized immediately from cache if available)
+  const [enrolledSkills, setEnrolledSkills] = useState(() => initialCache?.enrolledSkills || []);
+  const [publishedSkills, setPublishedSkills] = useState(() => initialCache?.publishedSkills || []);
+  const [mainTab, setMainTab] = useState('enrolled'); // 'enrolled' | 'discover' | 'competencies' | 'certificates' | 'skill-gap'
+  const [selectedSkillDetailsId, setSelectedSkillDetailsId] = useState(null);
+  const [learningModalSkillId, setLearningModalSkillId] = useState(null);
+
+  // Certificates & AI Skill Gap Ecosystem States
+  const [certificates, setCertificates] = useState(() => initialCache?.certificates || []);
+  const [skillGapData, setSkillGapData] = useState(() => initialCache?.skillGapData || null);
+  const [showCertificateUpload, setShowCertificateUpload] = useState(false);
+  const [activeViewingCertificate, setActiveViewingCertificate] = useState(null);
+  const [certFilter, setCertFilter] = useState('ALL');
+
+  // In-flight request deduplication guard
+  const isFetchingRef = React.useRef(false);
+
+  // Load and enrich skills with parallel fetching and stale-while-revalidate
+  const loadSkillsData = async (forceShowLoading = false) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
+    const studentId = currentStudent?.studentId;
+    const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
+
+    // Only display full loading state if we have zero data in state and no cache
+    if (forceShowLoading || (skills.length === 0 && enrolledSkills.length === 0 && !initialCache)) {
+      setLoading(true);
+    }
     setError(null);
+
     try {
-      const apiBase = getApiBase();
-      const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
-      const studentId = currentStudent?.studentId;
+      // 1. Parallel fetch of all 6 independent endpoints
+      const parallelData = await skillIntelligenceService.fetchAllParallel(studentId, token);
 
-      let baseSkills = null;
-      let fetchedFromApi = false;
+      let baseSkills = parallelData.skillsData;
 
-      // 1. Fetch from backend API
-      if (token) {
-        try {
-          const res = await fetch(`${apiBase}/student/skills`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.success && Array.isArray(data.data)) {
-              baseSkills = data.data;
-              fetchedFromApi = true;
-            }
-          } else if (res.status === 401 || res.status === 403) {
-            console.debug('Unauthorized skills access');
-          }
-        } catch (apiErr) {
-          console.debug('Backend /api/student/skills fetch error:', apiErr.message);
+      // 2. If API was unreachable or clean, fall back to local relational store for this student
+      if (!baseSkills && studentId) {
+        const student = getRelationalStudentById(studentId) || currentStudent;
+        if (student && Array.isArray(student.skills)) {
+          baseSkills = student.skills.map((s, idx) => ({
+            id: s.id || `sk_${idx + 1}`,
+            name: s.name,
+            level: normalizeLevel(s.level),
+            masteryScore: s.confidence || (s.verified ? 85 : 60),
+            verified: Boolean(s.verified),
+            verificationStatus: s.verified ? 'VERIFIED' : 'SELF_ASSESSED',
+            category: s.category || determineCategory(s.name),
+            status: s.verified ? 'verified' : ((s.confidence && s.confidence < 60) ? 'gap' : 'enrolled'),
+            specialization: `${s.name} Competency Track`,
+            criticalGap: (s.confidence && s.confidence < 60) ? `Proficiency (${s.confidence}%) below placement threshold (75%)` : null,
+            recommendation: (s.confidence && s.confidence < 60) ? `Complete verified assessment in ${s.name}` : null
+          }));
         }
       }
 
-      // 2. If API was unreachable, fall back to local relational store for this student
-      if (!fetchedFromApi) {
-        if (studentId) {
-          const student = getRelationalStudentById(studentId) || currentStudent;
-          if (student && Array.isArray(student.skills)) {
-            baseSkills = student.skills.map((s, idx) => ({
-              id: s.id || `sk_${idx + 1}`,
-              name: s.name,
-              level: normalizeLevel(s.level),
-              masteryScore: s.confidence || (s.verified ? 85 : 60),
-              verified: Boolean(s.verified),
-              verificationStatus: s.verified ? 'VERIFIED' : 'SELF_ASSESSED',
-              category: s.category || determineCategory(s.name),
-              status: s.verified ? 'verified' : ((s.confidence && s.confidence < 60) ? 'gap' : 'enrolled'),
-              specialization: `${s.name} Competency Track`,
-              criticalGap: (s.confidence && s.confidence < 60) ? `Proficiency (${s.confidence}%) below placement threshold (75%)` : null,
-              recommendation: (s.confidence && s.confidence < 60) ? `Complete verified assessment in ${s.name}` : null
-            }));
-          }
-        }
-      }
-
-      // If still null, treat as empty list for clean account
       if (!baseSkills) {
         baseSkills = [];
       }
@@ -253,100 +246,71 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
       const enrolled = enrichedSkills.filter(s => !s.verified && s.masteryScore >= 60).length;
       const gaps = enrichedSkills.filter(s => s.masteryScore < 60).length;
 
-      // 5. Fetch Authoritative Readiness Score from Backend
+      // 5. Readiness Score from Parallel Fetch
       let backendReadiness = 0;
-      if (token && studentId) {
-        try {
-          const rRes = await fetch(`${apiBase}/nexus/readiness/${studentId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (rRes.ok) {
-            const rData = await rRes.json();
-            if (rData.success && rData.data?.readinessScore !== undefined) {
-              const raw = rData.data.readinessScore;
-              backendReadiness = typeof raw === 'object' && raw !== null ? Number(raw.readinessScore ?? 0) : Number(raw || 0);
-            }
-          }
-        } catch (rErr) {
-          console.debug('Readiness API fetch deferred:', rErr.message);
-        }
+      if (parallelData.readinessData?.readinessScore !== undefined) {
+        const raw = parallelData.readinessData.readinessScore;
+        backendReadiness = typeof raw === 'object' && raw !== null ? Number(raw.readinessScore ?? 0) : Number(raw || 0);
       } else if (total > 0) {
         backendReadiness = Math.round((verified / total) * 100);
       }
 
-      // 6. Fetch enrolled skills intelligence
-      try {
-        const intelRes = await fetch(`${apiBase}/learning/my-skill-intelligence`, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
-        if (intelRes.ok) {
-          const intelJson = await intelRes.json();
-          if (intelJson.success && Array.isArray(intelJson.data)) {
-            setEnrolledSkills(intelJson.data);
-          }
-        }
-      } catch (err) {
-        console.debug('Enrolled skills fetch note:', err.message);
-      }
-
-      // 7. Fetch published institutional skills
-      try {
-        const pubRes = await fetch(`${apiBase}/learning/skills`, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
-        if (pubRes.ok) {
-          const pubJson = await pubRes.json();
-          if (pubJson.success && Array.isArray(pubJson.data)) {
-            setPublishedSkills(pubJson.data);
-          }
-        }
-      } catch (err) {
-        console.debug('Published skills fetch note:', err.message);
-      }
-
-      // Fetch Real Certificates & AI Skill Gap Intelligence
       let realGapReadiness = backendReadiness;
-      try {
-        const [certsRes, gapRes] = await Promise.all([
-          certificateService.getMyCertificates().catch(() => ({ success: false, data: [] })),
-          certificateService.getSkillGapIntelligence().catch(() => ({ success: false, data: null }))
-        ]);
-        if (certsRes && certsRes.success && Array.isArray(certsRes.data)) {
-          setCertificates(certsRes.data);
-        }
-        if (gapRes && gapRes.success && gapRes.data) {
-          setSkillGapData(gapRes.data);
-          if (gapRes.data.readinessLevel !== undefined) {
-            realGapReadiness = gapRes.data.readinessLevel;
-          }
-        }
-      } catch (cErr) {
-        console.debug('Certificate & Skill Gap fetch note:', cErr.message);
+      if (parallelData.skillGapData?.readinessLevel !== undefined) {
+        realGapReadiness = parallelData.skillGapData.readinessLevel;
       }
 
-      setSkills(enrichedSkills);
-      setCounts({
+      const calculatedCounts = {
         total,
         enrolled,
         verified,
         gaps,
         readinessIndex: typeof realGapReadiness === 'number' && !isNaN(realGapReadiness) ? realGapReadiness : 0
-      });
+      };
+
+      setSkills(enrichedSkills);
+      setCounts(calculatedCounts);
+      setEnrolledSkills(parallelData.enrolledSkills || []);
+      setPublishedSkills(parallelData.publishedSkills || []);
+      setCertificates(parallelData.certificates || []);
+      setSkillGapData(parallelData.skillGapData || null);
+
+      // Save to cache for instant subsequent loads
+      if (studentId) {
+        skillIntelligenceService.setCached(studentId, {
+          skillsData: enrichedSkills,
+          counts: calculatedCounts,
+          enrolledSkills: parallelData.enrolledSkills || [],
+          publishedSkills: parallelData.publishedSkills || [],
+          certificates: parallelData.certificates || [],
+          skillGapData: parallelData.skillGapData || null
+        });
+      }
     } catch (err) {
       console.error('Error loading skills data:', err);
       setError('Unable to load your skills.');
     } finally {
+      isFetchingRef.current = false;
       setLoading(false);
     }
   };
 
+  // Safe primitive dependency prevents redundant useEffect re-runs
+  const studentIdForEffect = currentStudent?.studentId;
   useEffect(() => {
-    loadSkillsData();
-  }, [currentStudent]);
+    if (studentIdForEffect) {
+      loadSkillsData(false);
+    }
+  }, [studentIdForEffect]);
 
-  // Reactive updates across tabs & actions
+  // Reactive updates across tabs & actions with cache invalidation
   useEffect(() => {
-    const handleUpdate = () => loadSkillsData();
+    const handleUpdate = () => {
+      if (studentIdForEffect) {
+        skillIntelligenceService.invalidateCache(studentIdForEffect);
+      }
+      loadSkillsData(false);
+    };
     window.addEventListener('nexus_skills_updated', handleUpdate);
     window.addEventListener('nexus_assessment_updated', handleUpdate);
     window.addEventListener('nexus_data_updated', handleUpdate);
@@ -360,7 +324,7 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
       window.removeEventListener('nexus_students_updated', handleUpdate);
       window.removeEventListener('nexus_projects_updated', handleUpdate);
     };
-  }, [currentStudent]);
+  }, [studentIdForEffect]);
 
   // Filter skills based on status, category, and search query
   const filteredSkills = useMemo(() => {
@@ -826,7 +790,23 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
       {/* ── TAB 1: MY ENROLLED SKILLS (Continuous Learning Lifecycle) ── */}
       {mainTab === 'enrolled' && (
         <div>
-          {enrolledSkills.length === 0 ? (
+          {loading && enrolledSkills.length === 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+              {[1, 2].map((k) => (
+                <div key={k} className="glass-panel" style={{ padding: '24px', minHeight: '260px', opacity: 0.6, animation: 'pulse 1.5s infinite ease-in-out' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
+                    <div style={{ width: '90px', height: '18px', background: 'var(--bg-input)', borderRadius: '4px' }} />
+                    <div style={{ width: '80px', height: '18px', background: 'var(--bg-input)', borderRadius: '4px' }} />
+                  </div>
+                  <div style={{ width: '60%', height: '22px', background: 'var(--bg-input)', borderRadius: '4px', marginBottom: '20px' }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '14px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px' }}>
+                    <div style={{ height: '50px', background: 'var(--bg-input)', borderRadius: '6px' }} />
+                    <div style={{ height: '50px', background: 'var(--bg-input)', borderRadius: '6px' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : enrolledSkills.length === 0 ? (
             <div className="glass-panel" style={{ padding: '64px 24px', textAlign: 'center', margin: '24px 0' }}>
               <div style={{
                 width: '56px', height: '56px', borderRadius: '16px',
@@ -1067,7 +1047,21 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
       {/* ── TAB 2: DISCOVER INSTITUTIONAL SKILLS (Catalog) ── */}
       {mainTab === 'discover' && (
         <div>
-          {publishedSkills.length === 0 ? (
+          {loading && publishedSkills.length === 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '18px', marginBottom: '32px' }}>
+              {[1, 2, 3].map((k) => (
+                <div key={k} className="glass-panel" style={{ padding: '22px', minHeight: '220px', opacity: 0.6, animation: 'pulse 1.5s infinite ease-in-out' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
+                    <div style={{ width: '80px', height: '16px', background: 'var(--bg-input)', borderRadius: '4px' }} />
+                    <div style={{ width: '60px', height: '16px', background: 'var(--bg-input)', borderRadius: '4px' }} />
+                  </div>
+                  <div style={{ width: '70%', height: '20px', background: 'var(--bg-input)', borderRadius: '4px', marginBottom: '12px' }} />
+                  <div style={{ width: '100%', height: '36px', background: 'var(--bg-input)', borderRadius: '4px', marginBottom: '16px' }} />
+                  <div style={{ height: '36px', background: 'var(--bg-input)', borderRadius: '8px' }} />
+                </div>
+              ))}
+            </div>
+          ) : publishedSkills.length === 0 ? (
             <div className="glass-panel" style={{ padding: '64px 24px', textAlign: 'center', margin: '24px 0' }}>
               <div style={{
                 width: '56px', height: '56px', borderRadius: '16px',
@@ -1248,11 +1242,19 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
       </div>
 
       {/* 1. LOADING STATE */}
-      {loading && (
-        <div className="glass-panel" style={{ padding: '60px 24px', textAlign: 'center', margin: '24px 0' }}>
-          <div className="status-dot-pulse" style={{ width: '14px', height: '14px', margin: '0 auto 16px', background: 'var(--cyber-cyan)' }}></div>
-          <div style={{ color: 'var(--text-primary)', fontSize: '15px', fontWeight: 600 }}>Loading verified competencies and skill ledger...</div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '12px', marginTop: '6px' }}>Synchronizing sovereign student credentials</p>
+      {loading && skills.length === 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '18px', margin: '24px 0' }}>
+          {[1, 2, 3, 4].map((k) => (
+            <div key={k} className="glass-panel" style={{ padding: '20px', minHeight: '180px', opacity: 0.6, animation: 'pulse 1.5s infinite ease-in-out' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <div style={{ width: '100px', height: '18px', background: 'var(--bg-input)', borderRadius: '4px' }} />
+                <div style={{ width: '60px', height: '18px', background: 'var(--bg-input)', borderRadius: '4px' }} />
+              </div>
+              <div style={{ width: '50%', height: '14px', background: 'var(--bg-input)', borderRadius: '4px', marginBottom: '16px' }} />
+              <div style={{ width: '100%', height: '6px', background: 'var(--bg-input)', borderRadius: '3px', marginBottom: '16px' }} />
+              <div style={{ height: '32px', background: 'var(--bg-input)', borderRadius: '6px' }} />
+            </div>
+          ))}
         </div>
       )}
 
@@ -1641,7 +1643,17 @@ export default function MySkills({ setActivePage, onShowToast, user }) {
           </div>
 
           {/* Certificate Cards */}
-          {certificates.filter(c => certFilter === 'ALL' || c.status === certFilter).length === 0 ? (
+          {loading && certificates.length === 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '18px', margin: '16px 0' }}>
+              {[1, 2].map((k) => (
+                <div key={k} className="glass-panel" style={{ padding: '20px', minHeight: '160px', opacity: 0.6, animation: 'pulse 1.5s infinite ease-in-out' }}>
+                  <div style={{ width: '70%', height: '20px', background: 'var(--bg-input)', borderRadius: '4px', marginBottom: '12px' }} />
+                  <div style={{ width: '40%', height: '14px', background: 'var(--bg-input)', borderRadius: '4px', marginBottom: '16px' }} />
+                  <div style={{ height: '36px', background: 'var(--bg-input)', borderRadius: '6px' }} />
+                </div>
+              ))}
+            </div>
+          ) : certificates.filter(c => certFilter === 'ALL' || c.status === certFilter).length === 0 ? (
             <div className="glass-panel" style={{ padding: '64px 24px', textAlign: 'center' }}>
               <Award size={48} style={{ color: 'var(--text-muted)', margin: '0 auto 12px' }} />
               <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import useAppleModal from '../../utils/useAppleModal';
 import { UserPlus, X, CheckCircle, AlertCircle, RefreshCw, Mail, Copy, Check } from 'lucide-react';
 import { academicService } from '../../services/academicService';
 
 export default function ManualStudentModal({ institution, onClose, onSuccess, onShowToast }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen: true, onClose });
   const [departments, setDepartments] = useState([]);
   const [loadingDepts, setLoadingDepts] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -80,31 +82,44 @@ export default function ManualStudentModal({ institution, onClose, onSuccess, on
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(5, 10, 20, 0.85)',
-      backdropFilter: 'blur(8px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 9999,
-      padding: '20px'
-    }}>
-      <div className="glass-panel" style={{
-        width: '100%',
-        maxWidth: '560px',
-        background: 'linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(11, 17, 32, 0.96))',
-        border: '1px solid rgba(168, 85, 247, 0.3)',
-        borderRadius: '16px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(168, 85, 247, 0.15)',
-        overflow: 'hidden',
+    <div 
+      onClick={handleBackdropClick}
+      className="modal-backdrop"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(5, 10, 20, 0.85)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         display: 'flex',
-        flexDirection: 'column'
-      }}>
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: '20px',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Add Student to Institutional Roster"
+        className="glass-panel modal-content-box" 
+        style={{
+          width: '100%',
+          maxWidth: '560px',
+          background: 'linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(11, 17, 32, 0.96))',
+          border: '1px solid rgba(168, 85, 247, 0.3)',
+          borderRadius: '20px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(168, 85, 247, 0.15)',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
         {/* Header */}
         <div style={{
           padding: '20px 24px',

@@ -171,18 +171,33 @@ html.light {
   --nav-active-glow: 0 0 14px rgba(0, 83, 156, 0.12);
 }
 
-/* Global Font & Geometry Constants */
+/* Global Font, Motion & Geometry Constants — Apple Design System */
 :root {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, Monaco, monospace;
 
-  --topbar-height: 60px;
+  /* Standardized Apple Radius Tokens (§7 Spacing & Craft) */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Apple WWDC Fluid Spring Easing (§4 Behavior over Animation) */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+  --ease-smooth: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --topbar-height: 64px;
   --sidebar-width: 260px;
   --sidebar-collapsed-width: 72px;
 }
 
 /* --------------------------------------------------------------------------
-   2. BASE RESET & GLOBAL TYPOGRAPHY
+   2. BASE RESET & OPTICAL TYPOGRAPHY (§15 Typography: optical sizing, tracking, leading)
    -------------------------------------------------------------------------- */
 * {
   box-sizing: border-box;
@@ -198,6 +213,7 @@ html {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -208,22 +224,124 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  line-height: 1.5;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  line-height: 1.55;
+  letter-spacing: -0.005em;
   overflow: visible;
   overflow-x: clip;
   overflow-y: visible;
   touch-action: pan-y;
-  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-h1, h2, h3, h4, h5, h6 {
+/* Apple Optical Typography Hierarchy (§15) */
+h1 {
   color: var(--text-heading);
+  font-size: clamp(1.85rem, 3.2vw, 2.6rem);
+  font-weight: 750;
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+}
+
+h2 {
+  color: var(--text-heading);
+  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
   font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+}
+
+h3 {
+  color: var(--text-heading);
+  font-size: clamp(1.1rem, 1.6vw, 1.35rem);
+  font-weight: 650;
+  line-height: 1.28;
   letter-spacing: -0.015em;
+}
+
+h4 {
+  color: var(--text-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+h5, h6 {
+  color: var(--text-heading);
+  font-weight: 600;
+  letter-spacing: -0.008em;
 }
 
 p, span, div, label {
   color: inherit;
+}
+
+/* Small uppercase labels, captions and badges (§15: positive tracking for legibility) */
+.caption,
+.nav-section-title,
+.cyber-badge,
+[class*="badge-"] {
+  letter-spacing: 0.04em !important;
+}
+
+/* --------------------------------------------------------------------------
+   BUTTON & INTERACTION FEEDBACK (§1 Response — instant tactile press)
+   -------------------------------------------------------------------------- */
+button,
+[role="button"],
+a.btn-cyber-primary,
+a.btn-cyber-outline {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Tactile press feedback on pointer-down/active (§1) */
+button:active:not(:disabled),
+[role="button"]:active:not([aria-disabled="true"]),
+.btn-cyber-primary:active,
+.btn-cyber-outline:active,
+.btn-cyber-purple:active,
+.theme-toggle-btn:active,
+.filter-pill:active,
+.nav-link-item:active,
+.glass-icon-box:active,
+.user-profile-badge:active,
+.auth-split-card button:active {
+  transform: scale(0.97) !important;
+  transition: transform 80ms var(--ease-snappy) !important;
+}
+
+/* High-Contrast Accessible Focus Rings (§14, §16) */
+:focus-visible {
+  outline: 2px solid var(--border-active, #00D9FF);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex="0"]:focus-visible {
+  outline: 2px solid var(--border-active, #00D9FF);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.25);
+}
+
+/* Explicit Accessible Disabled States (§9, §16) */
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+[aria-disabled="true"],
+.btn-disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 /* Root app wrappers */
@@ -1031,14 +1149,94 @@ tr:hover td {
   box-shadow: 0 4px 12px rgba(108, 92, 231, 0.28);
 }
 
+/* --------------------------------------------------------------------------
+   APPLE MOTION SYSTEM KEYFRAMES (§4 Springs, §7 Spatial Consistency)
+   -------------------------------------------------------------------------- */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
 @keyframes scaleUp {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes modalSpringIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drawerSlideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes drawerSlideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes drawerSlideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes drawerSlideOutLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -2703,12 +2901,43 @@ select optgroup {
     padding: 0 14px !important;
   }
 
+  /* Apple-Style Mobile Navigation Off-Canvas Drawer (§10 Inconsistent navigation & responsive) */
   .sidebar {
-    width: 100% !important;
-    height: auto !important;
-    max-height: 380px !important;
-    border-right: none !important;
-    border-bottom: 1px solid var(--border-subtle) !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: min(320px, 85vw) !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    z-index: 1050 !important;
+    border-right: 1px solid var(--border-subtle) !important;
+    border-bottom: none !important;
+    background: var(--bg-sidebar) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+    box-shadow: 10px 0 50px rgba(0, 0, 0, 0.7) !important;
+    transform: translateX(-100%);
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0) !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  .sidebar-mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 9, 20, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 1040;
+    animation: fadeIn 0.22s ease-out;
   }
 
   /* Responsive Auth Split Cards on Mobile */
@@ -2741,7 +2970,101 @@ select optgroup {
 
   .modal-content-box {
     max-height: 94dvh !important;
-    border-radius: 12px !important;
+    border-radius: 14px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   APPLE DESIGN SYSTEM — ACCESSIBILITY & ENVIRONMENTAL SIGNALS (§14)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* 1. PREFERS-REDUCED-MOTION (§14 in apple-design skill)
+   Replaces spring oscillations and slides with gentle cross-fades and static presence */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .status-dot-pulse,
+  .animate-spin,
+  .animate-pulse,
+  .nexus-fab-btn,
+  .nexus-fab-orb1,
+  .nexus-fab-orb2,
+  .nexus-fab-listen-ring,
+  .nexus-fab-arc-ring,
+  .nexus-fab-wave-bar {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .modal-content-box,
+  .modal-backdrop,
+  .glass-card,
+  .toast,
+  .cyber-dropdown-menu,
+  .sidebar {
+    animation: fadeIn 0.12s ease-out !important;
+    transform: none !important;
+  }
+}
+
+/* 2. PREFERS-REDUCED-TRANSPARENCY (§14)
+   Eliminates blurs, raises opacity to solid surfaces for users sensitive to transparency */
+@media (prefers-reduced-transparency: reduce) {
+  .topbar,
+  .sidebar,
+  .glass-panel,
+  .company-card,
+  .metric-stat-card,
+  .modal-backdrop,
+  .modal-content-box,
+  .glass-card,
+  .search-input-box,
+  .nexus-fab-menu-label {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--bg-space) !important;
+    border-color: var(--border-strong) !important;
+  }
+}
+
+/* 3. PREFERS-CONTRAST: MORE (§14)
+   Elevates structural borders and text contrast for maximum readability */
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme="dark"],
+  html.dark {
+    --border-subtle: rgba(255, 255, 255, 0.40);
+    --border-glow: #00D9FF;
+    --border-strong: #FFFFFF;
+    --text-muted: #E2E8F0;
+    --text-secondary: #F8FAFC;
+    --text-primary: #FFFFFF;
+    --text-heading: #FFFFFF;
+  }
+
+  [data-theme="light"],
+  html.light {
+    --border-subtle: #475569;
+    --border-glow: #00539C;
+    --border-strong: #0F172A;
+    --text-muted: #1E293B;
+    --text-secondary: #0F172A;
+    --text-primary: #000000;
+    --text-heading: #000000;
+  }
+
+  button,
+  .btn-cyber-primary,
+  .btn-cyber-outline,
+  .theme-toggle-btn {
+    border-width: 2px !important;
   }
 }
 

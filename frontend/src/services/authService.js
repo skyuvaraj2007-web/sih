@@ -43,7 +43,8 @@ export const authService = {
    */
   async login(email, password, role = null) {
     try {
-      const res = await fetch(`${API_AUTH_BASE}/login`, {
+      const authBase = getApiAuthBase();
+      const res = await fetch(`${authBase}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

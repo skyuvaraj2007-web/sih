@@ -20,7 +20,8 @@ require('dotenv').config();
 const relationalManager = require('../src/db/relationalManager');
 const bcrypt = require('bcryptjs');
 
-const API_BASE = 'http://localhost:5000/api';
+let API_BASE = 'http://localhost:5000/api';
+let appServer = null;
 
 async function runTests() {
   console.log('====================================================');
@@ -29,6 +30,17 @@ async function runTests() {
 
   let passed = 0;
   let failed = 0;
+
+  try {
+    await fetch('http://localhost:5000/api/health');
+  } catch (e) {
+    const app = require('../src/server');
+    appServer = await new Promise(resolve => {
+      const s = app.listen(0, () => resolve(s));
+    });
+    const port = appServer.address().port;
+    API_BASE = `http://localhost:${port}/api`;
+  }
 
   function assert(condition, testName, details = '') {
     if (condition) {
@@ -413,6 +425,10 @@ async function runTests() {
   } catch (err) {
     console.error('Fatal test error:', err);
     failed++;
+  } finally {
+    if (appServer) {
+      try { appServer.close(); } catch (e) {}
+    }
   }
 
   console.log('\n====================================================');

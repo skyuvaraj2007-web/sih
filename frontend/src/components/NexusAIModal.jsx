@@ -1,12 +1,24 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Sparkles, X, Send, Mic, MicOff, Volume2 } from 'lucide-react';
 import { loadAssessmentStore } from '../services/assessmentStore';
+import useAppleDrawerDrag from '../utils/useAppleDrawerDrag';
 
 /* ═══════════════════════════════════════════════════════
    NEXUS AI MODAL — Full voice + chat companion
    Voice flow: record → auto-send → AI reply → TTS speak
 ════════════════════════════════════════════════════════ */
 export default function NexusAIModal({ isOpen, onClose, setActivePage, initialMessage }) {
+  const {
+    drawerRef,
+    isDragging,
+    scrimOpacity,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handleBackdropClick,
+    handleDrawerClick,
+    drawerProps
+  } = useAppleDrawerDrag({ isOpen, onClose, direction: 'right' });
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([
     {
@@ -223,19 +235,58 @@ export default function NexusAIModal({ isOpen, onClose, setActivePage, initialMe
   const isListening = voiceState === 'listening';
 
   return (
-    <div className="modal-backdrop" onClick={onClose} style={{ justifyContent: 'flex-end', padding: 0 }}>
+    <div 
+      className="modal-backdrop" 
+      onClick={handleBackdropClick} 
+      style={{ 
+        justifyContent: 'flex-end', 
+        padding: 0,
+        backgroundColor: `rgba(4, 7, 15, ${0.78 * scrimOpacity})`,
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        transition: isDragging ? 'none' : 'background-color 0.2s ease',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
       <div
+        ref={drawerRef}
+        onClick={handleDrawerClick}
+        {...drawerProps}
+        aria-label="Nexus AI Career Companion Drawer"
         style={{
+          ...drawerProps.style,
           width: '100%', maxWidth: '480px', height: '100vh', maxHeight: '100dvh',
           background: 'rgba(6, 26, 51, 0.97)',
           backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
           borderLeft: '1px solid rgba(0, 217, 255, 0.35)',
           boxShadow: '-12px 0 50px rgba(0,0,0,0.75), 0 0 35px rgba(124,58,237,0.25)',
-          display: 'flex', flexDirection: 'column', zIndex: 101,
-          animation: 'slideInRight 0.25s ease-out'
+          display: 'flex', flexDirection: 'column', zIndex: 101, position: 'relative',
+          animation: !isDragging && isOpen ? 'drawerSlideInRight 0.28s cubic-bezier(0.16, 1, 0.3, 1)' : undefined
         }}
-        onClick={(e) => e.stopPropagation()}
       >
+        {/* Direct Manipulation Drag Handle (§2, §3, §10) */}
+        <div
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: '18px',
+            cursor: 'ew-resize',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 30,
+            touchAction: 'none'
+          }}
+          title="Drag right to close"
+        >
+          <div style={{ width: '4px', height: '48px', borderRadius: '4px', background: 'rgba(0, 217, 255, 0.35)', boxShadow: '0 0 8px rgba(0,217,255,0.4)' }} />
+        </div>
         {/* ── Header ── */}
         <div style={{
           padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)',

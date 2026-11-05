@@ -140,16 +140,75 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
     internshipType: user?.internshipType || 'Full-time / Internship'
   };
 
+  const [facultyProfile, setFacultyProfile] = useState(() => {
+    try { const raw = localStorage.getItem('nexus_faculty_profile'); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  });
+
+  const facultyData = facultyProfile || {
+    name: user?.name || 'Faculty Member',
+    facultyId: user?.facultyId || user?.id || 'FAC001',
+    email: user?.email || '—',
+    phone: user?.phone || '—',
+    designation: user?.designation || 'Associate Professor',
+    qualification: user?.qualification || 'Ph.D. / M.Tech in Computer Science',
+    specialization: user?.specialization || 'Distributed Systems & Machine Learning',
+    institutionName: user?.institutionName || user?.collegeName || user?.college || 'Affiliated Campus',
+    departmentName: user?.departmentName || user?.department || 'Computer Science & Engineering',
+    className: user?.className || 'B.E. CSE Cohort',
+    bio: user?.bio || 'Dedicated educator and researcher mentoring students in sovereign software engineering and spatial skill competencies.'
+  };
+
   const [isEditingInst, setIsEditingInst] = useState(false);
   const [instFormData, setInstFormData] = useState(instData);
   const [isEditingComp, setIsEditingComp] = useState(false);
   const [compFormData, setCompFormData] = useState(compData);
+  const [isEditingFac, setIsEditingFac] = useState(false);
+  const [facFormData, setFacFormData] = useState(facultyData);
+
+  const handleSaveFac = async (e) => {
+    if (e) e.preventDefault();
+    setFacultyProfile(facFormData);
+    setIsEditingFac(false);
+    try { localStorage.setItem('nexus_faculty_profile', JSON.stringify(facFormData)); } catch {}
+    if (onShowToast) onShowToast({ title: 'Profile Updated', message: 'Faculty credentials and profile saved.', type: 'success' });
+  };
 
   // ── Fetch all profile sections from backend ────────────────────────────────
   const fetchAll = useCallback(async () => {
     const token = localStorage.getItem('nexus_token') || localStorage.getItem('token');
     const headers = { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
     const opts = { headers, credentials: 'include' };
+
+    // Academician / Faculty profile fetch
+    if (currentRole === 'academician' || currentRole === 'faculty') {
+      try {
+        const res = await fetch(`${apiBase}/academician/settings`, opts);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            const fac = {
+              name: json.data.profile?.fullName || user?.name || 'Faculty Member',
+              facultyId: json.data.profile?.facultyId || user?.facultyId || 'FAC001',
+              email: json.data.profile?.email || user?.email || '—',
+              phone: json.data.profile?.phone || user?.phone || '—',
+              designation: json.data.profile?.designation || user?.designation || 'Associate Professor',
+              qualification: json.data.profile?.qualification || 'Ph.D. / M.Tech in Computer Science',
+              specialization: json.data.profile?.specialization || 'Distributed Systems & Machine Learning',
+              institutionName: json.data.academic?.institutionName || user?.institutionName || user?.collegeName || user?.college || 'Affiliated Campus',
+              departmentName: json.data.academic?.departmentName || user?.departmentName || user?.department || 'Computer Science & Engineering',
+              className: json.data.academic?.className || 'B.E. CSE Cohort',
+              bio: json.data.profile?.bio || 'Dedicated educator and researcher mentoring students in sovereign software engineering and spatial skill competencies.'
+            };
+            setFacultyProfile(fac);
+            setFacFormData(fac);
+            try { localStorage.setItem('nexus_faculty_profile', JSON.stringify(fac)); } catch {}
+          }
+        }
+      } catch (err) {
+        console.debug('Academician profile fetch deferred:', err);
+      }
+      return;
+    }
 
     // Institution profile fetch
     if (currentRole === 'institution') {
@@ -526,7 +585,7 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
         <div className="page-title-group">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
             <button
-              onClick={() => setActivePage(currentRole === 'institution' ? 'institution-console' : currentRole === 'company' ? 'industry-portal' : 'home')}
+              onClick={() => setActivePage(currentRole === 'institution' ? 'institution-console' : currentRole === 'company' ? 'industry-portal' : currentRole === 'academician' ? 'academician-dashboard' : 'home')}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
                 background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-subtle)',
@@ -540,15 +599,16 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
               <span>Back to Dashboard</span>
             </button>
             <div className="telemetry-node-tag" style={{ margin: 0 }}>
-              <span>{currentRole === 'institution' ? 'ACADEMIA DIRECTORY' : currentRole === 'company' ? 'CORPORATE DIRECTORY' : 'STUDENT IDENTITY LEDGER'}</span>
+              <span>{currentRole === 'institution' ? 'ACADEMIA DIRECTORY' : currentRole === 'company' ? 'CORPORATE DIRECTORY' : currentRole === 'academician' ? 'FACULTY LEDGER' : 'STUDENT IDENTITY LEDGER'}</span>
               <span>//</span>
-              <span>{currentRole === 'institution' ? 'INSTITUTION PROFILE' : currentRole === 'company' ? 'COMPANY PROFILE' : 'CANDIDATE DOSSIER'}</span>
+              <span>{currentRole === 'institution' ? 'INSTITUTION PROFILE' : currentRole === 'company' ? 'COMPANY PROFILE' : currentRole === 'academician' ? 'FACULTY PROFILE' : 'CANDIDATE DOSSIER'}</span>
             </div>
           </div>
-          <h1>{currentRole === 'institution' ? 'Institution Profile' : currentRole === 'company' ? 'Company Profile' : 'My Profile'}</h1>
+          <h1>{currentRole === 'institution' ? 'Institution Profile' : currentRole === 'company' ? 'Company Profile' : currentRole === 'academician' ? 'Faculty Profile' : 'My Profile'}</h1>
           <p>
             {currentRole === 'institution' ? 'Manage your institution profile, academic information, and official contact details.' :
              currentRole === 'company' ? 'Manage your company profile, hiring preferences, and talent requirements.' :
+             currentRole === 'academician' ? 'View and manage your academic appointments, teaching credentials, and institutional profile.' :
              'Your complete student profile overview — personal, academic, skills, courses, projects, and certificates.'}
           </p>
         </div>
@@ -1277,6 +1337,124 @@ export default function MyProfile({ setActivePage, onShowToast, user }) {
               ) : (
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No preferred skills specified</span>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════
+          FACULTY / ACADEMICIAN PROFILE VIEW
+          ════════════════════════════════════════════════════════════════ */}
+      {currentRole === 'academician' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="glass-panel" style={{ padding: '28px', borderTop: '3px solid #F59E0B' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
+              <div style={{ width: '72px', height: '72px', borderRadius: '14px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(245, 158, 11, 0.3)' }}>
+                <GraduationCap size={34} color="#fff" />
+              </div>
+              <div>
+                <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{facFormData.name}</h2>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span className="cyber-badge" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', border: '1px solid rgba(245, 158, 11, 0.4)', fontSize: '10.5px' }}>
+                    {facFormData.designation}
+                  </span>
+                  <span className="cyber-badge badge-cyan" style={{ fontSize: '10px' }}>FACULTY ID: {facFormData.facultyId}</span>
+                  <span className="cyber-badge badge-purple" style={{ fontSize: '10px' }}>{facFormData.departmentName}</span>
+                </div>
+              </div>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                {isEditingFac ? (
+                  <>
+                    <button onClick={() => { setFacFormData(facultyData); setIsEditingFac(false); }} className="btn-cyber-outline" style={{ padding: '8px 16px', fontSize: '12px' }}><X size={13} /> Cancel</button>
+                    <button onClick={handleSaveFac} className="btn-cyber-primary" style={{ padding: '8px 18px', fontSize: '12px', background: '#F59E0B', color: '#060B14', border: 'none' }}><Save size={13} /> Save Profile</button>
+                  </>
+                ) : (
+                  <button onClick={() => setIsEditingFac(true)} className="btn-cyber-primary" style={{ padding: '8px 18px', fontSize: '12px', background: '#F59E0B', color: '#060B14', border: 'none' }}><Edit3 size={13} /> Edit Profile</button>
+                )}
+              </div>
+            </div>
+
+            {isEditingFac ? (
+              <form onSubmit={handleSaveFac} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+                {[['FULL NAME', 'name'], ['DESIGNATION', 'designation'], ['QUALIFICATION', 'qualification'], ['SPECIALIZATION', 'specialization'], ['PHONE NUMBER', 'phone'], ['ASSIGNED CLASS', 'className']].map(([lbl, key]) => (
+                  <div key={key}>
+                    <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>{lbl}</label>
+                    <input type="text" value={facFormData[key] || ''} onChange={e => setFacFormData({ ...facFormData, [key]: e.target.value })}
+                      style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px' }} />
+                  </div>
+                ))}
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>PROFESSIONAL BIO</label>
+                  <textarea rows={3} value={facFormData.bio || ''} onChange={e => setFacFormData({ ...facFormData, bio: e.target.value })}
+                    style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', resize: 'vertical' }} />
+                </div>
+              </form>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+                {[['FACULTY ID', facFormData.facultyId], ['DESIGNATION', facFormData.designation], ['DEPARTMENT', facFormData.departmentName], ['AFFILIATED CAMPUS', facFormData.institutionName], ['ASSIGNED CLASS', facFormData.className], ['QUALIFICATION', facFormData.qualification]].map(([label, val]) => (
+                  <div key={label} style={{ padding: '12px 14px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontSize: '9.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>{label}</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{val || '—'}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Academic & Teaching Overview */}
+          <div className="glass-panel" style={{ padding: '24px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#F59E0B', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <BookOpen size={15} /> Academic Credentials & Specialization
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>CORE SPECIALIZATION</div>
+                <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.06)', border: '1px solid rgba(245, 158, 11, 0.25)', fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600 }}>
+                  {facFormData.specialization || 'Distributed Systems, Machine Learning & Cloud Engineering'}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>OFFICIAL FACULTY EMAIL</div>
+                <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)', fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
+                  {facFormData.email || '—'}
+                </div>
+              </div>
+            </div>
+            <div style={{ marginTop: '16px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>FACULTY BIO & RESEARCH FOCUS</div>
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                {facFormData.bio}
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Academic Workspace Navigation */}
+          <div className="glass-panel" style={{ padding: '24px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--cyber-cyan)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={15} /> Faculty Quick Actions
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+              <button
+                onClick={() => setActivePage('academician-students')}
+                style={{ padding: '14px', borderRadius: '10px', background: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)', color: '#38bdf8', cursor: 'pointer', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '4px' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '13.5px' }}><Users size={16} /> My Students</div>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>View cohort directory & progress</span>
+              </button>
+              <button
+                onClick={() => setActivePage('academician-courses')}
+                style={{ padding: '14px', borderRadius: '10px', background: 'rgba(139, 92, 246, 0.08)', border: '1px solid rgba(139, 92, 246, 0.25)', color: '#a78bfa', cursor: 'pointer', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '4px' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '13.5px' }}><BookOpen size={16} /> My Courses</div>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Curriculum creation & assignments</span>
+              </button>
+              <button
+                onClick={() => setActivePage('academician-student-performance')}
+                style={{ padding: '14px', borderRadius: '10px', background: 'rgba(46, 224, 161, 0.08)', border: '1px solid rgba(46, 224, 161, 0.25)', color: 'var(--cyber-emerald)', cursor: 'pointer', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '4px' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '13.5px' }}><TrendingUp size={16} /> Student Performance</div>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Competency metrics & skill analytics</span>
+              </button>
             </div>
           </div>
         </div>

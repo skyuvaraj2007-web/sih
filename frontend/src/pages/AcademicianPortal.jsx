@@ -36,11 +36,13 @@ import {
   TrendingUp,
   GraduationCap,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  ShieldAlert
 } from 'lucide-react';
 import { academicianService } from '../services/academicianService';
 import ConnectedEcosystemCard from '../components/common/ConnectedEcosystemCard';
 import RecentEcosystemActivity from '../components/common/RecentEcosystemActivity';
+import AssessmentMonitoringAlertsConsole from '../components/assessment/AssessmentMonitoringAlertsConsole';
 
 export default function AcademicianPortal({
   setActivePage,
@@ -61,6 +63,7 @@ export default function AcademicianPortal({
     if (activePage === 'academician-course-progress') return 'course-progress';
     if (activePage === 'academician-overall-progress') return 'overall-progress';
     if (activePage === 'academician-assessments' || activePage === 'academician-skill-assessments') return 'assessments';
+    if (activePage === 'academician-monitoring' || activePage === 'academician-integrity-alerts') return 'monitoring';
     if (activePage === 'academician-create-assessment' || activePage === 'academician-skill-assessments-create') return 'create-assessment';
     if (activePage === 'academician-assessment-results' || activePage === 'academician-assessment-detail') return 'assessment-results';
     if (activePage === 'academician-skill-analytics' || activePage === 'academician-analytics') return 'skill-analytics';
@@ -69,7 +72,7 @@ export default function AcademicianPortal({
     if (activePage === 'academician-recommendations') return 'recommendations';
     if (activePage === 'academician-mentorship') return 'mentorship';
     if (activePage === 'academician-opportunities') return 'opportunities';
-    if (activePage === 'academician-notifications') return 'notifications';
+    if (activePage === 'academician-notifications' || activePage === 'notifications') return 'notifications';
     if (activePage === 'academician-trash') return 'trash';
     if (activePage === 'academician-achievements') return 'achievements';
     return 'dashboard';
@@ -99,6 +102,7 @@ export default function AcademicianPortal({
   const [courseProgressData, setCourseProgressData] = useState(null);
   const [loadingCourseProgress, setLoadingCourseProgress] = useState(false);
   const [myClasses, setMyClasses] = useState([]);
+  const [assessmentSubTab, setAssessmentSubTab] = useState('catalog'); // 'catalog' | 'alerts'
 
   // Course assignment modal state
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -2848,13 +2852,54 @@ export default function AcademicianPortal({
             </button>
           </div>
 
-          <div style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: '14px',
-            overflow: 'hidden',
-            boxShadow: 'var(--shadow-subtle)'
-          }}>
+          {/* Sub-navigation tabs: Catalog vs Authority Integrity Alerts */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+            <button
+              onClick={() => setAssessmentSubTab('catalog')}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 700,
+                border: '1px solid rgba(255,255,255,0.08)',
+                background: assessmentSubTab === 'catalog' ? 'rgba(0, 212, 255, 0.15)' : 'transparent',
+                color: assessmentSubTab === 'catalog' ? 'var(--cyber-cyan, #00d9ff)' : '#94a3b8',
+                cursor: 'pointer'
+              }}
+            >
+              Assessments Catalog
+            </button>
+            <button
+              onClick={() => setAssessmentSubTab('alerts')}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 700,
+                border: '1px solid rgba(255,255,255,0.08)',
+                background: assessmentSubTab === 'alerts' ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
+                color: assessmentSubTab === 'alerts' ? '#f87171' : '#94a3b8',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <ShieldAlert size={14} />
+              <span>Monitoring & Authority Alerts</span>
+            </button>
+          </div>
+
+          {assessmentSubTab === 'alerts' ? (
+            <AssessmentMonitoringAlertsConsole role="faculty" user={user} onShowToast={onShowToast} />
+          ) : (
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '14px',
+              overflow: 'hidden',
+              boxShadow: 'var(--shadow-subtle)'
+            }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
                 <tr style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
@@ -2931,7 +2976,15 @@ export default function AcademicianPortal({
               </tbody>
             </table>
           </div>
+          )}
         </div>
+      )}
+
+      {/* ──────────────────────────────────────────────────────────────────────────
+          VIEW: STANDALONE MONITORING & INTEGRITY ALERTS
+          ────────────────────────────────────────────────────────────────────────── */}
+      {currentTab === 'monitoring' && (
+        <AssessmentMonitoringAlertsConsole role="faculty" user={user} onShowToast={onShowToast} />
       )}
 
       {/* ──────────────────────────────────────────────────────────────────────────

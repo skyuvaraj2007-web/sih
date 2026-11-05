@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import useAppleModal from '../../utils/useAppleModal';
 import { ShieldCheck, Lock, User, Building, Building2, GraduationCap, AlertCircle, CheckCircle2, X, ArrowRight } from 'lucide-react';
 import { authService } from '../../services/authService';
 import CollegeAutocomplete from '../CollegeAutocomplete';
@@ -11,6 +12,7 @@ export default function GoogleAuthModal({
   onSuccess,
   onClose
 }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen, onClose });
   if (!isOpen || !googleData) return null;
 
   // Link form state
@@ -98,16 +100,29 @@ export default function GoogleAuthModal({
   };
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
-      background: 'rgba(5, 10, 20, 0.85)', backdropFilter: 'blur(8px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
-    }}>
-      <div style={{
-        background: '#0D1527', border: '1px solid var(--border-subtle, rgba(255,255,255,0.12))',
-        borderRadius: '16px', maxWidth: '520px', width: '100%', maxHeight: '90vh',
-        overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)', position: 'relative'
-      }}>
+    <div 
+      onClick={handleBackdropClick}
+      className="modal-backdrop"
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(5, 10, 20, 0.85)', backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label={mode === 'LINK_ACCOUNT' ? 'Link Google Account Dialog' : 'Complete Nexus Onboarding Dialog'}
+        className="modal-content-box"
+        style={{
+          background: '#0D1527', border: '1px solid var(--border-subtle, rgba(255,255,255,0.12))',
+          borderRadius: '20px', maxWidth: '520px', width: '100%', maxHeight: '90vh',
+          overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)', position: 'relative',
+          animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
         {/* Header */}
         <div style={{
           padding: '24px 28px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)',

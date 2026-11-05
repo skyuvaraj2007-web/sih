@@ -75,11 +75,16 @@ export const pageToPath = (page, role, tab = 'dashboard') => {
     if (page === 'academician-student-performance-detail' || page === 'academician-student-detail') return tab ? `/academician/students/${tab}/performance` : '/academician/student-performance';
     if (page === 'academician-skill-analytics') return '/academician/skill-analytics';
     if (page === 'academician-skill-assessments' || page === 'academician-assessments') return '/academician/skill-assessments';
+    if (page === 'academician-monitoring' || page === 'academician-integrity-alerts') return '/academician/monitoring';
     if (page === 'academician-create-assessment' || page === 'academician-skill-assessments-create') return '/academician/skill-assessments/create';
     if (page === 'academician-assessment-detail') return tab ? `/academician/skill-assessments/${tab}` : '/academician/skill-assessments';
     if (page === 'academician-assessment-results') return '/academician/assessment-results';
     if (page === 'academician-courses') return '/academician/courses';
     if (page === 'academician-create-course') return '/academician/courses/create';
+    if (page === 'academician-assigned-courses') return '/academician/assigned-courses';
+    if (page === 'academician-overall-progress' || page === 'academician-course-progress') return '/academician/course-progress';
+    if (page === 'academician-achievements') return '/academician/achievements';
+    if (page === 'academician-trash') return '/academician/trash';
     if (page === 'academician-skill-gaps') return '/academician/skill-gaps';
     if (page === 'academician-industry-requirements') return '/academician/industry-requirements';
     if (page === 'academician-recommendations') return '/academician/recommendations';
@@ -87,8 +92,9 @@ export const pageToPath = (page, role, tab = 'dashboard') => {
     if (page === 'academician-opportunities') return '/academician/opportunities';
     if (page === 'academician-analytics') return '/academician/skill-analytics';
     if (page === 'academician-notifications' || page === 'notifications') return '/academician/notifications';
-    if (page === 'settings') return '/academician/settings';
-    if (page === 'profile') return '/academician/profile';
+    if (page === 'settings' || page === 'academician-settings') return '/academician/settings';
+    if (page === 'profile' || page === 'academician-profile') return '/academician/profile';
+    if (page === 'help' || page === 'academician-help') return '/academician/help';
     return '/academician/dashboard';
   }
 
@@ -371,6 +377,7 @@ export const resolvePath = (pathname, currentUser) => {
       return { page: 'academician-assessment-detail', asmtId };
     }
     if (path === '/academician/assessment-results') return { page: 'academician-assessment-results' };
+    if (path === '/academician/monitoring' || path === '/academician/integrity-alerts') return { page: 'academician-monitoring' };
     if (path === '/academician/courses') return { page: 'academician-courses' };
     if (path === '/academician/courses/create') return { page: 'academician-create-course' };
     if (path === '/academician/assigned-courses') return { page: 'academician-assigned-courses' };
@@ -384,6 +391,8 @@ export const resolvePath = (pathname, currentUser) => {
     if (path === '/academician/opportunities') return { page: 'academician-opportunities' };
     if (path === '/academician/notifications') return { page: 'academician-notifications' };
     if (path === '/academician/profile') return { page: 'profile' };
+    if (path === '/academician/settings') return { page: 'settings' };
+    if (path === '/academician/help') return { page: 'help' };
     return { page: 'academician-dashboard' };
   }
 
@@ -422,7 +431,7 @@ export const resolvePath = (pathname, currentUser) => {
   }
 
   // Direct shared routes (e.g. /profile, /settings, /notifications, /help)
-  if (path === '/profile') return { page: role === 'academician' ? 'academician-dashboard' : 'profile' };
+  if (path === '/profile') return { page: 'profile' };
   if (path === '/settings') return { page: 'settings' };
   if (path === '/notifications') return { page: role === 'academician' ? 'academician-notifications' : 'notifications' };
   if (path === '/help') return { page: 'help' };
@@ -637,6 +646,7 @@ export default function App() {
   const [settingsTab, setSettingsTab] = useState(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [aiInitialMessage, setAiInitialMessage] = useState(null);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
   // Handler: open AI modal, optionally with an initial voice/quick query
@@ -816,6 +826,9 @@ export default function App() {
         return;
       }
     } else if (normRole === 'academician') {
+      if (effectiveTarget === 'notifications') {
+        effectiveTarget = 'academician-notifications';
+      }
       const isAllowed = effectiveTarget.startsWith('academician-') || [
         'profile', 'settings', 'notifications', 'help', 'search'
       ].includes(effectiveTarget);
@@ -1091,10 +1104,16 @@ export default function App() {
           {/* Left Cyber Sidebar */}
           <Sidebar 
             activePage={activePage} 
-            setActivePage={navigateGuarded} 
+            setActivePage={(page, tab) => {
+              navigateGuarded(page, tab);
+              setIsMobileNavOpen(false);
+            }} 
             user={user} 
             onLogout={handleLogout}
             companyTab={companyTab}
+            onOpenAIModal={() => openAIModal()}
+            isMobileNavOpen={isMobileNavOpen}
+            onCloseMobileNav={() => setIsMobileNavOpen(false)}
           />
 
           {/* Main Content Area */}
@@ -1106,6 +1125,8 @@ export default function App() {
               setActivePage={navigateGuarded}
               user={user}
               onLogout={handleLogout}
+              isMobileNavOpen={isMobileNavOpen}
+              onToggleMobileNav={() => setIsMobileNavOpen(prev => !prev)}
             />
 
             {/* Viewport Render matching role dashboards */}
@@ -1182,7 +1203,7 @@ export default function App() {
               {activePage === 'help' && (
                 <HelpCenter onShowToast={showToast} user={user} />
               )}
-              {activePage === 'notifications' && (
+              {activePage === 'notifications' && normalizeRole(user?.role) !== 'academician' && (
                 <Notifications setActivePage={navigateGuarded} onShowToast={showToast} user={user} />
               )}
               {activePage === 'search' && (
@@ -1236,7 +1257,7 @@ export default function App() {
               )}
 
               {/* Academician / Faculty Workspace */}
-              {(activePage.startsWith('academician-') || (normalizeRole(user?.role) === 'academician' && (activePage === 'home' || activePage === 'dashboard' || activePage === 'notifications' || activePage === 'profile' || activePage === 'settings'))) && (
+              {(activePage.startsWith('academician-') || (normalizeRole(user?.role) === 'academician' && (activePage === 'home' || activePage === 'dashboard' || activePage === 'notifications'))) && (
                 <AcademicianPortal 
                   activePage={activePage}
                   setActivePage={navigateGuarded}

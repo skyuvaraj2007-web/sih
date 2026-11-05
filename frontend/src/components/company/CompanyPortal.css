@@ -2518,5 +2518,33 @@ html:not(.dark) .company-portal-root [style*="borderTop: '1px solid rgba(255,255
   border-color: rgba(6, 182, 212, 0.10) !important;
 }
 
+/* ════════════════════════════════════════════════════════════════
+   APPLE FLUID TACTILE PRESS & ACCESSIBILITY (Company Portal)
+   ════════════════════════════════════════════════════════════════ */
+.company-btn-gradient:active,
+.company-btn-secondary:active,
+.company-btn-outline-cyan:active,
+.company-icon-btn:active,
+.company-sidebar-link:active,
+.company-tab-btn:active {
+  transform: scale(0.97) !important;
+  transition: transform 80ms cubic-bezier(0.25, 1, 0.5, 1) !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .company-portal-root *,
+  .company-btn-gradient,
+  .company-btn-secondary,
+  .company-btn-outline-cyan,
+  .company-status-dot {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+
 
 

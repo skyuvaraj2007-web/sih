@@ -21,12 +21,14 @@ import {
   RefreshCw,
   X,
   BookOpen,
-  UserCheck
+  UserCheck,
+  ShieldAlert
 } from 'lucide-react';
 import CompanyAssessmentBuilder from './CompanyAssessmentBuilder';
 import QuestionBankDrawer from './QuestionBankDrawer';
 import industryAssessmentService from '../../services/industryAssessmentService';
 import AssessmentIntegrityReportModal from '../assessment/AssessmentIntegrityReportModal';
+import AssessmentMonitoringAlertsConsole from '../assessment/AssessmentMonitoringAlertsConsole';
 
 export default function CompanyTargetedAssessments({ user, onShowToast }) {
   const [assessments, setAssessments] = useState([]);
@@ -215,41 +217,57 @@ export default function CompanyTargetedAssessments({ user, onShowToast }) {
           {[
             { id: 'ALL', label: 'All Assessments' },
             { id: 'PUBLISHED', label: 'Active & Published' },
-            { id: 'DRAFTS', label: 'Drafts' }
+            { id: 'DRAFTS', label: 'Drafts' },
+            { id: 'ALERTS', label: 'Candidate Integrity Alerts', isAlert: true }
           ].map(t => (
             <button
               key={t.id}
               onClick={() => setFilterTab(t.id)}
               style={{
                 padding: '7px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 600,
-                border: '1px solid rgba(255,255,255,0.08)',
-                background: filterTab === t.id ? 'rgba(0, 212, 255, 0.15)' : 'transparent',
-                color: filterTab === t.id ? 'var(--cyber-cyan, #00d9ff)' : '#94a3b8',
-                cursor: 'pointer'
+                border: t.isAlert ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(255,255,255,0.08)',
+                background: filterTab === t.id
+                  ? (t.isAlert ? 'rgba(239, 68, 68, 0.15)' : 'rgba(0, 212, 255, 0.15)')
+                  : 'transparent',
+                color: filterTab === t.id
+                  ? (t.isAlert ? '#f87171' : 'var(--cyber-cyan, #00d9ff)')
+                  : (t.isAlert ? '#fca5a5' : '#94a3b8'),
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
               }}
             >
-              {t.label}
+              {t.isAlert && <ShieldAlert size={14} />}
+              <span>{t.label}</span>
             </button>
           ))}
         </div>
 
-        <div style={{ position: 'relative', minWidth: '260px' }}>
-          <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-          <input
-            type="text"
-            placeholder="Search assessments..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            style={{
-              padding: '8px 12px 8px 34px', borderRadius: '8px', width: '100%',
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-              color: '#ffffff', fontSize: '12.5px'
-            }}
-          />
-        </div>
+        {filterTab !== 'ALERTS' && (
+          <div style={{ position: 'relative', minWidth: '260px' }}>
+            <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+            <input
+              type="text"
+              placeholder="Search assessments..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{
+                padding: '8px 12px 8px 34px', borderRadius: '8px', width: '100%',
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+                color: '#ffffff', fontSize: '12.5px'
+              }}
+            />
+          </div>
+        )}
       </div>
 
-      {/* ── ASSESSMENT LIST ── */}
+      {/* ── CONDITIONAL VIEW: CANDIDATE INTEGRITY ALERTS VS ASSESSMENT LIST ── */}
+      {filterTab === 'ALERTS' ? (
+        <AssessmentMonitoringAlertsConsole role="company" user={user} onShowToast={onShowToast} />
+      ) : (
+        <>
+          {/* ── ASSESSMENT LIST ── */}
       {loading ? (
         <div style={{ padding: '60px', textAlign: 'center', color: '#94a3b8' }}>
           <RefreshCw size={28} className="animate-spin" style={{ margin: '0 auto 12px' }} />
@@ -526,6 +544,8 @@ export default function CompanyTargetedAssessments({ user, onShowToast }) {
             )}
           </div>
         </div>
+      )}
+      </>
       )}
 
       {/* Candidate Assessment Integrity Report Modal */}

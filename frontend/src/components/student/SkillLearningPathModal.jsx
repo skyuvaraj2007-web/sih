@@ -22,6 +22,7 @@ import {
   Zap
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import useAppleModal from '../../utils/useAppleModal';
 
 const playChime = (type = 'success') => {
   try {
@@ -67,6 +68,7 @@ export default function SkillLearningPathModal({
   onProgressUpdated,
   onShowToast
 }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen, onClose });
   const [skill, setSkill] = useState(null);
   const [progressData, setProgressData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -246,29 +248,42 @@ export default function SkillLearningPathModal({
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(5, 8, 22, 0.85)',
-      backdropFilter: 'blur(12px)',
-      zIndex: 9999,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
-      <div style={{
-        background: 'var(--bg-card, #0c1222)',
-        border: '1px solid var(--border-subtle, rgba(0, 212, 255, 0.2))',
-        borderRadius: '16px',
-        width: '100%',
-        maxWidth: '1100px',
-        height: '90vh',
+    <div 
+      onClick={handleBackdropClick}
+      className="modal-backdrop"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(5, 8, 22, 0.85)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        zIndex: 9999,
         display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        boxShadow: '0 25px 60px rgba(0, 0, 0, 0.6)'
-      }}>
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Skill Learning Pathway Dialog"
+        className="modal-content-box"
+        style={{
+          background: 'var(--bg-card, #0c1222)',
+          border: '1px solid var(--border-subtle, rgba(0, 212, 255, 0.2))',
+          borderRadius: '20px',
+          width: '100%',
+          maxWidth: '1100px',
+          height: '90vh',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.65)',
+          animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
         {/* Top Header */}
         <div style={{
           padding: '16px 24px',

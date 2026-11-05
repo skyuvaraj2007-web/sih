@@ -859,6 +859,19 @@
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   APPLE FLUID TACTILE PRESS FEEDBACK (Role Gateway)
+   ══════════════════════════════════════════════════════════════ */
+.rg-card:active,
+.rg-cta-btn:active,
+.rg-tagline-pill:active,
+.rg-back-btn:active {
+  transform: scale(0.97) !important;
+  transition: transform 80ms cubic-bezier(0.25, 1, 0.5, 1) !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rg-card,
   .rg-cta-btn,

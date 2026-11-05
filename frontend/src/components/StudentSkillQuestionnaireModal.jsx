@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import useAppleModal from '../utils/useAppleModal';
 import {
   Brain, Sparkles, Target, CheckCircle2, ChevronRight,
   ChevronLeft, Award, AlertCircle, Zap, X, Code, Cpu, Database
@@ -28,6 +29,7 @@ const POPULAR_SKILLS = [
 ];
 
 export default function StudentSkillQuestionnaireModal({ isOpen, onClose, onCompleted, user }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen, onClose });
   const [step, setStep] = useState(1);
   const [careerGoal, setCareerGoal] = useState('Full Stack Engineer');
   const [domain, setDomain] = useState('Information Technology & Software');
@@ -121,29 +123,42 @@ export default function StudentSkillQuestionnaireModal({ isOpen, onClose, onComp
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      backgroundColor: 'rgba(5, 9, 20, 0.85)',
-      backdropFilter: 'blur(8px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 9999,
-      padding: '20px'
-    }}>
-      <div style={{
-        background: 'linear-gradient(135deg, #0d1527 0%, #0a0f1d 100%)',
-        border: '1px solid rgba(99, 102, 241, 0.3)',
-        borderRadius: '16px',
-        width: '100%',
-        maxWidth: '680px',
-        maxHeight: '90vh',
-        overflowY: 'auto',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(99, 102, 241, 0.15)',
-        color: '#f8fafc',
-        position: 'relative'
-      }}>
+    <div 
+      onClick={handleBackdropClick}
+      className="modal-backdrop"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(5, 9, 20, 0.85)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: '20px',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Student Skill Questionnaire"
+        className="modal-content-box"
+        style={{
+          background: 'linear-gradient(135deg, #0d1527 0%, #0a0f1d 100%)',
+          border: '1px solid rgba(99, 102, 241, 0.3)',
+          borderRadius: '20px',
+          width: '100%',
+          maxWidth: '680px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(99, 102, 241, 0.15)',
+          color: '#f8fafc',
+          position: 'relative',
+          animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
         {/* Header */}
         <div style={{
           padding: '24px 28px',

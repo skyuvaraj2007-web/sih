@@ -128,3 +128,13 @@
     height: 16px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline-icon {
+    animation: none !important;
+  }
+  .timeline-content {
+    transition: none !important;
+    transform: none !important;
+  }
+}

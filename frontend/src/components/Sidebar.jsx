@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Home,
   CheckSquare,
@@ -32,12 +32,26 @@ import {
   TrendingUp,
   UserCheck,
   Trash2,
-  Network
+  Network,
+  ShieldAlert,
+  X
 } from 'lucide-react';
 
-export default function Sidebar({ activePage, setActivePage, user, onLogout, companyTab = 'dashboard' }) {
+export default function Sidebar({ activePage, setActivePage, user, onLogout, companyTab = 'dashboard', onOpenAIModal, isMobileNavOpen = false, onCloseMobileNav }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const sidebarRef = useRef(null);
+
+  // Close mobile navigation on Escape key (§11 Accessibility)
+  useEffect(() => {
+    if (!isMobileNavOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onCloseMobileNav?.();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMobileNavOpen, onCloseMobileNav]);
 
   const handleSidebarWheel = (e) => {
     if (!sidebarRef.current) return;
@@ -68,6 +82,7 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
       if (id === 'academician-students') return activePage === 'academician-students';
       if (id === 'academician-student-performance') return activePage === 'academician-student-performance' || activePage === 'academician-student-performance-detail' || activePage === 'academician-student-detail';
       if (id === 'academician-skill-assessments') return ['academician-skill-assessments', 'academician-assessments', 'academician-create-assessment', 'academician-assessment-results', 'academician-assessment-detail'].includes(activePage);
+      if (id === 'academician-monitoring') return activePage === 'academician-monitoring' || activePage === 'academician-integrity-alerts';
       if (id === 'academician-skill-analytics') return ['academician-skill-analytics', 'academician-analytics'].includes(activePage);
       if (id === 'academician-skill-gaps') return activePage === 'academician-skill-gaps';
       if (id === 'academician-courses') return activePage === 'academician-courses' || activePage === 'academician-create-course';
@@ -79,8 +94,10 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
       if (id === 'academician-mentorship') return activePage === 'academician-mentorship';
       if (id === 'academician-industry-requirements') return activePage === 'academician-industry-requirements';
       if (id === 'academician-opportunities') return activePage === 'academician-opportunities';
-      if (id === 'academician-notifications') return activePage === 'academician-notifications' || activePage === 'notifications';
+      if (id === 'academician-notifications' || id === 'notifications') return activePage === 'academician-notifications' || activePage === 'notifications';
+      if (id === 'profile') return activePage === 'profile';
       if (id === 'settings') return activePage === 'settings';
+      if (id === 'help') return activePage === 'help';
     }
 
     if (currentRole === 'company') {
@@ -147,6 +164,7 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
     { id: 'academician-assigned-courses', label: 'Assigned Courses', icon: UserCheck },
     { id: 'academician-overall-progress', label: 'Course Progress', icon: TrendingUp },
     { id: 'academician-skill-assessments', label: 'Skill Assessments', icon: Award },
+    { id: 'academician-monitoring', label: 'Integrity Alerts', icon: ShieldAlert, badge: 'Live' },
     { id: 'academician-achievements', label: 'Verify Achievements', icon: ShieldCheck },
     { id: 'academician-skill-analytics', label: 'Skill Analytics', icon: BarChart2 },
     { id: 'academician-skill-gaps', label: 'Skill Gaps', icon: Brain, badge: 'Crucial' },
@@ -230,11 +248,16 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
   ];
 
   const handleBottomClick = (link) => {
+    onCloseMobileNav?.();
     if (link.isLogout) {
       if (onLogout) onLogout();
       else setActivePage('role-select');
     } else {
-      setActivePage(link.id);
+      if (currentRole === 'academician' && link.id === 'notifications') {
+        setActivePage('academician-notifications');
+      } else {
+        setActivePage(link.id);
+      }
     }
   };
 
@@ -247,81 +270,117 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
         : 'var(--brand-primary)';
 
   return (
-    <aside
-      ref={sidebarRef}
-      onWheel={handleSidebarWheel}
-      className="sidebar"
-      style={{
-        width: isCollapsed ? '72px' : '260px',
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'var(--bg-sidebar)',
-        borderRight: '1px solid var(--border-subtle)',
-        transition: 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-        zIndex: 40,
-        boxShadow: 'var(--shadow-subtle)'
-      }}
-    >
-      {/* Brand Header */}
-      <div style={{
-        padding: isCollapsed ? '16px 12px' : '16px 18px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: isCollapsed ? 'center' : 'space-between',
-        borderBottom: '1px solid var(--border-subtle)',
-        height: '64px'
-      }}>
-        {!isCollapsed ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <>
+      {/* Mobile Backdrop Scrim (§10, §12) */}
+      {isMobileNavOpen && (
+        <div
+          className="sidebar-mobile-backdrop"
+          onClick={onCloseMobileNav}
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        ref={sidebarRef}
+        onWheel={handleSidebarWheel}
+        className={`sidebar ${isMobileNavOpen ? 'mobile-open' : ''}`}
+        aria-label="Main Navigation"
+        style={{
+          width: isCollapsed ? '72px' : '260px',
+          display: 'flex',
+          flexDirection: 'column',
+          background: 'var(--bg-sidebar)',
+          borderRight: '1px solid var(--border-subtle)',
+          transition: 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+          zIndex: 1050,
+          boxShadow: 'var(--shadow-subtle)'
+        }}
+      >
+        {/* Brand Header */}
+        <div style={{
+          padding: isCollapsed ? '16px 12px' : '16px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: isCollapsed ? 'center' : 'space-between',
+          borderBottom: '1px solid var(--border-subtle)',
+          height: '64px'
+        }}>
+          {!isCollapsed ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '32px', height: '32px', borderRadius: '10px',
+                background: 'var(--grad-ai-primary)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)'
+              }}>
+                <Sparkles size={16} color="#FFFFFF" />
+              </div>
+              <div>
+                <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-heading)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                  SkillNexus <span style={{ color: themeAccentColor }}>2.0</span>
+                </div>
+                <div style={{ fontSize: '9.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', letterSpacing: '0.04em' }}>
+                  SPATIAL AI PLATFORM
+                </div>
+              </div>
+            </div>
+          ) : (
             <div style={{
-              width: '32px', height: '32px', borderRadius: '10px',
+              width: '36px', height: '36px', borderRadius: '10px',
               background: 'var(--grad-ai-primary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)'
             }}>
-              <Sparkles size={16} color="#FFFFFF" />
+              <Sparkles size={18} color="#FFFFFF" />
             </div>
-            <div>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-heading)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                SkillNexus <span style={{ color: themeAccentColor }}>2.0</span>
-              </div>
-              <div style={{ fontSize: '9.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', letterSpacing: '0.04em' }}>
-                SPATIAL AI PLATFORM
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div style={{
-            width: '36px', height: '36px', borderRadius: '10px',
-            background: 'var(--grad-ai-primary)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)'
-          }}>
-            <Sparkles size={18} color="#FFFFFF" />
-          </div>
-        )}
+          )}
 
-        {/* Collapse Rail Button */}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          style={{
-            background: 'var(--bg-input)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: '6px',
-            width: '26px',
-            height: '26px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--text-muted)',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
-          title={isCollapsed ? "Expand Rail" : "Collapse Rail"}
-        >
-          {isCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
-        </button>
-      </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {/* Collapse Rail Button (Desktop) */}
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              style={{
+                background: 'var(--bg-input)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '6px',
+                width: '26px',
+                height: '26px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-muted)',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              title={isCollapsed ? "Expand Rail" : "Collapse Rail"}
+              className="sidebar-collapse-desktop-btn"
+            >
+              {isCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+            </button>
+
+            {/* Mobile Close Button (§8, §10) */}
+            {onCloseMobileNav && (
+              <button
+                onClick={onCloseMobileNav}
+                aria-label="Close navigation"
+                style={{
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '6px',
+                  width: '28px',
+                  height: '28px',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  display: 'none',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                className="sidebar-mobile-close-btn"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        </div>
 
       {/* Workspace Role Badge */}
       {!isCollapsed && (
@@ -350,6 +409,7 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
                 <button
                   onClick={() => {
                     setActivePage(item.id, item.tab);
+                    onCloseMobileNav?.();
                   }}
                   className={`nav-link-item ${active ? 'active' : ''}`}
                   title={isCollapsed ? item.label : undefined}
@@ -431,9 +491,17 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
             </p>
             <button
               onClick={() => {
-                if (currentRole === 'institution') setActivePage('institution-console');
-                else if (currentRole === 'company') setActivePage('industry-portal', 'ai-matching');
-                else setActivePage('home');
+                if (onOpenAIModal) {
+                  onOpenAIModal();
+                } else if (currentRole === 'institution') {
+                  setActivePage('institution-console');
+                } else if (currentRole === 'company') {
+                  setActivePage('industry-portal', 'ai-matching');
+                } else if (currentRole === 'academician') {
+                  setActivePage('academician-dashboard');
+                } else {
+                  setActivePage('home');
+                }
               }}
               className="btn-cyber-primary"
               style={{ width: '100%', padding: '6px', fontSize: '11.5px' }}
@@ -478,6 +546,7 @@ export default function Sidebar({ activePage, setActivePage, user, onLogout, com
         })}
       </div>
     </aside>
+    </>
   );
 }
 

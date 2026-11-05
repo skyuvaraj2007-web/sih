@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import useAppleModal from '../../utils/useAppleModal';
 import { ShieldCheck, CheckCircle2, AlertCircle, RefreshCw, Key, ArrowRight, Lock, Sparkles, X } from 'lucide-react';
 import { authService } from '../../services/authService';
 
@@ -19,6 +20,7 @@ export default function OtpVerificationModal({
   purpose = 'REGISTRATION', // 'REGISTRATION' | 'PASSWORD_RESET'
   onSuccess
 }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen, onClose });
   const [otp, setOtp] = useState(initialOtp || '');
   const [displayedOtp, setDisplayedOtp] = useState(initialOtp || '');
   const [loading, setLoading] = useState(false);
@@ -189,8 +191,17 @@ export default function OtpVerificationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-lg overflow-hidden bg-white/95 dark:bg-slate-900/95 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-2xl backdrop-blur-xl">
+    <div 
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in modal-backdrop"
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="OTP Verification Dialog"
+        className="relative w-full max-w-lg overflow-hidden bg-white/95 dark:bg-slate-900/95 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-2xl backdrop-blur-xl modal-content-box"
+        style={{ animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)' }}
+      >
         {/* Glow Header Bar */}
         <div className="h-2 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600" />
 

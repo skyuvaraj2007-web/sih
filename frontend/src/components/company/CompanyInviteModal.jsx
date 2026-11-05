@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
+import useAppleModal from '../../utils/useAppleModal';
 import { X, Send, Sparkles, Briefcase } from 'lucide-react';
 
 export default function CompanyInviteModal({ student, opportunities = [], onClose, onSendInvite }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({
+    isOpen: Boolean(student),
+    onClose
+  });
+
   const [selectedOppId, setSelectedOppId] = useState(
     opportunities[0]?.oppId || opportunities[0]?.id || ''
   );
@@ -19,8 +25,18 @@ export default function CompanyInviteModal({ student, opportunities = [], onClos
   };
 
   return (
-    <div className="company-modal-overlay">
-      <div className="company-modal-content max-w-md">
+    <div 
+      onClick={handleBackdropClick}
+      className="company-modal-overlay modal-backdrop"
+      style={{ animation: 'fadeIn 0.2s ease-out' }}
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Fast-Track Opportunity Invitation"
+        className="company-modal-content modal-content-box max-w-md"
+        style={{ animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)' }}
+      >
         <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
           <div className="flex items-center gap-2">
             <Send className="w-4 h-4 text-cyan-400" />

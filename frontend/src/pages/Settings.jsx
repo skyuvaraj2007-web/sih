@@ -162,6 +162,15 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
     { key: 'appearance', label: 'Appearance', icon: Palette, desc: 'Theme & display options' },
     { key: 'privacy', label: 'Data Governance', icon: Shield, desc: 'Data privacy & regulatory compliance' },
     { key: 'danger', label: 'Danger Zone', icon: AlertTriangle, desc: 'Account deactivation' },
+  ] : currentRole === 'academician' ? [
+    { key: 'account', label: 'Faculty Account', icon: User, desc: 'Faculty identity & credentials' },
+    { key: 'profile', label: 'Academic Details', icon: Edit3, desc: 'Department & designations' },
+    { key: 'photo', label: 'Profile Photo', icon: Camera, desc: 'Faculty portrait' },
+    { key: 'security', label: 'Security & Access', icon: Lock, desc: 'Password & session security' },
+    { key: 'notifications', label: 'Alert Preferences', icon: Bell, desc: 'Assessment & student alerts' },
+    { key: 'appearance', label: 'Theme & Display', icon: Palette, desc: 'Visual theme & layout' },
+    { key: 'privacy', label: 'Visibility Controls', icon: Shield, desc: 'Student roster visibility' },
+    { key: 'danger', label: 'Danger Zone', icon: AlertTriangle, desc: 'Account deactivation' },
   ] : TABS;
 
   const [profile, setProfile] = useState(() => {
@@ -573,7 +582,7 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
         <div className="page-title-group">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
             <button
-              onClick={() => setActivePage(currentRole === 'institution' ? 'institution-console' : currentRole === 'company' ? 'industry-portal' : 'home')}
+              onClick={() => setActivePage(currentRole === 'institution' ? 'institution-console' : currentRole === 'company' ? 'industry-portal' : currentRole === 'academician' ? 'academician-dashboard' : 'home')}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
                 background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-subtle)',
@@ -584,20 +593,22 @@ export default function Settings({ setActivePage, onShowToast, user, initialTab 
               onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
             >
               <ArrowLeft size={13} />
-              <span>{currentRole === 'institution' ? 'Back to Institution Console' : currentRole === 'company' ? 'Back to Industry Portal' : 'Back to Dashboard'}</span>
+              <span>{currentRole === 'institution' ? 'Back to Institution Console' : currentRole === 'company' ? 'Back to Industry Portal' : currentRole === 'academician' ? 'Back to Faculty Portal' : 'Back to Dashboard'}</span>
             </button>
             <div className="telemetry-node-tag" style={{ margin: 0 }}>
-              <span>{currentRole === 'institution' ? 'INSTITUTION' : currentRole === 'company' ? 'CORPORATE PARTNER' : 'STUDENT DIRECTORY'}</span>
+              <span>{currentRole === 'institution' ? 'INSTITUTION' : currentRole === 'company' ? 'CORPORATE PARTNER' : currentRole === 'academician' ? 'FACULTY & ACADEMIA' : 'STUDENT DIRECTORY'}</span>
               <span>//</span>
-              <span>{currentRole === 'institution' ? 'INSTITUTIONAL SETTINGS' : currentRole === 'company' ? 'INDUSTRY SETTINGS' : 'SETTINGS CENTER'}</span>
+              <span>{currentRole === 'institution' ? 'INSTITUTIONAL SETTINGS' : currentRole === 'company' ? 'INDUSTRY SETTINGS' : currentRole === 'academician' ? 'FACULTY SETTINGS' : 'SETTINGS CENTER'}</span>
             </div>
           </div>
-          <h1>{currentRole === 'institution' ? 'Institutional Settings' : currentRole === 'company' ? 'Industry & Corporate Settings' : 'Settings'}</h1>
+          <h1>{currentRole === 'institution' ? 'Institutional Settings' : currentRole === 'company' ? 'Industry & Corporate Settings' : currentRole === 'academician' ? 'Faculty & Academic Settings' : 'Settings'}</h1>
           <p>{currentRole === 'institution'
             ? 'Manage your institution profile, governance, security, communications, and operational preferences.'
             : currentRole === 'company'
               ? 'Manage your corporate presence, recruiter credentials, AI candidate screening thresholds, and recruitment alert settings.'
-              : 'Manage your account, profile, security, notifications, appearance, and privacy preferences.'}</p>
+              : currentRole === 'academician'
+                ? 'Manage your faculty credentials, academic departments, notification alerts, display theme, and account security.'
+                : 'Manage your account, profile, security, notifications, appearance, and privacy preferences.'}</p>
         </div>
       </div>
 

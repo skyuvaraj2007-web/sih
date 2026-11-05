@@ -49,6 +49,19 @@ export default function DigitalPassport({ onShowToast, user }) {
     showExperience: true
   });
 
+  // Apple Design: ESC key dismissal for active modals
+  useEffect(() => {
+    if (!showShareModal && !showQrModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowShareModal(false);
+        setShowQrModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showShareModal, showQrModal]);
+
   const loadPassport = async () => {
     setLoading(true);
     try {
@@ -766,16 +779,30 @@ export default function DigitalPassport({ onShowToast, user }) {
 
       {/* ── SHARE & PRIVACY MODAL ── */}
       {showShareModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(5, 12, 24, 0.88)', backdropFilter: 'blur(10px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px'
-        }}>
-          <div className="glass-card" style={{
-            maxWidth: '560px', width: '100%', maxHeight: '88vh', overflowY: 'auto',
-            padding: '26px', borderRadius: '16px', background: 'rgba(10, 24, 48, 0.98)',
-            border: '1px solid rgba(0, 212, 255, 0.35)', boxShadow: '0 24px 60px rgba(0,0,0,0.6)'
-          }}>
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setShowShareModal(false); }}
+          className="modal-backdrop"
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(5, 12, 24, 0.88)', backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px',
+            animation: 'fadeIn 0.2s ease-out'
+          }}
+        >
+          <div 
+            role="dialog"
+            aria-modal="true"
+            aria-label="Share Digital Skill Passport"
+            onClick={(e) => e.stopPropagation()}
+            className="glass-card modal-content-box" 
+            style={{
+              maxWidth: '560px', width: '100%', maxHeight: '88vh', overflowY: 'auto',
+              padding: '26px', borderRadius: '20px', background: 'rgba(10, 24, 48, 0.98)',
+              border: '1px solid rgba(0, 212, 255, 0.35)', boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+              animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Share2 size={18} color="var(--cyber-cyan, #00d9ff)" />
@@ -907,16 +934,30 @@ export default function DigitalPassport({ onShowToast, user }) {
 
       {/* ── QR CODE MODAL ── */}
       {showQrModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(5, 12, 24, 0.88)', backdropFilter: 'blur(10px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px'
-        }}>
-          <div className="glass-card" style={{
-            maxWidth: '420px', width: '100%', padding: '28px', borderRadius: '16px',
-            background: 'rgba(10, 24, 48, 0.98)', border: '1px solid rgba(0, 212, 255, 0.35)',
-            textAlign: 'center'
-          }}>
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setShowQrModal(false); }}
+          className="modal-backdrop"
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(5, 12, 24, 0.88)', backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px',
+            animation: 'fadeIn 0.2s ease-out'
+          }}
+        >
+          <div 
+            role="dialog"
+            aria-modal="true"
+            aria-label="Passport Verification QR Code Dialog"
+            onClick={(e) => e.stopPropagation()}
+            className="glass-card modal-content-box" 
+            style={{
+              maxWidth: '420px', width: '100%', padding: '28px', borderRadius: '20px',
+              background: 'rgba(10, 24, 48, 0.98)', border: '1px solid rgba(0, 212, 255, 0.35)',
+              textAlign: 'center',
+              animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '17px', color: '#ffffff', fontWeight: 800 }}>
                 Passport Verification QR

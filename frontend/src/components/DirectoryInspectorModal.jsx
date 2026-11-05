@@ -30,6 +30,7 @@ import {
   TAMIL_NADU_DISTRICTS
 } from '../services/collegeDirectory';
 import CyberSelect from './CyberSelect';
+import useAppleModal from '../utils/useAppleModal';
 
 /**
  * DirectoryInspectorModal
@@ -37,6 +38,7 @@ import CyberSelect from './CyberSelect';
  * Covers all 38 districts with Anna University / TNEA codes, regulatory standing, and Career Intel Tiers.
  */
 export default function DirectoryInspectorModal({ isOpen, onClose }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen, onClose });
   const [search, setSearch] = useState('');
   const [district, setDistrict] = useState('ALL');
   const [type, setType] = useState('ALL');
@@ -102,32 +104,45 @@ export default function DirectoryInspectorModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(2, 6, 23, 0.92)',
-      backdropFilter: 'blur(16px)',
-      zIndex: 10000,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '1240px',
-        height: '94vh',
-        background: 'linear-gradient(180deg, #0B132B 0%, #060A17 100%)',
-        border: '1px solid rgba(0, 242, 254, 0.4)',
-        borderRadius: '18px',
-        boxShadow: '0 30px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(0, 242, 254, 0.15)',
+    <div 
+      onClick={handleBackdropClick}
+      className="modal-backdrop"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(2, 6, 23, 0.92)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        zIndex: 10000,
         display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden'
-      }}>
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Tamil Nadu Higher Education Master Directory Inspector"
+        className="modal-content-box"
+        style={{
+          width: '100%',
+          maxWidth: '1240px',
+          height: '94vh',
+          background: 'linear-gradient(180deg, #0B132B 0%, #060A17 100%)',
+          border: '1px solid rgba(0, 242, 254, 0.4)',
+          borderRadius: '20px',
+          boxShadow: '0 30px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(0, 242, 254, 0.15)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
         {/* ── 1. MODAL HEADER ── */}
         <div style={{
           padding: '18px 24px',

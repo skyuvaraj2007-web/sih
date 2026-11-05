@@ -12,8 +12,10 @@ import {
   Users
 } from 'lucide-react';
 import { academicService } from '../../services/academicService';
+import useAppleModal from '../../utils/useAppleModal';
 
 export default function RosterImportModal({ institution, onClose, onSuccess, onShowToast }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen: true, onClose });
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
@@ -145,32 +147,45 @@ export default function RosterImportModal({ institution, onClose, onSuccess, onS
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(5, 10, 20, 0.88)',
-      backdropFilter: 'blur(8px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 9999,
-      padding: '20px'
-    }}>
-      <div className="glass-panel" style={{
-        width: '100%',
-        maxWidth: '920px',
-        maxHeight: '90vh',
-        background: 'linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(11, 17, 32, 0.96))',
-        border: '1px solid rgba(6, 182, 212, 0.3)',
-        borderRadius: '16px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(6, 182, 212, 0.15)',
+    <div 
+      onClick={handleBackdropClick}
+      className="modal-backdrop"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(5, 10, 20, 0.88)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden'
-      }}>
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: '20px',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Student Roster Bulk CSV Import Dialog"
+        className="glass-panel modal-content-box" 
+        style={{
+          width: '100%',
+          maxWidth: '920px',
+          maxHeight: '90vh',
+          background: 'linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(11, 17, 32, 0.96))',
+          border: '1px solid rgba(6, 182, 212, 0.3)',
+          borderRadius: '20px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(6, 182, 212, 0.15)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
         {/* Header */}
         <div style={{
           padding: '20px 24px',

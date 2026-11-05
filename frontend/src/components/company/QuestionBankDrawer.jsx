@@ -16,8 +16,20 @@ import {
   Tag
 } from 'lucide-react';
 import industryAssessmentService from '../../services/industryAssessmentService';
+import useAppleDrawerDrag from '../../utils/useAppleDrawerDrag';
 
 export default function QuestionBankDrawer({ isOpen, onClose, onSelectQuestions, selectedQuestionIds = [] }) {
+  const {
+    drawerRef,
+    isDragging,
+    scrimOpacity,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handleBackdropClick,
+    handleDrawerClick,
+    drawerProps
+  } = useAppleDrawerDrag({ isOpen, onClose, direction: 'right' });
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -131,9 +143,54 @@ export default function QuestionBankDrawer({ isOpen, onClose, onSelectQuestions,
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-4xl bg-slate-900 border-l border-slate-700/60 shadow-2xl flex flex-col h-full overflow-hidden text-slate-100">
-        
+    <div 
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex justify-end"
+      style={{
+        backgroundColor: `rgba(0, 0, 0, ${0.65 * scrimOpacity})`,
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        transition: isDragging ? 'none' : 'background-color 0.2s ease',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
+      <div 
+        ref={drawerRef}
+        onClick={handleDrawerClick}
+        {...drawerProps}
+        aria-label="Enterprise Question Bank Drawer"
+        className="w-full max-w-4xl bg-slate-900/95 border-l border-slate-700/60 shadow-2xl flex flex-col h-full overflow-hidden text-slate-100 relative"
+        style={{
+          ...drawerProps.style,
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          animation: !isDragging && isOpen ? 'drawerSlideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)' : undefined
+        }}
+      >
+        {/* Fluid Direct Manipulation Drag Handle (§2, §3, §10) */}
+        <div
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: '20px',
+            cursor: 'ew-resize',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 30,
+            touchAction: 'none'
+          }}
+          title="Drag right to close"
+        >
+          <div style={{ width: '4px', height: '56px', borderRadius: '4px', background: 'rgba(255, 255, 255, 0.3)', boxShadow: '0 0 8px rgba(0,0,0,0.4)' }} />
+        </div>
+
         {/* Header */}
         <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/80">
           <div className="flex items-center space-x-3">
@@ -160,6 +217,7 @@ export default function QuestionBankDrawer({ isOpen, onClose, onSelectQuestions,
             </button>
             <button
               onClick={onClose}
+              aria-label="Close question bank drawer"
               className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
             >
               <X className="w-5 h-5" />

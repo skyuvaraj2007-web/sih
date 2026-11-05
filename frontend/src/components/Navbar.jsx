@@ -7,12 +7,14 @@ import {
   Sun,
   Moon,
   Sparkles,
-  Zap
+  Zap,
+  Menu,
+  X
 } from 'lucide-react';
 import { getUnreadCount } from '../services/notificationStore';
 import { getTheme, toggleTheme } from '../services/themeStore';
 
-export default function Navbar({ onOpenAIModal, activePage, setActivePage, user, onLogout }) {
+export default function Navbar({ onOpenAIModal, activePage, setActivePage, user, onLogout, isMobileNavOpen = false, onToggleMobileNav }) {
   const [searchFocused, setSearchFocused] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const currentRole = (user?.role === 'industry' || user?.role === 'company')
@@ -74,12 +76,34 @@ export default function Navbar({ onOpenAIModal, activePage, setActivePage, user,
         boxShadow: 'var(--shadow-subtle)'
       }}
     >
-      {/* Left: Global Search Bar */}
-      <div className="topbar-left" style={{ flex: 1, maxWidth: '520px' }}>
+      {/* Left: Mobile Nav Toggle & Global Search Bar */}
+      <div className="topbar-left" style={{ flex: 1, maxWidth: '540px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {onToggleMobileNav && (
+          <button
+            type="button"
+            onClick={onToggleMobileNav}
+            className="mobile-nav-toggle-btn"
+            aria-label={isMobileNavOpen ? "Close navigation drawer" : "Open navigation drawer"}
+            style={{
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '10px',
+              padding: '8px',
+              color: 'var(--text-heading)',
+              cursor: 'pointer',
+              display: 'none',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}
+          >
+            {isMobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        )}
         <div
           className="search-input-box"
           style={{
-            width: '100%',
+            flex: 1,
             background: 'var(--bg-input)',
             border: searchFocused ? '1px solid var(--cyber-blue)' : '1px solid var(--border-subtle)',
             boxShadow: searchFocused ? '0 0 16px var(--cyber-blue-dim)' : 'none',

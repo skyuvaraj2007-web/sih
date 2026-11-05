@@ -17,6 +17,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { learningService } from '../../services/learningService';
+import useAppleModal from '../../utils/useAppleModal';
 
 export default function CourseViewerModal({
   isOpen,
@@ -25,6 +26,7 @@ export default function CourseViewerModal({
   onProgressUpdated,
   onShowToast
 }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen, onClose });
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeModuleIdx, setActiveModuleIdx] = useState(0);
@@ -109,33 +111,46 @@ export default function CourseViewerModal({
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'rgba(6, 12, 24, 0.88)',
-      backdropFilter: 'blur(10px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 9999,
-      padding: '20px'
-    }}>
-      <div style={{
-        background: '#0d1527',
-        border: '1px solid rgba(99, 102, 241, 0.3)',
-        borderRadius: '16px',
-        width: '100%',
-        maxWidth: '1100px',
-        height: '90vh',
-        maxHeight: '750px',
+    <div 
+      onClick={handleBackdropClick}
+      className="modal-backdrop"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(6, 12, 24, 0.88)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 35px rgba(99, 102, 241, 0.15)',
-        overflow: 'hidden'
-      }}>
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: '20px',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Course Learning Viewer"
+        className="modal-content-box"
+        style={{
+          background: '#0d1527',
+          border: '1px solid rgba(99, 102, 241, 0.3)',
+          borderRadius: '20px',
+          width: '100%',
+          maxWidth: '1100px',
+          height: '90vh',
+          maxHeight: '750px',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 35px rgba(99, 102, 241, 0.15)',
+          overflow: 'hidden',
+          animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
         {/* Header */}
         <div style={{
           padding: '16px 24px',

@@ -12,6 +12,7 @@ import StudentSkillQuestionnaireModal from '../components/StudentSkillQuestionna
 import { openGoogleResearch } from '../utils/googleResearch';
 import ConnectedEcosystemCard from '../components/common/ConnectedEcosystemCard';
 import RecentEcosystemActivity from '../components/common/RecentEcosystemActivity';
+import { skillIntelligenceService } from '../services/skillIntelligenceService';
 
 /* =========================================================================
    CIRCULAR PROGRESS COMPONENT
@@ -292,6 +293,14 @@ export default function StudentDashboard({ setActivePage, onShowToast, user, onO
       }
     } catch (e) {}
   }, [user]);
+
+  // Pre-warm Skill Intelligence cache in background so navigation feels instantaneous
+  useEffect(() => {
+    const sId = user?.studentId || user?.id;
+    if (sId) {
+      skillIntelligenceService.prefetch(sId);
+    }
+  }, [user?.studentId, user?.id]);
 
   // Month navigation for web usage heatmap (dynamic based on current year/month)
   const [monthOffset, setMonthOffset] = useState(0);

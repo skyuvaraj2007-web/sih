@@ -230,18 +230,83 @@ export default function HelpCenter({ onShowToast, user }) {
     }
   ];
 
-  // Derive current role configuration
-  const categories = currentRole === 'institution'
-    ? institutionCategories
-    : currentRole === 'company'
-      ? companyCategories
-      : studentCategories;
+  // ── 4. ACADEMICIAN / FACULTY FAQS & CATEGORIES ───────────────────────────
+  const academicianCategories = [
+    { label: "Getting Started", icon: HelpCircle },
+    { label: "My Students", icon: Users },
+    { label: "Course Management", icon: BookOpen },
+    { label: "Assessments & Monitoring", icon: Award },
+    { label: "Student Performance", icon: TrendingUp },
+    { label: "Verify Achievements", icon: ShieldCheck },
+    { label: "Skill Gaps & Remediation", icon: Brain },
+    { label: "Notifications & Alerts", icon: Mail },
+    { label: "Faculty Settings", icon: Sliders }
+  ];
 
-  const faqs = currentRole === 'institution'
-    ? institutionFaqs
-    : currentRole === 'company'
-      ? companyFaqs
-      : studentFaqs;
+  const academicianFaqs = [
+    {
+      category: "Getting Started",
+      q: "What tools are available in the Faculty / Academia Workspace?",
+      a: "The Faculty Workspace provides complete tools for class advisors, professors, and academic coordinators: manage assigned cohorts, create and assign courses, author diagnostic skill assessments, review live proctoring integrity signals, and attest verified student project achievements."
+    },
+    {
+      category: "My Students",
+      q: "How do I review student profiles, attendance, and cohort skill readiness?",
+      a: "Navigate to My Students from the sidebar. You can view your assigned class roster, filter by readiness score, inspect individual student skill passports, and view automated learning progression."
+    },
+    {
+      category: "Course Management",
+      q: "How do I create and assign courses to my enrolled students?",
+      a: "Navigate to My Courses → Create New Course. Enter the course title, domain, module breakdown, and prerequisites. Once published, click 'Assign Course' to roll it out to your entire class or designated student groups."
+    },
+    {
+      category: "Assessments & Monitoring",
+      q: "How does the Intelligent Assessment Monitoring and Proctored Integrity System work?",
+      a: "When students take assessments, our Assessment Guard automatically monitors telemetry (tab switches, full-screen exits, multiple persons, camera status). Potential signals are classified without bias and routed to your Integrity Alerts console for human review."
+    },
+    {
+      category: "Assessments & Monitoring",
+      q: "How do I review or escalate an assessment integrity alert?",
+      a: "In the Integrity Alerts console, inspect event details and playback telemetry. You can confirm the signal, dismiss false positives, or click 'Escalate to Coordinator' to notify your department head or academic coordinator."
+    },
+    {
+      category: "Student Performance",
+      q: "How do I analyze cohort performance and department skill benchmarks?",
+      a: "Open Student Performance from the sidebar. The system calculates topic-wise pass percentages, diagnostic strengths, and alerts you to students who may need academic intervention."
+    },
+    {
+      category: "Verify Achievements",
+      q: "How do I attest student external certifications and projects?",
+      a: "Go to Verify Achievements. Review submitted repository links, Docker test results, or certificate proof documents, then click 'Approve' to bind the credential to the student's tamper-proof Digital Passport."
+    },
+    {
+      category: "Skill Gaps & Remediation",
+      q: "How can I identify student skill gaps and recommend remedial courses?",
+      a: "In Skill Gaps, the AI comparison engine maps student scores against current corporate hiring benchmarks, highlighting critical gaps and recommending specific micro-modules for assignment."
+    },
+    {
+      category: "Notifications & Alerts",
+      q: "Where do I receive assessment notifications and escalation updates?",
+      a: "All faculty-scoped alerts appear in your Notifications center and the top-bar bell. You are notified whenever a student submits an assessment, an integrity signal requires review, or an achievement is awaiting verification."
+    }
+  ];
+
+  // Derive current role configuration
+  const categories = currentRole === 'academician'
+    ? academicianCategories
+    : currentRole === 'institution'
+      ? institutionCategories
+      : currentRole === 'company'
+        ? companyCategories
+        : studentCategories;
+
+  const faqs = currentRole === 'academician'
+    ? academicianFaqs
+    : currentRole === 'institution'
+      ? institutionFaqs
+      : currentRole === 'company'
+        ? companyFaqs
+        : studentFaqs;
 
   // Filtered FAQs based on category click & text search
   const filteredFaqs = faqs.filter(f => {

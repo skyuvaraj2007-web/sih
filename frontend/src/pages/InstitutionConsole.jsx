@@ -57,6 +57,7 @@ import InstitutionMessages from '../components/institution/InstitutionMessages';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import ProjectDetailsExplorer from '../components/common/ProjectDetailsExplorer';
 import { academicService } from '../services/academicService';
+import AssessmentMonitoringAlertsConsole from '../components/assessment/AssessmentMonitoringAlertsConsole';
 
 export default function InstitutionConsole({ setActivePage, activePage, user, onShowToast, onLogout }) {
   const [institutionStudents, setInstitutionStudents] = useState([]);
@@ -75,6 +76,10 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
     switch (activePage) {
       case 'institution-readiness':
         return 'readiness';
+      case 'institution-monitoring':
+      case 'institution-integrity-alerts':
+      case 'institution-assessments':
+        return 'monitoring';
       case 'institution-skill-growth':
       case 'skill-growth':
         return 'skill-growth';
@@ -617,6 +622,15 @@ export default function InstitutionConsole({ setActivePage, activePage, user, on
       {/* ── 16B. STUDENT PROJECT DETAILS EXPLORER VIEW ── */}
       {currentView === 'project-explorer' && (
         <ProjectDetailsExplorer portal="institution" onShowToast={onShowToast} />
+      )}
+
+      {/* ── 17. ASSESSMENT MONITORING & INTEGRITY CONSOLE ── */}
+      {currentView === 'monitoring' && (
+        <AssessmentMonitoringAlertsConsole
+          role="institution"
+          user={{ ...user, collegeId, institutionName: institutionDisplayName }}
+          onShowToast={onShowToast}
+        />
       )}
 
       {/* Master Directory Inspector Modal */}

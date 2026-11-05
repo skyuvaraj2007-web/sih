@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import useAppleModal from '../utils/useAppleModal';
 import { Terminal, Play, X, CheckCircle2, ShieldCheck, Cpu, Clock, HardDrive } from 'lucide-react';
 
 const STARTER_CODES = {
@@ -8,6 +9,7 @@ const STARTER_CODES = {
 };
 
 export default function CodeSandboxModal({ isOpen, onClose, onAttested }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen, onClose });
   const [language, setLanguage] = useState('python');
   const [code, setCode] = useState(STARTER_CODES.python);
   const [isRunning, setIsRunning] = useState(false);
@@ -50,11 +52,13 @@ export default function CodeSandboxModal({ isOpen, onClose, onAttested }) {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={handleBackdropClick}>
       <div 
         className="modal-content-box" 
         style={{ maxWidth: '840px', padding: 0, overflow: 'hidden' }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Code Diagnostic Sandbox"
       >
         {/* Sandbox Header */}
         <div style={{

@@ -1,12 +1,28 @@
 import React from 'react';
+import useAppleModal from '../../utils/useAppleModal';
 import { X, GitCompare, ShieldCheck, Sparkles, Award, Check } from 'lucide-react';
 
 export default function CompanyCompareModal({ students = [], onClose, onSelectStudent }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ 
+    isOpen: Boolean(students && students.length > 0), 
+    onClose 
+  });
+
   if (!students || students.length === 0) return null;
 
   return (
-    <div className="company-modal-overlay">
-      <div className="company-modal-content max-w-4xl">
+    <div 
+      onClick={handleBackdropClick}
+      className="company-modal-overlay modal-backdrop"
+      style={{ animation: 'fadeIn 0.2s ease-out' }}
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Side-by-Side Candidate Comparison"
+        className="company-modal-content modal-content-box max-w-4xl"
+        style={{ animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)' }}
+      >
         <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
           <div className="flex items-center gap-2">
             <GitCompare className="w-5 h-5 text-cyan-400" />

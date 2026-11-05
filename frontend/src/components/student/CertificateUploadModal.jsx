@@ -14,6 +14,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { certificateService } from '../../services/certificateService';
+import useAppleModal from '../../utils/useAppleModal';
 
 const ALLOWED_EXTS = ['pdf', 'png', 'jpg', 'jpeg', 'webp', 'doc', 'docx', 'pptx', 'ppt'];
 const DANGEROUS_EXTS = ['exe', 'bat', 'cmd', 'sh', 'php', 'js', 'vbs', 'msi', 'dll', 'com'];
@@ -33,6 +34,7 @@ const PRESET_CATEGORIES = [
 ];
 
 export default function CertificateUploadModal({ isOpen, onClose, onSuccess, onShowToast }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen, onClose });
   const [title, setTitle] = useState('');
   const [issuer, setIssuer] = useState('');
   const [certificateNumber, setCertificateNumber] = useState('');
@@ -188,30 +190,43 @@ export default function CertificateUploadModal({ isOpen, onClose, onSuccess, onS
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(10, 15, 29, 0.8)',
-      backdropFilter: 'blur(8px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 9999,
-      padding: '20px'
-    }}>
-      <div style={{
-        background: 'var(--bg-card, #ffffff)',
-        border: '1px solid var(--border-subtle, #e2e8f0)',
-        borderRadius: '20px',
-        width: '100%',
-        maxWidth: '720px',
-        maxHeight: '92vh',
+    <div 
+      onClick={handleBackdropClick}
+      className="modal-backdrop"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(10, 15, 29, 0.82)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-        overflow: 'hidden',
-        color: 'var(--text-primary, #1e293b)'
-      }}>
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: '20px',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Submit Certificate Evidence Dialog"
+        className="modal-content-box"
+        style={{
+          background: 'var(--bg-card, #ffffff)',
+          border: '1px solid var(--border-subtle, #e2e8f0)',
+          borderRadius: '20px',
+          width: '100%',
+          maxWidth: '720px',
+          maxHeight: '92vh',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.65)',
+          overflow: 'hidden',
+          color: 'var(--text-primary, #1e293b)',
+          animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
         {/* Header */}
         <div style={{
           padding: '18px 24px',

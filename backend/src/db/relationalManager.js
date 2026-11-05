@@ -582,6 +582,180 @@ class RelationalManager {
           }
         }
       }
+
+      // ──────────────────────────────────────────────────────────────────────────
+      // DEMO ACCOUNT: STUDENT (student.demo@skillnexus.ai)
+      // ──────────────────────────────────────────────────────────────────────────
+      try {
+        const studentEmail = 'student.demo@skillnexus.ai';
+        const studentPass = 'Demo@2026';
+        const stuRoleRes = await this.pg.query("SELECT id FROM roles WHERE code = 'STUDENT' LIMIT 1");
+        const stuRoleId = stuRoleRes.rows[0]?.id;
+
+        const stuUserRes = await this.pg.query('SELECT id, password_hash FROM users WHERE lower(email) = lower($1) LIMIT 1', [studentEmail]);
+        let stuUid;
+        if (stuUserRes.rows.length === 0) {
+          const hash = bcrypt.hashSync(studentPass, 10);
+          const ins = await this.pg.query(
+            'INSERT INTO users (email, password_hash, is_active, created_at, updated_at) VALUES ($1, $2, true, NOW(), NOW()) RETURNING id',
+            [studentEmail, hash]
+          );
+          stuUid = ins.rows[0].id;
+        } else {
+          stuUid = stuUserRes.rows[0].id;
+          if (!stuUserRes.rows[0].password_hash) {
+            const hash = bcrypt.hashSync(studentPass, 10);
+            await this.pg.query('UPDATE users SET password_hash = $1, is_active = true, updated_at = NOW() WHERE id = $2', [hash, stuUid]);
+          } else {
+            await this.pg.query('UPDATE users SET is_active = true WHERE id = $1', [stuUid]);
+          }
+        }
+
+        if (stuRoleId) {
+          await this.pg.query(
+            'INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT (user_id, role_id) DO NOTHING',
+            [stuUid, stuRoleId]
+          );
+        }
+
+        if (instId) {
+          const stuProfRes = await this.pg.query('SELECT id FROM students WHERE user_id = $1 LIMIT 1', [stuUid]);
+          if (stuProfRes.rows.length === 0) {
+            await this.pg.query(
+              `INSERT INTO students (
+                user_id, institution_id, department_id, class_id, roll_number, full_name,
+                cgpa, batch, graduation_year, year_semester, readiness_score, placement_status,
+                target_career_role, bio, created_at, updated_at
+              ) VALUES (
+                $1, $2, $3, $4, '23CSE042', 'Arun Kumar',
+                8.85, '2023-2027', 2027, 'Semester 5', 88, 'Placement Ready',
+                'Full Stack AI Engineer', 'Passionate computer science undergraduate specialized in full stack web development.', NOW(), NOW()
+              )`,
+              [stuUid, instId, deptId, classId]
+            );
+          }
+        }
+      } catch (stuErr) {
+        console.warn('[ensurePostgresDemoAccounts] Student demo notice:', stuErr.message);
+      }
+
+      // ──────────────────────────────────────────────────────────────────────────
+      // DEMO ACCOUNT: INSTITUTION (institution.demo@skillnexus.ai)
+      // ──────────────────────────────────────────────────────────────────────────
+      try {
+        const instEmail = 'institution.demo@skillnexus.ai';
+        const instPass = 'Demo@2026';
+        const instRoleRes = await this.pg.query("SELECT id FROM roles WHERE code = 'INSTITUTION' LIMIT 1");
+        const instRoleId = instRoleRes.rows[0]?.id;
+
+        const instUserRes = await this.pg.query('SELECT id, password_hash FROM users WHERE lower(email) = lower($1) LIMIT 1', [instEmail]);
+        let instUid;
+        if (instUserRes.rows.length === 0) {
+          const hash = bcrypt.hashSync(instPass, 10);
+          const ins = await this.pg.query(
+            'INSERT INTO users (email, password_hash, is_active, created_at, updated_at) VALUES ($1, $2, true, NOW(), NOW()) RETURNING id',
+            [instEmail, hash]
+          );
+          instUid = ins.rows[0].id;
+        } else {
+          instUid = instUserRes.rows[0].id;
+          if (!instUserRes.rows[0].password_hash) {
+            const hash = bcrypt.hashSync(instPass, 10);
+            await this.pg.query('UPDATE users SET password_hash = $1, is_active = true, updated_at = NOW() WHERE id = $2', [hash, instUid]);
+          } else {
+            await this.pg.query('UPDATE users SET is_active = true WHERE id = $1', [instUid]);
+          }
+        }
+
+        if (instRoleId) {
+          await this.pg.query(
+            'INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT (user_id, role_id) DO NOTHING',
+            [instUid, instRoleId]
+          );
+        }
+
+        if (instId) {
+          const imCheck = await this.pg.query('SELECT id FROM institution_members WHERE user_id = $1 LIMIT 1', [instUid]);
+          if (imCheck.rows.length === 0) {
+            await this.pg.query(
+              `INSERT INTO institution_members (
+                institution_id, user_id, department_id, member_role, designation, is_active, created_at, updated_at
+              ) VALUES ($1, $2, $3, 'INSTITUTION_ADMIN', 'Dean of Academic Affairs & Placement Director', true, NOW(), NOW())`,
+              [instId, instUid, deptId]
+            );
+          }
+        }
+      } catch (instErr) {
+        console.warn('[ensurePostgresDemoAccounts] Institution demo notice:', instErr.message);
+      }
+
+      // ──────────────────────────────────────────────────────────────────────────
+      // DEMO ACCOUNT: INDUSTRY (industry.demo@skillnexus.ai)
+      // ──────────────────────────────────────────────────────────────────────────
+      try {
+        const indEmail = 'industry.demo@skillnexus.ai';
+        const indPass = 'Demo@2026';
+        const indRoleRes = await this.pg.query("SELECT id FROM roles WHERE code IN ('COMPANY', 'INDUSTRY') LIMIT 1");
+        const indRoleId = indRoleRes.rows[0]?.id;
+
+        const indUserRes = await this.pg.query('SELECT id, password_hash FROM users WHERE lower(email) = lower($1) LIMIT 1', [indEmail]);
+        let indUid;
+        if (indUserRes.rows.length === 0) {
+          const hash = bcrypt.hashSync(indPass, 10);
+          const ins = await this.pg.query(
+            'INSERT INTO users (email, password_hash, is_active, created_at, updated_at) VALUES ($1, $2, true, NOW(), NOW()) RETURNING id',
+            [indEmail, hash]
+          );
+          indUid = ins.rows[0].id;
+        } else {
+          indUid = indUserRes.rows[0].id;
+          if (!indUserRes.rows[0].password_hash) {
+            const hash = bcrypt.hashSync(indPass, 10);
+            await this.pg.query('UPDATE users SET password_hash = $1, is_active = true, updated_at = NOW() WHERE id = $2', [hash, indUid]);
+          } else {
+            await this.pg.query('UPDATE users SET is_active = true WHERE id = $1', [indUid]);
+          }
+        }
+
+        if (indRoleId) {
+          await this.pg.query(
+            'INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT (user_id, role_id) DO NOTHING',
+            [indUid, indRoleId]
+          );
+        }
+
+        let compId = null;
+        const compRes = await this.pg.query(
+          "SELECT id FROM companies WHERE company_name ILIKE '%SBT%' OR company_name ILIKE '%Innovations%' LIMIT 1"
+        );
+        compId = compRes.rows[0]?.id;
+        if (!compId) {
+          const anyComp = await this.pg.query("SELECT id FROM companies LIMIT 1");
+          compId = anyComp.rows[0]?.id;
+        }
+        if (!compId) {
+          const newComp = await this.pg.query(
+            `INSERT INTO companies (company_name, industry, location, status, created_at, updated_at)
+             VALUES ('SBT TECH Innovations', 'Information Technology & AI Solutions', 'Bengaluru, India', 'Active', NOW(), NOW())
+             RETURNING id`
+          );
+          compId = newComp.rows[0]?.id;
+        }
+
+        if (compId) {
+          const cmCheck = await this.pg.query('SELECT id FROM company_members WHERE user_id = $1 LIMIT 1', [indUid]);
+          if (cmCheck.rows.length === 0) {
+            await this.pg.query(
+              `INSERT INTO company_members (
+                company_id, user_id, member_role, designation, is_active, created_at, updated_at
+              ) VALUES ($1, $2, 'RECRUITER', 'Head of Campus Talent Acquisition & Strategic University Hiring', true, NOW(), NOW())`,
+              [compId, indUid]
+            );
+          }
+        }
+      } catch (indErr) {
+        console.warn('[ensurePostgresDemoAccounts] Industry demo notice:', indErr.message);
+      }
     } catch (e) {
       console.warn('[ensurePostgresDemoAccounts] Notice:', e.message);
     }
@@ -1109,7 +1283,7 @@ class RelationalManager {
       id: inst.id || code,
       code: code,
       name: name,
-      institutionId: code,
+      institutionId: inst.institution_id || inst.institutionId || inst.id || null,
       collegeId: code,
       collegeName: name,
       collegeCode: code,
@@ -2204,21 +2378,24 @@ class RelationalManager {
 
     // Query user role
     let userRole = 'student';
+    let userRoles = [];
     try {
       const { data: urData } = await this.supabase
         .from('user_roles')
         .select('role_id')
-        .eq('user_id', user.id)
-        .limit(1);
+        .eq('user_id', user.id);
 
-      if (urData && urData[0] && urData[0].role_id) {
-        const { data: rData } = await this.supabase
-          .from('roles')
-          .select('code')
-          .eq('id', urData[0].role_id)
-          .limit(1);
-        if (rData && rData[0] && rData[0].code) {
-          userRole = String(rData[0].code).toLowerCase();
+      if (urData && urData.length > 0) {
+        const roleIds = urData.map(r => r.role_id).filter(Boolean);
+        if (roleIds.length > 0) {
+          const { data: rData } = await this.supabase
+            .from('roles')
+            .select('code')
+            .in('id', roleIds);
+          if (rData && rData.length > 0) {
+            userRoles = rData.map(r => String(r.code).toLowerCase());
+            userRole = userRoles[0] || 'student';
+          }
         }
       }
     } catch (e) {
@@ -2226,12 +2403,76 @@ class RelationalManager {
     }
 
     const requestedRole = role ? String(role).toLowerCase() : null;
-    const isRoleMatched = !requestedRole || [
-      (requestedRole === 'student' && userRole === 'student'),
-      (requestedRole === 'institution' && userRole === 'institution'),
-      ((requestedRole === 'company' || requestedRole === 'industry') && (userRole === 'company' || userRole === 'industry')),
-      ((requestedRole === 'faculty' || requestedRole === 'academician') && (userRole === 'faculty' || userRole === 'academician'))
-    ].some(Boolean);
+    let isRoleMatched = false;
+
+    if (!requestedRole) {
+      isRoleMatched = true;
+    } else {
+      for (const r of userRoles) {
+        if (
+          (requestedRole === 'student' && r === 'student') ||
+          (requestedRole === 'institution' && r === 'institution') ||
+          ((requestedRole === 'company' || requestedRole === 'industry') && (r === 'company' || r === 'industry')) ||
+          ((requestedRole === 'faculty' || requestedRole === 'academician') && (r === 'faculty' || r === 'academician'))
+        ) {
+          isRoleMatched = true;
+          userRole = r;
+          break;
+        }
+      }
+
+      if (!isRoleMatched) {
+        if (requestedRole === 'faculty' || requestedRole === 'academician') {
+          try {
+            const { data: apData } = await this.supabase
+              .from('academician_profiles')
+              .select('id')
+              .eq('user_id', user.id)
+              .limit(1);
+            if (apData && apData.length > 0) {
+              isRoleMatched = true;
+              userRole = 'academician';
+            }
+          } catch (_) {}
+        } else if (requestedRole === 'institution') {
+          try {
+            const { data: imData } = await this.supabase
+              .from('institution_members')
+              .select('id')
+              .eq('user_id', user.id)
+              .limit(1);
+            if (imData && imData.length > 0) {
+              isRoleMatched = true;
+              userRole = 'institution';
+            }
+          } catch (_) {}
+        } else if (requestedRole === 'company' || requestedRole === 'industry') {
+          try {
+            const { data: cmData } = await this.supabase
+              .from('company_members')
+              .select('id')
+              .eq('user_id', user.id)
+              .limit(1);
+            if (cmData && cmData.length > 0) {
+              isRoleMatched = true;
+              userRole = 'company';
+            }
+          } catch (_) {}
+        } else if (requestedRole === 'student') {
+          try {
+            const { data: stData } = await this.supabase
+              .from('students')
+              .select('id')
+              .eq('user_id', user.id)
+              .limit(1);
+            if (stData && stData.length > 0) {
+              isRoleMatched = true;
+              userRole = 'student';
+            }
+          } catch (_) {}
+        }
+      }
+    }
 
     if (!isRoleMatched) {
       return {
@@ -2771,7 +3012,7 @@ class RelationalManager {
 
     if (this.pg) {
       try {
-        const userRes = await this.pg.query(
+        let userRes = await this.pg.query(
           `SELECT u.*, ur.role_id, r.code AS role_code
            FROM users u
            LEFT JOIN user_roles ur ON ur.user_id = u.id
@@ -2781,17 +3022,97 @@ class RelationalManager {
           [normEmail]
         );
 
+        if (userRes.rows.length === 0) {
+          const canonicalDemoEmails = [
+            'student.demo@skillnexus.ai',
+            'academician.demo@skillnexus.ai',
+            'institution.demo@skillnexus.ai',
+            'industry.demo@skillnexus.ai',
+            'arun@example.com'
+          ];
+          if (canonicalDemoEmails.includes(normEmail)) {
+            try {
+              await this.ensurePostgresDemoAccounts();
+              userRes = await this.pg.query(
+                `SELECT u.*, ur.role_id, r.code AS role_code
+                 FROM users u
+                 LEFT JOIN user_roles ur ON ur.user_id = u.id
+                 LEFT JOIN roles r ON r.id = ur.role_id
+                 WHERE lower(u.email) = lower($1)
+                 LIMIT 1`,
+                [normEmail]
+              );
+            } catch (seedErr) {
+              console.warn('[authenticateUser] Demo auto-provision notice:', seedErr.message);
+            }
+          }
+        }
+
         if (userRes.rows.length > 0) {
           const user = userRes.rows[0];
           const requestedRole = role ? String(role).toLowerCase() : null;
-          const userRole = user.role_code ? String(user.role_code).toLowerCase() : 'student';
+          let userRole = user.role_code ? String(user.role_code).toLowerCase() : 'student';
 
-          if (requestedRole && ![
+          let isRoleMatched = !requestedRole || [
             (requestedRole === 'student' && userRole === 'student'),
             (requestedRole === 'institution' && userRole === 'institution'),
             ((requestedRole === 'company' || requestedRole === 'industry') && (userRole === 'company' || userRole === 'industry')),
             ((requestedRole === 'faculty' || requestedRole === 'academician') && (userRole === 'faculty' || userRole === 'academician'))
-          ].some(Boolean)) {
+          ].some(Boolean);
+
+          if (!isRoleMatched && requestedRole) {
+            try {
+              const allRolesRes = await this.pg.query(
+                `SELECT r.code FROM user_roles ur JOIN roles r ON r.id = ur.role_id WHERE ur.user_id = $1`,
+                [user.id]
+              );
+              const codes = allRolesRes.rows.map(r => String(r.code).toLowerCase());
+              for (const r of codes) {
+                if (
+                  (requestedRole === 'student' && r === 'student') ||
+                  (requestedRole === 'institution' && r === 'institution') ||
+                  ((requestedRole === 'company' || requestedRole === 'industry') && (r === 'company' || r === 'industry')) ||
+                  ((requestedRole === 'faculty' || requestedRole === 'academician') && (r === 'faculty' || r === 'academician'))
+                ) {
+                  isRoleMatched = true;
+                  userRole = r;
+                  break;
+                }
+              }
+
+              if (!isRoleMatched) {
+                if (requestedRole === 'faculty' || requestedRole === 'academician') {
+                  const apCheck = await this.pg.query('SELECT id FROM academician_profiles WHERE user_id = $1 LIMIT 1', [user.id]);
+                  if (apCheck.rows.length > 0) {
+                    isRoleMatched = true;
+                    userRole = 'academician';
+                  }
+                } else if (requestedRole === 'institution') {
+                  const imCheck = await this.pg.query('SELECT id FROM institution_members WHERE user_id = $1 LIMIT 1', [user.id]);
+                  if (imCheck.rows.length > 0) {
+                    isRoleMatched = true;
+                    userRole = 'institution';
+                  }
+                } else if (requestedRole === 'company' || requestedRole === 'industry') {
+                  const cmCheck = await this.pg.query('SELECT id FROM company_members WHERE user_id = $1 LIMIT 1', [user.id]);
+                  if (cmCheck.rows.length > 0) {
+                    isRoleMatched = true;
+                    userRole = 'company';
+                  }
+                } else if (requestedRole === 'student') {
+                  const stCheck = await this.pg.query('SELECT id FROM students WHERE user_id = $1 LIMIT 1', [user.id]);
+                  if (stCheck.rows.length > 0) {
+                    isRoleMatched = true;
+                    userRole = 'student';
+                  }
+                }
+              }
+            } catch (roleErr) {
+              console.warn('[authenticateUser] Multi-role lookup notice:', roleErr.message);
+            }
+          }
+
+          if (!isRoleMatched) {
             return {
               success: false,
               code: 403,
@@ -2940,6 +3261,19 @@ class RelationalManager {
             user: sanitizedUser
           };
         }
+
+        // Zero rows returned from PostgreSQL: fallback to Supabase REST if available
+        if (this.supabase) {
+          try {
+            const supRes = await this._authenticateUserViaSupabase(normEmail, password, role);
+            if (supRes && (supRes.success || (supRes.code && supRes.code !== 404))) {
+              return supRes;
+            }
+          } catch (supErr) {
+            console.warn('[authenticateUser] Supabase zero-row failover notice:', supErr.message);
+          }
+        }
+
         if (this.isPgRequired) {
           return {
             success: false,

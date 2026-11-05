@@ -63,6 +63,16 @@ export default function AcademicianLogin({ onLoginSuccess, onBackToRoles, onNavi
     return () => { isMounted = false; };
   }, []);
 
+  // Apple Design: ESC key dismissal for faculty registration modal
+  useEffect(() => {
+    if (!showRegisterModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setShowRegisterModal(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showRegisterModal]);
+
   const [rememberMe, setRememberMe] = useState(true);
 
   // Quick Demo Account Auto-Fill
@@ -493,27 +503,41 @@ export default function AcademicianLogin({ onLoginSuccess, onBackToRoles, onNavi
 
       {/* Faculty Registration Modal */}
       {showRegisterModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
-          backdropFilter: 'blur(12px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 100,
-          padding: '20px'
-        }}>
-          <div style={{
-            width: '100%',
-            maxWidth: '560px',
-            background: '#0f172a',
-            border: '1px solid rgba(99, 102, 241, 0.3)',
-            borderRadius: '16px',
-            padding: '28px',
-            maxHeight: '90vh',
-            overflowY: 'auto'
-          }}>
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setShowRegisterModal(false); }}
+          className="modal-backdrop"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '20px',
+            animation: 'fadeIn 0.2s ease-out'
+          }}
+        >
+          <div 
+            role="dialog"
+            aria-modal="true"
+            aria-label="Register Academician Profile"
+            onClick={(e) => e.stopPropagation()}
+            className="modal-content-box"
+            style={{
+              width: '100%',
+              maxWidth: '560px',
+              background: '#0f172a',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              borderRadius: '20px',
+              padding: '28px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div>
                 <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#f8fafc', margin: '0 0 4px' }}>

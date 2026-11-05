@@ -498,8 +498,176 @@ router.post('/institution/:id/submit', requireAuth, async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// NEXUS ASSESSMENT GUARD & INTEGRITY MONITORING ENDPOINTS
+// NEXUS ASSESSMENT GUARD & AUTHORITY MONITORING ENDPOINTS
 // ─────────────────────────────────────────────────────────────────────────────
+
+// GET /api/assessments/monitoring/faculty-alerts — Faculty-scoped integrity alerts
+router.get('/monitoring/faculty-alerts', requireAuth, async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').toLowerCase();
+    const isAuthorized = ['academician', 'faculty', 'institution', 'admin', 'staff'].includes(role);
+    if (!isAuthorized) {
+      return res.status(403).json({ success: false, message: 'Access denied: Faculty or Academician role required.' });
+    }
+
+    const institutionId = req.user?.institutionId || req.user?.collegeId;
+    const result = await assessmentGuardService.getFacultyAlerts({
+      userId: req.user?.id,
+      institutionId,
+      status: req.query.status
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/assessments/monitoring/coordinator-alerts — Academic Coordinator / HOD alerts & escalated cases
+router.get('/monitoring/coordinator-alerts', requireAuth, async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').toLowerCase();
+    const isAuthorized = ['academician', 'faculty', 'institution', 'admin'].includes(role);
+    if (!isAuthorized) {
+      return res.status(403).json({ success: false, message: 'Access denied: Coordinator or Academic leadership role required.' });
+    }
+
+    const institutionId = req.user?.institutionId || req.user?.collegeId;
+    const result = await assessmentGuardService.getCoordinatorAlerts({
+      userId: req.user?.id,
+      institutionId,
+      departmentId: req.query.departmentId || null,
+      status: req.query.status
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/assessments/monitoring/institution-overview — Institution-wide assessment integrity telemetry
+router.get('/monitoring/institution-overview', requireAuth, async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').toLowerCase();
+    const isAuthorized = ['institution', 'admin', 'academician', 'faculty'].includes(role);
+    if (!isAuthorized) {
+      return res.status(403).json({ success: false, message: 'Access denied: Institution administrator role required.' });
+    }
+
+    const institutionId = req.user?.institutionId || req.user?.collegeId || req.user?.id;
+    const result = await assessmentGuardService.getInstitutionOverview({
+      userId: req.user?.id,
+      institutionId,
+      status: req.query.status
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/assessments/monitoring/company-alerts — Company & Evaluator scoped candidate integrity alerts
+router.get('/monitoring/company-alerts', requireAuth, async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').toLowerCase();
+    const isAuthorized = ['company', 'industry', 'admin', 'recruiter'].includes(role);
+    if (!isAuthorized) {
+      return res.status(403).json({ success: false, message: 'Access denied: Company evaluator or recruiter role required.' });
+    }
+
+    const companyId = req.user?.companyId || req.user?.id;
+    const result = await assessmentGuardService.getCompanyAlerts({
+      userId: req.user?.id,
+      companyId,
+      status: req.query.status
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/assessments/monitoring/events/:eventId/review — Human review action workflow
+router.post('/monitoring/events/:eventId/review', requireAuth, async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').toLowerCase();
+    const isAuthorized = ['institution', 'academician', 'faculty', 'company', 'industry', 'admin', 'recruiter'].includes(role);
+    if (!isAuthorized) {
+      return res.status(403).json({ success: false, message: 'Access denied: Authorized authority role required to review events.' });
+    }
+
+    const { reviewStatus, notes } = req.body;
+    const result = await assessmentGuardService.reviewEvent({
+      eventId: req.params.eventId,
+      reviewerUserId: req.user?.id,
+      reviewerRole: role,
+      reviewStatus,
+      notes
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/assessments/monitoring/events/:eventId/escalate — Escalate event to coordinator or company admin
+router.post('/monitoring/events/:eventId/escalate', requireAuth, async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').toLowerCase();
+    const isAuthorized = ['institution', 'academician', 'faculty', 'company', 'industry', 'admin'].includes(role);
+    if (!isAuthorized) {
+      return res.status(403).json({ success: false, message: 'Access denied: Only faculty or evaluators can escalate events.' });
+    }
+
+    const { notes, targetRole } = req.body;
+    const result = await assessmentGuardService.escalateEvent({
+      eventId: req.params.eventId,
+      reviewerUserId: req.user?.id,
+      reviewerRole: role,
+      notes,
+      targetRole
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/assessments/:id/monitoring/settings — Fetch assessment monitoring settings
+router.get('/:id/monitoring/settings', requireAuth, async (req, res) => {
+  try {
+    const settings = await assessmentGuardService.getMonitoringSettings(req.params.id);
+    res.json({ success: true, data: settings });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ success: false, message: err.message });
+  }
+});
+
+// PUT /api/assessments/:id/monitoring/settings — Update assessment monitoring settings
+router.put('/:id/monitoring/settings', requireAuth, async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').toLowerCase();
+    const isAuthorized = ['institution', 'academician', 'faculty', 'company', 'industry', 'admin'].includes(role);
+    if (!isAuthorized) {
+      return res.status(403).json({ success: false, message: 'Access denied: Authorized creator or administrator role required.' });
+    }
+
+    const result = await assessmentGuardService.updateMonitoringSettings({
+      assessmentId: req.params.id,
+      settings: req.body,
+      userId: req.user?.id
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ success: false, message: err.message });
+  }
+});
 
 // POST /api/assessments/:id/monitoring/start — Initiate monitoring session after student consent
 router.post('/:id/monitoring/start', requireAuth, async (req, res) => {
@@ -620,6 +788,7 @@ router.post('/:id/review-event', requireAuth, async (req, res) => {
     const result = await assessmentGuardService.reviewEvent({
       eventId,
       reviewerUserId: req.user?.id,
+      reviewerRole: role,
       reviewStatus,
       notes
     });

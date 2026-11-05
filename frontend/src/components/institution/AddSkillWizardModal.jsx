@@ -23,6 +23,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import useAppleModal from '../../utils/useAppleModal';
 
 const WIZARD_STEPS = [
   { id: 1, label: 'Basic Info' },
@@ -59,6 +60,7 @@ const ENROLLMENT_TYPES = [
 ];
 
 export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onSuccess, institution, initialSkill }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen, onClose });
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -320,21 +322,29 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 100,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(10, 15, 30, 0.75)',
-      backdropFilter: 'blur(12px)',
-      WebkitBackdropFilter: 'blur(12px)',
-      padding: '20px',
-      overflowY: 'auto'
-    }}>
+    <div 
+      onClick={handleBackdropClick}
+      className="modal-backdrop"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 100,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(10, 15, 30, 0.75)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        padding: '20px',
+        overflowY: 'auto',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
       <div 
-        className="glass-card"
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Offer New Skill or Course Wizard"
+        className="glass-card modal-content-box"
         style={{
           width: '100%',
           maxWidth: '900px',
@@ -345,7 +355,8 @@ export default function AddSkillWizardModal({ isOpen, onClose, onSkillSaved, onS
           background: 'var(--bg-card, rgba(255, 255, 255, 0.95))',
           border: '1px solid var(--border-subtle, rgba(124, 58, 237, 0.25))',
           boxShadow: '0 25px 60px rgba(0, 0, 0, 0.3), 0 0 40px rgba(124, 58, 237, 0.15)',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
       >
         {/* Header */}

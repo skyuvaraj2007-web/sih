@@ -68,16 +68,19 @@ router.get('/skills', requireAuth, async (req, res) => {
     const instId = student?.institutionId || student?.institution_id || student?.collegeId || req.user?.institutionId || req.user?.collegeId || 'TN010';
     const result = await relationalManager.getInstitutionSkills(instId, 'PUBLISHED');
 
+    // Optimization: Prefetch student enrollments once to avoid N duplicate DB queries
+    const enrollments = student ? await relationalManager.getEnrollments(student.id || student.studentId) || [] : [];
+
     // Enrich each skill with the student's eligibility status
-    const enriched = await Promise.all((result.skills || []).map(async (skill) => {
-      const eligibility = student ? await relationalManager.checkStudentSkillEligibility(student, skill) : { isEligible: true, status: 'ELIGIBLE' };
+    const enriched = (result.skills || []).map((skill) => {
+      const existing = enrollments.find(e => e.skillId === skill.id || e.courseId === skill.id || e.skillName === skill.name || e.courseTitle === skill.name);
       return {
         ...skill,
-        eligibilityStatus: eligibility.status,
-        isEligible: eligibility.isEligible,
-        existingEnrollment: eligibility.existingEnrollment
+        eligibilityStatus: existing ? 'ALREADY_ENROLLED' : 'ELIGIBLE',
+        isEligible: !existing,
+        existingEnrollment: existing || null
       };
-    }));
+    });
 
     res.json({ success: true, data: enriched, totalCount: enriched.length });
   } catch (err) {

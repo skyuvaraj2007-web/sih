@@ -1220,6 +1220,21 @@
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   APPLE FLUID TACTILE PRESS FEEDBACK
+   ══════════════════════════════════════════════════════════════ */
+.lp-btn-get-started:active,
+.lp-hero-cta-primary:active,
+.lp-hero-cta-secondary:active,
+.lp-tab-pill:active,
+.lp-role-entry-card:active,
+.lp-cap-card:active {
+  transform: scale(0.97) !important;
+  transition: transform 80ms cubic-bezier(0.25, 1, 0.5, 1) !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lp-role-entry-card,
   .lp-btn-get-started,

@@ -10,9 +10,14 @@ import {
   ArrowRight,
   ShieldCheck,
   Send,
-  RotateCcw
+  RotateCcw,
+  Eye,
+  Maximize2
 } from 'lucide-react';
 import { collaborationService } from '../services/collaborationService';
+import AssessmentIntegrityCheckModal from './assessment/AssessmentIntegrityCheckModal';
+import AssessmentGuardMonitor from './assessment/AssessmentGuardMonitor';
+import AssessmentIntegrityReportModal from './assessment/AssessmentIntegrityReportModal';
 
 export default function StudentInstitutionAssessments({ onShowToast, onFinished }) {
   const [assessments, setAssessments] = useState([]);
@@ -26,6 +31,13 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [resultSummary, setResultSummary] = useState(null);
+
+  // Nexus Assessment Guard State
+  const [showIntegrityCheckModal, setShowIntegrityCheckModal] = useState(false);
+  const [pendingAsmt, setPendingAsmt] = useState(null);
+  const [monitoringSessionId, setMonitoringSessionId] = useState(null);
+  const [monitoringConfig, setMonitoringConfig] = useState({ cameraEnabled: true, microphoneEnabled: false });
+  const [viewingIntegrityReport, setViewingIntegrityReport] = useState(false);
 
   const loadAssessments = async () => {
     try {
@@ -63,6 +75,51 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
     return () => clearInterval(interval);
   }, [activeTest, timeRemaining, resultSummary]);
 
+  const handleInitiateExam = (assessment) => {
+    setPendingAsmt(assessment);
+    setShowIntegrityCheckModal(true);
+  };
+
+  const handleConsentAndStart = async (consentData) => {
+    setShowIntegrityCheckModal(false);
+    if (!pendingAsmt) return;
+    setMonitoringConfig(consentData);
+
+    // Request browser full-screen explicitly on user gesture
+    try {
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } catch (e) {}
+
+    // Initialize monitoring session in PostgreSQL
+    try {
+      const token = localStorage.getItem('nexus_token') || sessionStorage.getItem('nexus_token');
+      const mRes = await fetch(`/api/assessments/${pendingAsmt.id}/monitoring/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          consentGiven: true,
+          cameraEnabled: Boolean(consentData.cameraEnabled),
+          microphoneEnabled: Boolean(consentData.microphoneEnabled),
+          monitoringEnabled: true
+        })
+      });
+      const mData = await mRes.json();
+      if (mData.success && mData.session?.id) {
+        setMonitoringSessionId(mData.session.id);
+      }
+    } catch (mErr) {
+      console.warn('[StudentInstitutionAssessments] Monitoring session init note:', mErr.message);
+    }
+
+    // Launch examination
+    await handleStartTest(pendingAsmt);
+  };
+
   const handleStartTest = async (assessment) => {
     try {
       setLoading(true);
@@ -84,10 +141,17 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
           return;
         }
 
+        // Restore any locally auto-saved answers if session resumed
+        let savedAnswers = {};
+        try {
+          const cached = localStorage.getItem(`nexus_asmt_saved_${testData.id}`);
+          if (cached) savedAnswers = JSON.parse(cached);
+        } catch (e) {}
+
         setActiveTest(testData);
         setQuestions(qList);
         setCurrentIdx(0);
-        setUserAnswers({});
+        setUserAnswers(savedAnswers);
         setTimeRemaining((testData.duration_minutes || 45) * 60);
         setResultSummary(null);
       } else {
@@ -101,10 +165,19 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
   };
 
   const handleSelectOption = (qId, optionKey) => {
-    setUserAnswers((prev) => ({
-      ...prev,
-      [qId]: optionKey
-    }));
+    setUserAnswers((prev) => {
+      const next = {
+        ...prev,
+        [qId]: optionKey
+      };
+      // Auto-save response continuously
+      try {
+        if (activeTest?.id) {
+          localStorage.setItem(`nexus_asmt_saved_${activeTest.id}`, JSON.stringify(next));
+        }
+      } catch (e) {}
+      return next;
+    });
   };
 
   const handleSubmitTest = async () => {
@@ -116,6 +189,26 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
         selectedOption
       }));
 
+      // Conclude monitoring session
+      try {
+        const token = localStorage.getItem('nexus_token') || sessionStorage.getItem('nexus_token');
+        await fetch(`/api/assessments/${activeTest.id}/monitoring/end`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ sessionId: monitoringSessionId })
+        });
+      } catch (e) {}
+
+      // Exit full-screen cleanly
+      try {
+        if (document.fullscreenElement && document.exitFullscreen) {
+          await document.exitFullscreen().catch(() => {});
+        }
+      } catch (e) {}
+
       const res = await collaborationService.submitInstitutionAssessmentAttempt(
         activeTest.id,
         answersArray,
@@ -123,6 +216,11 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
       );
 
       if (res.success) {
+        // Clean local auto-save cache
+        try {
+          localStorage.removeItem(`nexus_asmt_saved_${activeTest.id}`);
+        } catch (e) {}
+
         setResultSummary(res.data);
         if (onShowToast) {
           onShowToast({
@@ -199,21 +297,35 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
             </div>
           </div>
 
-          <button
-            onClick={() => {
-              setActiveTest(null);
-              setResultSummary(null);
-              loadAssessments();
-              if (onFinished) onFinished();
-            }}
-            style={{
-              background: 'linear-gradient(135deg, #0284c7, #0369a1)',
-              color: '#fff', border: 'none', padding: '12px 28px', borderRadius: '10px',
-              fontWeight: 700, fontSize: '14px', cursor: 'pointer'
-            }}
-          >
-            Back to Assessment Directory
-          </button>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setViewingIntegrityReport(true)}
+              style={{
+                background: 'rgba(56, 189, 248, 0.15)',
+                color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.4)', padding: '12px 22px', borderRadius: '10px',
+                fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
+              }}
+            >
+              <ShieldCheck size={18} />
+              <span>View Integrity Report</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTest(null);
+                setResultSummary(null);
+                loadAssessments();
+                if (onFinished) onFinished();
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+                color: '#fff', border: 'none', padding: '12px 28px', borderRadius: '10px',
+                fontWeight: 700, fontSize: '14px', cursor: 'pointer'
+              }}
+            >
+              Back to Assessment Directory
+            </button>
+          </div>
         </div>
       );
     }
@@ -229,8 +341,18 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
         padding: '28px',
         maxWidth: '840px',
         margin: '20px auto',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)'
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)',
+        position: 'relative'
       }}>
+        {/* Assessment Guard Active HUD */}
+        <AssessmentGuardMonitor
+          assessmentId={activeTest.id}
+          sessionId={monitoringSessionId}
+          currentQuestionId={currentQ?.id}
+          monitoringEnabled={true}
+          cameraEnabled={monitoringConfig.cameraEnabled}
+          onShowToast={(msg, type) => onShowToast && onShowToast({ title: 'Integrity Monitor', message: msg, type: type || 'info' })}
+        />
         {/* Test Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '16px' }}>
           <div>
@@ -422,7 +544,7 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
               </div>
 
               <button
-                onClick={() => handleStartTest(a)}
+                onClick={() => handleInitiateExam(a)}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                   background: 'linear-gradient(135deg, #0284c7, #0369a1)', color: '#fff',
@@ -435,6 +557,26 @@ export default function StudentInstitutionAssessments({ onShowToast, onFinished 
             </div>
           ))}
         </div>
+      )}
+
+      {/* Pre-Exam Integrity Disclosure & Camera Consent Modal */}
+      {showIntegrityCheckModal && (
+        <AssessmentIntegrityCheckModal
+          assessment={pendingAsmt}
+          onCancel={() => {
+            setShowIntegrityCheckModal(false);
+            setPendingAsmt(null);
+          }}
+          onConfirm={handleConsentAndStart}
+        />
+      )}
+
+      {/* Post-Exam Integrity Report Modal */}
+      {viewingIntegrityReport && activeTest && (
+        <AssessmentIntegrityReportModal
+          assessmentId={activeTest.id}
+          onClose={() => setViewingIntegrityReport(false)}
+        />
       )}
     </div>
   );

@@ -846,6 +846,12 @@ router.post('/academician/login', async (req, res) => {
 
         user = userRes.rows[0];
         userRole = (user.role_code || '').toLowerCase();
+        if (!userRole) {
+          const apCheck = await relationalManager.query('SELECT id FROM academician_profiles WHERE user_id = $1 LIMIT 1', [user.id]);
+          if (apCheck && apCheck.rows && apCheck.rows.length > 0) {
+            userRole = 'academician';
+          }
+        }
         passwordHash = user.password_hash;
         isActive = user.is_active !== false;
       } catch (dbErr) {
@@ -889,6 +895,17 @@ router.post('/academician/login', async (req, res) => {
       });
     }
 
+    // Verify password with bcrypt
+    if (passwordHash) {
+      const passwordValid = bcrypt.compareSync(password, passwordHash);
+      if (!passwordValid) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password.'
+        });
+      }
+    }
+
     // Role validation
     if (userRole === 'student') {
       return res.status(403).json({
@@ -913,17 +930,6 @@ router.post('/academician/login', async (req, res) => {
         success: false,
         message: 'This account does not have Academician access.'
       });
-    }
-
-    // Verify password with bcrypt
-    if (passwordHash) {
-      const passwordValid = bcrypt.compareSync(password, passwordHash);
-      if (!passwordValid) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid email or password.'
-        });
-      }
     }
 
     // Load full academician profile, institution, department, class, and mapped student count

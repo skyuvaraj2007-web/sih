@@ -25,6 +25,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { projectService } from '../../services/projectService';
+import useAppleModal from '../../utils/useAppleModal';
 
 export default function ProjectDetailModal({
   projectId,
@@ -33,6 +34,7 @@ export default function ProjectDetailModal({
   onShowToast,
   onProjectUpdated
 }) {
+  const { handleBackdropClick, handleContentClick, modalProps } = useAppleModal({ isOpen, onClose });
   const [project, setProject] = useState(null);
   const [aiInsights, setAiInsights] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -196,17 +198,30 @@ export default function ProjectDetailModal({
   };
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
-      background: 'rgba(5, 7, 15, 0.85)', backdropFilter: 'blur(10px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
-    }}>
-      <div style={{
-        width: '100%', maxWidth: '900px', maxHeight: '90vh',
-        background: 'var(--bg-card, #0f172a)', border: '1px solid var(--border-subtle, rgba(255,255,255,0.1))',
-        borderRadius: '20px', display: 'flex', flexDirection: 'column',
-        boxShadow: '0 25px 60px -15px rgba(0,0,0,0.7)', overflow: 'hidden'
-      }}>
+    <div 
+      onClick={handleBackdropClick}
+      className="modal-backdrop"
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(5, 7, 15, 0.85)', backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
+      <div 
+        onClick={handleContentClick}
+        {...modalProps}
+        aria-label="Project Details Modal"
+        className="modal-content-box"
+        style={{
+          width: '100%', maxWidth: '900px', maxHeight: '90vh',
+          background: 'var(--bg-card, #0f172a)', border: '1px solid var(--border-subtle, rgba(255,255,255,0.1))',
+          borderRadius: '20px', display: 'flex', flexDirection: 'column',
+          boxShadow: '0 25px 60px -15px rgba(0,0,0,0.7)', overflow: 'hidden',
+          animation: 'modalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
         {/* Modal Top Bar */}
         <div style={{
           padding: '16px 24px', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.08))',
