@@ -2338,16 +2338,32 @@ class RelationalManager {
 
   async _getUserByIdViaSupabase(id) {
     if (!this.supabase || !id) return null;
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id));
-    if (!isUuid) return null;
+    const cleanId = String(id).trim();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
 
     try {
-      const { data: users, error } = await this.supabase.from('users').select('*').eq('id', id).limit(1);
-      if (error || !users || users.length === 0) return null;
-      return await this._getUserByEmailViaSupabase(users[0].email);
-    } catch {
+      if (isUuid) {
+        const { data: users, error } = await this.supabase.from('users').select('*').eq('id', cleanId).limit(1);
+        if (!error && users && users.length > 0) {
+          return await this._getUserByEmailViaSupabase(users[0].email);
+        }
+        // Fallback: check students table if cleanId is a student UUID
+        const { data: stus } = await this.supabase.from('students').select('user_id').eq('id', cleanId).limit(1);
+        if (stus && stus.length > 0 && stus[0].user_id) {
+          return await this._getUserByIdViaSupabase(stus[0].user_id);
+        }
+      } else {
+        // Non-UUID: check students table by roll_number
+        const { data: stus } = await this.supabase.from('students').select('user_id').ilike('roll_number', cleanId).limit(1);
+        if (stus && stus.length > 0 && stus[0].user_id) {
+          return await this._getUserByIdViaSupabase(stus[0].user_id);
+        }
+      }
+    } catch (err) {
+      console.warn('[RelationalManager] _getUserByIdViaSupabase notice:', err.message);
       return null;
     }
+    return null;
   }
 
   async _authenticateUserViaSupabase(normEmail, password, role = null) {
@@ -7653,9 +7669,23 @@ class RelationalManager {
           };
         }
       } catch (err) {
+        console.warn('[getUserById] PG lookup warning, attempting Supabase failover:', err.message);
+        if (this.supabase) {
+          try {
+            const supUser = await this._getUserByIdViaSupabase(cleanId);
+            if (supUser) return supUser;
+          } catch (e) {}
+        }
         if (this.isPgRequired) throw new Error('DATABASE ERROR (getUserById): ' + err.message);
         console.warn('[getUserById] PG lookup warning:', err.message);
       }
+    }
+
+    if (this.supabase) {
+      try {
+        const supUser = await this._getUserByIdViaSupabase(cleanId);
+        if (supUser) return supUser;
+      } catch (e) {}
     }
 
     if (this.isPgRequired) return null;
@@ -7822,10 +7852,25 @@ class RelationalManager {
           };
         }
       } catch (err) {
+        console.warn('[getUserByEmail] PG lookup error, attempting Supabase failover:', err.message);
+        if (this.supabase) {
+          try {
+            const supUser = await this._getUserByEmailViaSupabase(cleanEmail);
+            if (supUser) return supUser;
+          } catch (e) {}
+        }
         if (this.isPgRequired) throw new Error('DATABASE ERROR (getUserByEmail): ' + err.message);
         console.warn('[getUserByEmail] PG lookup warning:', err.message);
       }
     }
+
+    if (this.supabase) {
+      try {
+        const supUser = await this._getUserByEmailViaSupabase(cleanEmail);
+        if (supUser) return supUser;
+      } catch (e) {}
+    }
+
     if (this.isPgRequired) return null;
     const data = this._read();
     return (data.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail) || null;

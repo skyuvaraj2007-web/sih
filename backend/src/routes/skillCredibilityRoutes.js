@@ -9,20 +9,34 @@ const router = express.Router();
 const skillCredibilityService = require('../services/skillCredibilityService');
 const { requireAuth } = require('../middleware/auth');
 const skillGraphService = require('../services/skillGraphService');
-const pg = require('../db');
+const relationalManager = require('../db/relationalManager');
 
 /**
  * Resolve student entity securely from JWT
  */
 async function resolveAuthStudent(req) {
-  const studentIdentifier = req.user?.studentId || req.user?.id;
+  const studentIdentifier = req.user?.studentId || req.user?.id || req.user?.userId;
   let stu = await skillGraphService.resolveStudent(studentIdentifier);
   if (!stu && req.user?.email) {
-    const res = await pg.query(
-      `SELECT s.* FROM students s JOIN users u ON u.id = s.user_id WHERE u.email = $1 LIMIT 1`,
-      [req.user.email]
-    );
-    stu = res.rows[0] || null;
+    stu = await skillGraphService.resolveStudent(req.user.email);
+  }
+  if (!stu) {
+    try {
+      const rawStu = await relationalManager.getStudentById(studentIdentifier || req.user?.email);
+      if (rawStu) {
+        stu = {
+          id: rawStu.id || rawStu.studentId,
+          user_id: rawStu.userId || rawStu.user_id || rawStu.id,
+          institution_id: rawStu.institutionId || rawStu.institution_id || rawStu.collegeId,
+          full_name: rawStu.name || rawStu.fullName || rawStu.full_name,
+          roll_number: rawStu.rollNumber || rawStu.roll_number,
+          user_email: rawStu.email || rawStu.user_email || req.user?.email,
+          readiness_score: rawStu.readinessScore || 75
+        };
+      }
+    } catch (e) {
+      console.warn('[resolveAuthStudent] relationalManager student resolution notice:', e.message);
+    }
   }
   return stu;
 }

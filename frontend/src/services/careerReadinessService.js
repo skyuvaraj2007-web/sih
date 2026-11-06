@@ -6,9 +6,12 @@ const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').r
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('nexus_token') || sessionStorage.getItem('nexus_token') || localStorage.getItem('token');
+  const validToken = token && token !== 'undefined' && token !== 'null' && typeof token === 'string' && token.trim() !== ''
+    ? token.trim()
+    : null;
   return {
     'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    ...(validToken ? { 'Authorization': `Bearer ${validToken}` } : {})
   };
 };
 
