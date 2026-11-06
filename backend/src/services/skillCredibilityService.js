@@ -5,24 +5,14 @@
  * Proficiency answers: "How strong is the demonstrated skill?"
  * Credibility answers: "How strong is the evidence supporting this skill?"
  */
-const { pool } = require('../config/db');
+const relationalManager = require('../db/relationalManager');
 
 class SkillCredibilityService {
   /**
    * Calculate credibility for a single skill of a student
    */
   async calculateSkillCredibility(studentId, skillId, client = null) {
-    if (!client && !pool) {
-      return {
-        studentId,
-        skillId,
-        credibilityScore: 75,
-        verdict: 'DEMONSTRATED',
-        evidenceCount: 1,
-        calculatedAt: new Date().toISOString()
-      };
-    }
-    const pg = client || pool;
+    const pg = client || relationalManager;
 
     // 1. Fetch skill and student skill record
     const ssRes = await pg.query(
@@ -292,55 +282,67 @@ class SkillCredibilityService {
    * Batch calculate credibility for all skills of a student
    */
   async calculateAllSkillCredibility(studentId, client = null) {
-    const pg = client || pool;
+    const pg = client || relationalManager;
 
-    const skillsRes = await pg.query(
-      `SELECT skill_id FROM student_skills WHERE student_id = $1`,
-      [studentId]
-    );
+    try {
+      const skillsRes = await pg.query(
+        `SELECT skill_id FROM student_skills WHERE student_id = $1`,
+        [studentId]
+      );
 
-    const results = [];
-    for (const row of skillsRes.rows) {
-      const cred = await this.calculateSkillCredibility(studentId, row.skill_id, pg);
-      if (cred) results.push(cred);
+      const results = [];
+      for (const row of (skillsRes.rows || [])) {
+        const cred = await this.calculateSkillCredibility(studentId, row.skill_id, pg);
+        if (cred) results.push(cred);
+      }
+
+      return results;
+    } catch (err) {
+      console.warn('[skillCredibilityService] calculateAllSkillCredibility notice:', err.message);
+      return [];
     }
-
-    return results;
   }
 
   /**
    * Get all stored credibility scores for a student
    */
   async getStudentCredibilityScores(studentId) {
-    if (!pool) return [];
-    const res = await pool.query(
-      `SELECT sc.*, s.name as skill_name, cat.name as skill_category, ss.proficiency_score, ss.proficiency_level
-       FROM skill_credibility_scores sc
-       JOIN skills s ON s.id = sc.skill_id
-       LEFT JOIN skill_categories cat ON cat.id = s.category_id
-       LEFT JOIN student_skills ss ON ss.student_id = sc.student_id AND ss.skill_id = sc.skill_id
-       WHERE sc.student_id = $1
-       ORDER BY sc.credibility_score DESC`,
-      [studentId]
-    );
+    try {
+      const res = await relationalManager.query(
+        `SELECT sc.*, s.name as skill_name, cat.name as skill_category, ss.proficiency_score, ss.proficiency_level
+         FROM skill_credibility_scores sc
+         JOIN skills s ON s.id = sc.skill_id
+         LEFT JOIN skill_categories cat ON cat.id = s.category_id
+         LEFT JOIN student_skills ss ON ss.student_id = sc.student_id AND ss.skill_id = sc.skill_id
+         WHERE sc.student_id = $1
+         ORDER BY sc.credibility_score DESC`,
+        [studentId]
+      );
 
-    return res.rows.map(r => ({
-      id: r.id,
-      studentId: r.student_id,
-      skillId: r.skill_id,
-      skillName: r.skill_name,
-      category: r.skill_category,
-      proficiencyScore: r.proficiency_score || 0,
-      proficiencyLevel: r.proficiency_level || 'Beginner',
-      credibilityScore: r.credibility_score,
-      evidenceSourceCount: r.evidence_source_count,
-      verificationStrength: r.verification_strength,
-      recencyScore: r.recency_score,
-      consistencyScore: r.consistency_score,
-      consistencyNote: r.consistency_note,
-      evidenceSummary: Array.isArray(r.evidence_summary) ? r.evidence_summary : [],
-      calculatedAt: r.calculated_at
-    }));
+      return (res.rows || []).map(r => ({
+        id: r.id,
+        studentId: r.student_id,
+        skillId: r.skill_id,
+        skillName: r.skill_name,
+        category: r.skill_category,
+        proficiencyScore: r.proficiency_score || 0,
+        proficiencyLevel: r.proficiency_level || 'Beginner',
+        credibilityScore: r.credibility_score,
+        credibility_score: r.credibility_score,
+        verdict: r.verdict,
+        confidenceInterval: r.confidence_interval || [r.credibility_score, r.credibility_score],
+        evidenceSourceCount: r.evidence_source_count,
+        verificationStrength: r.verification_strength,
+        recencyScore: r.recency_score,
+        consistencyScore: r.consistency_score,
+        consistencyNote: r.consistency_note,
+        evidenceSummary: Array.isArray(r.evidence_summary) ? r.evidence_summary : [],
+        calculatedAt: r.calculated_at
+      }));
+    } catch (err) {
+      console.warn('[skillCredibilityService] getStudentCredibilityScores notice:', err.message);
+      return [];
+    }
   }
 
   /**
