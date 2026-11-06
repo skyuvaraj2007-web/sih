@@ -22,49 +22,58 @@ class SkillGraphService {
    */
   async resolveStudent(identifier) {
     if (!identifier) return null;
-    if (!isConfigured()) {
-      try {
-        const relationalManager = require('../db/relationalManager');
-        const s = await relationalManager.getStudentById(identifier);
-        if (s) {
-          return {
-            id: s.id || s.studentId,
-            user_id: s.userId || s.id,
-            institution_id: s.institutionId || s.collegeId,
-            full_name: s.name || s.fullName,
-            roll_number: s.rollNumber || s.regNo,
-            user_email: s.email,
-            readiness_score: s.readinessScore || 75
-          };
-        }
-      } catch (e) {}
-      return null;
-    }
-    const client = await this.getClient();
+    let client = null;
     try {
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(identifier).trim());
-      let res;
-      if (isUuid) {
-        res = await client.query(
-          `SELECT s.*, u.email as user_email
-           FROM students s
-           JOIN users u ON u.id = s.user_id
-           WHERE s.id = $1 OR s.user_id = $1 LIMIT 1`,
-          [identifier]
-        );
-      } else {
-        res = await client.query(
-          `SELECT s.*, u.email as user_email
-           FROM students s
-           JOIN users u ON u.id = s.user_id
-           WHERE s.roll_number = $1 LIMIT 1`,
-          [identifier]
-        );
+      if (isConfigured()) {
+        client = await this.getClient();
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(identifier).trim());
+        let res;
+        if (isUuid) {
+          res = await client.query(
+            `SELECT s.*, u.email as user_email
+             FROM students s
+             JOIN users u ON u.id = s.user_id
+             WHERE s.id = $1 OR s.user_id = $1 LIMIT 1`,
+            [identifier]
+          );
+        } else {
+          res = await client.query(
+            `SELECT s.*, u.email as user_email
+             FROM students s
+             JOIN users u ON u.id = s.user_id
+             WHERE s.roll_number = $1 LIMIT 1`,
+            [identifier]
+          );
+        }
+        if (res && res.rows && res.rows[0]) {
+          return res.rows[0];
+        }
       }
-      return res.rows[0] || null;
+    } catch (e) {
+      console.warn('[SkillGraphService] Direct PG client student resolution notice:', e.message);
     } finally {
-      client.release();
+      if (client && typeof client.release === 'function') {
+        try { client.release(); } catch (_) {}
+      }
     }
+
+    // Seamless fallback to relationalManager / Supabase adapter
+    try {
+      const relationalManager = require('../db/relationalManager');
+      const s = await relationalManager.getStudentById(identifier);
+      if (s) {
+        return {
+          id: s.id || s.studentId,
+          user_id: s.userId || s.id,
+          institution_id: s.institutionId || s.collegeId,
+          full_name: s.name || s.fullName,
+          roll_number: s.rollNumber || s.regNo,
+          user_email: s.email,
+          readiness_score: s.readinessScore || 75
+        };
+      }
+    } catch (e) {}
+    return null;
   }
 
   /**

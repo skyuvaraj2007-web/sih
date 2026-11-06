@@ -16,10 +16,21 @@ const relationalManager = require('../db/relationalManager');
  */
 async function resolveAuthStudent(req) {
   const studentIdentifier = req.user?.studentId || req.user?.id || req.user?.userId;
-  let stu = await skillGraphService.resolveStudent(studentIdentifier);
-  if (!stu && req.user?.email) {
-    stu = await skillGraphService.resolveStudent(req.user.email);
+  let stu = null;
+  try {
+    stu = await skillGraphService.resolveStudent(studentIdentifier);
+  } catch (e) {
+    console.warn('[resolveAuthStudent] skillGraphService student resolution notice:', e.message);
   }
+
+  if (!stu && req.user?.email) {
+    try {
+      stu = await skillGraphService.resolveStudent(req.user.email);
+    } catch (e) {
+      console.warn('[resolveAuthStudent] skillGraphService email resolution notice:', e.message);
+    }
+  }
+
   if (!stu) {
     try {
       const rawStu = await relationalManager.getStudentById(studentIdentifier || req.user?.email);
